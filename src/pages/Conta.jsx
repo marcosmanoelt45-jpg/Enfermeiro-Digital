@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, LogOut, Mail, UserCircle, ShieldCheck, Loader2, GraduationCap, School, Camera, Check } from "lucide-react";
+import { ArrowLeft, LogOut, Mail, UserCircle, ShieldCheck, Loader2, GraduationCap, School, Camera, Check, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Image as ImageComponent } from "@/components/ui/image";
@@ -20,6 +20,74 @@ export default function Conta() {
   const [uploadingPhoto, setUploadingPhoto] = useState(false);
   const [pendingFile, setPendingFile] = useState(null);
   const fileRef = useRef(null);
+
+  // Chave do Gemini AI
+  const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem("enfermeiro_gemini_api_key") || "");
+  const [geminiKeyInput, setGeminiKeyInput] = useState(geminiKey);
+  const [testingGemini, setTestingGemini] = useState(false);
+
+  async function handleSaveGeminiKey() {
+    const keyToTest = geminiKeyInput.trim();
+    if (!keyToTest) return;
+
+    setTestingGemini(true);
+    try {
+      // Teste leve de chamada para validar se a chave é aceita
+      const res = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${keyToTest}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: "ping" }] }],
+          }),
+        }
+      );
+
+      if (!res.ok) {
+        // Tenta também com gemini-1.5-flash antes de rejeitar
+        const res15 = await fetch(
+          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${keyToTest}`,
+          {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              contents: [{ parts: [{ text: "ping" }] }],
+            }),
+          }
+        );
+        if (!res15.ok) {
+          const errData = await res.json().catch(() => ({}));
+          throw new Error(errData?.error?.message || "Chave de API inválida ou sem permissão.");
+        }
+      }
+
+      localStorage.setItem("enfermeiro_gemini_api_key", keyToTest);
+      setGeminiKey(keyToTest);
+      toast({
+        title: "Google Gemini Conectado!",
+        description: "Sua chave foi validada. O raciocínio diagnóstico de alta profundidade está ativo.",
+      });
+    } catch (e) {
+      toast({
+        title: "Erro ao validar chave",
+        description: e.message || "Verifique se a chave do Google AI Studio está correta.",
+        variant: "destructive",
+      });
+    } finally {
+      setTestingGemini(false);
+    }
+  }
+
+  function handleRemoveGeminiKey() {
+    localStorage.removeItem("enfermeiro_gemini_api_key");
+    setGeminiKey("");
+    setGeminiKeyInput("");
+    toast({
+      title: "Chave removida",
+      description: "O Enfermeiro Digital voltará a utilizar o super motor taxonômico local.",
+    });
+  }
 
   const profileLabel =
     user?.user_type === "professor"
@@ -196,34 +264,73 @@ export default function Conta() {
           </div>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-5">
-          <p className="text-sm font-medium text-slate-700">Trocar perfil</p>
-          <p className="mt-0.5 text-xs text-slate-400">Alterne entre Aluno e Professor nesta conta.</p>
-          <div className="mt-3 grid grid-cols-2 gap-2">
-            <button
-              type="button"
-              onClick={() => switchProfile("aluno")}
-              disabled={switching}
-              className={`flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-medium transition ${
-                user?.user_type === "aluno"
-                  ? "border-teal-600 bg-teal-50 text-teal-700"
-                  : "border-slate-200 text-slate-500 hover:border-teal-300"
-              }`}
-            >
-              {switching ? <Loader2 className="h-4 w-4 animate-spin" /> : <GraduationCap className="h-4 w-4" />} Aluno
-            </button>
-            <button
-              type="button"
-              onClick={() => switchProfile("professor")}
-              disabled={switching}
-              className={`flex items-center justify-center gap-2 rounded-xl border-2 p-3 text-sm font-medium transition ${
-                user?.user_type === "professor"
-                  ? "border-teal-600 bg-teal-50 text-teal-700"
-                  : "border-slate-200 text-slate-500 hover:border-teal-300"
-              }`}
-            >
-              {switching ? <Loader2 className="h-4 w-4 animate-spin" /> : <School className="h-4 w-4" />} Professor
-            </button>
+        <div className="rounded-2xl border border-slate-200 bg-white p-5 space-y-3">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-sm font-semibold text-slate-800 flex items-center gap-1.5">
+                <Sparkles className="h-4 w-4 text-teal-600" /> Inteligência Artificial Clínica (Google Gemini)
+              </p>
+              <p className="mt-0.5 text-xs text-slate-500">
+                Conecte sua chave de API para raciocínio diagnóstico avançado e ilimitado com o Gemini 2.5 Flash.
+              </p>
+            </div>
+            {geminiKey ? (
+              <span className="rounded-full bg-emerald-50 px-2 py-0.5 text-[11px] font-medium text-emerald-700 border border-emerald-200">
+                Chave Ativa
+              </span>
+            ) : (
+              <span className="rounded-full bg-slate-100 px-2 py-0.5 text-[11px] font-medium text-slate-600">
+                Motor Local Ativo
+              </span>
+            )}
+          </div>
+
+          <div className="space-y-2 pt-1">
+            <div className="flex gap-2">
+              <Input
+                type="password"
+                placeholder="Cole sua chave de API (AIzaSy...)"
+                value={geminiKeyInput}
+                onChange={(e) => setGeminiKeyInput(e.target.value)}
+                className="rounded-xl text-xs"
+              />
+              <Button
+                type="button"
+                onClick={handleSaveGeminiKey}
+                disabled={testingGemini || (!geminiKeyInput.trim() && !geminiKey)}
+                className="shrink-0 rounded-xl bg-teal-600 hover:bg-teal-700 text-xs px-3"
+              >
+                {testingGemini ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Salvar & Testar"}
+              </Button>
+            </div>
+
+            {geminiKey && (
+              <div className="flex items-center justify-between text-[11px] pt-1">
+                <span className="text-emerald-600 font-medium flex items-center gap-1">
+                  <Check className="h-3 w-3" /> Chave configurada com sucesso
+                </span>
+                <button
+                  type="button"
+                  onClick={handleRemoveGeminiKey}
+                  className="text-rose-500 hover:underline"
+                >
+                  Remover chave
+                </button>
+              </div>
+            )}
+
+            <p className="text-[11px] text-slate-400">
+              Não tem uma chave? Crie gratuitamente em segundos no{" "}
+              <a
+                href="https://aistudio.google.com/app/apikey"
+                target="_blank"
+                rel="noreferrer"
+                className="text-teal-600 hover:underline font-medium"
+              >
+                Google AI Studio ↗
+              </a>
+              . Se preferir não configurar, o Enfermeiro Digital usará o super motor clínico local.
+            </p>
           </div>
         </div>
 

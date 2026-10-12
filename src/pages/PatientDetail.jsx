@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, ChevronRight, ClipboardList, Activity, Mic } from "lucide-react";
+import { ArrowLeft, Loader2, ChevronRight, ClipboardList, Activity, Mic, Sparkles, FileText, Trash2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import RiskBadge from "@/components/RiskBadge";
 import DiagnosesTab from "@/components/DiagnosesTab";
@@ -14,10 +14,28 @@ import PreviousAnamnesisTab from "@/components/PreviousAnamnesisTab";
 export default function PatientDetail() {
   const { id } = useParams();
   const navigate = useNavigate();
+  const draftKey = `enfermeiro_assessment_draft_${id}`;
   const [patient, setPatient] = useState(null);
   const [assessments, setAssessments] = useState([]);
   const [loading, setLoading] = useState(true);
   const [tab, setTab] = useState("avaliacoes");
+  const [hasDraft, setHasDraft] = useState(false);
+
+  function checkDraft() {
+    try {
+      const saved = localStorage.getItem(draftKey);
+      setHasDraft(!!saved);
+    } catch {
+      setHasDraft(false);
+    }
+  }
+
+  function discardDraft() {
+    if (window.confirm("Deseja realmente descartar o rascunho salvo desta avaliação?")) {
+      localStorage.removeItem(draftKey);
+      setHasDraft(false);
+    }
+  }
 
   async function load() {
     setLoading(true);
@@ -33,7 +51,10 @@ export default function PatientDetail() {
     }
   }
 
-  useEffect(() => { load(); }, [id]);
+  useEffect(() => {
+    load();
+    checkDraft();
+  }, [id]);
 
   if (loading) return <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-teal-600" /></div>;
   if (!patient) return <div className="py-20 text-center text-slate-400">Paciente não encontrado</div>;
@@ -75,8 +96,38 @@ export default function PatientDetail() {
 
         {tab === "avaliacoes" && (
           <>
+            {hasDraft && (
+              <div className="rounded-2xl border border-teal-200 bg-teal-50/80 p-4 shadow-sm space-y-2">
+                <div className="flex items-center justify-between">
+                  <div className="flex items-center gap-2 text-teal-900 font-semibold text-sm">
+                    <FileText className="h-4 w-4 text-teal-700" />
+                    Avaliação em andamento (Rascunho salvo)
+                  </div>
+                  <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+                <p className="text-xs text-teal-800">
+                  Você possui escalas e anotações preenchidas que não foram perdidas. Deseja continuar de onde parou?
+                </p>
+                <div className="flex gap-2 pt-1">
+                  <Button
+                    onClick={() => navigate(`/patient/${id}/assessment`)}
+                    className="flex-1 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs py-2 h-auto"
+                  >
+                    <Sparkles className="mr-1.5 h-3.5 w-3.5" /> Continuar Avaliação Salva
+                  </Button>
+                  <Button
+                    variant="outline"
+                    onClick={discardDraft}
+                    className="rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 text-xs py-2 h-auto"
+                  >
+                    <Trash2 className="mr-1 h-3.5 w-3.5" /> Descartar
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <Button onClick={() => navigate(`/patient/${id}/assessment`)} className="w-full rounded-2xl bg-teal-600 py-6 text-base hover:bg-teal-700">
-              <ClipboardList className="mr-2 h-5 w-5" /> Iniciar Avaliação Express
+              <ClipboardList className="mr-2 h-5 w-5" /> {hasDraft ? "Retomar Avaliação Express" : "Iniciar Avaliação Express"}
             </Button>
 
             <Button onClick={() => navigate(`/patient/${id}/audio-assessment`)} variant="outline" className="w-full rounded-2xl border-teal-300 py-5 text-base text-teal-700 hover:bg-teal-50">

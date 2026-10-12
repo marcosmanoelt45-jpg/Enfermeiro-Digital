@@ -1,8 +1,9 @@
-import React from "react";
-import { Check, HeartPulse, ClipboardCheck, BrainCircuit, Wine, Footprints, Activity } from "lucide-react";
+import React, { useState, useRef } from "react";
+import { Check, HeartPulse, ClipboardCheck, BrainCircuit, Wine, Footprints, Activity, FileText, Mic, MicOff } from "lucide-react";
 import VitalSlider from "@/components/VitalSlider";
 import RiskBadge from "@/components/RiskBadge";
 import PainLocationPicker from "@/components/PainLocationPicker";
+import { Button } from "@/components/ui/button";
 import {
   computeGlobalRisk,
   computeBradenTotal,
@@ -21,6 +22,7 @@ export const ASSESSMENT_STEPS = [
   { key: "audit", label: "AUDIT", icon: Wine },
   { key: "sak", label: "SAK", icon: Footprints },
   { key: "caloi", label: "CALOI", icon: Activity },
+  { key: "notes", label: "Relato & Notas", icon: FileText },
 ];
 
 export const DEFAULT_ASSESSMENT_DATA = {
@@ -30,6 +32,7 @@ export const DEFAULT_ASSESSMENT_DATA = {
   audit_1: 0, audit_2: 0, audit_3: 0, audit_4: 0, audit_5: 0, audit_6: 0, audit_7: 0, audit_8: 0, audit_9: 0, audit_10: 0,
   sak_disorientation: false, sak_urination: false, sak_walking: false, sak_caregiver: false, sak_postop: false, sak_previous_falls: false, sak_meds: 0,
   caloi_pain_intensity: 0, caloi_pain_location: [], caloi_pain_characteristics: [],
+  notes: "",
 };
 
 const BRADEN_ITEMS = [
@@ -75,6 +78,61 @@ function SourceLink({ srcKey }) {
   );
 }
 
+function VoiceNotesButton({ onText }) {
+  const [listening, setListening] = useState(false);
+  const recognitionRef = useRef(null);
+
+  function toggle() {
+    if (listening) {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+      }
+      setListening(false);
+      return;
+    }
+
+    const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      alert("Reconhecimento de fala não suportado neste navegador.");
+      return;
+    }
+
+    try {
+      const rec = new SpeechRecognition();
+      rec.lang = "pt-BR";
+      rec.continuous = true;
+      rec.interimResults = false;
+      rec.onresult = (e) => {
+        let transcript = "";
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          if (e.results[i].isFinal) transcript += e.results[i][0].transcript + " ";
+        }
+        if (transcript.trim()) onText(transcript.trim());
+      };
+      rec.onerror = () => setListening(false);
+      rec.onend = () => setListening(false);
+      rec.start();
+      recognitionRef.current = rec;
+      setListening(true);
+    } catch {
+      setListening(false);
+    }
+  }
+
+  return (
+    <Button
+      type="button"
+      variant="outline"
+      size="sm"
+      onClick={toggle}
+      className={`rounded-xl text-xs gap-1.5 ${listening ? "bg-rose-50 text-rose-600 border-rose-300 animate-pulse" : "text-teal-700 border-teal-200 hover:bg-teal-50"}`}
+    >
+      {listening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
+      {listening ? "Parar de Ouvir" : "Ditar Relato"}
+    </Button>
+  );
+}
+
 export function getAssessmentTotals(data) {
   return {
     bradenTotal: computeBradenTotal({
@@ -98,12 +156,19 @@ export function AssessmentStepNav({ step, setStep, steps = ASSESSMENT_STEPS }) {
         const active = i === step;
         const done = i < step;
         return (
-          <button key={s.key} onClick={() => setStep(i)}
-            className={`flex shrink-0 flex-col items-center gap-1 rounded-xl px-2 py-1.5 transition ${active ? "text-teal-700" : "text-slate-400"}`}>
-            <div className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition ${active ? "border-teal-600 bg-teal-50" : done ? "border-teal-300 bg-teal-100" : "border-slate-200 bg-white"}`}>
-              {done ? <Check className="h-4 w-4 text-teal-600" /> : <Icon className="h-4 w-4" />}
-            </div>
-            <span className="text-[10px] font-medium leading-tight">{s.label}</span>
+          <button
+            key={s.key}
+            onClick={() => setStep(i)}
+            className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition ${
+              active
+                ? "bg-teal-600 text-white shadow-sm"
+                : done
+                ? "bg-teal-50 text-teal-700"
+                : "bg-white text-slate-500 hover:bg-slate-100"
+            }`}
+          >
+            <Icon className="h-3.5 w-3.5" />
+            {s.label}
           </button>
         );
       })}
@@ -112,14 +177,16 @@ export function AssessmentStepNav({ step, setStep, steps = ASSESSMENT_STEPS }) {
 }
 
 export function AssessmentRiskBanner({ data }) {
-  const totals = getAssessmentTotals(data);
-  const previewData = { ...data, braden_total: totals.bradenTotal, cam_positive: totals.camPositive, audit_total: totals.auditTotal, sak_score: totals.sakTotal, caloi_score: totals.caloiTotal };
-  const risk = computeGlobalRisk(previewData);
-  const riskMeta = RISK_META[risk];
+  const risk = computeGlobalRisk(data);
+  const meta = RISK_META[risk] || RISK_META.estavel;
   return (
-    <div className={`mb-4 flex items-center justify-between rounded-2xl border p-3 ${riskMeta.bg} ${riskMeta.border}`}>
-      <span className="text-sm font-medium text-slate-700">Status de Risco Global</span>
-      <RiskBadge status={risk} size="lg" />
+    <div className={`mb-4 flex items-center justify-between rounded-2xl border p-4 ${meta.cardBg} ${meta.border}`}>
+      <div>
+        <p className="text-xs uppercase tracking-wide text-slate-500">Status Global Preliminar</p>
+        <p className={`text-base font-semibold ${meta.color}`}>{meta.title}</p>
+        <p className="text-xs text-slate-500">{meta.description}</p>
+      </div>
+      <RiskBadge status={risk} />
     </div>
   );
 }
@@ -129,20 +196,21 @@ export function AssessmentStepContent({ data, set, step }) {
 
   if (step === 0) {
     return (
-      <div className="space-y-5">
-        <VitalSlider label="PA Sistólica" unit="mmHg" value={data.pa_sistolica} min={60} max={240} step={1} onChange={(v) => set("pa_sistolica", v)} accentColor="rose" />
-        <VitalSlider label="PA Diastólica" unit="mmHg" value={data.pa_diastolica} min={30} max={140} step={1} onChange={(v) => set("pa_diastolica", v)} accentColor="rose" />
-        <VitalSlider label="Frequência Cardíaca" unit="bpm" value={data.fc} min={30} max={200} step={1} onChange={(v) => set("fc", v)} accentColor="teal" />
-        <VitalSlider label="Frequência Respiratória" unit="irpm" value={data.fr} min={6} max={40} step={1} onChange={(v) => set("fr", v)} accentColor="sky" />
-        <VitalSlider label="Temperatura Axilar" unit="°C" value={data.tax} min={33} max={41} step={0.1} onChange={(v) => set("tax", v)} accentColor="amber" />
-        <VitalSlider label="Saturação O₂" unit="%" value={data.sat} min={60} max={100} step={1} onChange={(v) => set("sat", v)} accentColor="violet" />
+      <div className="space-y-4">
+        <VitalSlider label="PA Sistólica" unit="mmHg" value={data.pa_sistolica} min={60} max={220} step={5} onChange={(v) => set("pa_sistolica", v)} accentColor="teal" />
+        <VitalSlider label="PA Diastólica" unit="mmHg" value={data.pa_diastolica} min={40} max={140} step={5} onChange={(v) => set("pa_diastolica", v)} accentColor="teal" />
+        <VitalSlider label="Frequência Cardíaca" unit="bpm" value={data.fc} min={30} max={200} step={2} onChange={(v) => set("fc", v)} accentColor="rose" />
+        <VitalSlider label="Frequência Respiratória" unit="irpm" value={data.fr} min={8} max={45} step={1} onChange={(v) => set("fr", v)} accentColor="sky" />
+        <VitalSlider label="Temperatura Axilar" unit="°C" value={data.tax} min={34} max={42} step={0.1} onChange={(v) => set("tax", v)} accentColor="amber" />
+        <VitalSlider label="Saturação O₂" unit="%" value={data.sat} min={70} max={100} step={1} onChange={(v) => set("sat", v)} accentColor="teal" />
       </div>
     );
   }
 
   if (step === 1) {
     return (
-      <div className="space-y-5">
+      <div className="space-y-4">
+        <p className="text-sm text-slate-500">Escala de Braden — risco de lesão por pressão.</p>
         {BRADEN_ITEMS.map((it) => (
           <VitalSlider key={it.key} label={it.label} value={data[it.key]} min={it.min} max={it.max} step={1} onChange={(v) => set(it.key, v)} accentColor={it.color} />
         ))}
@@ -265,6 +333,69 @@ export function AssessmentStepContent({ data, set, step }) {
     );
   }
 
+  if (step === 6) {
+    return (
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-800">Relato Clínico, Ferimentos e Observações</h3>
+          <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+            Descreva aqui detalhes cruciais como mecanismo de lesão (ex: PAF/tiro nas costas, arma branca, trauma), uso de substâncias químicas/drogas, queixas álgicas, curativos ou histórico cirúrgico. A IA usará todo esse relato para formular diagnósticos completos.
+          </p>
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-sm">
+          <div className="flex items-center justify-between">
+            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500 flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5 text-teal-600" />
+              Observações Clínicas à Beira-Leito
+            </label>
+            <VoiceNotesButton onText={(t) => set("notes", (data.notes ? data.notes + " " : "") + t)} />
+          </div>
+
+          <textarea
+            value={data.notes || ""}
+            onChange={(e) => set("notes", e.target.value)}
+            rows={5}
+            className="w-full text-sm rounded-xl border border-slate-200 p-3.5 focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-slate-800 leading-relaxed"
+            placeholder="Ex: Paciente vítima de ferimento por arma de fogo (tiro na região dorsal/lombar), sangramento contido com curativo compressivo. Histórico de dependência química (usuário de drogas). Refere dor intensa ao movimento..."
+          />
+        </div>
+
+        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 mb-2.5">
+            Resumo Consolidado dos Parâmetros das Escalas
+          </p>
+          <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
+            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+              <span className="text-slate-400 block text-[11px]">Sinais Vitais</span>
+              <span className="font-semibold text-slate-700">PA {data.pa_sistolica}/{data.pa_diastolica} · FC {data.fc}</span>
+            </div>
+            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+              <span className="text-slate-400 block text-[11px]">BRADEN</span>
+              <span className="font-semibold text-slate-700">{bradenTotal} pts</span>
+            </div>
+            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+              <span className="text-slate-400 block text-[11px]">SAK (Quedas)</span>
+              <span className="font-semibold text-slate-700">{sakTotal} pts</span>
+            </div>
+            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+              <span className="text-slate-400 block text-[11px]">CAM (Delirium)</span>
+              <span className="font-semibold text-slate-700">{camPositive ? "Positivo" : "Negativo"}</span>
+            </div>
+            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+              <span className="text-slate-400 block text-[11px]">AUDIT (Álcool)</span>
+              <span className="font-semibold text-slate-700">{auditTotal} pts</span>
+            </div>
+            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
+              <span className="text-slate-400 block text-[11px]">CALOI (Dor)</span>
+              <span className="font-semibold text-slate-700">{caloiTotal}/10</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return null;
 }
 
@@ -280,6 +411,7 @@ export function buildCaseSummary(profile, data) {
   if (profile.current_medications) lines.push(`Medicamentos em uso: ${profile.current_medications}`);
   if (profile.previous_anamnesis) lines.push(`Anamnese prévia (repasse): ${profile.previous_anamnesis}`);
   if (profile.notes) lines.push(`Observações: ${profile.notes}`);
+  if (data.notes) lines.push(`Relato atual da avaliação: ${data.notes}`);
   lines.push("");
   lines.push("Sinais Vitais:");
   lines.push(`PA ${data.pa_sistolica}/${data.pa_diastolica} mmHg | FC ${data.fc} bpm | FR ${data.fr} irpm | Tax ${data.tax} °C | SatO₂ ${data.sat}%`);

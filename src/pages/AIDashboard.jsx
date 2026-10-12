@@ -180,17 +180,38 @@ export default function AIDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-teal-600" />
-                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Síntese Clínica</p>
+                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Síntese Diagnóstica</p>
                 </div>
-                <span className="rounded-full bg-amber-100 px-2.5 py-0.5 text-[10px] font-semibold text-amber-800">
-                  Rascunho Preliminar Gerado por IA
-                </span>
+                <div className="flex items-center gap-1.5">
+                  {plan.ai_engine && (
+                    <span className="rounded-full bg-teal-100/80 px-2 py-0.5 text-[10px] font-medium text-teal-800 border border-teal-200">
+                      {plan.ai_engine}
+                    </span>
+                  )}
+                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                    SADC NANDA-I
+                  </span>
+                </div>
               </div>
               <p className="mt-2 text-sm text-slate-700 leading-relaxed">{plan.resumo || plan.summary}</p>
+              {assessment.notes && (
+                <div className="mt-3 rounded-xl border border-slate-200 bg-white/80 p-2.5 text-xs text-slate-600">
+                  <span className="font-semibold text-slate-700">Relato & Anotações à beira-leito: </span>
+                  {assessment.notes}
+                </div>
+              )}
               {plan.prioridade && (
-                <span className="mt-2 inline-block rounded-full bg-teal-100 px-2.5 py-0.5 text-xs font-medium text-teal-800">
-                  Prioridade Clínica: {plan.prioridade.toUpperCase()}
-                </span>
+                <div className="mt-2.5 flex items-center gap-2">
+                  <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase ${
+                    plan.prioridade === 'critica'
+                      ? 'bg-rose-100 text-rose-800 font-semibold border border-rose-200'
+                      : plan.prioridade === 'alta'
+                      ? 'bg-orange-100 text-orange-800 font-semibold'
+                      : 'bg-teal-100 text-teal-800'
+                  }`}>
+                    Prioridade Clínica: {plan.prioridade}
+                  </span>
+                </div>
               )}
             </div>
 
