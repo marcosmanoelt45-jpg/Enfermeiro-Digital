@@ -1,0 +1,30 @@
+{
+  "properties": {
+    "role": {
+      "type": "string",
+      "description": "The role of the user in the app",
+      "enum": [
+        "admin",
+        "user"
+      ]
+    },
+    "user_type": {
+      "type": "string",
+      "title": "Tipo de usu\u00e1rio",
+      "enum": [
+        "aluno",
+        "professor"
+      ]
+    },
+    "photo_url": {
+      "type": "string",
+      "title": "Foto do perfil",
+      "format": "uri"
+    }
+  },
+  "required": [
+    "role"
+  ],
+  "name": "User",
+  "type": "object"
+}

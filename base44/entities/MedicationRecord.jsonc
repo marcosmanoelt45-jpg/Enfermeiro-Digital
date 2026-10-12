@@ -1,0 +1,107 @@
+{
+  "name": "MedicationRecord",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "title": "Paciente"
+    },
+    "drug_name": {
+      "type": "string",
+      "title": "Medicamento"
+    },
+    "calc_type": {
+      "type": "string",
+      "enum": [
+        "dose",
+        "drip",
+        "weight_based"
+      ],
+      "title": "Tipo de c\u00e1lculo",
+      "default": "dose"
+    },
+    "concentration": {
+      "type": "number",
+      "title": "Concentra\u00e7\u00e3o dispon\u00edvel (mg/mL)"
+    },
+    "prescribed_dose": {
+      "type": "number",
+      "title": "Dose prescrita (mg)"
+    },
+    "calculated_volume": {
+      "type": "number",
+      "title": "Volume calculado (mL)"
+    },
+    "weight": {
+      "type": "number",
+      "title": "Peso (kg)"
+    },
+    "dose_per_kg": {
+      "type": "number",
+      "title": "Dose por kg (mg/kg)"
+    },
+    "volume_ml": {
+      "type": "number",
+      "title": "Volume total (mL)"
+    },
+    "drop_factor": {
+      "type": "number",
+      "title": "Fator de gotejamento (gtt/mL)"
+    },
+    "time_min": {
+      "type": "number",
+      "title": "Tempo de infus\u00e3o (min)"
+    },
+    "drip_rate": {
+      "type": "number",
+      "title": "Gotejamento (gtt/min)"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "patient_id",
+    "drug_name",
+    "calc_type"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

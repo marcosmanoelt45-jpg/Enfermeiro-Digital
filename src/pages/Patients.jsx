@@ -1,0 +1,188 @@
+import React, { useState, useEffect } from "react";
+import { base44 } from "@/api/base44Client";
+import { useNavigate } from "react-router-dom";
+import { Plus, Search, Activity, Loader2, Wand2, Shuffle, Library, BookOpen, Users, UserCircle, LogOut } from "lucide-react";
+import PatientCard from "@/components/PatientCard";
+import { generateRandomName, generateRandomAge } from "@/lib/sampleNames";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useAuth } from "@/lib/AuthContext";
+
+export default function Patients() {
+  const navigate = useNavigate();
+  const { logout } = useAuth();
+  const [patients, setPatients] = useState([]);
+  const [assessments, setAssessments] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [search, setSearch] = useState("");
+  const [open, setOpen] = useState(false);
+  const [form, setForm] = useState({ name: "", age: "", gender: "M" });
+  const [saving, setSaving] = useState(false);
+
+  async function load() {
+    setLoading(true);
+    try {
+      const [p, a] = await Promise.all([
+      base44.entities.Patient.list("-updated_date", 200),
+      base44.entities.Assessment.list("-created_date", 200)]
+      );
+      setPatients(p);
+      setAssessments(a);
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  useEffect(() => {load();}, []);
+
+  const latestRiskByPatient = {};
+  assessments.forEach((a) => {
+    if (!latestRiskByPatient[a.patient_id] || new Date(a.created_date) > new Date(latestRiskByPatient[a.patient_id].created_date)) {
+      latestRiskByPatient[a.patient_id] = a;
+    }
+  });
+
+  const filtered = patients.filter((p) =>
+  !search || p.name?.toLowerCase().includes(search.toLowerCase())
+  );
+
+  async function handleSave() {
+    if (!form.name.trim()) return;
+    setSaving(true);
+    try {
+      const created = await base44.entities.Patient.create({
+        name: form.name.trim(),
+        age: form.age ? Number(form.age) : null,
+        gender: form.gender
+      });
+      setOpen(false);
+      setForm({ name: "", age: "", gender: "M" });
+      load();
+      navigate(`/patient/${created.id}`);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
+        <div className="mx-auto max-w-2xl px-4 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => navigate("/")}
+                className="flex items-center gap-2"
+                title="Voltar ao início"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-teal-600 text-white">
+                  <Activity className="h-5 w-5" />
+                </div>
+                <div className="text-left">
+                  <h1 className="text-lg font-semibold text-slate-800 leading-none">Bem-vindo ao Enfermeiro Digital</h1>
+                  <p className="text-xs text-amber-600 font-medium">Versão experimental</p>
+                </div>
+              </button>
+              <div className="flex flex-row gap-2">
+                <Button onClick={() => navigate("/conta")} variant="outline" size="sm" className="rounded-xl">
+                  <UserCircle className="h-4 w-4" /> Conta
+                </Button>
+                <Button onClick={() => navigate("/turmas")} variant="outline" size="sm" className="rounded-xl">
+                  <Users className="h-4 w-4" /> Turmas
+                </Button>
+                <Button onClick={() => logout(true)} variant="outline" size="sm" className="rounded-xl">
+                  <LogOut className="h-4 w-4" /> Sair
+                </Button>
+              </div>
+            </div>
+            <div className="flex items-center gap-2">
+              <Button onClick={() => navigate("/referencias")} variant="outline" size="sm" className="rounded-xl">
+                <BookOpen className="h-4 w-4" /> Referências
+              </Button>
+              <Button onClick={() => navigate("/banco-casos")} variant="outline" size="sm" className="rounded-xl">
+                <Library className="h-4 w-4" /> Banco de Casos
+              </Button>
+              <Button onClick={() => setOpen(true)} size="sm" className="rounded-xl bg-teal-600 hover:bg-teal-700">
+                <Plus className="h-4 w-4" /> Novo caso
+              </Button>
+            </div>
+          </div>
+          <div className="relative mt-3">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+            <Input
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              placeholder="Buscar caso..."
+              className="rounded-xl pl-9" />
+          </div>
+        </div>
+      </header>
+
+      <main className="mx-auto max-w-2xl px-4 py-4 space-y-3">
+        {loading ?
+        <div className="flex justify-center py-20"><Loader2 className="h-6 w-6 animate-spin text-teal-600" /></div> :
+        filtered.length === 0 ?
+        <div className="py-20 text-center text-sm text-slate-400">
+            Nenhum caso cadastrado. Toque em <span className="font-medium text-slate-600">Novo caso</span> para criar uma simulação.
+          </div> :
+
+        filtered.map((p) =>
+        <PatientCard key={p.id} patient={p} latestRisk={latestRiskByPatient[p.id]?.risk_status} />
+        )
+        }
+      </main>
+
+      <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
+        <p className="text-[11px] text-slate-400">© 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos do Enfermeiro Digital</p>
+      </footer>
+
+      <Dialog open={open} onOpenChange={setOpen}>
+        <DialogContent className="rounded-2xl">
+          <DialogHeader>
+            <DialogTitle>Novo Caso para Estudo</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-3">
+            <div>
+              <label className="text-sm font-medium text-slate-700">Nome do paciente simulado *</label>
+              <div className="mt-1 flex gap-2">
+                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Paciente A, Sr. Silva..." />
+                <Button type="button" variant="outline" size="icon" onClick={() => {const r = generateRandomName();setForm((f) => ({ ...f, name: r.name, gender: r.gender }));}} title="Gerar nome aleatório" className="shrink-0 rounded-lg">
+                  <Wand2 className="h-4 w-4 text-teal-600" />
+                </Button>
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div>
+                <label className="text-sm font-medium text-slate-700">Idade</label>
+                <div className="mt-1 flex gap-2">
+                  <Input type="number" value={form.age} onChange={(e) => setForm({ ...form, age: e.target.value })} />
+                  <Button type="button" variant="outline" size="icon" onClick={() => setForm((f) => ({ ...f, age: generateRandomAge() }))} title="Idade aleatória" className="shrink-0 rounded-lg">
+                    <Shuffle className="h-4 w-4 text-teal-600" />
+                  </Button>
+                </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-slate-700">Sexo</label>
+                <select value={form.gender} onChange={(e) => setForm({ ...form, gender: e.target.value })} className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+                  <option value="M">Masculino</option>
+                  <option value="F">Feminino</option>
+                  <option value="Outro">Outro</option>
+                </select>
+              </div>
+            </div>
+            <button type="button" onClick={() => {const r = generateRandomName();setForm({ name: r.name, age: generateRandomAge(), gender: r.gender });}} className="flex w-full items-center justify-center gap-1.5 rounded-xl border border-dashed border-teal-300 py-2 text-xs font-medium text-teal-600 hover:bg-teal-50">
+              <Wand2 className="h-3.5 w-3.5" /> Preencher caso aleatório
+            </button>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setOpen(false)}>Cancelar</Button>
+            <Button onClick={handleSave} disabled={saving || !form.name.trim()} className="bg-teal-600 hover:bg-teal-700">
+              {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>);
+
+}

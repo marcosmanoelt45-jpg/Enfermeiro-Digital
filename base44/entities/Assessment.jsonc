@@ -1,0 +1,251 @@
+{
+  "name": "Assessment",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "title": "Paciente"
+    },
+    "patient_name": {
+      "type": "string",
+      "title": "Nome do paciente"
+    },
+    "pa_sistolica": {
+      "type": "number",
+      "title": "PA Sist\u00f3lica (mmHg)"
+    },
+    "pa_diastolica": {
+      "type": "number",
+      "title": "PA Diast\u00f3lica (mmHg)"
+    },
+    "fc": {
+      "type": "number",
+      "title": "Frequ\u00eancia Card\u00edaca (bpm)"
+    },
+    "fr": {
+      "type": "number",
+      "title": "Frequ\u00eancia Respirat\u00f3ria (irpm)"
+    },
+    "tax": {
+      "type": "number",
+      "title": "Temperatura Axilar (\u00b0C)"
+    },
+    "sat": {
+      "type": "number",
+      "title": "Satura\u00e7\u00e3o O\u2082 (%)"
+    },
+    "braden_perception": {
+      "type": "number",
+      "title": "BRADEN - Percep\u00e7\u00e3o Sensorial"
+    },
+    "braden_moisture": {
+      "type": "number",
+      "title": "BRADEN - Umidade"
+    },
+    "braden_activity": {
+      "type": "number",
+      "title": "BRADEN - Atividade"
+    },
+    "braden_mobility": {
+      "type": "number",
+      "title": "BRADEN - Mobilidade"
+    },
+    "braden_nutrition": {
+      "type": "number",
+      "title": "BRADEN - Nutri\u00e7\u00e3o"
+    },
+    "braden_friction": {
+      "type": "number",
+      "title": "BRADEN - Fric\u00e7\u00e3o/Cisalhamento"
+    },
+    "braden_total": {
+      "type": "number",
+      "title": "BRADEN - Escore Total"
+    },
+    "cam_acute": {
+      "type": "boolean",
+      "title": "CAM - In\u00edcio Agudo"
+    },
+    "cam_inattention": {
+      "type": "boolean",
+      "title": "CAM - Desaten\u00e7\u00e3o"
+    },
+    "cam_disorganized": {
+      "type": "boolean",
+      "title": "CAM - Pensamento Desorganizado"
+    },
+    "cam_altered_loc": {
+      "type": "boolean",
+      "title": "CAM - N\u00edvel de Consci\u00eancia Alterado"
+    },
+    "cam_positive": {
+      "type": "boolean",
+      "title": "CAM - Positivo (Confus\u00e3o)"
+    },
+    "audit_1": {
+      "type": "number",
+      "title": "AUDIT 1"
+    },
+    "audit_2": {
+      "type": "number",
+      "title": "AUDIT 2"
+    },
+    "audit_3": {
+      "type": "number",
+      "title": "AUDIT 3"
+    },
+    "audit_4": {
+      "type": "number",
+      "title": "AUDIT 4"
+    },
+    "audit_5": {
+      "type": "number",
+      "title": "AUDIT 5"
+    },
+    "audit_6": {
+      "type": "number",
+      "title": "AUDIT 6"
+    },
+    "audit_7": {
+      "type": "number",
+      "title": "AUDIT 7"
+    },
+    "audit_8": {
+      "type": "number",
+      "title": "AUDIT 8"
+    },
+    "audit_9": {
+      "type": "number",
+      "title": "AUDIT 9"
+    },
+    "audit_10": {
+      "type": "number",
+      "title": "AUDIT 10"
+    },
+    "audit_total": {
+      "type": "number",
+      "title": "AUDIT - Escore Total"
+    },
+    "sak_disorientation": {
+      "type": "boolean",
+      "title": "SAK - Desorienta\u00e7\u00e3o/Confus\u00e3o"
+    },
+    "sak_urination": {
+      "type": "boolean",
+      "title": "SAK - Mic\u00e7\u00e3o Frequente"
+    },
+    "sak_walking": {
+      "type": "boolean",
+      "title": "SAK - Limita\u00e7\u00e3o para Deambular"
+    },
+    "sak_caregiver": {
+      "type": "boolean",
+      "title": "SAK - Aus\u00eancia de Acompanhante"
+    },
+    "sak_postop": {
+      "type": "boolean",
+      "title": "SAK - P\u00f3s-operat\u00f3rio"
+    },
+    "sak_previous_falls": {
+      "type": "boolean",
+      "title": "SAK - Queda Pr\u00e9via"
+    },
+    "sak_meds": {
+      "type": "number",
+      "title": "SAK - N\u00ba de medicamentos administrados (at\u00e9 24h)"
+    },
+    "sak_score": {
+      "type": "number",
+      "title": "SAK - Escore de Risco (ponderado)"
+    },
+    "caloi_pain_intensity": {
+      "type": "number",
+      "title": "CALOI - Intensidade da Dor (0-10)"
+    },
+    "caloi_pain_location": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "CALOI - Localiza\u00e7\u00e3o da Dor"
+    },
+    "caloi_pain_characteristics": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "CALOI - Caracter\u00edsticas da Dor"
+    },
+    "caloi_score": {
+      "type": "number",
+      "title": "CALOI - Escore de Dor (0-10)"
+    },
+    "risk_status": {
+      "type": "string",
+      "enum": [
+        "estavel",
+        "alerta",
+        "critico"
+      ],
+      "title": "Status de Risco"
+    },
+    "ai_status": {
+      "type": "string",
+      "enum": [
+        "pending",
+        "generated",
+        "error"
+      ],
+      "title": "Status da IA"
+    },
+    "ai_response": {
+      "type": "object",
+      "title": "Resposta da IA"
+    },
+    "ai_raw": {
+      "type": "string",
+      "title": "Resposta bruta da IA"
+    }
+  },
+  "required": [
+    "patient_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

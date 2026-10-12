@@ -1,0 +1,93 @@
+{
+  "name": "TurmaMember",
+  "type": "object",
+  "properties": {
+    "turma_id": {
+      "type": "string",
+      "title": "Turma"
+    },
+    "turma_code": {
+      "type": "string",
+      "title": "C\u00f3digo da turma"
+    },
+    "turma_name": {
+      "type": "string",
+      "title": "Nome da turma"
+    },
+    "user_id": {
+      "type": "string",
+      "title": "Usu\u00e1rio"
+    },
+    "user_name": {
+      "type": "string",
+      "title": "Nome do usu\u00e1rio"
+    },
+    "user_email": {
+      "type": "string",
+      "title": "E-mail do usu\u00e1rio"
+    },
+    "photo_url": {
+      "type": "string",
+      "title": "Foto do usu\u00e1rio"
+    },
+    "role": {
+      "type": "string",
+      "enum": [
+        "aluno",
+        "professor"
+      ],
+      "title": "Papel na turma",
+      "default": "aluno"
+    }
+  },
+  "required": [
+    "turma_id",
+    "user_id",
+    "role"
+  ],
+  "rls": {
+    "create": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "read": null,
+    "update": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.user_id": "{{user.id}}"
+        },
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

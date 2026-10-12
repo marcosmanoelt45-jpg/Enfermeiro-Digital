@@ -1,0 +1,88 @@
+{
+  "name": "Patient",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Nome do paciente (simulado)"
+    },
+    "age": {
+      "type": "number",
+      "title": "Idade"
+    },
+    "gender": {
+      "type": "string",
+      "enum": [
+        "M",
+        "F",
+        "Outro"
+      ],
+      "title": "Sexo"
+    },
+    "previous_diseases": {
+      "type": "string",
+      "title": "Doen\u00e7as pr\u00e9vias"
+    },
+    "medical_history": {
+      "type": "string",
+      "title": "Hist\u00f3rico pr\u00e9vio"
+    },
+    "current_medications": {
+      "type": "string",
+      "title": "Medicamentos em uso"
+    },
+    "allergies": {
+      "type": "string",
+      "title": "Alergias"
+    },
+    "previous_anamnesis": {
+      "type": "string",
+      "title": "Anamnese pr\u00e9via (repasse de outro servi\u00e7o)"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "name"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

@@ -1,0 +1,86 @@
+{
+  "name": "NandaDiagnosis",
+  "type": "object",
+  "properties": {
+    "code": {
+      "type": "string",
+      "title": "C\u00f3digo NANDA-I"
+    },
+    "title": {
+      "type": "string",
+      "title": "T\u00edtulo do diagn\u00f3stico"
+    },
+    "domain": {
+      "type": "string",
+      "title": "Dom\u00ednio"
+    },
+    "class": {
+      "type": "string",
+      "title": "Classe"
+    },
+    "interventions": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "C\u00f3digo NIC"
+          },
+          "title": {
+            "type": "string",
+            "title": "T\u00edtulo da interven\u00e7\u00e3o"
+          },
+          "description": {
+            "type": "string",
+            "title": "Descri\u00e7\u00e3o"
+          }
+        }
+      },
+      "title": "Interven\u00e7\u00f5es (NIC)"
+    },
+    "outcomes": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "code": {
+            "type": "string",
+            "title": "C\u00f3digo NOC"
+          },
+          "title": {
+            "type": "string",
+            "title": "T\u00edtulo do resultado"
+          },
+          "description": {
+            "type": "string",
+            "title": "Descri\u00e7\u00e3o"
+          }
+        }
+      },
+      "title": "Resultados (NOC)"
+    }
+  },
+  "required": [
+    "code",
+    "title"
+  ],
+  "rls": {
+    "create": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "read": null,
+    "update": {
+      "user_condition": {
+        "role": "admin"
+      }
+    },
+    "delete": {
+      "user_condition": {
+        "role": "admin"
+      }
+    }
+  }
+}

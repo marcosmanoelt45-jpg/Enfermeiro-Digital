@@ -1,0 +1,59 @@
+{
+  "name": "Turma",
+  "type": "object",
+  "properties": {
+    "name": {
+      "type": "string",
+      "title": "Nome da turma"
+    },
+    "code": {
+      "type": "string",
+      "title": "C\u00f3digo de entrada"
+    },
+    "teacher_id": {
+      "type": "string",
+      "title": "Professor respons\u00e1vel"
+    },
+    "teacher_name": {
+      "type": "string",
+      "title": "Nome do professor"
+    },
+    "description": {
+      "type": "string",
+      "title": "Descri\u00e7\u00e3o"
+    }
+  },
+  "required": [
+    "name",
+    "code",
+    "teacher_id"
+  ],
+  "rls": {
+    "create": null,
+    "read": null,
+    "update": {
+      "$or": [
+        {
+          "data.teacher_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.teacher_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

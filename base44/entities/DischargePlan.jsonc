@@ -1,0 +1,114 @@
+{
+  "name": "DischargePlan",
+  "type": "object",
+  "properties": {
+    "patient_id": {
+      "type": "string",
+      "title": "Paciente"
+    },
+    "discharge_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Data de alta"
+    },
+    "destination": {
+      "type": "string",
+      "enum": [
+        "domicilio",
+        "transferencia",
+        "hospice",
+        "obito"
+      ],
+      "title": "Destino",
+      "default": "domicilio"
+    },
+    "conditions": {
+      "type": "string",
+      "title": "Condi\u00e7\u00f5es cl\u00ednicas na alta"
+    },
+    "medications": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Medica\u00e7\u00f5es de uso domiciliar"
+    },
+    "care_instructions": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Orienta\u00e7\u00f5es de cuidado"
+    },
+    "warning_signs": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Sinais de alerta para retorno"
+    },
+    "follow_up": {
+      "type": "string",
+      "title": "Retorno / Ambulat\u00f3rio"
+    },
+    "responsible_nurse": {
+      "type": "string",
+      "title": "Enfermeiro respons\u00e1vel"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "rascunho",
+        "ativa",
+        "concluida"
+      ],
+      "title": "Status",
+      "default": "rascunho"
+    },
+    "notes": {
+      "type": "string",
+      "title": "Observa\u00e7\u00f5es"
+    }
+  },
+  "required": [
+    "patient_id"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "created_by_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}

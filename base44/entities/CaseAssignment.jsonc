@@ -1,0 +1,123 @@
+{
+  "name": "CaseAssignment",
+  "type": "object",
+  "properties": {
+    "turma_id": {
+      "type": "string",
+      "title": "Turma"
+    },
+    "turma_name": {
+      "type": "string",
+      "title": "Nome da turma"
+    },
+    "teacher_id": {
+      "type": "string",
+      "title": "Professor"
+    },
+    "teacher_name": {
+      "type": "string",
+      "title": "Nome do professor"
+    },
+    "title": {
+      "type": "string",
+      "title": "T\u00edtulo da atividade"
+    },
+    "scenario": {
+      "type": "string",
+      "title": "Caso cl\u00ednico"
+    },
+    "case_data": {
+      "type": "object",
+      "title": "Dados do caso (perfil + avalia\u00e7\u00e3o)"
+    },
+    "question": {
+      "type": "string",
+      "title": "Pergunta"
+    },
+    "options": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Poss\u00edveis respostas"
+    },
+    "correct_answer": {
+      "type": "string",
+      "title": "Resposta correta (oculta para alunos)"
+    },
+    "explanation": {
+      "type": "string",
+      "title": "Coment\u00e1rio do professor"
+    },
+    "members": {
+      "type": "array",
+      "items": {
+        "type": "string"
+      },
+      "title": "Membros da turma com acesso (user_ids)"
+    },
+    "status": {
+      "type": "string",
+      "enum": [
+        "ativa",
+        "encerrada"
+      ],
+      "title": "Status",
+      "default": "ativa"
+    },
+    "due_date": {
+      "type": "string",
+      "format": "date",
+      "title": "Prazo"
+    }
+  },
+  "required": [
+    "turma_id",
+    "teacher_id",
+    "title",
+    "question",
+    "options",
+    "correct_answer"
+  ],
+  "rls": {
+    "read": {
+      "$or": [
+        {
+          "data.teacher_id": "{{user.id}}"
+        },
+        {
+          "data.members": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "update": {
+      "$or": [
+        {
+          "data.teacher_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    },
+    "delete": {
+      "$or": [
+        {
+          "data.teacher_id": "{{user.id}}"
+        },
+        {
+          "user_condition": {
+            "role": "admin"
+          }
+        }
+      ]
+    }
+  }
+}
