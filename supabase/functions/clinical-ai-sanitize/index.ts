@@ -97,33 +97,43 @@ serve(async (req) => {
     let planResult;
     if (apiKey && Deno.env.get("GEMINI_API_KEY")) {
       // Chamada Google Gemini com JSON Schema estruturado
-      const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
-      const response = await fetch(geminiUrl, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          // Desabilita uso de dados para melhoria de modelo
-          "X-Goog-Data-Collection": "disabled",
-        },
-        body: JSON.stringify({
-          contents: [
-            {
-              role: "user",
-              parts: [
-                { text: `${SYSTEM_PROMPT}\n\nDADOS CLÍNICOS ANONIMIZADOS (JSON):\n${JSON.stringify(sanitizedData, null, 2)}` },
-              ],
+      const models = ["gemini-3.8-flash", "gemini-2.5-flash", "gemini-1.5-flash"];
+      for (const model of models) {
+        try {
+          const geminiUrl = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+          const response = await fetch(geminiUrl, {
+            method: "POST",
+            headers: {
+              "Content-Type": "application/json",
+              // Desabilita uso de dados para melhoria de modelo
+              "X-Goog-Data-Collection": "disabled",
             },
-          ],
-          generationConfig: {
-            temperature: 0.2,
-            responseMimeType: "application/json",
-          },
-        }),
-      });
+            body: JSON.stringify({
+              contents: [
+                {
+                  role: "user",
+                  parts: [
+                    { text: `${SYSTEM_PROMPT}\n\nDADOS CLÍNICOS ANONIMIZADOS (JSON):\n${JSON.stringify(sanitizedData, null, 2)}` },
+                  ],
+                },
+              ],
+              generationConfig: {
+                temperature: 0.2,
+                responseMimeType: "application/json",
+              },
+            }),
+          });
 
-      const jsonResp = await response.json();
-      const rawText = jsonResp?.candidates?.[0]?.content?.parts?.[0]?.text;
-      planResult = JSON.parse(rawText || "{}");
+          if (response.ok) {
+            const jsonResp = await response.json();
+            const rawText = jsonResp?.candidates?.[0]?.content?.parts?.[0]?.text;
+            planResult = JSON.parse(rawText || "{}");
+            break;
+          }
+        } catch (callErr) {
+          console.warn(`Tentativa com ${model} falhou:`, callErr);
+        }
+      }
     } else {
       // Resposta estruturada padrão caso a chave de IA não esteja configurada no ambiente
       planResult = {

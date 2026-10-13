@@ -37,41 +37,62 @@ export default function Conta() {
 
     setTestingGemini(true);
     try {
-      // Teste leve de chamada para validar se a chave é aceita
-      const res = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${keyToTest}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "ping" }] }],
-          }),
-        }
-      );
+      // Modelos em ordem de prioridade (Google AI Studio recomenda gemini-3.8-flash para novos usuários)
+      const candidateModels = [
+        "gemini-3.8-flash",
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash",
+      ];
 
-      if (!res.ok) {
-        // Tenta também com gemini-1.5-flash antes de rejeitar
-        const res15 = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${keyToTest}`,
-          {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              contents: [{ parts: [{ text: "ping" }] }],
-            }),
+      let successModel = null;
+      let lastErrorMessage = null;
+
+      for (const model of candidateModels) {
+        try {
+          const res = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${keyToTest}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: "ping" }] }],
+              }),
+            }
+          );
+
+          if (res.ok) {
+            successModel = model;
+            break;
           }
-        );
-        if (!res15.ok) {
+
           const errData = await res.json().catch(() => ({}));
-          throw new Error(errData?.error?.message || "Chave de API inválida ou sem permissão.");
+          lastErrorMessage = errData?.error?.message;
+
+          // Se for erro definitivo de chave inválida ou vazia, interrompe a checagem
+          if (res.status === 400 && lastErrorMessage?.toLowerCase().includes("api key not valid")) {
+            throw new Error("Chave de API inválida. Verifique se copiou a chave completa do Google AI Studio.");
+          }
+        } catch (fetchErr) {
+          if (fetchErr.message?.includes("Chave de API inválida")) {
+            throw fetchErr;
+          }
+          lastErrorMessage = fetchErr.message;
         }
       }
 
+      if (!successModel) {
+        throw new Error(
+          lastErrorMessage || "Chave de API não aceita pelos modelos Gemini disponíveis."
+        );
+      }
+
       localStorage.setItem("enfermeiro_gemini_api_key", keyToTest);
+      localStorage.setItem("enfermeiro_gemini_model", successModel);
       setGeminiKey(keyToTest);
       toast({
         title: "Google Gemini Conectado!",
-        description: "Sua chave foi validada. O raciocínio diagnóstico e áudio multimodal estão ativos.",
+        description: `Sua chave foi validada com sucesso com o modelo ${successModel}. Raciocínio diagnóstico e transcrição multimodal ativos.`,
       });
     } catch (e) {
       toast({
@@ -86,6 +107,7 @@ export default function Conta() {
 
   function handleRemoveGeminiKey() {
     localStorage.removeItem("enfermeiro_gemini_api_key");
+    localStorage.removeItem("enfermeiro_gemini_model");
     setGeminiKey("");
     setGeminiKeyInput("");
     toast({
@@ -317,7 +339,7 @@ export default function Conta() {
                 <Sparkles className="h-4 w-4 text-teal-600" /> Inteligência Artificial Clínica (Google Gemini)
               </p>
               <p className="mt-0.5 text-xs text-slate-500">
-                Conecte sua chave de API para raciocínio diagnóstico avançado e ilimitado com o Gemini 2.5 Flash.
+                Conecte sua chave de API para raciocínio diagnóstico avançado e ilimitado com o Google Gemini (3.8 Flash).
               </p>
             </div>
             {geminiKey ? (

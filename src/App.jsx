@@ -7,23 +7,24 @@ import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
-import Patients from '@/pages/Patients';
-import PatientDetail from '@/pages/PatientDetail';
-import ExpressAssessment from '@/pages/ExpressAssessment';
-import AIDashboard from '@/pages/AIDashboard';
+
+// Páginas Principais da Plataforma do Estudante de Enfermagem
+import StudentDashboard from '@/pages/StudentDashboard';
+import CaseStudySimulator from '@/pages/CaseStudySimulator';
+import MedicationDosageLab from '@/pages/MedicationDosageLab';
+import SystemsAssessmentLab from '@/pages/SystemsAssessmentLab';
+import PrivacyPolicyLGPD from '@/pages/PrivacyPolicyLGPD';
 import CaseLibrary from '@/pages/CaseLibrary';
 import References from '@/pages/References';
 import Turmas from '@/pages/Turmas';
 import TurmaDetail from '@/pages/TurmaDetail';
 import AssignmentAnswer from '@/pages/AssignmentAnswer';
 import CaseBuilder from '@/pages/CaseBuilder';
-import AudioAssessment from '@/pages/AudioAssessment';
 import Conta from '@/pages/Conta';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
-// Add page imports here
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -55,12 +56,13 @@ const AuthenticatedApp = () => {
       <Route path="/register" element={<Register />} />
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
+      <Route path="/privacidade-lgpd" element={<PrivacyPolicyLGPD />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        <Route path="/" element={<Patients />} />
-        <Route path="/patient/:id" element={<PatientDetail />} />
-        <Route path="/patient/:id/assessment" element={<ExpressAssessment />} />
-        <Route path="/patient/:id/audio-assessment" element={<AudioAssessment />} />
-        <Route path="/assessment/:id/ai" element={<AIDashboard />} />
+        {/* Hub Principal do Estudante e Módulos Educacionais */}
+        <Route path="/" element={<StudentDashboard />} />
+        <Route path="/simulador-casos" element={<CaseStudySimulator />} />
+        <Route path="/laboratorio-calculos" element={<MedicationDosageLab />} />
+        <Route path="/sistemas-organicos" element={<SystemsAssessmentLab />} />
         <Route path="/banco-casos" element={<CaseLibrary />} />
         <Route path="/referencias" element={<References />} />
         <Route path="/turmas" element={<Turmas />} />
@@ -74,9 +76,7 @@ const AuthenticatedApp = () => {
   );
 };
 
-
 function App() {
-
   return (
     <AuthProvider>
       <QueryClientProvider client={queryClientInstance}>
@@ -87,7 +87,7 @@ function App() {
         <Toaster />
       </QueryClientProvider>
     </AuthProvider>
-  )
+  );
 }
 
-export default App
+export default App;

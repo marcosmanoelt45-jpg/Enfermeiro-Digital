@@ -138,7 +138,14 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
   "resumo_clinico": "Breve síntese das informações relatadas"
 }`;
 
-    const models = ['gemini-2.5-flash', 'gemini-1.5-flash'];
+    const savedModel = (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_gemini_model')) || null;
+    const models = [
+      ...(savedModel ? [savedModel] : []),
+      'gemini-3.8-flash',
+      'gemini-2.5-flash',
+      'gemini-2.0-flash',
+      'gemini-1.5-flash'
+    ].filter((v, i, a) => a.indexOf(v) === i);
     for (const model of models) {
       try {
         const response = await fetch(
