@@ -244,6 +244,8 @@ export function describeVitals(vitals = {}) {
   if (vitals.caloi_pain_intensity != null) {
     const loc = vitals.caloi_pain_location?.[0] ? ` (${vitals.caloi_pain_location[0]})` : "";
     items.push({ label: "Dor", value: `${vitals.caloi_pain_intensity}/10${loc}`, unit: "" });
+  } else if (vitals.estado_consciencia === "Desacordado / Inconsciente") {
+    items.push({ label: "Dor", value: "Inavaliável (Inconsciente)", unit: "" });
   }
   if (vitals.glasgow != null) {
     items.push({ label: "Glasgow", value: `${vitals.glasgow}/15`, unit: "" });
@@ -313,7 +315,13 @@ export function getMissingVitals(vitals = {}, text = "") {
       urgency: "media"
     });
   }
-  if (vitals.caloi_pain_intensity == null) {
+  // 7. Avaliação da Dor (Somente aplicável se o paciente estiver consciente/responsivo)
+  const isUnconscious =
+    vitals.estado_consciencia === "Desacordado / Inconsciente" ||
+    Boolean(vitals.cam_altered_loc && /(?:desacordad|inconsciente|desmaiad|comatos|n[ãa]o\s+responde)/i.test(raw)) ||
+    /(?:desacordad|inconsciente|desmaiad|comatos|n[ãa]o\s+responde|torpor\s+profundo)/i.test(raw);
+
+  if (vitals.caloi_pain_intensity == null && !isUnconscious) {
     missing.push({
       key: "dor",
       label: "Dor (Escala 0 a 10)",

@@ -155,22 +155,10 @@ export default function ClinicalGuideTabs({ onSelectSnippet }) {
           {current.items.map((item, idx) => (
             <div
               key={idx}
-              className="group flex items-center justify-between rounded-lg border border-slate-100 bg-slate-50/70 p-2 hover:border-teal-200 hover:bg-teal-50/50 transition-colors"
+              className="rounded-lg border border-slate-100 bg-slate-50/70 p-2.5 transition-colors"
             >
-              <div className="min-w-0 pr-2">
-                <p className="text-[11px] font-semibold text-slate-700">{item.label}</p>
-                <p className="text-[10px] text-slate-500 truncate">{item.example}</p>
-              </div>
-              {onSelectSnippet && (
-                <button
-                  type="button"
-                  onClick={() => onSelectSnippet(item.snippet)}
-                  title="Inserir modelo no texto"
-                  className="shrink-0 rounded-md bg-white px-2 py-0.5 text-[10px] font-medium text-teal-700 border border-teal-200 hover:bg-teal-600 hover:text-white transition shadow-2xs"
-                >
-                  + Exemplo
-                </button>
-              )}
+              <p className="text-[11px] font-semibold text-slate-800">{item.label}</p>
+              <p className="text-[11px] text-teal-800/90 mt-0.5 leading-snug">{item.example}</p>
             </div>
           ))}
         </div>

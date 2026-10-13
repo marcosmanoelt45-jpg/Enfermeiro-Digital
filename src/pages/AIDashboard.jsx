@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from "react";
 import { assessmentService, patientService, diagnosisService, aiService } from "@/services";
-import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Loader2, Sparkles, AlertCircle, HeartPulse, ClipboardCheck, BrainCircuit, Footprints, Wine, Activity, RefreshCw, BookPlus, ShieldAlert, CheckCircle2 } from "lucide-react";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { ArrowLeft, Loader2, Sparkles, AlertCircle, HeartPulse, ClipboardCheck, BrainCircuit, Footprints, Wine, Activity, RefreshCw, BookPlus, ShieldAlert, CheckCircle2, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import RiskBadge from "@/components/RiskBadge";
 import DiagnosisCard from "@/components/DiagnosisCard";
@@ -192,6 +192,29 @@ export default function AIDashboard() {
 
         {plan && !isPending && (
           <>
+            {/* Banner de transparência do motor de IA */}
+            {!plan.ai_engine?.includes("Gemini") ? (
+              <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900 shadow-xs flex items-start gap-2.5">
+                <Zap className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+                <div className="space-y-1">
+                  <p className="font-semibold text-amber-950">Motor Clínico Offline Ativo (Processamento Instantâneo)</p>
+                  <p className="text-amber-800 leading-relaxed">
+                    Estes diagnósticos foram estruturados pelo algoritmo determinístico local de enfermagem (baseado em regras NANDA-I no seu navegador). Para que a <strong>Inteligência Artificial generativa do Google Gemini</strong> analise o relato de forma personalizada e aprofundada (pensando clinicamente por 3 a 5 segundos), configure sua chave gratuita em{" "}
+                    <Link to="/conta" className="underline font-semibold text-amber-900 hover:text-amber-700">
+                      Minha Conta
+                    </Link>.
+                  </p>
+                </div>
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-teal-200 bg-teal-50/80 p-3 text-xs text-teal-900 shadow-xs flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-teal-600 shrink-0" />
+                <p>
+                  Plano gerado com <strong>Inteligência Artificial Generativa ({plan.ai_engine})</strong> via raciocínio clínico adaptativo.
+                </p>
+              </div>
+            )}
+
             <div className="rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 to-white p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">

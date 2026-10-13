@@ -491,7 +491,11 @@ export function generateLocalTaxonomicPlan(clinicalData) {
     sinais_vitais.caloi_pain_intensity ||
     null;
 
+  const isPacienteInconsciente =
+    /\b(desacordad|inconsciente|desmaiad|comatos|n[ãa]o\s+responde)\b/i.test(textoCompleto);
+
   const temDorRelatada =
+    !isPacienteInconsciente &&
     !temTraumaPAF &&
     ((valorDor != null && valorDor >= 3) ||
       /\b(?:dor|algia|c[óo]lica|pontada|queima[çc][ãa]o|desconforto\s+[áa]lgico)\b/i.test(textoCompleto));
@@ -607,15 +611,35 @@ export function generateLocalTaxonomicPlan(clinicalData) {
       title: 'Perfusão tissular periférica ineficaz',
       domain: 'Domínio 4: Atividade/Repouso',
       class: 'Classe 4: Respostas cardiovasculares/pulmonares',
-      defining_characteristics: ['Pressão arterial sistólica de ' + sinais_vitais.pa_sistolica + ' mmHg (hipotensão)', 'Perfusão distal lentificada'],
-      related_factors: ['Hipovolemia aguda / Perda hemática / Efeito vasodilatador de substâncias'],
+      defining_characteristics: ['Pressão arterial sistólica crítica de ' + sinais_vitais.pa_sistolica + ' mmHg (hipotensão acentuada)', 'Perfusão periférica lentificada e pulsos distais finos'],
+      related_factors: ['Hipovolemia aguda / Vasodilatação sistêmica / Baixo débito cardíaco'],
       interventions: [
-        { code: '4160', title: 'Controle de choque', description: 'Monitorar pressão arterial a cada 15 a 30 minutos, instalar expansão volêmica prescrita e comunicar imediatamente ao médico plantonista.' },
+        { code: '4160', title: 'Controle de choque', description: 'Monitorar pressão arterial seriada a cada 15 minutos, instalar expansão volêmica prescrita e comunicar imediatamente a equipe médica plantonista.' },
       ],
       outcomes: [
-        { code: '0401', title: 'Estado circulatório', description: 'Pressão arterial sistólica restabelecida >= 100 mmHg e pulso periférico palpável e simétrico.' },
+        { code: '0401', title: 'Estado circulatório', description: 'Pressão arterial sistólica restabelecida >= 100 mmHg e perfusão periférica satisfatória.' },
       ],
     });
+
+    if (sinais_vitais.pa_sistolica <= 70 || (sinais_vitais.frequencia_cardiaca && sinais_vitais.frequencia_cardiaca < 40)) {
+      diagnosticos.push({
+        code: '00205',
+        title: 'Risco de choque (Cardiogênico / Hipovolêmico / Neurogênico)',
+        domain: 'Domínio 4: Atividade/Repouso',
+        class: 'Classe 4: Respostas cardiovasculares/pulmonares',
+        defining_characteristics: [
+          'Hipotensão arterial severa (' + sinais_vitais.pa_sistolica + ' mmHg) associada a bradicardia extrema ou trauma',
+          'Instabilidade hemodinâmica crítica e risco iminente de colapso circulatório',
+        ],
+        related_factors: ['Disfunção miocárdica / Bloqueio atrioventricular', 'Perda volêmica ou perda do tônus vascular simpático'],
+        interventions: [
+          { code: '4250', title: 'Manejo do choque', description: 'Garantir acesso venoso periférico calibroso duplo; infundir cristalóides sob prescrição médica estrita; preparar drogas vasoativas e suporte avançado de vida à beira-leito.' },
+        ],
+        outcomes: [
+          { code: '0401', title: 'Estado circulatório', description: 'Estabilização hemodinâmica com reversão dos sinais precoces de choque.' },
+        ],
+      });
+    }
   }
 
   // --------------------------------------------------------------------------
@@ -728,7 +752,7 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   // 11. TRAUMA CRANIOENCEFÁLICO (TCE) REAL (SOMENTE com menção expressa de impacto/lesão na cabeça)
   // --------------------------------------------------------------------------
   const temLesaoCranianaReal =
-    /\b(tce|trauma\s+(?:cranioencef[áa]lico|cranian|de\s+cr[âa]nio)|fratura\s+(?:de\s+cr[âa]nio|cranian)|les[ãa]o\s+(?:em|na)\s+calota\s+craniana|bateu\s+a\s+cabe[çc]a|pancada\s+na\s+cabe[çc]a|hematoma\s+subdural|corte\s+(?:em|na)\s+cabe[çc]a)\b/i.test(textoCompleto);
+    /\b(tce|trauma\s+(?:cranioencef[áa]lico|cranian|de\s+cr[âa]nio)|fratura\s+(?:de\s+cr[âa]nio|cranian)|les[ãa]o\s+(?:em|na|de)\s+(?:calota\s+craniana|cabe[çc]a)|ferimento\s+(?:em|na)\s+cabe[çc]a|bateu\s+a\s+cabe[çc]a|pancada\s+na\s+cabe[çc]a|hematoma\s+subdural|corte\s+(?:em|na)\s+cabe[çc]a)\b/i.test(textoCompleto);
 
   if (temLesaoCranianaReal) {
     diagnosticos.push({
@@ -751,6 +775,26 @@ export function generateLocalTaxonomicPlan(clinicalData) {
         { code: '0912', title: 'Estado neurológico: consciência', description: 'Progressão favorável do escore de Glasgow e recuperação do contato com o examinador.' },
       ],
     });
+
+    if (/\b(sangra|sangramento|hemorragi|sangue|corte)\b/i.test(textoCompleto)) {
+      diagnosticos.push({
+        code: '00046',
+        title: 'Integridade da pele prejudicada',
+        domain: 'Domínio 11: Segurança/Proteção',
+        class: 'Classe 2: Lesão física',
+        defining_characteristics: [
+          'Solução de continuidade traumática em couro cabeludo com sangramento ativo relatado',
+          'Presença de lesão corto-contusa e risco de contaminação tecidual local',
+        ],
+        related_factors: ['Agente lesivo físico mecânico traumático em região cefálica'],
+        interventions: [
+          { code: '3440', title: 'Cuidados com lesões', description: 'Inspecionar e limpar o ferimento com solução salina 0,9% estéril em jato; aplicar curativo estéril compressivo para hemostasia e avaliar indicação de sutura cirúrgica.' },
+        ],
+        outcomes: [
+          { code: '1101', title: 'Integridade tissular: pele e mucosas', description: 'Controle eficaz do sangramento e leito da ferida limpo e protegido.' },
+        ],
+      });
+    }
   }
 
   // --------------------------------------------------------------------------
