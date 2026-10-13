@@ -118,39 +118,62 @@ async function callGeminiCarePlan(clinicalData) {
     return null;
   }
 
-  const systemInstruction = `Você é um Enfermeiro Especialista Sênior em Terapia Intensiva, Emergência e Sistematização da Assistência de Enfermagem (SAE), com domínio profundo da taxonomia NANDA-I, Intervenções NIC e Resultados NOC.
-Sua missão é realizar um raciocínio clínico diagnóstico holístico, autônomo e aprofundado a partir de todos os dados do paciente.
+  const systemInstruction = `Você é um Enfermeiro Especialista Sênior com Doutorado em Sistematização da Assistência de Enfermagem (SAE), Terapia Intensiva e Emergência, com domínio absoluto e rigoroso da taxonomia NANDA International (NANDA-I 13ª Edição 2024-2026), da Classificação das Intervenções de Enfermagem (NIC) e dos Resultados de Enfermagem (NOC), operando estritamente sob as diretrizes da Resolução Cofen nº 736/2024.
 
-DIRETRIZES FUNDAMENTAIS:
-1. RACIOCÍNIO CLÍNICO INTEGRAL E REALISTA: Não se limite a avaliar apenas escalas numéricas. Analise a anamnese, a queixa do paciente, o histórico médico, dores e parâmetros vitais. NUNCA invente lesões, traumas cranianos ou quedas consumadas que não constem no relato. Se o paciente apenas "quase caiu" ou tem marcha instável, NUNCA diagnostique traumatismo cranioencefálico nem imobilização cervical.
-2. TRAUMA REAL / ARMA DE FOGO (PAF) / FERIMENTOS: Somente se houver menção explícita a tiro, disparo, facada ou trauma penetrante: priorize "00132 - Dor aguda", "00044 - Integridade tissular prejudicada", "00206 - Risco de sangramento" e "00205 - Risco de choque".
-3. DOR AGUDA (00132): Se houver dor relatada (ex: dor abdominal de intensidade 9 em pontadas, dor torácica, lombalgia): priorize "00132 - Dor aguda", detalhando a localização precisa, características e intervenções analgésicas e de conforto.
-4. METABOLISMO GLICÊMICO (HIPO OU HIPERGLICEMIA):
-- HIPOGLICEMIA (HGT <= 70 mg/dL): "00179 - Risco de nível de glicemia instável" (infusão de glicose hipertônica 50% EV e HGT seriada).
-- HIPERGLICEMIA SEVERA (HGT >= 180 mg/dL, ex: 300 mg/dL): "00179 - Risco de nível de glicemia instável", com risco de cetoacidose diabética (CAD), desidratação osmótica e dor abdominal associada; prescrever hidratação com SF 0,9%, insulina conforme prescrição médica e controle glicêmico seriado.
-5. CARDIOVASCULAR & RESPIRATÓRIO:
-- BRADICARDIA GRAVE (FC < 50 bpm, ex: FC 30 bpm): "00029 - Débito cardíaco diminuído" e "00205 - Risco de choque" (monitorização contínua DII, preparo de atropina/marcapasso transcutâneo).
-- DISPNEIA / TAQUIPNEIA / HIPOXEMIA (FR > 22 ou SatO2 < 92%): "00030 - Troca de gases prejudicada" (oxigenoterapia e padrão respiratório).
-6. NEUROLÓGICO & RISCO DE QUEDAS:
-- CONFUSÃO AGUDA / DELIRIUM (CAM+ ou paciente confuso com dificuldade de fala): "00128 - Confusão aguda" secundária a distúrbio metabólico (hiperglicemia) ou baixo débito cardíaco (bradicardia).
-- TRAUMA CRANIANO REAL (TCE confirmado com lesão física na cabeça): "00201 - Risco de perfusão tissular cerebral ineficaz". SE NÃO HOUVER LESÃO NA CABEÇA, NUNCA APLIQUE ESTE DIAGNÓSTICO.
-- INSTABILIDADE DE MARCHA / QUASE CAIU: "00155 - Risco de quedas em adultos" e "00085 - Mobilidade física prejudicada" (grades elevadas, pulseira amarela, auxílio na deambulação).
-- REBAIXAMENTO SEVERO / DESACORDADO: "00039 - Risco de aspiração".
-7. SUBSTÂNCIAS PSICOATIVAS / DROGAS: Se houver relato ou histórico de uso prejudicial de drogas: "00188 - Comportamento de saúde propenso a risco" e "00258 - Risco de síndrome de abstinência aguda".
-5. ESTRUTURA DOS DIAGNÓSTICOS:
-Para cada diagnóstico identificado, inclua:
-- code: Código NANDA-I oficial de 5 dígitos (ex: "00132")
-- title: Título padronizado NANDA-I
-- domain: Domínio NANDA-I
-- class: Classe NANDA-I
-- defining_characteristics: Características definidoras evidenciadas no paciente
-- related_factors: Fatores relacionados / populações em risco
-- interventions: Lista de intervenções NIC contendo { code, title, description (detalhada e aplicável à beira-leito) }
-- outcomes: Lista de resultados NOC contendo { code, title, description (meta mensurável) }
+Sua missão é realizar um raciocínio clínico diagnóstico aprofundado, pericial e holístico a partir de todos os dados do paciente (anamnese, sinais vitais, sensório, escalas clínicas e evolução).
+
+DIRETRIZES DA TAXONOMIA NANDA-I 13ª EDIÇÃO (2024-2026):
+1. NOMENCLATURA E TÍTULOS OFICIAIS ATUALIZADOS (13ª EDIÇÃO):
+Use RIGOROSAMENTE os títulos atualizados da NANDA-I 2024-2026. NÃO utilize termos antigos descontinuados:
+- Use "00047 - Risco de lesão por pressão em adultos" (não use apenas "risco de lesão por pressão").
+- Use "00155 - Risco de quedas em adultos" (não use o termo genérico antigo).
+- Use "00206 - Risco de sangramento excessivo" (título atualizado de 2024-2026).
+- Use "00027 - Volume de líquidos inadequado" (não use "volume de líquidos deficiente").
+- Use "00179 - Risco de autogestão ineficaz do padrão de glicemia" (para hipo ou hiperglicemia).
+- Use "00006 - Temperatura corporal diminuída" (para hipotermia < 35,5 °C).
+- Use "00007 - Hipertermia" (para febre >= 37,8 °C).
+- Use "00276 - Autogestão ineficaz da saúde" (não use "manejo ineficaz da saúde").
+- Use "00195 - Risco de equilíbrio hidreletrolítico prejudicado".
+- Use "00030 - Troca de gases prejudicada" (Domínio 4: Atividade/Repouso, Classe 4: Respostas cardiovasculares/pulmonares).
+- Use "00205 - Risco de choque" (para hipotensão crítica PAS <= 80 mmHg, bradicardia extrema ou hemorragia).
+- Use "00029 - Débito cardíaco diminuído" (para FC < 50 bpm, baixo débito ou má perfusão).
+- Use "00201 - Risco de perfusão tissular cerebral ineficaz" (SOMENTE se houver trauma craniano/lesão cefálica real confirmada ou AVC/HIC).
+- Use "00046 - Integridade da pele prejudicada" (para ferimentos abertos, cortes, sangramento cutâneo).
+- Use "00039 - Risco de aspiração" (para pacientes desacordados, comatoso, Glasgow <= 12).
+- Use "00128 - Confusão aguda (Delirium)" (para desorientação, CAM positivo ou flutuação cognitiva).
+
+2. REGRA DE CONDUTA PARA DOR E NÍVEL DE CONSCIÊNCIA:
+- PACIENTE CONSCIENTE E COMUNICATIVO: Avalie a dor na Escala Visual Analógica (EVA de 0 a 10) e aplique "00132 - Dor aguda" se houver relato verbal.
+- PACIENTE DESACORDADO / INCONSCIENTE / COMATOSO / GLASGOW REBAIXADO: NÃO aplique escala numérica de dor verbal (EVA de 0 a 10), pois é clinicamente inavaliável por autorrelato. Só diagnostique dor se houver indicadores comportamentais/vegetativos objetivos evidentes (mímica facial de dor, rigidez, taquicardia reativa) ou registre explicitamente que o autorrelato está impossibilitado pelo sensório.
+
+3. COERÊNCIA CLÍNICA E ESTRITA FIDELIDADE AOS FATOS:
+- NUNCA invente lesões, traumas, armas de fogo ou quedas consumadas se não constarem no relato.
+- Se o paciente apenas "quase caiu" ou tem marcha claudicante, diagnostique "00155 - Risco de quedas em adultos" e "00085 - Mobilidade física prejudicada", NUNCA trauma craniano nem TCE.
+- Se houver lesão física com sangramento na cabeça, aplique "00201 - Risco de perfusão tissular cerebral ineficaz" e "00046 - Integridade da pele prejudicada".
+- Se houver bradicardia extrema (FC <= 30-40 bpm) ou PAS <= 70 mmHg, trate como EMERGÊNCIA CRÍTICA: "00205 - Risco de choque" e "00029 - Débito cardíaco diminuído".
+
+4. ESTRUTURA DOS RESULTADOS NOC (Likert 1 a 5) E INTERVENÇÕES NIC:
+Para CADA diagnóstico identificado, elabore:
+- code: Código NANDA-I oficial de 5 dígitos (ex: "00205")
+- title: Título padronizado NANDA-I 2024-2026
+- domain: Domínio NANDA-I oficial
+- class: Classe NANDA-I oficial
+- defining_characteristics: Características definidoras extraídas com precisão dos dados do paciente
+- related_factors: Fatores relacionados / populações em risco / condições associadas
+- interventions: Lista de intervenções NIC contendo:
+  * code: Código oficial NIC (ex: "4250")
+  * title: Título oficial NIC (ex: "Manejo do choque")
+  * description: Prescrição de enfermagem detalhada, aplicável à beira-leito, com aprazamento (ex: a cada 15 min, 2h), justificativa e cuidados específicos.
+- outcomes: Lista de resultados NOC contendo:
+  * code: Código oficial NOC (ex: "0400")
+  * title: Título oficial NOC
+  * scale: Escala de mensuração Likert oficial (ex: "1 (Gravemente comprometido) a 5 (Não comprometido)")
+  * target: Meta clínica mensurável e temporal (ex: "Elevar o escore de 2 para 4 em até 12 horas")
+  * indicators: Lista de indicadores clínicos específicos do NOC
 
 Retorne EXCLUSIVAMENTE um JSON válido com o seguinte formato:
 {
-  "resumo": "Síntese clínica analítica explicando o raciocínio diagnóstico e estado prioritário...",
+  "resumo": "Síntese diagnóstica analítica pericial e fisiopatológica de 2 a 3 parágrafos...",
   "prioridade": "critica" | "alta" | "moderada" | "baixa",
   "diagnosticos": [ ... ]
 }`;
@@ -316,7 +339,7 @@ export function generateLocalTaxonomicPlan(clinicalData) {
     // 1.3 Risco de Sangramento / Choque
     diagnosticos.push({
       code: '00206',
-      title: 'Risco de sangramento',
+      title: 'Risco de sangramento excessivo',
       domain: 'Domínio 11: Segurança/Proteção',
       class: 'Classe 2: Lesão física',
       defining_characteristics: ['Exposição a trauma vascular e tecidual penetrante recente por projétil'],
@@ -399,10 +422,10 @@ export function generateLocalTaxonomicPlan(clinicalData) {
 
     // 2.3 Manejo Ineficaz da Saúde
     diagnosticos.push({
-      code: '00078',
-      title: 'Manejo ineficaz da saúde',
+      code: '00276',
+      title: 'Autogestão ineficaz da saúde',
       domain: 'Domínio 1: Promoção da Saúde',
-      class: 'Classe 2: Controle da saúde',
+      class: 'Classe 2: Gestão da saúde',
       defining_characteristics: ['Dificuldade em gerenciar regimes terapêuticos complexos e vulnerabilidade psicossocial'],
       related_factors: ['Uso prejudicial de substâncias', 'Fragilidade da rede de apoio comunitária e familiar'],
       interventions: [
@@ -421,7 +444,7 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   if (escalas.braden.total && escalas.braden.total <= 14) {
     diagnosticos.push({
       code: '00047',
-      title: 'Risco de lesão por pressão',
+      title: 'Risco de lesão por pressão em adultos',
       domain: 'Domínio 11: Segurança/Proteção',
       class: 'Classe 2: Lesão física',
       defining_characteristics: ['Escore na Escala de Braden de ' + escalas.braden.total + ' (Risco Moderado a Alto)'],
@@ -588,8 +611,8 @@ export function generateLocalTaxonomicPlan(clinicalData) {
     diagnosticos.push({
       code: '00030',
       title: 'Troca de gases prejudicada',
-      domain: 'Domínio 3: Eliminação e Troca',
-      class: 'Classe 4: Função respiratória',
+      domain: 'Domínio 4: Atividade/Repouso',
+      class: 'Classe 4: Respostas cardiovasculares/pulmonares',
       defining_characteristics: [
         sinais_vitais.saturacao_o2 ? 'SatO₂ reduzida (' + sinais_vitais.saturacao_o2 + '%)' : null,
         sinais_vitais.frequencia_respiratoria ? 'Taquipneia (' + sinais_vitais.frequencia_respiratoria + ' irpm)' : null,
@@ -624,9 +647,9 @@ export function generateLocalTaxonomicPlan(clinicalData) {
     if (sinais_vitais.pa_sistolica <= 70 || (sinais_vitais.frequencia_cardiaca && sinais_vitais.frequencia_cardiaca < 40)) {
       diagnosticos.push({
         code: '00205',
-        title: 'Risco de choque (Cardiogênico / Hipovolêmico / Neurogênico)',
-        domain: 'Domínio 4: Atividade/Repouso',
-        class: 'Classe 4: Respostas cardiovasculares/pulmonares',
+        title: 'Risco de choque',
+        domain: 'Domínio 11: Segurança/Proteção',
+        class: 'Classe 2: Lesão física',
         defining_characteristics: [
           'Hipotensão arterial severa (' + sinais_vitais.pa_sistolica + ' mmHg) associada a bradicardia extrema ou trauma',
           'Instabilidade hemodinâmica crítica e risco iminente de colapso circulatório',
@@ -677,7 +700,7 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   if (temHipoglicemia) {
     diagnosticos.push({
       code: '00179',
-      title: 'Risco de nível de glicemia instável (Hipoglicemia)',
+      title: 'Risco de autogestão ineficaz do padrão de glicemia (Hipoglicemia)',
       domain: 'Domínio 2: Nutrição',
       class: 'Classe 4: Metabolismo',
       defining_characteristics: [
@@ -698,7 +721,7 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   } else if (temHiperglicemia) {
     diagnosticos.push({
       code: '00179',
-      title: 'Risco de nível de glicemia instável (Hiperglicemia Severa)',
+      title: 'Risco de autogestão ineficaz do padrão de glicemia (Hiperglicemia Severa)',
       domain: 'Domínio 2: Nutrição',
       class: 'Classe 4: Metabolismo',
       defining_characteristics: [
@@ -824,11 +847,55 @@ export function generateLocalTaxonomicPlan(clinicalData) {
     });
   }
 
+  // --------------------------------------------------------------------------
+  // 13. TERMORREGULAÇÃO (TEMPERATURA CORPORAL DIMINUÍDA / HIPERTERMIA)
+  // --------------------------------------------------------------------------
+  const valorTax = sinais_vitais.temperatura_axilar != null ? Number(sinais_vitais.temperatura_axilar) : null;
+  if (valorTax != null && valorTax < 35.5) {
+    diagnosticos.push({
+      code: '00006',
+      title: 'Temperatura corporal diminuída',
+      domain: 'Domínio 11: Segurança/Proteção',
+      class: 'Classe 6: Termorregulação',
+      defining_characteristics: [
+        'Temperatura axilar reduzida (' + valorTax + ' °C)',
+        'Extremidades frias e tempo de enchimento capilar lentificado',
+        'Risco de bradicardia e coagulopatia associadas à hipotermia',
+      ],
+      related_factors: ['Exposição a ambiente frio/intempéries', 'Choque distributivo ou cardiogênico', 'Infusão venosa de soluções frias'],
+      interventions: [
+        { code: '3900', title: 'Regulação da temperatura', description: 'Realizar aquecimento passivo externo com cobertores aquecidos e manter ambiente aquecido; aquecer soluções endovenosas prescritas; monitorar temperatura horária até normalização >= 36,0 °C.' },
+      ],
+      outcomes: [
+        { code: '0800', title: 'Termorregulação', description: 'Restabelecimento e manutenção da temperatura axilar na faixa fisiológica (36,0 °C a 37,2 °C).' },
+      ],
+    });
+  } else if (valorTax != null && valorTax >= 37.8) {
+    diagnosticos.push({
+      code: '00007',
+      title: 'Hipertermia',
+      domain: 'Domínio 11: Segurança/Proteção',
+      class: 'Classe 6: Termorregulação',
+      defining_characteristics: [
+        'Temperatura axilar elevada (' + valorTax + ' °C)',
+        'Taquicardia e taquipneia compensatórias',
+        'Pele quente e rubor facial',
+      ],
+      related_factors: ['Processo infeccioso ou inflamatório sistêmico agudo'],
+      interventions: [
+        { code: '3740', title: 'Tratamento da febre', description: 'Administrar antitérmicos conforme prescrição médica; aplicar compressas mornas nas regiões axilares; controlar temperatura a cada 1-2 horas e atentar para balanço hídrico.' },
+      ],
+      outcomes: [
+        { code: '0800', title: 'Termorregulação', description: 'Temperatura corporal normalizada entre 36,0 °C e 37,2 °C.' },
+      ],
+    });
+  }
+
   // Se nenhum diagnóstico específico foi ativado
   if (diagnosticos.length === 0) {
     diagnosticos.push({
       code: '00168',
-      title: 'Estilo de vida sedentário / Risco de intolerância à atividade',
+      title: 'Comportamentos sedentários excessivos',
       domain: 'Domínio 4: Atividade/Repouso',
       class: 'Classe 4: Respostas cardiovasculares/pulmonares',
       defining_characteristics: ['Internação hospitalar e repouso profilático no leito'],

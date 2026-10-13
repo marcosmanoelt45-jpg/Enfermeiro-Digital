@@ -35,3 +35,6 @@ lerna-debug.log*
 node_modules
 .agents
 mcp_config.json
+docs/referencias/
+*.pdf
+
