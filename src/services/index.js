@@ -9,3 +9,4 @@ export * from './medicationService';
 export * from './dischargeService';
 export * from './auditService';
 export * from './aiService';
+export * from './audioTranscriptionService';
