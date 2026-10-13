@@ -52,39 +52,99 @@ function pickPressure(text) {
   return {};
 }
 
-// Detecta achados neurológicos e de contexto relatados no texto
+// Detecta achados neurológicos, dor anatômica e contexto relatados no texto
 function extractClinicalContext(text, vitals) {
-  // Consciência / Desacordado
-  if (/(?:desacordad|inconsciente|n[ãa]o\s+responde|rebaixad|comatos|torpor)/i.test(text)) {
+  const t = text;
+
+  // 1. Sensório & Consciência
+  if (/(?:desacordad|inconsciente|n[ãa]o\s+responde|comatos|rebaixad\w*\s+grave)/i.test(t)) {
     vitals.cam_altered_loc = true;
     vitals.cam_acute = true;
     vitals.sak_disorientation = true;
     vitals.estado_consciencia = "Desacordado / Inconsciente";
+  } else if (/(?:confus|desorientad|dificuldade\s+(?:para|de)\s+orienta|n[ãa]o\s+consegue\s+formular\s+frase|pensamento\s+desorganiz)/i.test(t)) {
+    vitals.cam_altered_loc = true;
+    vitals.cam_positive = true;
+    vitals.cam_inattention = true;
+    vitals.cam_disorganized = true;
+    vitals.sak_disorientation = true;
+    vitals.estado_consciencia = "Confuso / Desorientado";
+  } else if (/(?:sonolent|torpor|let[aá]rgic|rebaixad)/i.test(t)) {
+    vitals.cam_altered_loc = true;
+    vitals.estado_consciencia = "Sonolento / Torporoso";
+  } else if (/(?:l[uú]cid|orientad|lote|contactuando|alerta|consciente)/i.test(t)) {
+    vitals.estado_consciencia = vitals.estado_consciencia || "Lúcido e Orientado";
   }
 
-  // Queda / Lesão
-  if (/(?:p[óo]s[- ]?queda|caiu|queda|trauma)/i.test(text)) {
+  // 2. Escala de Coma de Glasgow (3 a 15)
+  const glasgowMatch = t.match(/\b(?:glasgow|ecg|escala\s+de\s+coma(?:\s+de\s+glasgow)?)\s*(?:de|:|=)?\s*(\d{1,2})\b/i);
+  if (glasgowMatch && Number(glasgowMatch[1])) {
+    const val = Number(glasgowMatch[1]);
+    if (val >= 3 && val <= 15) {
+      vitals.glasgow = val;
+      if (!vitals.estado_consciencia) {
+        vitals.estado_consciencia = val === 15 ? "Lúcido (Glasgow 15)" : `Glasgow ${val}/15`;
+      }
+    }
+  }
+
+  // 3. Localização Anatômica da Dor
+  vitals.caloi_pain_location = vitals.caloi_pain_location || [];
+  if (/(?:abdom|barriga|epig[aá]stri|flanco|est[oô]mago)/i.test(t)) {
+    if (!vitals.caloi_pain_location.includes("Abdômen")) vitals.caloi_pain_location.push("Abdômen");
+  }
+  if (/(?:t[oó]rax|tor[aá]cic|peito)/i.test(t)) {
+    if (!vitals.caloi_pain_location.includes("Tórax")) vitals.caloi_pain_location.push("Tórax");
+  }
+  if (/(?:dorso|costas|lombar)/i.test(t)) {
+    if (!vitals.caloi_pain_location.includes("Dorso / Região Lombar")) vitals.caloi_pain_location.push("Dorso / Região Lombar");
+  }
+  if (/(?:cefale|cabe[çc]a)/i.test(t) && /(?:dor|algia|latej)/i.test(t)) {
+    if (!vitals.caloi_pain_location.includes("Cabeça")) vitals.caloi_pain_location.push("Cabeça");
+  }
+
+  // 4. Características da Dor
+  vitals.caloi_pain_characteristics = vitals.caloi_pain_characteristics || [];
+  if (/pontada/i.test(t)) {
+    if (!vitals.caloi_pain_characteristics.includes("Em pontadas")) vitals.caloi_pain_characteristics.push("Em pontadas");
+  }
+  if (/queima/i.test(t)) {
+    if (!vitals.caloi_pain_characteristics.includes("Em queimação")) vitals.caloi_pain_characteristics.push("Em queimação");
+  }
+  if (/(?:aperto|opress)/i.test(t)) {
+    if (!vitals.caloi_pain_characteristics.includes("Em aperto / Opressiva")) vitals.caloi_pain_characteristics.push("Em aperto / Opressiva");
+  }
+  if (/c[oó]lica/i.test(t)) {
+    if (!vitals.caloi_pain_characteristics.includes("Em cólica")) vitals.caloi_pain_characteristics.push("Em cólica");
+  }
+
+  // 5. Queda vs Quase Queda & Marcha
+  if (/(?:quase\s+caiu|quase\s+queda|risco\s+de\s+cair)/i.test(t)) {
+    vitals.sak_walking = true;
+    vitals.quase_caiu = true;
+  } else if (/(?:p[óo]s[- ]?queda|sofreu\s+queda|teve\s+queda|caiu\s+(?:da\s+pr[óo]pria|no\s+ch[ãa]o|de\s+n[íi]vel|da\s+cama|em\s+casa))/i.test(t)) {
     vitals.sak_previous_falls = true;
     vitals.historico_queda = true;
   }
 
-  // Lesão na cabeça / TCE
-  if (/(?:les[ãa]o\s+na\s+cabe[çc]a|tce|trauma\s+craniano|cabe[çc]a)/i.test(text)) {
-    vitals.trauma_craniano = true;
-    vitals.caloi_pain_location = vitals.caloi_pain_location || [];
-    if (!vitals.caloi_pain_location.includes("Cabeça (generalizada)")) {
-      vitals.caloi_pain_location.push("Cabeça (generalizada)");
-    }
+  if (/(?:dificuldade\s+para\s+deambular|marcha\s+inst[aá]vel|n[ãa]o\s+consegue\s+andar|instabilidade)/i.test(t)) {
+    vitals.sak_walking = true;
+    vitals.dificuldade_deambulacao = true;
   }
 
-  // Sem acompanhante
-  if (/(?:sem\s+acompanhante|desacompanhad|sozinho)/i.test(text)) {
+  // 6. Lesão na cabeça / TCE (somente se houver menção explícita de impacto/lesão craniana)
+  if (/(?:les[ãa]o\s+na\s+cabe[çc]a|trauma\s+craniano|traumatismo\s+cranioencef[aá]lico|tce|bateu\s+a\s+cabe[çc]a|corte\s+na\s+cabe[çc]a|pancada\s+na\s+cabe[çc]a)/i.test(t)) {
+    vitals.trauma_craniano = true;
+  }
+
+  // 7. Sem acompanhante
+  if (/(?:sem\s+acompanhante|desacompanhad|sozinho)/i.test(t)) {
     vitals.sak_caregiver = true;
     vitals.sem_acompanhante = true;
   }
 
-  // Idade (ex: "75 anos", "idade 60", "com 58 anos")
-  const ageMatch = text.match(/(?:idade\s*(?:de)?\s*|paciente\s+(?:com\s+)?|com\s+)(\d{1,3})\s*(?:anos|a\b)/i);
+  // 8. Idade (ex: "75 anos", "idade 60", "com 35 anos")
+  const ageMatch = t.match(/(?:idade\s*(?:de)?\s*|paciente\s+(?:com\s+)?|com\s+)(\d{1,3})\s*(?:anos|a\b)/i);
   if (ageMatch && toNum(ageMatch[1])) {
     const parsedAge = toNum(ageMatch[1]);
     if (parsedAge >= 0 && parsedAge <= 125) {
@@ -92,19 +152,19 @@ function extractClinicalContext(text, vitals) {
     }
   }
 
-  // Nome do paciente (se explicitamente citado)
-  const nameMatch = text.match(/(?:paciente\s+chamad[oa]\s+|paciente\s+|sr\.\s+|sra\.\s+)([A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+(?:\s+[A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+){1,3})/);
+  // 9. Nome do paciente
+  const nameMatch = t.match(/(?:paciente\s+chamad[oa]\s+|paciente\s+|sr\.\s+|sra\.\s+)([A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+(?:\s+[A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+){1,3})/);
   if (nameMatch && nameMatch[1]) {
     const candidate = nameMatch[1].trim();
-    if (!/^(chega|com|apresenta|foi|teve|sem|aparentemente|desacordado|inconsciente)$/i.test(candidate)) {
+    if (!/^(chega|com|apresenta|foi|teve|sem|aparentemente|desacordado|inconsciente|dispneico)$/i.test(candidate)) {
       vitals.patient_name = candidate;
     }
   }
 
-  // Gênero
-  if (/(?:o\s+paciente|homem|masculino|idoso|senhor\b)/i.test(text)) {
+  // 10. Gênero
+  if (/(?:o\s+paciente|homem|masculino|idoso|senhor\b)/i.test(t)) {
     vitals.gender = "M";
-  } else if (/(?:a\s+paciente|mulher|feminino|idosa|senhora\b)/i.test(text)) {
+  } else if (/(?:a\s+paciente|mulher|feminino|idosa|senhora\b)/i.test(t)) {
     vitals.gender = "F";
   }
 
@@ -152,9 +212,10 @@ export function parseVitalsFromTranscript(text) {
   );
   if (hgt !== null) vitals.hgt = hgt;
 
+  // Reconhecimento abrangente da Dor (EVA 0 a 10)
   const pain = pick(
     t,
-    /\b(?:dor|algia|eva)(?![a-záàâãéêíóôõúç])\s*(?:de|em|n[íi]vel|nota|intensidade|escala|:|=)?\s*(\d{1,2})(?:\s*(?:\/\s*10|de\s*10))?/,
+    /\b(?:dor|algia|eva|intensidade(?:\s+da\s+dor)?)\s*(?:de|em|n[íi]vel|nota|:|#)?\s*(\d{1,2})(?:\s*(?:\/\s*10|de\s*10|em\s*10))?/,
     RANGES.pain
   );
   if (pain !== null) {
@@ -163,7 +224,7 @@ export function parseVitalsFromTranscript(text) {
     vitals.caloi_pain_intensity = 0;
   }
 
-  // Extrai achados de contexto (consciência, queda, lesões, sem acompanhante)
+  // Extrai achados de contexto (consciência, glasgow, queda, lesões, sem acompanhante)
   extractClinicalContext(t, vitals);
 
   return vitals;
@@ -180,8 +241,16 @@ export function describeVitals(vitals = {}) {
   if (vitals.sat != null) items.push({ label: "SatO₂", value: vitals.sat, unit: "%" });
   if (vitals.tax != null) items.push({ label: "Tax", value: vitals.tax, unit: "°C" });
   if (vitals.hgt != null) items.push({ label: "HGT", value: vitals.hgt, unit: "mg/dL" });
-  if (vitals.caloi_pain_intensity != null) items.push({ label: "Dor", value: vitals.caloi_pain_intensity, unit: "/10" });
-  if (vitals.estado_consciencia) items.push({ label: "Sensório", value: vitals.estado_consciencia, unit: "" });
+  if (vitals.caloi_pain_intensity != null) {
+    const loc = vitals.caloi_pain_location?.[0] ? ` (${vitals.caloi_pain_location[0]})` : "";
+    items.push({ label: "Dor", value: `${vitals.caloi_pain_intensity}/10${loc}`, unit: "" });
+  }
+  if (vitals.glasgow != null) {
+    items.push({ label: "Glasgow", value: `${vitals.glasgow}/15`, unit: "" });
+  }
+  if (vitals.estado_consciencia) {
+    items.push({ label: "Sensório", value: vitals.estado_consciencia, unit: "" });
+  }
   return items;
 }
 
@@ -253,7 +322,14 @@ export function getMissingVitals(vitals = {}, text = "") {
       urgency: "media"
     });
   }
-  if (!vitals.estado_consciencia && !/(?:glasgow|ecg|lucid|orientad|consciente|inconsciente|desacordad)/i.test(raw)) {
+
+  // Verifica se o estado mental ou Glasgow já foi fornecido no relato
+  const hasNeuro =
+    Boolean(vitals.estado_consciencia) ||
+    Boolean(vitals.glasgow) ||
+    /(?:glasgow|ecg|l[uú]cid|orientad|confus|desorientad|sonolent|torpor|inconsciente|desacordad|consciente|contactuando)/i.test(raw);
+
+  if (!hasNeuro) {
     missing.push({
       key: "neuro",
       label: "Nível de Consciência / Glasgow",
@@ -262,6 +338,7 @@ export function getMissingVitals(vitals = {}, text = "") {
       urgency: "alta"
     });
   }
+
   if (!vitals.age && !/(?:\d{1,3}\s*anos)/i.test(raw)) {
     missing.push({
       key: "idade",

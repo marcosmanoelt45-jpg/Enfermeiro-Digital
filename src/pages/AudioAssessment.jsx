@@ -7,6 +7,7 @@ import useAudioRecorder from "@/hooks/useAudioRecorder";
 import RecorderPanel from "@/components/audio/RecorderPanel";
 import TranscriptPanel from "@/components/audio/TranscriptPanel";
 import StatusCard from "@/components/audio/StatusCard";
+import ClinicalGuideTabs from "@/components/audio/ClinicalGuideTabs";
 import { getAssemblyAiKey, transcribeAudio } from "@/lib/assemblyai";
 import { parseVitalsFromTranscript } from "@/lib/vitalsParser";
 import { computeAllScores } from "@/lib/riskEngine";
@@ -129,7 +130,7 @@ export default function AudioAssessment() {
   return (
     <div className="min-h-screen bg-slate-50">
       <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/95 backdrop-blur shadow-sm">
-        <div className="mx-auto max-w-2xl px-4 py-3">
+        <div className="mx-auto max-w-4xl px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
               <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-xl">
@@ -153,7 +154,7 @@ export default function AudioAssessment() {
         </div>
       </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-6 space-y-4">
+      <main className="mx-auto max-w-4xl px-4 py-6 space-y-4">
         {(error || recorder.error) && (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 p-3 text-sm text-rose-700">
             {error || recorder.error}
@@ -189,7 +190,7 @@ export default function AudioAssessment() {
             detail={transcript}
           />
         ) : showReview ? (
-          <>
+          <div className="space-y-4">
             {recorder.url && <audio src={recorder.url} controls className="w-full rounded-xl shadow-sm" />}
             <TranscriptPanel
               value={transcript}
@@ -198,19 +199,49 @@ export default function AudioAssessment() {
               onConfirm={handleConfirm}
               onReset={handleReset}
             />
-          </>
+            {/* Guia com abas disponível para consulta durante a revisão */}
+            <div className="mt-4">
+              <ClinicalGuideTabs
+                onSelectSnippet={(snippet) => {
+                  setTranscript((prev) => (prev ? `${prev}${snippet}` : snippet.replace(/^,\s*/, "")));
+                }}
+              />
+            </div>
+          </div>
         ) : (
-          <RecorderPanel
-            recording={recorder.recording}
-            seconds={recorder.seconds}
-            audioUrl={recorder.url}
-            busy={busy}
-            onStart={recorder.start}
-            onStop={recorder.stop}
-            onTranscribe={handleTranscribe}
-            onManual={() => setManual(true)}
-            onReset={handleReset}
-          />
+          <div className="grid grid-cols-1 md:grid-cols-12 gap-5 items-start">
+            {/* PAINEL DO MICROFONE */}
+            <div className="md:col-span-5 space-y-4">
+              <RecorderPanel
+                recording={recorder.recording}
+                seconds={recorder.seconds}
+                audioUrl={recorder.url}
+                busy={busy}
+                onStart={recorder.start}
+                onStop={recorder.stop}
+                onTranscribe={handleTranscribe}
+                onManual={() => setManual(true)}
+                onReset={handleReset}
+              />
+
+              <div className="rounded-2xl border border-slate-200 bg-white p-4">
+                <p className="text-xs font-semibold text-slate-700">Dica de gravação</p>
+                <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+                  Fale com naturalidade no microfone. Veja as abas ao lado para não esquecer sinais vitais, dor, Glasgow e histórico.
+                </p>
+              </div>
+            </div>
+
+            {/* ABAS COM INFORMAÇÕES AO LADO DO MICROFONE */}
+            <div className="md:col-span-7 space-y-4">
+              <ClinicalGuideTabs
+                onSelectSnippet={(snippet) => {
+                  setTranscript((prev) => (prev ? `${prev}${snippet}` : snippet.replace(/^,\s*/, "")));
+                  setManual(true);
+                }}
+              />
+            </div>
+          </div>
         )}
 
         {!busy && !showReview && (

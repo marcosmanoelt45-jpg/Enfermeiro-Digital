@@ -122,17 +122,21 @@ async function callGeminiCarePlan(clinicalData) {
 Sua missão é realizar um raciocínio clínico diagnóstico holístico, autônomo e aprofundado a partir de todos os dados do paciente.
 
 DIRETRIZES FUNDAMENTAIS:
-1. RACIOCÍNIO CLÍNICO INTEGRAL: Não se limite a avaliar apenas escalas numéricas. Analise a anamnese, a queixa do paciente, o histórico médico, os ferimentos e queixas (ex.: ferimentos por arma de fogo - PAF, facadas, traumas, sangramentos, cirurgias de urgência) e histórico de substâncias psicoativas / drogas.
-2. TRAUMA / ARMA DE FOGO / FERIMENTOS: Se o paciente tiver sido alvejado por tiro nas costas, trauma penetrante ou ferida traumática: DEVE obrigatoriamente priorizar diagnósticos como "00132 - Dor aguda", "00044 - Integridade tissular prejudicada", "00206 - Risco de sangramento", "00004 - Risco de infecção" e "00205 - Risco de choque", detalhando cuidados com orifícios balísticos, avaliação de perfuração vascular/visceral e vigilância hemodinâmica.
-3. SUBSTÂNCIAS PSICOATIVAS / DROGAS: Se houver relato ou histórico de uso de drogas ou substâncias ilícitas: DEVE obrigatoriamente priorizar "00188 - Comportamento de saúde propenso a risco", "00258 - Risco de síndrome de abstinência aguda de substâncias" e "00078 - Manejo ineficaz da saúde", abordando manejo de ansiedade, monitoramento de sinais de abstinência (tremores, taquicardia, sudorese, agitação) e rede de suporte psicossocial.
-4. HIPOGLICEMIA SEVERA / BRADICARDIA CRÍTICA / TCE PÓS-QUEDA / REBAIXAMENTO DE CONSCIÊNCIA:
-Se o paciente apresentar hipoglicemia severa (HGT < 70 mg/dL, em especial <= 40 mg/dL), bradicardia extrema (FC <= 40 bpm), lesão cefálica/TCE ou rebaixamento de consciência (desacordado/inconsciente):
-DEVE obrigatoriamente priorizar:
-- "00179 - Risco de nível de glicemia instável" ou "00249 - Nível de glicemia desestabilizado" (correção urgente com glicose hiperosmolar EV e monitorização glicêmica seriada);
-- "00029 - Débito cardíaco diminuído" e "00205 - Risco de choque" (risco iminente de parada cardiorrespiratória por bradicardia extrema, preparo de atropina/marcapasso e monitorização em DII);
-- "00201 - Risco de perfusão tissular cerebral ineficaz" (neuromonitorização, colar cervical rígido pós-queda e vigilância de hipertensão intracraniana);
-- "00030 - Troca de gases prejudicada" (oxigenoterapia imediata se SatO2 < 92%);
-- "00039 - Risco de aspiração" (proteção de via aérea em paciente desacordado).
+1. RACIOCÍNIO CLÍNICO INTEGRAL E REALISTA: Não se limite a avaliar apenas escalas numéricas. Analise a anamnese, a queixa do paciente, o histórico médico, dores e parâmetros vitais. NUNCA invente lesões, traumas cranianos ou quedas consumadas que não constem no relato. Se o paciente apenas "quase caiu" ou tem marcha instável, NUNCA diagnostique traumatismo cranioencefálico nem imobilização cervical.
+2. TRAUMA REAL / ARMA DE FOGO (PAF) / FERIMENTOS: Somente se houver menção explícita a tiro, disparo, facada ou trauma penetrante: priorize "00132 - Dor aguda", "00044 - Integridade tissular prejudicada", "00206 - Risco de sangramento" e "00205 - Risco de choque".
+3. DOR AGUDA (00132): Se houver dor relatada (ex: dor abdominal de intensidade 9 em pontadas, dor torácica, lombalgia): priorize "00132 - Dor aguda", detalhando a localização precisa, características e intervenções analgésicas e de conforto.
+4. METABOLISMO GLICÊMICO (HIPO OU HIPERGLICEMIA):
+- HIPOGLICEMIA (HGT <= 70 mg/dL): "00179 - Risco de nível de glicemia instável" (infusão de glicose hipertônica 50% EV e HGT seriada).
+- HIPERGLICEMIA SEVERA (HGT >= 180 mg/dL, ex: 300 mg/dL): "00179 - Risco de nível de glicemia instável", com risco de cetoacidose diabética (CAD), desidratação osmótica e dor abdominal associada; prescrever hidratação com SF 0,9%, insulina conforme prescrição médica e controle glicêmico seriado.
+5. CARDIOVASCULAR & RESPIRATÓRIO:
+- BRADICARDIA GRAVE (FC < 50 bpm, ex: FC 30 bpm): "00029 - Débito cardíaco diminuído" e "00205 - Risco de choque" (monitorização contínua DII, preparo de atropina/marcapasso transcutâneo).
+- DISPNEIA / TAQUIPNEIA / HIPOXEMIA (FR > 22 ou SatO2 < 92%): "00030 - Troca de gases prejudicada" (oxigenoterapia e padrão respiratório).
+6. NEUROLÓGICO & RISCO DE QUEDAS:
+- CONFUSÃO AGUDA / DELIRIUM (CAM+ ou paciente confuso com dificuldade de fala): "00128 - Confusão aguda" secundária a distúrbio metabólico (hiperglicemia) ou baixo débito cardíaco (bradicardia).
+- TRAUMA CRANIANO REAL (TCE confirmado com lesão física na cabeça): "00201 - Risco de perfusão tissular cerebral ineficaz". SE NÃO HOUVER LESÃO NA CABEÇA, NUNCA APLIQUE ESTE DIAGNÓSTICO.
+- INSTABILIDADE DE MARCHA / QUASE CAIU: "00155 - Risco de quedas em adultos" e "00085 - Mobilidade física prejudicada" (grades elevadas, pulseira amarela, auxílio na deambulação).
+- REBAIXAMENTO SEVERO / DESACORDADO: "00039 - Risco de aspiração".
+7. SUBSTÂNCIAS PSICOATIVAS / DROGAS: Se houver relato ou histórico de uso prejudicial de drogas: "00188 - Comportamento de saúde propenso a risco" e "00258 - Risco de síndrome de abstinência aguda".
 5. ESTRUTURA DOS DIAGNÓSTICOS:
 Para cada diagnóstico identificado, inclua:
 - code: Código NANDA-I oficial de 5 dígitos (ex: "00132")
@@ -259,9 +263,9 @@ export function generateLocalTaxonomicPlan(clinicalData) {
     .toLowerCase();
 
   // --------------------------------------------------------------------------
-  // 1. ANÁLISE DE TRAUMA PENETRANTE / FERIMENTO POR ARMA DE FOGO (PAF) / COSTAS / CIRURGIA DE EMERGÊNCIA
+  // 1. ANÁLISE DE TRAUMA PENETRANTE / FERIMENTO POR ARMA DE FOGO (PAF) OU ARMA BRANCA
   // --------------------------------------------------------------------------
-  const temTraumaPAF = /\b(tiro|tiros|disparo|disparos|arma de fogo|paf|perfurocontus[ao]|bala|balas|costas|dorso|lombar|ferimento|projetil|hemorragi|sangrament|perfurad|esfaquead|arma branca)\b/i.test(textoCompleto);
+  const temTraumaPAF = /\b(tiro|tiros|disparo|disparos|arma\s+de\s+fogo|paf|perfurocontus[ao]|bala\s+perdida|ferimento\s+por\s+proj[ée]til|proj[ée]til|orif[íi]cio\s+de\s+entrada|orif[íi]cio\s+de\s+sa[íi]da|esfaquead|arma\s+branca)\b/i.test(textoCompleto);
 
   if (temTraumaPAF) {
     // 1.1 Dor Aguda Severa por Trauma
@@ -433,68 +437,142 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   }
 
   // --------------------------------------------------------------------------
-  // 4. ESCALA SAK (Risco de Quedas)
+  // 4. RISCO DE QUEDAS (ESCALA SAK / RELATO DE QUASE QUEDA / MARCHA INSTÁVEL)
   // --------------------------------------------------------------------------
-  if (escalas.sak.total && escalas.sak.total >= 6.5) {
+  const temRiscoQuedasOuMarcha =
+    (escalas.sak.total && escalas.sak.total >= 6.5) ||
+    /\b(quase\s+caiu|quase\s+queda|risco\s+de\s+cair|dificuldade\s+para\s+deambular|marcha\s+inst[áa]vel|instabilidade\s+de\s+marcha|desequil[íi]brio|trope[çc]ou)\b/i.test(textoCompleto);
+
+  if (temRiscoQuedasOuMarcha) {
     diagnosticos.push({
       code: '00155',
       title: 'Risco de quedas em adultos',
       domain: 'Domínio 11: Segurança/Proteção',
       class: 'Classe 2: Lesão física',
-      defining_characteristics: ['Escore na Escala SAK de ' + escalas.sak.total + ' (Risco Elevado)'],
-      related_factors: ['Dificuldade na marcha', 'Histórico de trauma recente', 'Uso de medicações sedativas/analgésicas'],
+      defining_characteristics: [
+        'Relato de instabilidade motora na marcha ou episódio recente de quase queda',
+        'Dificuldade para deambular desacompanhado e necessidade de apoio',
+        'Alterações hemodinâmicas, metabólicas ou cognitivas predisponentes a desequilíbrio',
+      ],
+      related_factors: ['Dificuldade na marcha / mobilidade alterada', 'Episódio recente de quase queda', 'Fraqueza generalizada ou confusão mental'],
       interventions: [
-        { code: '6490', title: 'Prevenção contra quedas', description: 'Manter grades bilaterais do leito sempre elevadas, campainha de chamada ao alcance fácil das mãos e piso livre de umidade ou obstáculos.' },
-        { code: '6610', title: 'Identificação de risco', description: 'Fixar pulseira de identificação de risco de queda amarela e placa de alerta visual na cabeceira do leito.' },
+        { code: '6490', title: 'Prevenção contra quedas', description: 'Manter grades bilaterais do leito sempre elevadas, campainha de chamada ao alcance fácil das mãos e piso livre de umidade ou obstáculos; supervisionar e auxiliar transferências e deambulação.' },
+        { code: '6610', title: 'Identificação de risco', description: 'Fixar pulseira amarela de identificação de risco de quedas e sinalizar placa de alerta visual na cabeceira do leito.' },
       ],
       outcomes: [
-        { code: '1912', title: 'Controle de risco: quedas', description: 'Adoção de precauções de segurança no leito com incidência zero de quedas durante o internamento.' },
+        { code: '1912', title: 'Controle de risco: quedas', description: 'Adoção integral de precauções de segurança no leito com incidência zero de quedas durante a internação.' },
       ],
     });
+
+    if (/\b(dificuldade\s+para\s+deambular|n[ãa]o\s+consegue\s+andar|marcha\s+claudicante)\b/i.test(textoCompleto)) {
+      diagnosticos.push({
+        code: '00085',
+        title: 'Mobilidade física prejudicada',
+        domain: 'Domínio 4: Atividade/Repouso',
+        class: 'Classe 2: Atividade/Exercício',
+        defining_characteristics: ['Dificuldade relatada para deambular de forma autônoma', 'Instabilidade postural e fraqueza de membros inferiores'],
+        related_factors: ['Fraqueza musculoesquelética', 'Desconforto álgico agudo e comprometimento hemodinâmico'],
+        interventions: [
+          { code: '0221', title: 'Terapia por exercícios: deambulação', description: 'Avaliar a capacidade de suporte de peso, utilizar dispositivos auxiliares se necessário e incentivar mobilização progressiva segura com assistência de enfermagem.' },
+        ],
+        outcomes: [
+          { code: '0200', title: 'Deambulação', description: 'Recuperação progressiva da firmeza da marcha com passos seguros e sem episódios de desequilíbrio.' },
+        ],
+      });
+    }
   }
 
   // --------------------------------------------------------------------------
-  // 5. ESCALA CALOI (Dor não coberta anteriormente pelo trauma)
+  // 5. DOR AGUDA (ESCALA CALOI / RELATO VERBAL / SINAIS VITAIS)
   // --------------------------------------------------------------------------
-  if (!temTraumaPAF && escalas.caloi.intensidade_dor && escalas.caloi.intensidade_dor >= 4) {
+  const valorDor =
+    escalas.caloi?.intensidade_dor ||
+    sinais_vitais.dor ||
+    sinais_vitais.caloi_pain_intensity ||
+    null;
+
+  const temDorRelatada =
+    !temTraumaPAF &&
+    ((valorDor != null && valorDor >= 3) ||
+      /\b(?:dor|algia|c[óo]lica|pontada|queima[çc][ãa]o|desconforto\s+[áa]lgico)\b/i.test(textoCompleto));
+
+  if (temDorRelatada) {
+    const locs = Array.from(
+      new Set([
+        ...(escalas.caloi?.localizacao || []),
+        ...(sinais_vitais.caloi_pain_location || []),
+      ])
+    );
+    if (locs.length === 0 && /\babd[oô]m|barriga|epig[áa]stri|flanco/i.test(textoCompleto)) locs.push('Região abdominal');
+    if (locs.length === 0 && /\bt[oó]rax|tor[áa]cic|peito/i.test(textoCompleto)) locs.push('Região torácica');
+    if (locs.length === 0 && /\bdorso|costas|lombar/i.test(textoCompleto)) locs.push('Dorso / Região lombar');
+
+    const caracs = Array.from(
+      new Set([
+        ...(escalas.caloi?.caracteristicas || []),
+        ...(sinais_vitais.caloi_pain_characteristics || []),
+      ])
+    );
+    if (caracs.length === 0 && /pontada/i.test(textoCompleto)) caracs.push('Em pontadas');
+    if (caracs.length === 0 && /queima/i.test(textoCompleto)) caracs.push('Em queimação');
+    if (caracs.length === 0 && /c[óo]lica/i.test(textoCompleto)) caracs.push('Em cólica');
+    if (caracs.length === 0 && /aperto|opress/i.test(textoCompleto)) caracs.push('Em aperto / opressiva');
+
+    const scoreDisplay = valorDor != null ? `${valorDor}/10` : 'severa';
+
     diagnosticos.push({
       code: '00132',
       title: 'Dor aguda',
       domain: 'Domínio 12: Conforto',
       class: 'Classe 1: Conforto físico',
       defining_characteristics: [
-        'Relato verbal de dor intensidade ' + escalas.caloi.intensidade_dor + '/10',
-        ...(escalas.caloi.localizacao || []).map((l) => 'Local: ' + l),
+        `Relato verbal de dor de intensidade ${scoreDisplay}`,
+        ...(locs.length > 0 ? [`Localização anatômica: ${locs.join(', ')}`] : []),
+        ...(caracs.length > 0 ? [`Padrão/Características: ${caracs.join(', ')}`] : []),
+        'Expressão facial de desconforto álgico e postura antálgica de defesa',
       ],
-      related_factors: ['Agentes lesivos biológicos, físicos ou químicos'],
+      related_factors: ['Agentes lesivos biológicos, isquêmicos, inflamatórios ou metabólicos agudos'],
       interventions: [
-        { code: '1400', title: 'Manejo da dor', description: 'Avaliar características da dor e administrar analgésicos conforme prescrição médica com reavaliação em 30 min.' },
-        { code: '2210', title: 'Administração de analgésicos', description: 'Verificar eficácia da terapia medicamentosa prescrita e monitorar efeitos adversos.' },
+        { code: '1400', title: 'Manejo da dor', description: 'Avaliar características abrangentes da dor (localização, qualidade, intensidade EVA, irradiação e fatores agravantes); aplicar medidas de conforto e posicionamento antálgico.' },
+        { code: '2210', title: 'Administração de analgésicos', description: 'Administrar analgesia prescrita pela equipe médica, monitorando resposta terapêutica em 30 a 60 minutos e reportando imediatamente sinais de alarme ou abdômen cirúrgico.' },
       ],
       outcomes: [
-        { code: '1605', title: 'Controle da dor', description: 'Reconhece o início da dor e relata alívio satisfatório com as intervenções.' },
-        { code: '2102', title: 'Nível de dor', description: 'Redução do escore de dor para níveis toleráveis (<= 3).' },
+        { code: '1605', title: 'Controle da dor', description: 'Paciente relata alívio satisfatório com redução do escore de dor para níveis toleráveis (<= 3).' },
+        { code: '2102', title: 'Nível de dor', description: 'Alívio da expressão facial de dor e estabilização dos parâmetros autonômicos.' },
       ],
     });
   }
 
   // --------------------------------------------------------------------------
-  // 6. ESCALA CAM (Delirium / Confusão Aguda)
+  // 6. ESCALA CAM / CONFUSÃO AGUDA / SENSÓRIO ALTERADO
   // --------------------------------------------------------------------------
-  if (escalas.cam.positivo) {
+  const temConfusao =
+    escalas.cam?.positivo ||
+    /\b(confus|desorientad|dificuldade\s+(?:para|de)\s+orienta|n[ãa]o\s+consegue\s+formular\s+frase|pensamento\s+desorganiz|delirium)\b/i.test(textoCompleto);
+
+  if (temConfusao) {
     diagnosticos.push({
       code: '00128',
       title: 'Confusão aguda (Delirium)',
       domain: 'Domínio 5: Percepção/Cognição',
       class: 'Classe 4: Cognição',
-      defining_characteristics: ['Início agudo e flutuação cognitiva', 'Desatenção', 'Pensamento desorganizado'],
-      related_factors: ['Alterações do ciclo sono-vigília', 'Ambiente hospitalar não familiar', 'Trauma/estresse fisiológico'],
+      defining_characteristics: [
+        'Início agudo com flutuação do estado cognitivo e atencional',
+        'Dificuldade para formular frases e responder adequadamente a comandos e orientações',
+        'Desorientação temporal ou espacial evidenciada na triagem',
+      ],
+      related_factors: [
+        'Descompensação metabólica aguda (hiperglicemia severa / acidose)',
+        'Hipoperfusão cerebral sistêmica secundária a bradicardia extrema ou choque',
+        'Estresse fisiológico agudo no ambiente hospitalar',
+      ],
       interventions: [
-        { code: '4880', title: 'Manejo do delirium', description: 'Reorientar o paciente frequentemente no tempo e espaço; manter relógio e calendário visíveis no quarto.' },
-        { code: '6460', title: 'Manejo da demência / cognição', description: 'Evitar restrições mecânicas desnecessárias, garantir presença de acompanhante familiar e prover ambiente tranquilo.' },
+        { code: '4880', title: 'Manejo do delirium / confusão', description: 'Reorientar o paciente frequentemente no tempo, espaço e ambiente; manter iluminação adequada e ambiente tranquilo; verificar glicemia e sinais vitais diante de qualquer oscilação cognitiva súbita.' },
+        { code: '2620', title: 'Monitorização neurológica', description: 'Aplicar a Escala de Coma de Glasgow seriada a cada 1 a 2 horas e avaliar simetria pupilar; assegurar vigilância constante para prevenção de evasão ou acidentes no leito.' },
       ],
       outcomes: [
-        { code: '0901', title: 'Orientação cognitiva', description: 'Identifica corretamente tempo, local e pessoas de maneira consistente.' },
+        { code: '0901', title: 'Orientação cognitiva', description: 'Paciente recupera lucidez progressiva e orienta-se adequadamente quanto a tempo, espaço e situação.' },
+        { code: '0909', title: 'Estado neurológico', description: 'Estabilidade da função cognitiva sem progressão para agitação psicomotora ou coma.' },
       ],
     });
   }
@@ -561,20 +639,25 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   }
 
   // --------------------------------------------------------------------------
-  // 9. HIPOGLICEMIA SEVERA / INSTABILIDADE GLICÊMICA AGUDA
+  // 9. INSTABILIDADE GLICÊMICA AGUDA (HIPOGLICEMIA OU HIPERGLICEMIA SEVERA)
   // --------------------------------------------------------------------------
+  const valorHgt = sinais_vitais.hgt != null ? Number(sinais_vitais.hgt) : null;
   const temHipoglicemia =
-    (sinais_vitais.hgt && sinais_vitais.hgt <= 70) ||
-    /\b(?:glicemia\s*(?:de\s*)?(?:30|40|50|60|2\d)|hgt\s*(?:de\s*)?(?:30|40|50|60|2\d)|hipoglicem)\b/i.test(textoCompleto);
+    (valorHgt != null && valorHgt <= 70) ||
+    /\b(?:glicemia\s*(?:de\s*)?(?:30|40|50|60|70)|hgt\s*(?:de\s*)?(?:30|40|50|60|70)|hipoglicem)\b/i.test(textoCompleto);
+
+  const temHiperglicemia =
+    (valorHgt != null && valorHgt >= 180) ||
+    /\b(?:glicemia\s*(?:de\s*)?(?:[2-9]\d{2}|1[8-9]\d)|hgt\s*(?:de\s*)?(?:[2-9]\d{2}|1[8-9]\d)|hiperglicem|cetoacidose|descompensa[çc][ãa]o\s+diab[ée]tica)\b/i.test(textoCompleto);
 
   if (temHipoglicemia) {
     diagnosticos.push({
       code: '00179',
-      title: 'Risco de nível de glicemia instável',
+      title: 'Risco de nível de glicemia instável (Hipoglicemia)',
       domain: 'Domínio 2: Nutrição',
       class: 'Classe 4: Metabolismo',
       defining_characteristics: [
-        'Glicemia capilar crítica (' + (sinais_vitais.hgt || '30') + ' mg/dL)',
+        'Glicemia capilar crítica (' + (valorHgt || 'abaixo de 70') + ' mg/dL)',
         'Rebaixamento agudo do nível de consciência decorrente de neuroglicopenia',
         'Risco de dano cerebral isquêmico por privação glicídica prolongada',
       ],
@@ -586,6 +669,27 @@ export function generateLocalTaxonomicPlan(clinicalData) {
       outcomes: [
         { code: '2111', title: 'Gravidade da hipoglicemia', description: 'Reversão completa do quadro neuroglicopênico e recuperação da estabilidade clínica.' },
         { code: '2300', title: 'Nível de glicemia', description: 'Glicemia capilar mantida dentro da faixa terapêutica alvo (80 a 160 mg/dL).' },
+      ],
+    });
+  } else if (temHiperglicemia) {
+    diagnosticos.push({
+      code: '00179',
+      title: 'Risco de nível de glicemia instável (Hiperglicemia Severa)',
+      domain: 'Domínio 2: Nutrição',
+      class: 'Classe 4: Metabolismo',
+      defining_characteristics: [
+        'Glicemia capilar acentuadamente elevada (' + (valorHgt || '300') + ' mg/dL)',
+        'Risco iminente de descompensação metabólica aguda (Cetoacidose Diabética / Estado Hiperosmolar)',
+        'Desidratação osmótica potencial, dor abdominal e distúrbios cognitivos associados',
+      ],
+      related_factors: ['Descompensação do diabetes mellitus', 'Déficit absoluto ou relativo de insulina', 'Estresse fisiológico agudo'],
+      interventions: [
+        { code: '2120', title: 'Manejo da hiperglicemia', description: 'Monitorar glicemia capilar (HGT) seriada horária ou conforme protocolo de cetoacidose; preparar e administrar insulinoterapia conforme estrita prescrição médica; atentar para cetonúria e gasometria venosa/arterial.' },
+        { code: '4120', title: 'Controle de líquidos', description: 'Instalar acesso venoso periférico calibroso e infundir expansão com SF 0,9% prescrita para correção do déficit osmótico; realizar balanço hídrico rigoroso e atentar para eletrólitos (potássio).' },
+      ],
+      outcomes: [
+        { code: '2300', title: 'Nível de glicemia', description: 'Redução gradual e segura da glicemia capilar para níveis inferiores a 200 mg/dL sem hipoglicemia de rebote.' },
+        { code: '0601', title: 'Equilíbrio hídrico', description: 'Restauração da volemia, turgor cutâneo preservado e diurese fisiológica satisfatória.' },
       ],
     });
   }
@@ -621,23 +725,23 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   }
 
   // --------------------------------------------------------------------------
-  // 11. TRAUMA CRANIOENCEFÁLICO (TCE) / LESÃO NA CABEÇA PÓS-QUEDA
+  // 11. TRAUMA CRANIOENCEFÁLICO (TCE) REAL (SOMENTE com menção expressa de impacto/lesão na cabeça)
   // --------------------------------------------------------------------------
-  const temTCEouQueda =
-    /\b(cabe[çc]a|tce|cranian|queda|p[óo]s[- ]?queda|caiu|trauma\s+de\s+cr[âa]nio|les[ãa]o\s+na\s+cabe[çc]a)\b/i.test(textoCompleto);
+  const temLesaoCranianaReal =
+    /\b(tce|trauma\s+(?:cranioencef[áa]lico|cranian|de\s+cr[âa]nio)|fratura\s+(?:de\s+cr[âa]nio|cranian)|les[ãa]o\s+(?:em|na)\s+calota\s+craniana|bateu\s+a\s+cabe[çc]a|pancada\s+na\s+cabe[çc]a|hematoma\s+subdural|corte\s+(?:em|na)\s+cabe[çc]a)\b/i.test(textoCompleto);
 
-  if (temTCEouQueda) {
+  if (temLesaoCranianaReal) {
     diagnosticos.push({
       code: '00201',
       title: 'Risco de perfusão tissular cerebral ineficaz',
       domain: 'Domínio 4: Atividade/Repouso',
       class: 'Classe 4: Respostas cardiovasculares/pulmonares',
       defining_characteristics: [
-        'Exposição a trauma contuso de crânio decorrente de evento de queda',
-        'Presença de lesão evidente em calota craniana',
-        'Alteração do nível de consciência e risco de hematoma intracraniano / edema cerebral',
+        'Exposição a impacto mecânico/trauma evidente em calota craniana',
+        'Presença de lesão física cefálica traumática relatada',
+        'Risco de edema cerebral, hematoma intracraniano ou hipertensão intracraniana (HIC)',
       ],
-      related_factors: ['Traumatismo cranioencefálico (TCE) recente', 'Hipoperfusão cerebral sistêmica secundária a bradicardia/hipotensão'],
+      related_factors: ['Traumatismo cranioencefálico (TCE) confirmado', 'Choque mecânico cefálico agudo'],
       interventions: [
         { code: '2620', title: 'Monitorização neurológica', description: 'Aplicar a Escala de Coma de Glasgow com avaliação de reatividade pupilar a cada 30 minutos; verificar tamanho e simetria das pupilas (anisocoria) e atentar para sinais de hipertensão intracraniana (tríade de Cushing).' },
         { code: '0840', title: 'Posicionamento e imobilização', description: 'Manter imobilização da coluna cervical com colar cervical rígido até exclusão radiológica de fratura; manter alinhamento neutro de cabeça e pescoço e elevar cabeceira a 30° assim que pressão arterial permitir.' },
@@ -880,10 +984,15 @@ function parseClinicalExtractionForProfile(rawText, assessment = {}, plan = {}) 
 
   // 2. Quadro Clínico e Contexto
   const isUnconscious = /(?:desacordad|inconsciente|torpor|comatos|n[ãa]o\s+responde|rebaixad)/i.test(lower);
-  const hasHeadInjury = /(?:les[ãa]o\s+na\s+cabe[çc]a|tce|trauma\s+craniano|cabe[çc]a)/i.test(lower);
-  const hasFall = /(?:p[óo]s[- ]?queda|caiu|queda)/i.test(lower);
-  const hasGunshot = /(?:tiro|bala|arma de fogo|paf|costas)/i.test(lower);
+  const hasAlmostFallen = /(?:quase\s+caiu|quase\s+queda|risco\s+de\s+cair)/i.test(lower);
+  const hasHeadInjury = /(?:tce|trauma\s+(?:cranioencef[áa]lico|cranian|de\s+cr[âa]nio)|fratura\s+(?:de\s+cr[âa]nio|cranian)|les[ãa]o\s+(?:em|na)\s+calota\s+craniana|bateu\s+a\s+cabe[çc]a|corte\s+(?:em|na)\s+cabe[çc]a|pancada\s+na\s+cabe[çc]a)/i.test(lower);
+  const hasActualFall = /(?:p[óo]s[- ]?queda|sofreu\s+queda|teve\s+queda|caiu\s+(?:da\s+pr[óo]pria|no\s+ch[ãa]o|de\s+n[íi]vel|da\s+cama|em\s+casa))/i.test(lower) && !hasAlmostFallen;
+  const hasGunshot = /(?:tiro|tiros|disparo|disparos|arma\s+de\s+fogo|paf|orif[íi]cio\s+de\s+entrada|orif[íi]cio\s+de\s+sa[íi]da|proj[ée]til|ferimento\s+por\s+proj[ée]til)/i.test(lower);
   const noCaregiver = /(?:sem\s+acompanhante|desacompanhad|sozinho)/i.test(lower);
+  const hasAbdominalPain = /(?:dor\s+abdominal|dor\s+na\s+barriga|abd[oô]men\s+doloroso|dor\s+em\s+flanco|c[óo]lica\s+abdominal|epigastralgia)/i.test(lower);
+  const hasConfusion = /(?:confus|desorientad|dificuldade\s+(?:para|de)\s+orienta|n[ãa]o\s+consegue\s+formular\s+frase|pensamento\s+desorganiz)/i.test(lower);
+  const hasGaitDifficulty = /(?:dificuldade\s+para\s+deambular|marcha\s+inst[áa]vel|instabilidade|trope[çc]ou)/i.test(lower) || hasAlmostFallen;
+  const hasHyperglycemia = (assessment.hgt && assessment.hgt >= 180) || /(?:hgt|glicemia)\s*(?:de\s*)?(?:[2-9]\d{2}|1[8-9]\d)/i.test(lower) || /hiperglicem/i.test(lower);
 
   // 3. Resumo dos Parâmetros Clínicos
   const paText = assessment.pa_sistolica && assessment.pa_diastolica ? `${assessment.pa_sistolica}/${assessment.pa_diastolica} mmHg` : 'Não aferida';
@@ -896,10 +1005,12 @@ function parseClinicalExtractionForProfile(rawText, assessment = {}, plan = {}) 
 
   // 4. Anamnese Admissional Estruturada (Para a aba Anamnese)
   let queixaPrincipal = '';
-  if (isUnconscious && hasHeadInjury && hasFall) {
-    queixaPrincipal = 'Admissão em sala de emergência em estado de inconsciência (desacordado) pós-evento de queda de própria altura ou nível, com lesão evidente em região cefálica (suspeita de Traumatismo Cranioencefálico).';
+  if (isUnconscious && hasHeadInjury && hasActualFall) {
+    queixaPrincipal = 'Admissão em sala de emergência em estado de inconsciência (desacordado) pós-evento de queda com impacto cefálico (suspeita de Traumatismo Cranioencefálico).';
   } else if (hasGunshot) {
     queixaPrincipal = 'Admissão hospitalar de urgência decorrente de ferimento penetrante por arma de fogo (PAF) em região dorsal.';
+  } else if (hasAbdominalPain) {
+    queixaPrincipal = `Admissão com queixa de dor abdominal aguda intensa (intensidade ${painText}), associada a dispneia e instabilidade clínica.`;
   } else if (isUnconscious) {
     queixaPrincipal = 'Rebaixamento agudo do nível de consciência com impossibilidade de contato verbal no momento da triagem.';
   } else {
@@ -908,10 +1019,15 @@ function parseClinicalExtractionForProfile(rawText, assessment = {}, plan = {}) 
 
   const hmaText = [
     `Paciente admitido ${noCaregiver ? 'desacompanhado de familiares' : 'acompanhado'}.`,
-    isUnconscious ? 'Ao exame neurológico inicial, apresenta rebaixamento grave do sensório (não responsivo a comandos verbais).' : 'Consciente durante a abordagem inicial.',
-    hasHeadInjury ? 'Identificada lesão contusa visível na cabeça secundária a episódio de queda.' : null,
+    isUnconscious ? 'Ao exame neurológico inicial, apresenta rebaixamento grave do sensório (não responsivo a comandos verbais).' : null,
+    hasConfusion ? 'Apresenta-se confuso e desorientado, com dificuldades para responder a orientações e formular frases durante a abordagem.' : null,
+    hasAlmostFallen ? 'Relata episódio recente de quase queda com desequilíbrio e dificuldade para deambular, sem histórico de trauma contuso ou impacto na cabeça.' : null,
+    hasActualFall ? 'Histórico relatado de episódio de queda consumada prévia à admissão.' : null,
+    hasHeadInjury ? 'Identificada lesão contusa visível em calota craniana secundária a impacto cefálico.' : null,
     hasGunshot ? 'Apresenta orifício de lesão penetrante por PAF em dorso.' : null,
+    hasAbdominalPain ? `Queixa-se de dor abdominal de forte intensidade (${painText}), referida em pontadas e com postura antálgica de defesa.` : null,
     `Parâmetros vitais de admissão: PA ${paText}, FC ${fcText}, FR ${frText}, SatO₂ ${satText}, Tax ${taxText}, Glicemia capilar (HGT) ${hgtText}.`,
+    hasHyperglycemia ? `ALERTA CLÍNICO: Hiperglicemia acentuada (${hgtText}) com potencial risco de cetoacidose diabética (CAD) / desidratação osmótica.` : null,
     assessment.hgt && assessment.hgt <= 70 ? `ALERTA CLÍNICO: Hipoglicemia severa crítica (${hgtText}) com risco iminente de dano cerebral isquêmico e coma.` : null,
     assessment.fc && assessment.fc < 50 ? `ALERTA CLÍNICO: Bradicardia extrema crítica (${fcText}) com risco de colapso hemodinâmico e parada cardiorrespiratória (PCR).` : null,
     assessment.sat && assessment.sat < 90 ? `ALERTA CLÍNICO: Hipoxemia severa (${satText}) em ar ambiente, demandando suporte ventilatório/oxigenoterapia imediata.` : null,
@@ -929,21 +1045,28 @@ Relato original registrado pelo profissional: "${text}"`;
 
   // 5. Perfil Clínico (Histórico, Doenças Detectadas, Notas)
   const medicalHistoryParts = [];
-  if (hasFall) medicalHistoryParts.push('Episódio recente de queda com trauma físico');
-  if (hasHeadInjury) medicalHistoryParts.push('Traumatismo cranioencefálico (TCE) agudo pós-queda com lesão em calota craniana');
+  if (hasActualFall) medicalHistoryParts.push('Episódio recente de queda com trauma físico');
+  if (hasAlmostFallen || hasGaitDifficulty) medicalHistoryParts.push('Instabilidade de marcha / episódio de quase queda sem trauma');
+  if (hasHeadInjury) medicalHistoryParts.push('Traumatismo cranioencefálico (TCE) agudo com lesão em calota craniana');
   if (hasGunshot) medicalHistoryParts.push('Ferimento penetrante por arma de fogo (PAF) em região dorsal');
+  if (hasAbdominalPain) medicalHistoryParts.push('Quadro álgico abdominal agudo intenso');
+  if (hasConfusion) medicalHistoryParts.push('Alteração aguda do estado mental / confusão');
   if (isUnconscious) medicalHistoryParts.push('Rebaixamento agudo do nível de consciência / torpor');
   if (noCaregiver) medicalHistoryParts.push('Admissão desacompanhado na emergência');
 
   const previousDiseasesParts = [];
+  if (hasHyperglycemia) previousDiseasesParts.push('Hiperglicemia aguda descompensada / Suspeita de complicação glicêmica (CAD)');
   if (assessment.hgt && assessment.hgt <= 70) previousDiseasesParts.push('Hipoglicemia severa aguda sintomática');
   if (hasHeadInjury) previousDiseasesParts.push('Traumatismo Cranioencefálico (TCE)');
   if (assessment.fc && assessment.fc < 50) previousDiseasesParts.push('Bradicardia extrema / Bloqueio atrioventricular a esclarecer');
   if (assessment.pa_sistolica && assessment.pa_sistolica < 90) previousDiseasesParts.push('Choque circulatório / Hipotensão severa');
   if (assessment.sat && assessment.sat < 90) previousDiseasesParts.push('Insuficiência respiratória aguda / Hipoxemia grave');
+  if (hasAbdominalPain) previousDiseasesParts.push('Dor abdominal aguda a esclarecer');
 
   const clinicalNotesParts = [];
   if (noCaregiver) clinicalNotesParts.push('Paciente admitido sem acompanhante (alta vulnerabilidade social/clínica).');
+  if (hasAlmostFallen || hasGaitDifficulty) clinicalNotesParts.push('Risco de quedas elevado: manter grades do leito elevadas e auxiliar na deambulação.');
+  if (hasHyperglycemia) clinicalNotesParts.push('Hiperglicemia crítica: manter monitorização seriada de HGT e hidratação parenteral prescrita.');
   if (isUnconscious) clinicalNotesParts.push('Sensório rebaixado: manter vigilância estrita contra broncoaspiração e manter decúbito protegido.');
   if (hasHeadInjury) clinicalNotesParts.push('Trauma cefálico: manter alinhamento cervical com colar rígido e monitorar pupilas a cada 30 min.');
   if (assessment.hgt && assessment.hgt <= 70) clinicalNotesParts.push('Prioridade para correção glicêmica com Glicose 50% EV e HGT seriado.');
@@ -955,10 +1078,10 @@ Relato original registrado pelo profissional: "${text}"`;
     ? `Paciente relata: "${text}"`
     : 'Paciente em avaliação admissional de rotina.';
 
-  const soapObjective = `SINAIS VITAIS: PA ${paText} | FC ${fcText} | FR ${frText} | SatO₂ ${satText} | Tax ${taxText} | HGT ${hgtText} | Dor: ${painText}. EXAME FÍSICO / ACHADOS: ${isUnconscious ? 'Nível de consciência rebaixado (não responsivo).' : 'Consciente.'} ${hasHeadInjury ? 'Presença de lesão contusa visível em região cefálica decorrente de queda.' : ''} ${hasGunshot ? 'Ferimento penetrante por projétil em dorso.' : ''} Perfusão periférica lentificada.`;
+  const soapObjective = `SINAIS VITAIS: PA ${paText} | FC ${fcText} | FR ${frText} | SatO₂ ${satText} | Tax ${taxText} | HGT ${hgtText} | Dor: ${painText}. EXAME FÍSICO / ACHADOS: ${isUnconscious ? 'Nível de consciência rebaixado (não responsivo).' : hasConfusion ? 'Confuso, desorientado, contactuando com dificuldade.' : 'Lúcido e orientado.'} ${hasAbdominalPain ? 'Abdômen doloroso à palpação, postura antálgica de defesa.' : ''} ${hasAlmostFallen ? 'Marcha instável com relato de quase queda, sem escoriações ou lesões contusas evidentes.' : ''} ${hasHeadInjury ? 'Presença de lesão contusa visível em calota craniana.' : ''} ${hasGunshot ? 'Ferimento penetrante por projétil em dorso.' : ''} Perfusão periférica avaliada.`;
 
   const topDiags = (plan.diagnosticos || []).slice(0, 4).map((d) => `${d.code} - ${d.title}`).join('; ');
-  const soapAssessment = `AVALIAÇÃO DE ENFERMAGEM (SAE/NANDA-I): Paciente em estado clínico de alta complexidade (${plan.prioridade || 'critica'}). Diagnósticos prioritários identificados: ${topDiags || 'Instabilidade hemodinâmica e metabólica'}. Risco iminente de deterioração clínica e parada cardiorrespiratória se não houver reversão célere da hipoglicemia e bradicardia.`;
+  const soapAssessment = `AVALIAÇÃO DE ENFERMAGEM (SAE/NANDA-I): Paciente em estado clínico com prioridade (${plan.prioridade || 'alta'}). Diagnósticos prioritários identificados: ${topDiags || 'Instabilidade clínica e metabólica'}. Necessita de vigilância contínua da enfermagem, monitorização seriada e cumprimento rigoroso das intervenções prescritas.`;
 
   const topInterventions = (plan.diagnosticos || [])
     .flatMap((d) => d.interventions || [])
