@@ -1,6 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { authService } from './authService';
-import { NANDA_CATALOG } from '@/lib/nandaCatalog';
+import { NANDA_CATALOG, NANDA_COMPLETE_CATALOG, searchNandaCatalog as searchNandaCatalogLocal } from '@/lib/nandaCatalog';
 
 const LOCAL_STORAGE_DIAGNOSES_KEY = 'enfermeiro_digital_diagnoses';
 
@@ -224,6 +224,7 @@ export const diagnosisService = {
         const { data, error } = await supabase
           .from('nanda_catalog')
           .select('*')
+          .order('code', { ascending: true })
           .limit(limit);
 
         if (!error && data && data.length > 0) {
@@ -233,7 +234,7 @@ export const diagnosisService = {
         // Fallback silencioso para o catálogo canônico local
       }
     }
-    return NANDA_CATALOG.slice(0, limit);
+    return (NANDA_COMPLETE_CATALOG || NANDA_CATALOG).slice(0, limit);
   },
 
   async searchNandaCatalog(query = '') {
@@ -255,12 +256,6 @@ export const diagnosisService = {
       }
     }
 
-    const q = query.trim().toLowerCase();
-    return NANDA_CATALOG.filter(
-      (d) =>
-        (d.title || '').toLowerCase().includes(q) ||
-        (d.code || '').toLowerCase().includes(q) ||
-        (d.domain || '').toLowerCase().includes(q)
-    ).slice(0, 20);
+    return searchNandaCatalogLocal(query).slice(0, 20);
   },
 };

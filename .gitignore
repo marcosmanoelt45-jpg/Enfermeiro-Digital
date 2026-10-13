@@ -37,4 +37,5 @@ node_modules
 mcp_config.json
 docs/referencias/
 *.pdf
+scratch/
 
