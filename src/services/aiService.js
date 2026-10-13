@@ -1,6 +1,7 @@
-import { supabase, isSupabaseConfigured } from './supabaseClient';
-import { patientService } from './patientService';
-import { evolutionService } from './evolutionService';
+import { supabase, isSupabaseConfigured } from './supabaseClient.js';
+import { patientService } from './patientService.js';
+import { evolutionService } from './evolutionService.js';
+import { diagnosisService } from './diagnosisService.js';
 
 // Filtro de Sanitização e Anonimização Pré-IA (LGPD & Resolução CFM nº 2.454/2026)
 export function sanitizeClinicalDataForAI(patient, assessment, evolutions = []) {
@@ -124,7 +125,15 @@ DIRETRIZES FUNDAMENTAIS:
 1. RACIOCÍNIO CLÍNICO INTEGRAL: Não se limite a avaliar apenas escalas numéricas. Analise a anamnese, a queixa do paciente, o histórico médico, os ferimentos e queixas (ex.: ferimentos por arma de fogo - PAF, facadas, traumas, sangramentos, cirurgias de urgência) e histórico de substâncias psicoativas / drogas.
 2. TRAUMA / ARMA DE FOGO / FERIMENTOS: Se o paciente tiver sido alvejado por tiro nas costas, trauma penetrante ou ferida traumática: DEVE obrigatoriamente priorizar diagnósticos como "00132 - Dor aguda", "00044 - Integridade tissular prejudicada", "00206 - Risco de sangramento", "00004 - Risco de infecção" e "00205 - Risco de choque", detalhando cuidados com orifícios balísticos, avaliação de perfuração vascular/visceral e vigilância hemodinâmica.
 3. SUBSTÂNCIAS PSICOATIVAS / DROGAS: Se houver relato ou histórico de uso de drogas ou substâncias ilícitas: DEVE obrigatoriamente priorizar "00188 - Comportamento de saúde propenso a risco", "00258 - Risco de síndrome de abstinência aguda de substâncias" e "00078 - Manejo ineficaz da saúde", abordando manejo de ansiedade, monitoramento de sinais de abstinência (tremores, taquicardia, sudorese, agitação) e rede de suporte psicossocial.
-4. ESTRUTURA DOS DIAGNÓSTICOS:
+4. HIPOGLICEMIA SEVERA / BRADICARDIA CRÍTICA / TCE PÓS-QUEDA / REBAIXAMENTO DE CONSCIÊNCIA:
+Se o paciente apresentar hipoglicemia severa (HGT < 70 mg/dL, em especial <= 40 mg/dL), bradicardia extrema (FC <= 40 bpm), lesão cefálica/TCE ou rebaixamento de consciência (desacordado/inconsciente):
+DEVE obrigatoriamente priorizar:
+- "00179 - Risco de nível de glicemia instável" ou "00249 - Nível de glicemia desestabilizado" (correção urgente com glicose hiperosmolar EV e monitorização glicêmica seriada);
+- "00029 - Débito cardíaco diminuído" e "00205 - Risco de choque" (risco iminente de parada cardiorrespiratória por bradicardia extrema, preparo de atropina/marcapasso e monitorização em DII);
+- "00201 - Risco de perfusão tissular cerebral ineficaz" (neuromonitorização, colar cervical rígido pós-queda e vigilância de hipertensão intracraniana);
+- "00030 - Troca de gases prejudicada" (oxigenoterapia imediata se SatO2 < 92%);
+- "00039 - Risco de aspiração" (proteção de via aérea em paciente desacordado).
+5. ESTRUTURA DOS DIAGNÓSTICOS:
 Para cada diagnóstico identificado, inclua:
 - code: Código NANDA-I oficial de 5 dígitos (ex: "00132")
 - title: Título padronizado NANDA-I
@@ -551,6 +560,122 @@ export function generateLocalTaxonomicPlan(clinicalData) {
     });
   }
 
+  // --------------------------------------------------------------------------
+  // 9. HIPOGLICEMIA SEVERA / INSTABILIDADE GLICÊMICA AGUDA
+  // --------------------------------------------------------------------------
+  const temHipoglicemia =
+    (sinais_vitais.hgt && sinais_vitais.hgt <= 70) ||
+    /\b(?:glicemia\s*(?:de\s*)?(?:30|40|50|60|2\d)|hgt\s*(?:de\s*)?(?:30|40|50|60|2\d)|hipoglicem)\b/i.test(textoCompleto);
+
+  if (temHipoglicemia) {
+    diagnosticos.push({
+      code: '00179',
+      title: 'Risco de nível de glicemia instável',
+      domain: 'Domínio 2: Nutrição',
+      class: 'Classe 4: Metabolismo',
+      defining_characteristics: [
+        'Glicemia capilar crítica (' + (sinais_vitais.hgt || '30') + ' mg/dL)',
+        'Rebaixamento agudo do nível de consciência decorrente de neuroglicopenia',
+        'Risco de dano cerebral isquêmico por privação glicídica prolongada',
+      ],
+      related_factors: ['Desequilíbrio metabólico agudo', 'Aporte calórico insuficiente / Jejum prolongado', 'Possível efeito adverso de hipoglicemiantes'],
+      interventions: [
+        { code: '2130', title: 'Manejo da hipoglicemia', description: 'Puncionar imediatamente acesso venoso periférico calibroso e administrar glicose a 50% hiperosmolar (40 a 60 mL em bolus lento EV) conforme prescrição médica de urgência; manter infusão venosa de manutenção com SG 5% ou 10% se indicado.' },
+        { code: '6680', title: 'Monitorização de sinais vitais', description: 'Repetir aferição de glicemia capilar (HGT) a cada 15 minutos até confirmação de estabilidade > 100 mg/dL e monitorar recuperação do nível de consciência.' },
+      ],
+      outcomes: [
+        { code: '2111', title: 'Gravidade da hipoglicemia', description: 'Reversão completa do quadro neuroglicopênico e recuperação da estabilidade clínica.' },
+        { code: '2300', title: 'Nível de glicemia', description: 'Glicemia capilar mantida dentro da faixa terapêutica alvo (80 a 160 mg/dL).' },
+      ],
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 10. BRADICARDIA CRÍTICA / DÉBITO CARDÍACO DIMINUÍDO / RISCO DE PARADA CARDIORRESPIRATÓRIA
+  // --------------------------------------------------------------------------
+  const temBradicardiaGrave =
+    (sinais_vitais.frequencia_cardiaca && sinais_vitais.frequencia_cardiaca < 50) ||
+    /\b(?:frequ[êe]ncia\s+card[íi]aca\s*(?:de\s*)?(?:1\d|2\d|3\d|4\d)|fc\s*(?:de\s*)?(?:1\d|2\d|3\d|4\d)|bradicardi)\b/i.test(textoCompleto);
+
+  if (temBradicardiaGrave) {
+    diagnosticos.push({
+      code: '00029',
+      title: 'Débito cardíaco diminuído',
+      domain: 'Domínio 4: Atividade/Repouso',
+      class: 'Classe 4: Respostas cardiovasculares/pulmonares',
+      defining_characteristics: [
+        'Frequência cardíaca crítica (' + (sinais_vitais.frequencia_cardiaca || '13') + ' bpm) incompatível com perfusão tecidual adequada',
+        'Hipotensão arterial e choque circulatório associado',
+        'Risco iminente de colapso hemodinâmico e parada cardiorrespiratória (PCR)',
+      ],
+      related_factors: ['Alteração severa na frequência ou ritmo cardíaco (bradiarritmia extrema / ritmo agônico)', 'Disfunção do sistema de condução cardíaco'],
+      interventions: [
+        { code: '4040', title: 'Cuidados cardíacos: emergência', description: 'Instalar imediatamente monitorização cardíaca contínua (derivação DII) com pás do desfibrilador/marcapasso transcutâneo posicionadas; disponibilizar carrinho de parada com atropina, adrenalina e marcapasso à beira-leito.' },
+        { code: '4160', title: 'Controle de choque', description: 'Garantir posicionamento adequado para otimizar retorno venoso e comunicar imediatamente a equipe médica de emergência para intervenção cronotrópica imediata.' },
+      ],
+      outcomes: [
+        { code: '0400', title: 'Eficácia da bomba cardíaca', description: 'Restabelecimento de frequência cardíaca fisiológica (FC >= 60 bpm) e ritmo sinusal estável.' },
+        { code: '0401', title: 'Estado circulatório', description: 'Pressão arterial sistólica restabelecida >= 100 mmHg e perfusão periférica satisfatória.' },
+      ],
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 11. TRAUMA CRANIOENCEFÁLICO (TCE) / LESÃO NA CABEÇA PÓS-QUEDA
+  // --------------------------------------------------------------------------
+  const temTCEouQueda =
+    /\b(cabe[çc]a|tce|cranian|queda|p[óo]s[- ]?queda|caiu|trauma\s+de\s+cr[âa]nio|les[ãa]o\s+na\s+cabe[çc]a)\b/i.test(textoCompleto);
+
+  if (temTCEouQueda) {
+    diagnosticos.push({
+      code: '00201',
+      title: 'Risco de perfusão tissular cerebral ineficaz',
+      domain: 'Domínio 4: Atividade/Repouso',
+      class: 'Classe 4: Respostas cardiovasculares/pulmonares',
+      defining_characteristics: [
+        'Exposição a trauma contuso de crânio decorrente de evento de queda',
+        'Presença de lesão evidente em calota craniana',
+        'Alteração do nível de consciência e risco de hematoma intracraniano / edema cerebral',
+      ],
+      related_factors: ['Traumatismo cranioencefálico (TCE) recente', 'Hipoperfusão cerebral sistêmica secundária a bradicardia/hipotensão'],
+      interventions: [
+        { code: '2620', title: 'Monitorização neurológica', description: 'Aplicar a Escala de Coma de Glasgow com avaliação de reatividade pupilar a cada 30 minutos; verificar tamanho e simetria das pupilas (anisocoria) e atentar para sinais de hipertensão intracraniana (tríade de Cushing).' },
+        { code: '0840', title: 'Posicionamento e imobilização', description: 'Manter imobilização da coluna cervical com colar cervical rígido até exclusão radiológica de fratura; manter alinhamento neutro de cabeça e pescoço e elevar cabeceira a 30° assim que pressão arterial permitir.' },
+      ],
+      outcomes: [
+        { code: '0909', title: 'Estado neurológico', description: 'Ausência de sinais de herniação cerebral, sangramentos intracranianos expansivos ou perda de reflexos de tronco.' },
+        { code: '0912', title: 'Estado neurológico: consciência', description: 'Progressão favorável do escore de Glasgow e recuperação do contato com o examinador.' },
+      ],
+    });
+  }
+
+  // --------------------------------------------------------------------------
+  // 12. RISCO DE ASPIRAÇÃO (PACIENTE INCONSCIENTE / DESACORDADO)
+  // --------------------------------------------------------------------------
+  const temSensórioRebaixado =
+    /\b(desacordad|inconsciente|torpor|comatos|n[ãa]o\s+responde|rebaixad)\b/i.test(textoCompleto);
+
+  if (temSensórioRebaixado) {
+    diagnosticos.push({
+      code: '00039',
+      title: 'Risco de aspiração',
+      domain: 'Domínio 11: Segurança/Proteção',
+      class: 'Classe 2: Lesão física',
+      defining_characteristics: [
+        'Depressão do nível de consciência com abolição de reflexos protetores de vias aéreas (deglutição e tosse)',
+        'Impossibilidade de expectoração ou proteção ativa contra vômito/secreções',
+      ],
+      related_factors: ['Nível de consciência rebaixado / Inconsciência aguda', 'Reflexo de vômito e tosse deprimidos'],
+      interventions: [
+        { code: '3200', title: 'Precauções contra aspiração', description: 'Manter aspirador de secreções à vácuo montado e testado com sonda de aspiração rígida tipo Yankauer ao lado do leito; posicionar paciente em decúbito com proteção de via aérea.' },
+        { code: '3160', title: 'Aspiração de vias aéreas', description: 'Aspirar cavidade oral e faringe sob demanda diante de acúmulo de secreções; preparar material para intubação orotraqueal e suporte ventilatório invasivo se Glasgow <= 8.' },
+      ],
+      outcomes: [
+        { code: '1918', title: 'Controle de risco: aspiração', description: 'Ausência de aspiração gástrica ou broncopulmonar, sem ruídos adventícios na ausculta pulmonar.' },
+      ],
+    });
+  }
+
   // Se nenhum diagnóstico específico foi ativado
   if (diagnosticos.length === 0) {
     diagnosticos.push({
@@ -570,7 +695,12 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   }
 
   const prioridadeGlobal =
-    temTraumaPAF || sinais_vitais.saturacao_o2 < 90 || sinais_vitais.pa_sistolica < 90
+    temTraumaPAF ||
+    temBradicardiaGrave ||
+    temHipoglicemia ||
+    temSensórioRebaixado ||
+    (sinais_vitais.saturacao_o2 && sinais_vitais.saturacao_o2 < 90) ||
+    (sinais_vitais.pa_sistolica && sinais_vitais.pa_sistolica < 90)
       ? 'critica'
       : status_risco === 'critico' || temDrogas
       ? 'alta'
@@ -662,6 +792,14 @@ export const aiService = {
         }
       } catch {}
 
+      // 7. Auto-enriquecimento completo de todo o conteúdo do site do paciente:
+      // (Anamnese prévia, Perfil clínico, Histórico, Doenças, Notas, Evolução SOAP e Diagnósticos ativos)
+      try {
+        await enrichPatientAndRecordsFromAssessment(assessment, plan);
+      } catch (enrichErr) {
+        console.warn('Erro não-bloqueante no enriquecimento do prontuário do paciente:', enrichErr);
+      }
+
       return plan;
     } catch (err) {
       console.error('Erro ao gerar plano de IA:', err);
@@ -706,3 +844,266 @@ export const aiService = {
     return this.generateCarePlanAsync(assessmentId, assessment);
   },
 };
+
+// --------------------------------------------------------------------------
+// MOTOR DE ENRIQUECIMENTO AUTOMÁTICO DO PRONTUÁRIO CLÍNICO (ANAMNESE, PERFIL, SOAP)
+// --------------------------------------------------------------------------
+
+function parseClinicalExtractionForProfile(rawText, assessment = {}, plan = {}) {
+  const text = String(rawText || '').trim();
+  const lower = text.toLowerCase();
+
+  // 1. Identificação Demográfica (Nome, Idade, Gênero)
+  let patient_name = null;
+  const nameMatch = text.match(/(?:paciente\s+chamad[oa]\s+|paciente\s+|sr\.\s+|sra\.\s+)([A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+(?:\s+[A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+){1,3})/);
+  if (nameMatch && nameMatch[1]) {
+    const candidate = nameMatch[1].trim();
+    if (!/^(chega|com|apresenta|foi|teve|sem|aparentemente|desacordado|inconsciente)$/i.test(candidate)) {
+      patient_name = candidate;
+    }
+  }
+
+  let age = assessment.age || null;
+  if (!age) {
+    const ageMatch = text.match(/(?:idade\s*(?:de)?\s*|paciente\s+(?:com\s+)?|com\s+)(\d{1,3})\s*(?:anos|a\b)/i);
+    if (ageMatch && Number(ageMatch[1])) {
+      const parsed = Number(ageMatch[1]);
+      if (parsed > 0 && parsed <= 125) age = parsed;
+    }
+  }
+
+  let gender = assessment.gender || null;
+  if (!gender) {
+    if (/(?:o\s+paciente|homem|masculino|idoso|senhor\b)/i.test(lower)) gender = 'M';
+    else if (/(?:a\s+paciente|mulher|feminino|idosa|senhora\b)/i.test(lower)) gender = 'F';
+  }
+
+  // 2. Quadro Clínico e Contexto
+  const isUnconscious = /(?:desacordad|inconsciente|torpor|comatos|n[ãa]o\s+responde|rebaixad)/i.test(lower);
+  const hasHeadInjury = /(?:les[ãa]o\s+na\s+cabe[çc]a|tce|trauma\s+craniano|cabe[çc]a)/i.test(lower);
+  const hasFall = /(?:p[óo]s[- ]?queda|caiu|queda)/i.test(lower);
+  const hasGunshot = /(?:tiro|bala|arma de fogo|paf|costas)/i.test(lower);
+  const noCaregiver = /(?:sem\s+acompanhante|desacompanhad|sozinho)/i.test(lower);
+
+  // 3. Resumo dos Parâmetros Clínicos
+  const paText = assessment.pa_sistolica && assessment.pa_diastolica ? `${assessment.pa_sistolica}/${assessment.pa_diastolica} mmHg` : 'Não aferida';
+  const fcText = assessment.fc != null ? `${assessment.fc} bpm` : 'Não aferida';
+  const frText = assessment.fr != null ? `${assessment.fr} irpm` : 'Não aferida';
+  const taxText = assessment.tax != null ? `${assessment.tax} °C` : 'Não aferida';
+  const satText = assessment.sat != null ? `${assessment.sat}%` : 'Não aferida';
+  const hgtText = assessment.hgt != null ? `${assessment.hgt} mg/dL` : 'Não aferido';
+  const painText = assessment.caloi_pain_intensity != null ? `${assessment.caloi_pain_intensity}/10` : 'Não avaliada';
+
+  // 4. Anamnese Admissional Estruturada (Para a aba Anamnese)
+  let queixaPrincipal = '';
+  if (isUnconscious && hasHeadInjury && hasFall) {
+    queixaPrincipal = 'Admissão em sala de emergência em estado de inconsciência (desacordado) pós-evento de queda de própria altura ou nível, com lesão evidente em região cefálica (suspeita de Traumatismo Cranioencefálico).';
+  } else if (hasGunshot) {
+    queixaPrincipal = 'Admissão hospitalar de urgência decorrente de ferimento penetrante por arma de fogo (PAF) em região dorsal.';
+  } else if (isUnconscious) {
+    queixaPrincipal = 'Rebaixamento agudo do nível de consciência com impossibilidade de contato verbal no momento da triagem.';
+  } else {
+    queixaPrincipal = text ? text.slice(0, 150) + '...' : 'Avaliação express de enfermagem realizada na admissão.';
+  }
+
+  const hmaText = [
+    `Paciente admitido ${noCaregiver ? 'desacompanhado de familiares' : 'acompanhado'}.`,
+    isUnconscious ? 'Ao exame neurológico inicial, apresenta rebaixamento grave do sensório (não responsivo a comandos verbais).' : 'Consciente durante a abordagem inicial.',
+    hasHeadInjury ? 'Identificada lesão contusa visível na cabeça secundária a episódio de queda.' : null,
+    hasGunshot ? 'Apresenta orifício de lesão penetrante por PAF em dorso.' : null,
+    `Parâmetros vitais de admissão: PA ${paText}, FC ${fcText}, FR ${frText}, SatO₂ ${satText}, Tax ${taxText}, Glicemia capilar (HGT) ${hgtText}.`,
+    assessment.hgt && assessment.hgt <= 70 ? `ALERTA CLÍNICO: Hipoglicemia severa crítica (${hgtText}) com risco iminente de dano cerebral isquêmico e coma.` : null,
+    assessment.fc && assessment.fc < 50 ? `ALERTA CLÍNICO: Bradicardia extrema crítica (${fcText}) com risco de colapso hemodinâmico e parada cardiorrespiratória (PCR).` : null,
+    assessment.sat && assessment.sat < 90 ? `ALERTA CLÍNICO: Hipoxemia severa (${satText}) em ar ambiente, demandando suporte ventilatório/oxigenoterapia imediata.` : null,
+    noCaregiver ? 'Sem dados de histórico médico prévio ou uso de medicamentos contínuos fornecidos no momento da chegada.' : null,
+  ].filter(Boolean).join(' ');
+
+  const structuredAnamnesis = `RELATO ADMISSIONAL & ANAMNESE ESTRUTURADA (AVALIAÇÃO EXPRESS):
+• Queixa Principal: ${queixaPrincipal}
+
+• História da Doença Atual (HDA):
+${hmaText}
+
+• Dados Observacionais da Triagem:
+Relato original registrado pelo profissional: "${text}"`;
+
+  // 5. Perfil Clínico (Histórico, Doenças Detectadas, Notas)
+  const medicalHistoryParts = [];
+  if (hasFall) medicalHistoryParts.push('Episódio recente de queda com trauma físico');
+  if (hasHeadInjury) medicalHistoryParts.push('Traumatismo cranioencefálico (TCE) agudo pós-queda com lesão em calota craniana');
+  if (hasGunshot) medicalHistoryParts.push('Ferimento penetrante por arma de fogo (PAF) em região dorsal');
+  if (isUnconscious) medicalHistoryParts.push('Rebaixamento agudo do nível de consciência / torpor');
+  if (noCaregiver) medicalHistoryParts.push('Admissão desacompanhado na emergência');
+
+  const previousDiseasesParts = [];
+  if (assessment.hgt && assessment.hgt <= 70) previousDiseasesParts.push('Hipoglicemia severa aguda sintomática');
+  if (hasHeadInjury) previousDiseasesParts.push('Traumatismo Cranioencefálico (TCE)');
+  if (assessment.fc && assessment.fc < 50) previousDiseasesParts.push('Bradicardia extrema / Bloqueio atrioventricular a esclarecer');
+  if (assessment.pa_sistolica && assessment.pa_sistolica < 90) previousDiseasesParts.push('Choque circulatório / Hipotensão severa');
+  if (assessment.sat && assessment.sat < 90) previousDiseasesParts.push('Insuficiência respiratória aguda / Hipoxemia grave');
+
+  const clinicalNotesParts = [];
+  if (noCaregiver) clinicalNotesParts.push('Paciente admitido sem acompanhante (alta vulnerabilidade social/clínica).');
+  if (isUnconscious) clinicalNotesParts.push('Sensório rebaixado: manter vigilância estrita contra broncoaspiração e manter decúbito protegido.');
+  if (hasHeadInjury) clinicalNotesParts.push('Trauma cefálico: manter alinhamento cervical com colar rígido e monitorar pupilas a cada 30 min.');
+  if (assessment.hgt && assessment.hgt <= 70) clinicalNotesParts.push('Prioridade para correção glicêmica com Glicose 50% EV e HGT seriado.');
+
+  // 6. Evolução de Enfermagem SOAP Estruturada (Aba Evolução)
+  const soapSubjective = isUnconscious
+    ? 'Paciente desacordado / inconsciente no momento da avaliação, impossibilitado de verbalizar sintomas ou histórico prévio. Desacompanhado na admissão, sem familiares presentes no momento.'
+    : text
+    ? `Paciente relata: "${text}"`
+    : 'Paciente em avaliação admissional de rotina.';
+
+  const soapObjective = `SINAIS VITAIS: PA ${paText} | FC ${fcText} | FR ${frText} | SatO₂ ${satText} | Tax ${taxText} | HGT ${hgtText} | Dor: ${painText}. EXAME FÍSICO / ACHADOS: ${isUnconscious ? 'Nível de consciência rebaixado (não responsivo).' : 'Consciente.'} ${hasHeadInjury ? 'Presença de lesão contusa visível em região cefálica decorrente de queda.' : ''} ${hasGunshot ? 'Ferimento penetrante por projétil em dorso.' : ''} Perfusão periférica lentificada.`;
+
+  const topDiags = (plan.diagnosticos || []).slice(0, 4).map((d) => `${d.code} - ${d.title}`).join('; ');
+  const soapAssessment = `AVALIAÇÃO DE ENFERMAGEM (SAE/NANDA-I): Paciente em estado clínico de alta complexidade (${plan.prioridade || 'critica'}). Diagnósticos prioritários identificados: ${topDiags || 'Instabilidade hemodinâmica e metabólica'}. Risco iminente de deterioração clínica e parada cardiorrespiratória se não houver reversão célere da hipoglicemia e bradicardia.`;
+
+  const topInterventions = (plan.diagnosticos || [])
+    .flatMap((d) => d.interventions || [])
+    .slice(0, 4)
+    .map((i) => `• ${i.title}: ${i.description}`)
+    .join('\n');
+  const soapPlan = `PLANO ASSISTENCIAL DE ENFERMAGEM:\n${topInterventions || '• Instalar monitorização multiparamétrica contínua.\n• Puncionar acesso venoso de grosso calibre.\n• Iniciar suporte de oxigenoterapia e correção metabólica conforme protocolo de emergência.'}`;
+
+  return {
+    patient_name,
+    age,
+    gender,
+    structured_anamnesis,
+    medical_history: medicalHistoryParts.join('; '),
+    previous_diseases: previousDiseasesParts.join(', '),
+    notes: clinicalNotesParts.join(' '),
+    soap_evolution: {
+      subjective: soapSubjective,
+      objective: soapObjective,
+      assessment: soapAssessment,
+      plan: soapPlan,
+    },
+  };
+}
+
+export async function enrichPatientAndRecordsFromAssessment(assessment, plan) {
+  if (!assessment?.patient_id) return null;
+  const patientId = assessment.patient_id;
+
+  let patient = null;
+  try {
+    patient = await patientService.get(patientId);
+  } catch (e) {
+    console.warn('Paciente não encontrado para enriquecimento:', e);
+  }
+
+  const rawText = assessment.notes || assessment.observacoes_clinicas || '';
+  const clinicalExtraction = parseClinicalExtractionForProfile(rawText, assessment, plan);
+
+  // 1. Atualização dos campos demográficos e do perfil do paciente
+  const patientUpdates = {};
+
+  if (clinicalExtraction.patient_name && (!patient?.name || /^(Paciente em Avaliação|Novo Paciente|Sem Nome)$/i.test(patient.name))) {
+    patientUpdates.name = clinicalExtraction.patient_name;
+  }
+
+  if (clinicalExtraction.age && (!patient?.age || (patient.age === 62 && !patient.manual_age))) {
+    patientUpdates.age = clinicalExtraction.age;
+  }
+
+  if (clinicalExtraction.gender && (!patient?.gender || patient.gender === 'N/A')) {
+    patientUpdates.gender = clinicalExtraction.gender;
+  }
+
+  // Anamnese Prévia / Admissional
+  if (clinicalExtraction.structured_anamnesis) {
+    if (patient?.previous_anamnesis && patient.previous_anamnesis.trim()) {
+      if (!patient.previous_anamnesis.includes('AVALIAÇÃO EXPRESS')) {
+        patientUpdates.previous_anamnesis = `${patient.previous_anamnesis}\n\n---\n${clinicalExtraction.structured_anamnesis}`;
+      }
+    } else {
+      patientUpdates.previous_anamnesis = clinicalExtraction.structured_anamnesis;
+    }
+  }
+
+  // Histórico Prévio (Perfil)
+  if (clinicalExtraction.medical_history) {
+    if (patient?.medical_history && patient.medical_history.trim()) {
+      if (!patient.medical_history.includes(clinicalExtraction.medical_history.slice(0, 25))) {
+        patientUpdates.medical_history = `${patient.medical_history}; ${clinicalExtraction.medical_history}`;
+      }
+    } else {
+      patientUpdates.medical_history = clinicalExtraction.medical_history;
+    }
+  }
+
+  // Doenças Prévias / Detectadas (Perfil)
+  if (clinicalExtraction.previous_diseases) {
+    if (patient?.previous_diseases && patient.previous_diseases.trim()) {
+      if (!patient.previous_diseases.includes(clinicalExtraction.previous_diseases.slice(0, 20))) {
+        patientUpdates.previous_diseases = `${patient.previous_diseases}, ${clinicalExtraction.previous_diseases}`;
+      }
+    } else {
+      patientUpdates.previous_diseases = clinicalExtraction.previous_diseases;
+    }
+  }
+
+  // Observações Úteis (Perfil)
+  if (clinicalExtraction.notes) {
+    if (patient?.notes && patient.notes.trim()) {
+      if (!patient.notes.includes(clinicalExtraction.notes.slice(0, 20))) {
+        patientUpdates.notes = `${patient.notes} | ${clinicalExtraction.notes}`;
+      }
+    } else {
+      patientUpdates.notes = clinicalExtraction.notes;
+    }
+  }
+
+  if (Object.keys(patientUpdates).length > 0) {
+    try {
+      await patientService.update(patientId, patientUpdates);
+    } catch (e) {
+      console.warn('Erro ao atualizar dados do paciente com relato express:', e);
+    }
+  }
+
+  // 2. Criação da Evolução SOAP Completa no Prontuário
+  try {
+    const soap = clinicalExtraction.soap_evolution;
+    if (soap && soap.subjective && soap.objective) {
+      await evolutionService.create({
+        patient_id: patientId,
+        subjective: soap.subjective,
+        objective: soap.objective,
+        assessment: soap.assessment,
+        plan: soap.plan,
+        assessment_id: assessment.id,
+      });
+    }
+  } catch (e) {
+    console.warn('Erro ao registrar evolução SOAP automática:', e);
+  }
+
+  // 3. Inserção Automática dos Diagnósticos NANDA-I no Prontuário
+  try {
+    if (plan?.diagnosticos && Array.isArray(plan.diagnosticos) && plan.diagnosticos.length > 0) {
+      const records = plan.diagnosticos.map((d) => ({
+        patient_id: patientId,
+        code: d.code || '',
+        title: d.title || '',
+        domain: d.domain || '',
+        class: d.class || '',
+        status: 'ativo',
+        source_link: 'https://nanda.org',
+        defining_characteristics: d.defining_characteristics || [],
+        related_factors: d.related_factors || [],
+        interventions: d.interventions || [],
+        outcomes: d.outcomes || [],
+        assessment_id: assessment.id,
+      }));
+      await diagnosisService.bulkCreate(records);
+    }
+  } catch (e) {
+    console.warn('Erro ao inserir diagnósticos NANDA-I no prontuário:', e);
+  }
+
+  return true;
+}

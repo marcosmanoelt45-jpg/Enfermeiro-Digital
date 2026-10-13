@@ -33,19 +33,35 @@ export default function AIDashboard() {
       setLoading(true);
       try {
         const a = await loadAssessment();
-        // Polling em background se a IA ainda estiver processando
+        // Se a IA ainda estiver pendente, dispara a geração direta no cliente e monitora
         if (a.ai_status === "pending" || (!a.ai_status && !a.ai_response)) {
+          aiService.invokeCarePlanSync(id).then(async (generatedPlan) => {
+            if (generatedPlan) {
+              setPlan(generatedPlan);
+              const fresh = await assessmentService.get(id);
+              setAssessment(fresh);
+              if (fresh.patient_id) {
+                try { setPatient(await patientService.get(fresh.patient_id)); } catch {}
+              }
+            }
+          }).catch((err) => console.warn("Geração local autônoma em background:", err));
+
           pollRef.current = setInterval(async () => {
             try {
               const fresh = await assessmentService.get(id);
               setAssessment(fresh);
-              if (fresh.ai_response) setPlan(fresh.ai_response);
-              if (fresh.ai_status !== "pending") {
+              if (fresh.ai_response) {
+                setPlan(fresh.ai_response);
+                if (fresh.patient_id) {
+                  try { setPatient(await patientService.get(fresh.patient_id)); } catch {}
+                }
+              }
+              if (fresh.ai_status !== "pending" && fresh.ai_response) {
                 clearInterval(pollRef.current);
                 pollRef.current = null;
               }
             } catch {}
-          }, 4000);
+          }, 2500);
         }
       } finally {
         setLoading(false);
