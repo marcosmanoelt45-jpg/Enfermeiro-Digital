@@ -707,22 +707,47 @@ export const NANDA_CATALOG = [
   }
 ];
 
+import nandaComplete from '../data/nanda_complete_2024_2026.json';
+
+// Banco Integral com TODOS os 277 diagnósticos do livro oficial NANDA-I 13ª Edição (2024-2026)
+export const NANDA_COMPLETE_CATALOG = nandaComplete;
+
 export function findNandaByCode(code) {
   if (!code) return null;
   const cleanCode = String(code).trim().padStart(5, '0');
-  return NANDA_CATALOG.find((d) => d.code === cleanCode) || null;
+  const curated = NANDA_CATALOG.find((d) => d.code === cleanCode);
+  if (curated) return curated;
+
+  const fromComplete = NANDA_COMPLETE_CATALOG.find((d) => d.code === cleanCode);
+  if (fromComplete) {
+    return {
+      ...fromComplete,
+      edition: 'NANDA-I 13ª Ed. (2024-2026)',
+      interventions: [
+        { code: 'G01', title: 'Vigilância clínica e cuidados de enfermagem', description: 'Monitorar sinais clínicos relacionados a ' + fromComplete.title + ' e implementar protocolo institucional.' }
+      ],
+      outcomes: [
+        { code: 'R01', title: 'Estabilização clínica', scale: '1 (Gravemente comprometido) a 5 (Não comprometido)', target: 'Manter estabilidade do padrão fisiológico e prevenir agravos.' }
+      ]
+    };
+  }
+  return null;
 }
 
 export function searchNandaCatalog(query) {
-  if (!query) return NANDA_CATALOG;
+  if (!query) return NANDA_COMPLETE_CATALOG;
   const q = String(query).toLowerCase().trim();
-  return NANDA_CATALOG.filter(
+
+  return NANDA_COMPLETE_CATALOG.filter(
     (d) =>
       d.code.includes(q) ||
       d.title.toLowerCase().includes(q) ||
-      d.domain.toLowerCase().includes(q) ||
-      d.class.toLowerCase().includes(q) ||
-      (d.risk_factors && d.risk_factors.some((rf) => rf.toLowerCase().includes(q))) ||
-      (d.defining_characteristics && d.defining_characteristics.some((dc) => dc.toLowerCase().includes(q)))
-  );
+      (d.domain && d.domain.toLowerCase().includes(q)) ||
+      (d.class && d.class.toLowerCase().includes(q)) ||
+      (d.definition && d.definition.toLowerCase().includes(q))
+  ).map((d) => {
+    const curated = NANDA_CATALOG.find((c) => c.code === d.code);
+    return curated || d;
+  });
 }
+

@@ -1,0 +1,2218 @@
+[
+  {
+    "code": "00355",
+    "title": "Comportamentos sedentários excessivos",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Padrão insatisfatório de atividade durante as horas de vigília, com baixo gasto de energia. Características definidoras",
+    "page": 122
+  },
+  {
+    "code": "00394",
+    "title": "Risco de comportamentos sedentários excessivos",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a um padrão insatisfatório de atividade durante as horas de vigília, com baixo gasto de energia.",
+    "page": 124
+  },
+  {
+    "code": "00097",
+    "title": "Engajamento diminuído em atividades de recreação",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Estimulação, interesse ou participação reduzidos em atividades recreativas ou de lazer. Características definidoras",
+    "page": 126
+  },
+  {
+    "code": "00448",
+    "title": "Risco de engajamento diminuído em atividades de recreação",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a estimulação, interesse ou participação reduzidos em atividades recreativas ou de lazer. Fatores de risco",
+    "page": 127
+  },
+  {
+    "code": "00273",
+    "title": "Campo de energia desequilibrado",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Interrupção no campo eletromagnético humano, que costuma ser um todo contínuo único, dinâmico, criativo e não linear.",
+    "page": 128
+  },
+  {
+    "code": "00276",
+    "title": "Autogestão ineficaz da saúde",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de sintomas, regime terapêutico e mudanças no estilo de vida associados a viver com uma doença crônica.",
+    "page": 130
+  },
+  {
+    "code": "00369",
+    "title": "Risco de autogestão ineficaz da saúde",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a manejo insatisfatório de sintomas, regime terapêutico e mudanças no estilo de vida associados a viver com uma doença crônica.",
+    "page": 132
+  },
+  {
+    "code": "00293",
+    "title": "Disposição para autogestão da saúde melhorada",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Padrão de manejo de sintomas, regime terapêutico, consequências e mudanças no estilo de vida associados a viver com uma condição crônica, que pode ser fortalecido.",
+    "page": 134
+  },
+  {
+    "code": "00080",
+    "title": "Gestão ineficaz da saúde familiar",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de sintomas, regime terapêutico e mudanças no estilo de vida para atender às metas específicas de saúde da unidade familiar.",
+    "page": 135
+  },
+  {
+    "code": "00410",
+    "title": "Risco de gestão ineficaz da saúde familiar",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a manejo insatisfatório de sintomas, regime terapêutico e mudanças no estilo de vida para atender às metas específicas de saúde da unidade familiar.",
+    "page": 137
+  },
+  {
+    "code": "00356",
+    "title": "Gestão ineficaz da saúde da comunidade",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de problemas de saúde ou fatores que impedem o bem-estar ou aumentam o risco de problemas de saúde vivenciados por uma população.",
+    "page": 139
+  },
+  {
+    "code": "00413",
+    "title": "Risco de gestão ineficaz da saúde da comunidade",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a manejo insatisfatório de problemas de saúde ou fatores que impedem o bem-estar ou aumentam o risco de problemas de saúde vivenciados por uma população.",
+    "page": 140
+  },
+  {
+    "code": "00352",
+    "title": "Autogestão ineficaz da boca seca",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados à redução da secreção salivar.",
+    "page": 141
+  },
+  {
+    "code": "00412",
+    "title": "Risco de autogestão ineficaz da boca seca",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados à redução da secreção salivar.",
+    "page": 144
+  },
+  {
+    "code": "00418",
+    "title": "Autogestão ineficaz da dor",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida relacionados a uma experiência sensorial e emocional desagradável que se assemelha àquela associada a um dano real ou",
+    "page": 146
+  },
+  {
+    "code": "00397",
+    "title": "Autogestão ineficaz da fadiga",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados a uma sensação opressiva constante de exaustão e baixos níveis de energia para as atividades diárias.",
+    "page": 149
+  },
+  {
+    "code": "00489",
+    "title": "Risco de autogestão ineficaz do padrão de glicemia",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a manejo insatisfatório de sintomas, regime terapêutico e mudanças no estilo de vida associados à convivência com flutuações recorrentes no nível de glicose sanguínea fora da faixa desejável.",
+    "page": 152
+  },
+  {
+    "code": "00384",
+    "title": "Autogestão ineficaz da náusea",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados a uma sensação desagradável no estômago, que pode ou não resultar em êmese.",
+    "page": 154
+  },
+  {
+    "code": "00278",
+    "title": "Autogestão ineficaz do linfedema",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados ao edema relacionado com obstrução ou distúrbios dos vasos linfáticos ou linfonodos.",
+    "page": 157
+  },
+  {
+    "code": "00281",
+    "title": "Risco de autogestão ineficaz do linfedema",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados ao edema relacionado com obstrução ou distúrbios dos vasos linfáticos ou linfonodos.",
+    "page": 159
+  },
+  {
+    "code": "00447",
+    "title": "Disposição para autogestão do peso melhorada",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Padrão de busca e/ou manutenção de um peso corporal saudável, que pode ser fortalecido. Características definidoras",
+    "page": 161
+  },
+  {
+    "code": "00398",
+    "title": "Autogestão ineficaz do sobrepeso",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados ao acúmulo de gordura excessiva para a idade e o sexo.",
+    "page": 162
+  },
+  {
+    "code": "00487",
+    "title": "Risco de autogestão ineficaz do sobrepeso",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados ao acúmulo de gordura excessiva para a idade e o sexo.",
+    "page": 165
+  },
+  {
+    "code": "00485",
+    "title": "Autogestão ineficaz do baixo peso",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados a um peso corporal inferior às normas padronizadas para a idade e o sexo.",
+    "page": 167
+  },
+  {
+    "code": "00486",
+    "title": "Risco de autogestão ineficaz do baixo peso",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados a um peso corporal inferior às normas padronizadas para a idade e o sexo.",
+    "page": 170
+  },
+  {
+    "code": "00277",
+    "title": "Autogestão ineficaz do ressecamento ocular",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo insatisfatório de regime terapêutico, consequências e mudanças no estilo de vida associados ao filme lacrimal inadequado.",
+    "page": 172
+  },
+  {
+    "code": "00292",
+    "title": "Comportamentos ineficazes de manutenção da saúde",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Manejo de conhecimento em saúde, atitudes e práticas subjacentes a ações de saúde que é insatisfatório para manter ou melhorar o bem-estar ou prevenir doenças e lesões.",
+    "page": 175
+  },
+  {
+    "code": "00395",
+    "title": "Risco de comportamentos ineficazes de manutenção da saúde",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a manejo de conhecimento em saúde, atitudes e práticas subjacentes a ações de saúde que é insatisfatório para manter ou melhorar o bem-estar ou prevenir doenças e lesões.",
+    "page": 177
+  },
+  {
+    "code": "00300",
+    "title": "Comportamentos ineficazes de manutenção do lar",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Padrão insatisfatório de conhecimento e atividades para a manutenção segura da residência do indivíduo. Características definidoras",
+    "page": 179
+  },
+  {
+    "code": "00308",
+    "title": "Risco de comportamentos ineficazes de manutenção do lar",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a padrão insatisfatório de conhecimento e atividades para a manutenção segura da residência do indivíduo.",
+    "page": 181
+  },
+  {
+    "code": "00309",
+    "title": "Disposição para comportamentos melhorados de manutenção do lar",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Padrão de conhecimento e atividades para a manutenção segura da residência do indivíduo, que pode ser fortalecido.",
+    "page": 183
+  },
+  {
+    "code": "00307",
+    "title": "Disposição para engajamento em exercícios melhorado",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Padrão de atenção à atividade física caracterizado por movimentos corporais planejados, estruturados e repetitivos, que pode ser fortalecido.",
+    "page": 184
+  },
+  {
+    "code": "00339",
+    "title": "Letramento em saúde inadequado",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Padrão insatisfatório de obtenção, avaliação e aplicação de informações e serviços básicos de saúde necessários à tomada de decisão em saúde.",
+    "page": 185
+  },
+  {
+    "code": "00411",
+    "title": "Risco de letramento em saúde inadequado",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a um padrão insatisfatório de obtenção, avaliação e aplicação de informações e serviços básicos de saúde necessários à tomada de decisão em saúde.",
+    "page": 187
+  },
+  {
+    "code": "00262",
+    "title": "Disposição para letramento em saúde melhorado",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Padrão de obtenção, avaliação e aplicação de informações e serviços básicos de saúde necessários à tomada de decisão de saúde, que pode ser fortalecido.",
+    "page": 189
+  },
+  {
+    "code": "00340",
+    "title": "Disposição para envelhecimento saudável melhorado",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Padrão de desenvolvimento ou manutenção do bem-estar e da função física, mental, social e espiritual com o avanço da idade, que pode ser fortalecido.",
+    "page": 190
+  },
+  {
+    "code": "00353",
+    "title": "Síndrome da fragilidade do idoso",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Estado dinâmico de desequilíbrio que inclui a deterioração de funções e reservas nos sistemas fisiológicos. Características definidoras",
+    "page": 191
+  },
+  {
+    "code": "00357",
+    "title": "Risco de síndrome da fragilidade do idoso",
+    "domain": "Domínio 1: Promoção da saúde",
+    "class": "Classe 1: Percepção da saúde",
+    "definition": "Suscetibilidade a um estado dinâmico de desequilíbrio que inclui a deterioração de funções e reservas nos sistemas fisiológicos.",
+    "page": 193
+  },
+  {
+    "code": "00343",
+    "title": "Ingestão nutricional inadequada",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Consumo de nutrientes insuficiente para atender às necessidades metabólicas. Características definidoras",
+    "page": 197
+  },
+  {
+    "code": "00409",
+    "title": "Risco de ingestão nutricional inadequada",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Suscetibilidade a consumo de nutrientes insuficiente para atender às necessidades metabólicas. Fatores de risco",
+    "page": 200
+  },
+  {
+    "code": "00419",
+    "title": "Disposição para ingestão nutricional melhorada",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Padrão de consumo de nutrientes que atende às necessidades metabólicas, que pode ser fortalecido. Características definidoras",
+    "page": 202
+  },
+  {
+    "code": "00359",
+    "title": "Ingestão nutricional proteico-calórica inadequada",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Consumo alimentar insuficiente de proteínas e calorias para atender às necessidades metabólicas. Características definidoras",
+    "page": 203
+  },
+  {
+    "code": "00360",
+    "title": "Risco de ingestão nutricional proteico-calórica inadequada",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Suscetibilidade a consumo alimentar insuficiente de proteínas e calorias para atender às necessidades metabólicas.",
+    "page": 205
+  },
+  {
+    "code": "00371",
+    "title": "Amamentação ineficaz",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Dificuldade de fornecer ou receber leite humano da mama, o que pode comprometer o estado nutricional de um lactente ou criança.",
+    "page": 207
+  },
+  {
+    "code": "00406",
+    "title": "Risco de amamentação ineficaz",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Suscetibilidade a dificuldade de fornecer ou receber leite humano da mama, o que pode comprometer o estado nutricional de um lactente ou criança.",
+    "page": 209
+  },
+  {
+    "code": "00347",
+    "title": "Amamentação exclusiva conturbada",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Interferência no processo de fornecimento exclusivo de leite humano a um lactente de até 6 meses de idade, em indivíduos cuja produção de leite humano é adequada.",
+    "page": 211
+  },
+  {
+    "code": "00382",
+    "title": "Risco de amamentação exclusiva conturbada",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Suscetibilidade a interferência no processo de fornecimento exclusivo de leite humano a um lactente de até 6 meses de idade, em indivíduos cuja produção de leite humano é adequada.",
+    "page": 213
+  },
+  {
+    "code": "00479",
+    "title": "Disposição para amamentação melhorada",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Padrão de fornecimento de leite humano a um lactente ou uma criança, que pode ser fortalecido. Características definidoras",
+    "page": 215
+  },
+  {
+    "code": "00333",
+    "title": "Produção inadequada de leite humano",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Lactação insuficiente para atender exclusivamente às necessidades nutricionais de um lactente nos primeiros 6 meses de vida.",
+    "page": 216
+  },
+  {
+    "code": "00334",
+    "title": "Risco de produção inadequada de leite humano",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Suscetibilidade a lactação insuficiente para atender exclusivamente às necessidades nutricionais de um lactente nos primeiros 6 meses de vida.",
+    "page": 219
+  },
+  {
+    "code": "00271",
+    "title": "Dinâmica de alimentação ineficaz do lactente",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Comportamentos alimentares alterados dos pais que resultam em padrões de alimentação excessiva ou insuficiente em crianças com menos de 1 ano de idade.",
+    "page": 221
+  },
+  {
+    "code": "00270",
+    "title": "Dinâmica alimentar ineficaz da criança",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Alterações em atitudes, comportamentos e influências relacionados aos padrões de alimentação que resultam em saúde nutricional comprometida em indivíduos de 1 a 10 anos de idade.",
+    "page": 223
+  },
+  {
+    "code": "00269",
+    "title": "Dinâmica alimentar ineficaz do adolescente",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Atitudes e comportamentos alimentares alterados que resultam em padrões de alimentação excessiva ou insuficiente, comprometendo a saúde nutricional de indivíduos de 11 a 19 anos de idade.",
+    "page": 225
+  },
+  {
+    "code": "00103",
+    "title": "Deglutição prejudicada",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Processo enfraquecido ou deteriorado de movimentação de substâncias da boca para o estômago. Características definidoras",
+    "page": 227
+  },
+  {
+    "code": "00194",
+    "title": "Hiperbilirrubinemia neonatal",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Acúmulo de bilirrubina não conjugada na circulação acima do percentil 95 para a idade durante a primeira semana de vida.",
+    "page": 232
+  },
+  {
+    "code": "00230",
+    "title": "Risco de hiperbilirrubinemia neonatal",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Suscetibilidade a acúmulo de bilirrubina não conjugada na circulação acima do percentil 95 para a idade durante a primeira semana de vida.",
+    "page": 234
+  },
+  {
+    "code": "00491",
+    "title": "Risco de equilíbrio hidreletrolítico prejudicado",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Suscetibilidade a alterações nos níveis séricos de eletrólitos. Fatores de risco",
+    "page": 236
+  },
+  {
+    "code": "00492",
+    "title": "Risco de equilíbrio do volume de líquidos prejudicado",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Suscetibilidade a trocas rápidas entre líquido intracelular e/ou extracelular, não incluindo o sangue. Fatores de risco",
+    "page": 237
+  },
+  {
+    "code": "00026",
+    "title": "Volume de líquidos excessivo",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Retenção excessiva de líquido intracelular e/ou extracelular. Características definidoras",
+    "page": 239
+  },
+  {
+    "code": "00370",
+    "title": "Risco de volume de líquidos excessivo",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Suscetibilidade à retenção excessiva de líquido intracelular ou extracelular. Fatores de risco",
+    "page": 241
+  },
+  {
+    "code": "00421",
+    "title": "Volume de líquidos inadequado",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Diminuição de líquido intracelular e/ou extracelular, não incluindo o sangue. Características definidoras",
+    "page": 242
+  },
+  {
+    "code": "00420",
+    "title": "Risco de volume de líquidos inadequado",
+    "domain": "Domínio 2: Nutrição",
+    "class": "Classe 1: Ingestão",
+    "definition": "Suscetibilidade a diminuição de líquido intracelular e/ou extracelular, não incluindo o sangue. Fatores de risco",
+    "page": 244
+  },
+  {
+    "code": "00016",
+    "title": "Eliminação urinária prejudicada",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Inabilidade de excretar de forma efetiva fluidos e resíduos armazenados na bexiga pela uretra. Características definidoras",
+    "page": 246
+  },
+  {
+    "code": "00322",
+    "title": "Risco de retenção urinária",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Suscetibilidade a esvaziamento incompleto da bexiga. Fatores de risco",
+    "page": 248
+  },
+  {
+    "code": "00297",
+    "title": "Incontinência urinária associada à incapacidade",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Inabilidade de chegar ao banheiro após sensação de urgência para evitar a perda não intencional de urina devido a condições físicas ou cognitivas.",
+    "page": 249
+  },
+  {
+    "code": "00017",
+    "title": "Incontinência urinária de esforço",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Perda involuntária de urina com atividades que aumentam a pressão intra-abdominal, não associada a urgência para urinar.",
+    "page": 251
+  },
+  {
+    "code": "00019",
+    "title": "Incontinência urinária de urgência",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Perda involuntária de urina associada a um desejo abrupto e intenso de urinar. Características definidoras",
+    "page": 253
+  },
+  {
+    "code": "00022",
+    "title": "Risco de incontinência urinária de urgência",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Suscetibilidade à perda involuntária de urina associada a um desejo abrupto e intenso de urinar. Fatores de risco",
+    "page": 255
+  },
+  {
+    "code": "00310",
+    "title": "Incontinência urinária mista",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Perda involuntária de urina acompanhada ou precedida de uma forte sensação de urgência para urinar e também de atividades que aumentam a pressão intra-abdominal.",
+    "page": 257
+  },
+  {
+    "code": "00423",
+    "title": "Motilidade gastrintestinal prejudicada",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Atividade peristáltica aumentada, diminuída, ineficaz ou ausente no sistema gastrintestinal. Características definidoras",
+    "page": 259
+  },
+  {
+    "code": "00422",
+    "title": "Risco de motilidade gastrintestinal prejudicada",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Suscetibilidade a atividade peristáltica aumentada, diminuída, ineficaz ou ausente no sistema gastrintestinal. Fatores de risco",
+    "page": 261
+  },
+  {
+    "code": "00344",
+    "title": "Eliminação intestinal prejudicada",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Alteração no processo normal de defecação pelo reto ou por uma ostomia. Características definidoras",
+    "page": 262
+  },
+  {
+    "code": "00346",
+    "title": "Risco de eliminação intestinal prejudicada",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Suscetibilidade a alteração no processo normal de defecação pelo reto ou por uma ostomia. Fatores de risco",
+    "page": 264
+  },
+  {
+    "code": "00235",
+    "title": "Constipação funcional crônica",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Evacuação das fezes infrequente ou difícil por um período prolongado de tempo. Características definidoras",
+    "page": 266
+  },
+  {
+    "code": "00236",
+    "title": "Risco de constipação funcional crônica",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Suscetibilidade a evacuação das fezes infrequente ou difícil por um período prolongado de tempo. Fatores de risco",
+    "page": 269
+  },
+  {
+    "code": "00424",
+    "title": "Continência fecal prejudicada",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Inabilidade de controlar os esfincteres anais, com passagem involuntária de fezes e flatos. Características definidoras",
+    "page": 271
+  },
+  {
+    "code": "00345",
+    "title": "Risco de continência fecal prejudicada",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Suscetibilidade à inabilidade de controlar os esfincteres anais, com passagem involuntária de fezes e flatos. Fatores de risco",
+    "page": 273
+  },
+  {
+    "code": "00030",
+    "title": "Troca de gases prejudicada",
+    "domain": "Domínio 3: Eliminação e troca",
+    "class": "Classe 1: Função urinária",
+    "definition": "Excesso ou inadequação na oxigenação e/ou na eliminação de dióxido de carbono. Características definidoras",
+    "page": 276
+  },
+  {
+    "code": "00337",
+    "title": "Padrão de sono ineficaz",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Dificuldade de vivenciar a suspensão natural e periódica da consciência relativa, o que prejudica negativamente a função.",
+    "page": 280
+  },
+  {
+    "code": "00407",
+    "title": "Risco de padrão de sono ineficaz",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a dificuldade de vivenciar a suspensão natural e periódica da consciência relativa, o que prejudica negativamente a função.",
+    "page": 282
+  },
+  {
+    "code": "00417",
+    "title": "Disposição para padrão de sono melhorado",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Padrão de suspensão natural e periódica da consciência relativa, que pode ser fortalecido. Características definidoras",
+    "page": 284
+  },
+  {
+    "code": "00323",
+    "title": "Comportamentos ineficazes de higiene do sono",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Dificuldade de utilizar consistentemente práticas, rituais e hábitos que resultam no início ou na manutenção do sono e em um sono reparador.",
+    "page": 285
+  },
+  {
+    "code": "00408",
+    "title": "Risco de comportamentos ineficazes de higiene do sono",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a dificuldade de utilizar consistentemente práticas, rituais e hábitos que resultam no início ou na manutenção do sono e em um sono reparador.",
+    "page": 287
+  },
+  {
+    "code": "00085",
+    "title": "Mobilidade física prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Limitação do movimento independente e intencional do corpo ou de uma ou mais extremidades. Características definidoras",
+    "page": 288
+  },
+  {
+    "code": "00324",
+    "title": "Risco de mobilidade física prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a limitação do movimento independente e intencional do corpo ou de uma ou mais extremidades.",
+    "page": 290
+  },
+  {
+    "code": "00089",
+    "title": "Mobilidade prejudicada com cadeira de rodas",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Limitação na operação de uma cadeira de rodas de forma independente pelo ambiente. Características definidoras",
+    "page": 292
+  },
+  {
+    "code": "00091",
+    "title": "Mobilidade no leito prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Limitação do movimento independente de uma posição para outra no leito. Características definidoras",
+    "page": 294
+  },
+  {
+    "code": "00365",
+    "title": "Habilidade de deambulação prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Limitação do movimento de andar no ambiente de forma independente. Características definidoras",
+    "page": 296
+  },
+  {
+    "code": "00364",
+    "title": "Habilidade de ficar em pé prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Limitação de posicionamento e/ou manutenção independente e intencional do corpo com alinhamento vertical dos pés à cabeça.",
+    "page": 298
+  },
+  {
+    "code": "00363",
+    "title": "Habilidade de sentar-se prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Limitação de posicionamento e/ou manutenção independente e intencional do corpo em posição de repouso apoiado pelas nádegas e coxas e com o torso ereto.",
+    "page": 300
+  },
+  {
+    "code": "00367",
+    "title": "Habilidade de transferência prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Limitação do movimento independente entre duas superfícies próximas. Características definidoras",
+    "page": 301
+  },
+  {
+    "code": "00298",
+    "title": "Tolerância à atividade diminuída",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Resistência insuficiente para completar as atividades diárias necessárias ou desejadas. Características definidoras",
+    "page": 303
+  },
+  {
+    "code": "00299",
+    "title": "Risco de tolerância à atividade diminuída",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a vivenciar resistência insuficiente para completar as atividades diárias necessárias ou desejadas.",
+    "page": 305
+  },
+  {
+    "code": "00477",
+    "title": "Carga excessiva de fadiga",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Sensação opressiva e prolongada de exaustão e habilidade diminuída de realizar trabalho físico e mental no nível habitual.",
+    "page": 306
+  },
+  {
+    "code": "00465",
+    "title": "Recuperação cirúrgica prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Alterações fisiológicas ou psicológicas perioperatórias que aumentam o período de recuperação necessário para atingir e/ou melhorar o estado de saúde funcional pré-operatório.",
+    "page": 308
+  },
+  {
+    "code": "00464",
+    "title": "Risco de recuperação cirúrgica prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a alterações fisiológicas ou psicológicas perioperatórias que aumentam o período de recuperação necessário para atingir e/ou melhorar o estado de saúde funcional pré-operatório.",
+    "page": 310
+  },
+  {
+    "code": "00311",
+    "title": "Risco de função cardiovascular prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a alterações no processo normal de transporte de substâncias, homeostase corporal, remoção de resíduos metabólicos dos tecidos e função dos órgãos.",
+    "page": 312
+  },
+  {
+    "code": "00240",
+    "title": "Risco de débito cardíaco diminuído",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a bombeamento cardíaco de volume sanguíneo insuficiente para atender às demandas metabólicas em indivíduos com problemas cardiovasculares e/ou pulmonares ou trauma.",
+    "page": 314
+  },
+  {
+    "code": "00362",
+    "title": "Risco de pressão arterial desequilibrada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a elevação ou diminuição recorrente da força exercida pelo fluxo sanguíneo na parede arterial, acima ou abaixo dos níveis individuais desejados.",
+    "page": 316
+  },
+  {
+    "code": "00201",
+    "title": "Risco de perfusão tissular cerebral ineficaz",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a uma diminuição da circulação sanguínea para o cérebro. Fatores de risco",
+    "page": 318
+  },
+  {
+    "code": "00204",
+    "title": "Perfusão tissular periférica ineficaz",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Diminuição da circulação sanguínea para as extremidades. Características definidoras",
+    "page": 320
+  },
+  {
+    "code": "00228",
+    "title": "Risco de perfusão tissular periférica ineficaz",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a uma diminuição da circulação sanguínea para as extremidades. Fatores de risco",
+    "page": 322
+  },
+  {
+    "code": "00032",
+    "title": "Padrão respiratório ineficaz",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Dificuldade em manter a ventilação adequada durante a inspiração e/ou a expiração. Características definidoras",
+    "page": 323
+  },
+  {
+    "code": "00033",
+    "title": "Ventilação espontânea prejudicada",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Incapacidade de iniciar e/ou manter respiração independente que é adequada para sustentação da vida. Características definidoras",
+    "page": 325
+  },
+  {
+    "code": "00431",
+    "title": "Resposta prejudicada ao desmame ventilatório da criança",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Inabilidade de fazer a transição para ventilação espontânea com sucesso em indivíduos com idade < 18 anos que necessitaram de ventilação mecânica por pelo menos 24 horas.",
+    "page": 327
+  },
+  {
+    "code": "00430",
+    "title": "Resposta prejudicada ao desmame ventilatório do adulto",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Inabilidade de fazer a transição para ventilação espontânea com sucesso em indivíduos com idade > 18 anos que necessitaram de ventilação mecânica por pelo menos 24 horas.",
+    "page": 329
+  },
+  {
+    "code": "00331",
+    "title": "Síndrome da habilidade de autocuidado diminuída",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Diminuição do desempenho independente de múltiplas atividades da vida diária. Características definidoras",
+    "page": 331
+  },
+  {
+    "code": "00332",
+    "title": "Risco de síndrome da habilidade de autocuidado diminuída",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a uma diminuição do desempenho independente de múltiplas atividades da vida diária. Fatores de risco",
+    "page": 333
+  },
+  {
+    "code": "00442",
+    "title": "Disposição para habilidades de autocuidado melhoradas",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Padrão de desempenho independente das atividades da vida diária, que pode ser fortalecido. Características definidoras",
+    "page": 334
+  },
+  {
+    "code": "00326",
+    "title": "Habilidade de banhar-se diminuída",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Diminuição da competência associada à limpeza do corpo de forma independente. Características definidoras",
+    "page": 335
+  },
+  {
+    "code": "00330",
+    "title": "Habilidade de cuidados pessoais diminuída",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Diminuição da competência associada à manutenção da aparência de forma independente. Características definidoras",
+    "page": 337
+  },
+  {
+    "code": "00329",
+    "title": "Habilidade de utilizar o vaso sanitário diminuída",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Diminuição da competência associada à realização de tarefas relacionadas à eliminação de forma independente.",
+    "page": 339
+  },
+  {
+    "code": "00327",
+    "title": "Habilidade de vestir-se diminuída",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Diminuição da competência associada a colocar ou remover as roupas de forma independente. Características definidoras",
+    "page": 341
+  },
+  {
+    "code": "00328",
+    "title": "Habilidade de alimentar-se diminuída",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Diminuição da competência associada à ingestão alimentar independente. Características definidoras",
+    "page": 343
+  },
+  {
+    "code": "00375",
+    "title": "Comportamentos ineficazes de higiene oral",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Dificuldade em empregar consistentemente práticas e hábitos que resultam na manutenção da saúde oral. Características definidoras",
+    "page": 345
+  },
+  {
+    "code": "00414",
+    "title": "Risco de comportamentos ineficazes de higiene oral",
+    "domain": "Domínio 4: Atividade/repouso",
+    "class": "Classe 5: Autocuidado",
+    "definition": "Suscetibilidade a uma dificuldade em empregar consistentemente práticas e hábitos que resultam na manutenção da saúde oral.",
+    "page": 347
+  },
+  {
+    "code": "00128",
+    "title": "Confusão aguda",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Alterações reversíveis de consciência, atenção, cognição e percepção que surgem em um período de tempo breve, com duração inferior a 3 meses.",
+    "page": 353
+  },
+  {
+    "code": "00173",
+    "title": "Risco de confusão aguda",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Suscetibilidade a alterações reversíveis de consciência, atenção, cognição e percepção que surgem em um período de tempo breve.",
+    "page": 355
+  },
+  {
+    "code": "00129",
+    "title": "Confusão crônica",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Alterações irreversíveis, progressivas e insidiosas de consciência, atenção, cognição e percepção, com duração superior a 3 meses.",
+    "page": 357
+  },
+  {
+    "code": "00222",
+    "title": "Controle de impulsos ineficaz",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Padrão de reações insatisfatórias, rápidas, não planejadas e incontroláveis a estímulos internos ou externos sem considerar as consequências negativas.",
+    "page": 359
+  },
+  {
+    "code": "00493",
+    "title": "Processos de pensamento conturbados",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Perturbação nos processos mentais envolvidos no desenvolvimento de conceitos e categorias, raciocínio e solução de problemas.",
+    "page": 361
+  },
+  {
+    "code": "00435",
+    "title": "Conhecimento de saúde inadequado",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Insuficiência na aquisição, no processamento, na compreensão e/ou na recordação de informações relacionadas a um tópico específico que afete o bem-estar da pessoa.",
+    "page": 363
+  },
+  {
+    "code": "00499",
+    "title": "Disposição para conhecimento de saúde melhorado",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Padrão de aquisição, processamento, compreensão e recordação de informações relacionadas a um tópico específico que afete o bem-estar da pessoa, que pode ser fortalecido.",
+    "page": 365
+  },
+  {
+    "code": "00131",
+    "title": "Memória prejudicada",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Inabilidade persistente de adquirir, recordar ou recuperar partes de informações ou habilidades, com manutenção da habilidade de realizar atividades da vida diária de forma independente.",
+    "page": 366
+  },
+  {
+    "code": "00429",
+    "title": "Tomada de decisão prejudicada",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Inabilidade de fazer escolhas adequadas, o que pode ter impacto negativo nas metas relacionadas à saúde, no bem-estar e na qualidade de vida.",
+    "page": 368
+  },
+  {
+    "code": "00184",
+    "title": "Disposição para tomada de decisão melhorada",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Padrão de escolhas que afetam as metas relacionadas à saúde, o bem-estar e a qualidade de vida, que pode ser fortalecido.",
+    "page": 370
+  },
+  {
+    "code": "00242",
+    "title": "Tomada de decisão emancipada prejudicada",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Processo de escolha sobre cuidados de saúde que não inclui conhecimento pessoal e/ou consideração de normas sociais, ou que não ocorre em ambiente flexível, resultando em insatisfação com a decisão.",
+    "page": 371
+  },
+  {
+    "code": "00244",
+    "title": "Risco de tomada de decisão emancipada prejudicada",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Suscetibilidade a processo de escolha sobre cuidados de saúde que não inclui conhecimento pessoal e/ou consideração de normas sociais, ou que não ocorre em ambiente flexível, resultando em insatisfação com a",
+    "page": 372
+  },
+  {
+    "code": "00243",
+    "title": "Disposição para tomada de decisão emancipada melhorada",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Padrão de escolha sobre cuidados de saúde que inclui conhecimento pessoal e/ou consideração de normas sociais, que pode ser fortalecido.",
+    "page": 373
+  },
+  {
+    "code": "00051",
+    "title": "Comunicação verbal prejudicada",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Limitação ou ausência da habilidade de receber, processar, transmitir e/ou usar um sistema de símbolos. Características definidoras",
+    "page": 374
+  },
+  {
+    "code": "00434",
+    "title": "Risco de comunicação verbal prejudicada",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Suscetibilidade a limitação ou ausência da habilidade de receber, processar, transmitir e/ou usar um sistema de símbolos.",
+    "page": 376
+  },
+  {
+    "code": "00368",
+    "title": "Disposição para comunicação verbal melhorada",
+    "domain": "Domínio 5: Percepção/cognição",
+    "class": "Classe 1: Atenção",
+    "definition": "Padrão de recebimento, processamento, transmissão e/ou uso de um sistema de símbolos, que pode ser fortalecido.",
+    "page": 378
+  },
+  {
+    "code": "00167",
+    "title": "Disposição para autoconceito melhorado",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Padrão de percepções ou ideias sobre si mesmo, que pode ser fortalecido. Características definidoras",
+    "page": 380
+  },
+  {
+    "code": "00494",
+    "title": "Identidade pessoal conturbada",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Inabilidade de manter uma percepção integrada e completa de si mesmo. Características definidoras",
+    "page": 381
+  },
+  {
+    "code": "00495",
+    "title": "Síndrome da identidade familiar conturbada",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Inabilidade de criar e manter uma percepção integrada e completa da família. Características definidoras",
+    "page": 383
+  },
+  {
+    "code": "00496",
+    "title": "Risco de síndrome da identidade familiar conturbada",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Suscetibilidade à inabilidade de criar e manter uma percepção integrada e completa da família. Fatores de risco",
+    "page": 385
+  },
+  {
+    "code": "00488",
+    "title": "Risco de dignidade humana prejudicada",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Suscetibilidade à percepção de perda de respeito e honra. Fatores de risco",
+    "page": 387
+  },
+  {
+    "code": "00341",
+    "title": "Disposição para identidade social como pessoa transgênero melhorada",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Padrão de desenvolvimento da autoimagem de gênero, incluindo a modificação das características corporais, que promove sentimentos de pertencimento a um grupo social ou cultural, que pode ser fortalecido.",
+    "page": 388
+  },
+  {
+    "code": "00483",
+    "title": "Autoestima inadequada crônica",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Percepção negativa duradoura sobre o valor próprio, a autoaceitação, o autorrespeito, a competência e a atitude em relação a si mesmo.",
+    "page": 389
+  },
+  {
+    "code": "00480",
+    "title": "Risco de autoestima inadequada crônica",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Suscetibilidade a uma percepção negativa duradoura sobre o valor próprio, a autoaceitação, o autorrespeito, a competência e a atitude em relação a si mesmo.",
+    "page": 391
+  },
+  {
+    "code": "00481",
+    "title": "Autoestima inadequada situacional",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Mudança de percepção positiva para negativa sobre o valor próprio, a autoaceitação, o autorrespeito, a competência e a atitude em relação a si mesmo, em resposta a uma situação atual.",
+    "page": 393
+  },
+  {
+    "code": "00482",
+    "title": "Risco de autoestima inadequada situacional",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Suscetibilidade a uma mudança de percepção positiva para negativa sobre o valor próprio, a autoaceitação, o autorrespeito, a competência e a atitude em relação a si mesmo, em resposta a uma situação atual.",
+    "page": 395
+  },
+  {
+    "code": "00338",
+    "title": "Autoeficácia em saúde inadequada",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Crença insuficiente na habilidade da própria pessoa de promover, manter ou restaurar um estado de saúde adequado.",
+    "page": 397
+  },
+  {
+    "code": "00497",
+    "title": "Imagem corporal conturbada",
+    "domain": "Domínio 6: Autopercepção",
+    "class": "Classe 1: Autoconceito",
+    "definition": "Imagem mental negativa do indivíduo em relação ao seu aspecto físico. Características definidoras",
+    "page": 399
+  },
+  {
+    "code": "00436",
+    "title": "Comportamentos parentais prejudicados",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Limitação do cuidador principal para criar, proteger e promover o crescimento e desenvolvimento ideais da criança por meio do exercício consistente e empático de autoridade e resposta adequada às necessidades da",
+    "page": 402
+  },
+  {
+    "code": "00437",
+    "title": "Risco de comportamentos parentais prejudicados",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Suscetibilidade a uma limitação do cuidador principal para criar, proteger e promover o crescimento e desenvolvimento ideais da criança por meio do exercício consistente e empático de autoridade e resposta",
+    "page": 405
+  },
+  {
+    "code": "00438",
+    "title": "Disposição para comportamentos parentais melhorados",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Padrão do cuidador principal de criar, proteger e promover o crescimento e desenvolvimento ideais da criança por meio do exercício consistente e empático de autoridade e resposta adequada às necessidades da",
+    "page": 407
+  },
+  {
+    "code": "00387",
+    "title": "Conflito excessivo no papel parental",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Experiência do cuidador principal com expectativas e responsabilidades inconsistentes, conflitantes e/ou incongruentes para atender às necessidades da criança.",
+    "page": 408
+  },
+  {
+    "code": "00389",
+    "title": "Padrões de interação familiar conturbados",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Organização e estrutura da família que falha em apoiar o bem-estar de seus membros. Características definidoras",
+    "page": 410
+  },
+  {
+    "code": "00440",
+    "title": "Risco de padrões de interação familiar conturbados",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Suscetibilidade a organização e estrutura da família que falha em apoiar o bem-estar de seus membros. Fatores de risco",
+    "page": 412
+  },
+  {
+    "code": "00388",
+    "title": "Processos familiares prejudicados",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Relações familiares que falham em apoiar o bem-estar de seus membros. Características definidoras",
+    "page": 413
+  },
+  {
+    "code": "00159",
+    "title": "Disposição para processos familiares melhorados",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Padrão de relações familiares que sustentam o bem-estar de seus membros, que pode ser fortalecido. Características definidoras",
+    "page": 416
+  },
+  {
+    "code": "00439",
+    "title": "Risco de comportamentos de apego conturbados",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Suscetibilidade a uma perturbação do processo interativo entre o cuidador primário e o lactente que promove atividades que demonstram uma relação recíproca de proteção e carinho.",
+    "page": 417
+  },
+  {
+    "code": "00055",
+    "title": "Desempenho de papel ineficaz",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Padrão de comportamento e autoexpressão que não combina com o contexto, as normas e as expectativas do ambiente.",
+    "page": 419
+  },
+  {
+    "code": "00449",
+    "title": "Relacionamento ineficaz com o parceiro íntimo",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Padrão de mutualidade que é insuficiente ou que pode afetar o curso, o prognóstico ou o tratamento de uma condição de saúde de um ou ambos os parceiros.",
+    "page": 421
+  },
+  {
+    "code": "00445",
+    "title": "Risco de relacionamento ineficaz com o parceiro íntimo",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Suscetibilidade a um padrão de mutualidade que é insuficiente ou que pode afetar o curso, o prognóstico ou o tratamento de uma condição de saúde de um ou ambos os parceiros.",
+    "page": 423
+  },
+  {
+    "code": "00446",
+    "title": "Disposição para relacionamento com o parceiro íntimo melhorado",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Padrão de mutualidade que pode apoiar o curso, o prognóstico ou o tratamento de uma condição de saúde de um ou ambos os parceiros, que pode ser fortalecido.",
+    "page": 425
+  },
+  {
+    "code": "00052",
+    "title": "Interação social prejudicada",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Quantidade inadequada/excessiva ou qualidade inadequada de intercâmbio social. Características definidoras",
+    "page": 426
+  },
+  {
+    "code": "00221",
+    "title": "Processo perinatológico ineficaz",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Inabilidade de manter e/ou preparar-se para processos saudáveis de gestação, parto e cuidados ao recém- nascido de forma a assegurar o bem-estar.",
+    "page": 428
+  },
+  {
+    "code": "00227",
+    "title": "Risco de processo perinatológico ineficaz",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Suscetibilidade à inabilidade de manter e/ou preparar-se para processos saudáveis de gestação, parto e cuidados ao recém-nascido de forma a assegurar o bem-estar.",
+    "page": 430
+  },
+  {
+    "code": "00208",
+    "title": "Disposição para processo perinatológico melhorado",
+    "domain": "Domínio 7: Papéis e relacionamentos",
+    "class": "Classe 1: Papéis do cuidador",
+    "definition": "Padrão de manutenção e preparo para processos saudáveis de gestação, parto e cuidados ao recém-nascido de forma a assegurar o bem-estar, que pode ser fortalecido.",
+    "page": 431
+  },
+  {
+    "code": "00386",
+    "title": "Função sexual prejudicada",
+    "domain": "Domínio 8: Sexualidade",
+    "class": "Classe 1: Identidade sexual",
+    "definition": "Dificuldade de passar pelos estágios do ciclo de resposta sexual, o que é percebido como insatisfatório, não gratificante ou inadequado.",
+    "page": 434
+  },
+  {
+    "code": "00349",
+    "title": "Risco de binômio mãe-feto prejudicado",
+    "domain": "Domínio 8: Sexualidade",
+    "class": "Classe 1: Identidade sexual",
+    "definition": "Suscetibilidade a uma interrupção da relação simbiótica mãe-feto que afeta as trocas fisiológicas e as interações afetivo-emocionais durante a gravidez, como resultado de comorbidades ou condições",
+    "page": 436
+  },
+  {
+    "code": "00141",
+    "title": "Síndrome pós-trauma",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Resposta desadaptativa sustentada a um evento traumático e opressivo. Características definidoras",
+    "page": 440
+  },
+  {
+    "code": "00145",
+    "title": "Risco de síndrome pós-trauma",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Suscetibilidade a resposta desadaptativa sustentada a um evento traumático e opressivo. Fatores de risco",
+    "page": 442
+  },
+  {
+    "code": "00484",
+    "title": "Risco de transição imigratória conturbada",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Suscetibilidade a consequências e sentimentos negativos durante o processo de realocação e adaptação do país de origem.",
+    "page": 444
+  },
+  {
+    "code": "00405",
+    "title": "Enfrentamento desadaptativo",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Esforços cognitivos e/ou comportamentais contraproducentes para manejar uma situação estressante ou desagradável.",
+    "page": 445
+  },
+  {
+    "code": "00158",
+    "title": "Disposição para enfrentamento melhorado",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Padrão de esforços cognitivos e/ou comportamentais para manejar uma situação estressante ou desagradável, que pode ser fortalecido.",
+    "page": 447
+  },
+  {
+    "code": "00373",
+    "title": "Enfrentamento familiar desadaptativo",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Esforços cognitivos e/ou comportamentais da família contraproducentes para manejar uma situação estressante ou desagradável.",
+    "page": 448
+  },
+  {
+    "code": "00075",
+    "title": "Disposição para enfrentamento familiar melhorado",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Padrão de esforços cognitivos e/ou comportamentais da família para manejar uma situação estressante ou desagradável, que pode ser fortalecido.",
+    "page": 449
+  },
+  {
+    "code": "00456",
+    "title": "Enfrentamento desadaptativo da comunidade",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Padrão de atividades da comunidade para adaptação e resolução de problemas que é insatisfatório para atender às demandas ou necessidades da comunidade.",
+    "page": 450
+  },
+  {
+    "code": "00076",
+    "title": "Disposição para enfrentamento melhorado da comunidade",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Padrão de atividades da comunidade para adaptação e resolução de problemas que atende às demandas ou necessidades da comunidade, que pode ser fortalecido.",
+    "page": 451
+  },
+  {
+    "code": "00400",
+    "title": "Ansiedade excessiva",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Preocupação desproporcional e persistente com situações e eventos percebidos como ameaçadores. Características definidoras",
+    "page": 452
+  },
+  {
+    "code": "00399",
+    "title": "Ansiedade excessiva relacionada à morte",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Insegurança e angústia emocional opressivas causadas pela antecipação da própria morte ou da morte de outras pessoas.",
+    "page": 454
+  },
+  {
+    "code": "00390",
+    "title": "Medo excessivo",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Resposta emocional intensa desproporcional despertada pela detecção de uma ameaça iminente. Características definidoras",
+    "page": 456
+  },
+  {
+    "code": "00301",
+    "title": "Luto desadaptativo",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Respostas à morte de uma pessoa significativa em que a experiência de sofrimento que acompanha o luto não atende às expectativas socioculturais.",
+    "page": 458
+  },
+  {
+    "code": "00302",
+    "title": "Risco de luto desadaptativo",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Suscetibilidade a respostas à morte de uma pessoa significativa em que a experiência de sofrimento que acompanha o luto não atende às expectativas socioculturais.",
+    "page": 460
+  },
+  {
+    "code": "00285",
+    "title": "Disposição para luto melhorado",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Padrão de respostas à morte de uma pessoa significativa, que pode ser fortalecido. Características definidoras",
+    "page": 461
+  },
+  {
+    "code": "00366",
+    "title": "Carga excessiva de prestação de cuidados",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Tensão multidimensional opressiva ao cuidar de uma pessoa significativa. Características definidoras",
+    "page": 462
+  },
+  {
+    "code": "00401",
+    "title": "Risco de carga excessiva de prestação de cuidados",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Suscetibilidade à tensão multidimensional opressiva ao cuidar de uma pessoa significativa. Fatores de risco",
+    "page": 464
+  },
+  {
+    "code": "00210",
+    "title": "Resiliência prejudicada",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Habilidade reduzida para recuperar-se de situações que são percebidas como adversas ou que estão se modificando.",
+    "page": 466
+  },
+  {
+    "code": "00211",
+    "title": "Risco de resiliência prejudicada",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Suscetibilidade à habilidade reduzida para recuperar-se de situações que são percebidas como adversas ou que estão se modificando.",
+    "page": 468
+  },
+  {
+    "code": "00212",
+    "title": "Disposição para resiliência melhorada",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Padrão de habilidade para recuperar-se de situações que são percebidas como adversas ou que estão se modificando, que pode ser fortalecido.",
+    "page": 470
+  },
+  {
+    "code": "00185",
+    "title": "Disposição para esperança melhorada",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Padrão de expectativas e desejos de mobilização de energias para alcançar resultados positivos, que pode ser fortalecido.",
+    "page": 471
+  },
+  {
+    "code": "00325",
+    "title": "Autocompaixão inadequada",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Habilidade insuficiente de estender bondade e compreensão para consigo mesmo, reconhecer sua conexão com a experiência humana mais ampla, estar atento e autoconsciente de seus pensamentos e sentimentos",
+    "page": 472
+  },
+  {
+    "code": "00010",
+    "title": "Risco de disreflexia autonômica",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Suscetibilidade a uma resposta não inibida do sistema nervoso simpático, que representa uma ameaça à vida, pós-choque medular, em indivíduo com lesão de medula espinal ou lesão na sexta vértebra torácica",
+    "page": 474
+  },
+  {
+    "code": "00372",
+    "title": "Regulação ineficaz das emoções",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Inabilidade de controlar os sentimentos, afetando pensamentos, ações e interações, o que leva a respostas e expressões inapropriadas em situações sociais.",
+    "page": 476
+  },
+  {
+    "code": "00241",
+    "title": "Regulação do humor prejudicada",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Estado mental caracterizado por mudanças no humor ou no afeto constituído de uma série de manifestações afetivas, cognitivas, somáticas, fisiológicas e/ou comportamentais.",
+    "page": 478
+  },
+  {
+    "code": "00258",
+    "title": "Síndrome de abstinência de substâncias aguda",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Sequelas multifatoriais graves após a cessação repentina de uma substância aditiva. Características definidoras",
+    "page": 480
+  },
+  {
+    "code": "00259",
+    "title": "Risco de síndrome de abstinência de substâncias aguda",
+    "domain": "Domínio 9: Enfrentamento/tolerância ao estresse",
+    "class": "Classe 1: Respostas pós-trauma",
+    "definition": "Suscetibilidade a sequelas multifatoriais graves após a cessação repentina de uma substância aditiva. Fator de risco",
+    "page": 481
+  },
+  {
+    "code": "00175",
+    "title": "Sofrimento moral",
+    "domain": "Domínio 10: Princípios da vida",
+    "class": "Classe 1: Valores",
+    "definition": "Resposta à inabilidade de colocar em prática as decisões e/ou ações éticas ou morais escolhidas. Característica definidora",
+    "page": 485
+  },
+  {
+    "code": "00454",
+    "title": "Bem-estar espiritual prejudicado",
+    "domain": "Domínio 10: Princípios da vida",
+    "class": "Classe 1: Valores",
+    "definition": "Integração diminuída de significado e propósito na vida por meio de conexões consigo mesmo, com os outros, com o mundo e/ou com um poder maior que si mesmo.",
+    "page": 486
+  },
+  {
+    "code": "00460",
+    "title": "Risco de bem-estar espiritual prejudicado",
+    "domain": "Domínio 10: Princípios da vida",
+    "class": "Classe 1: Valores",
+    "definition": "Suscetibilidade à integração diminuída de significado e propósito à vida por meio de conexões consigo mesmo, com os outros, com o mundo e/ou com um poder maior que si mesmo.",
+    "page": 489
+  },
+  {
+    "code": "00068",
+    "title": "Disposição para bem-estar espiritual melhorado",
+    "domain": "Domínio 10: Princípios da vida",
+    "class": "Classe 1: Valores",
+    "definition": "Padrão de integração de significado e propósito à vida por meio de conexões consigo mesmo, com os outros, com o mundo e/ou com um poder maior que si mesmo, que pode ser fortalecido.",
+    "page": 491
+  },
+  {
+    "code": "00169",
+    "title": "Religiosidade prejudicada",
+    "domain": "Domínio 10: Princípios da vida",
+    "class": "Classe 1: Valores",
+    "definition": "Comprometimento diminuído com crenças, princípios e atividades baseados na fé. Características definidoras",
+    "page": 493
+  },
+  {
+    "code": "00170",
+    "title": "Risco de religiosidade prejudicada",
+    "domain": "Domínio 10: Princípios da vida",
+    "class": "Classe 1: Valores",
+    "definition": "Suscetibilidade a comprometimento diminuído com crenças, princípios e atividades baseados na fé. Fatores de risco",
+    "page": 495
+  },
+  {
+    "code": "00171",
+    "title": "Disposição para religiosidade melhorada",
+    "domain": "Domínio 10: Princípios da vida",
+    "class": "Classe 1: Valores",
+    "definition": "Padrão de comprometimento com crenças, princípios e atividades baseados na fé, que pode ser fortalecido. Características definidoras",
+    "page": 496
+  },
+  {
+    "code": "00361",
+    "title": "Resposta imune prejudicada",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Habilidade enfraquecida de defesa contra microrganismos estranhos ou contra o efeito tóxico de substâncias antigênicas.",
+    "page": 499
+  },
+  {
+    "code": "00004",
+    "title": "Risco de infecção",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade à invasão e multiplicação de organismos patogênicos. Fatores de risco",
+    "page": 501
+  },
+  {
+    "code": "00500",
+    "title": "Risco de infecção de ferida cirúrgica",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade à invasão de organismos patogênicos no local da incisão. Fatores de risco",
+    "page": 503
+  },
+  {
+    "code": "00336",
+    "title": "Risco de lesão física",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a dano corporal devido a traumas, descargas elétricas, mudanças de pressão e/ou radiação. Fatores de risco",
+    "page": 505
+  },
+  {
+    "code": "00350",
+    "title": "Risco de lesão pelo calor",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a danos à pele ou aos tecidos por calor, vapor, produtos químicos, eletricidade ou similares. Fatores de risco",
+    "page": 507
+  },
+  {
+    "code": "00351",
+    "title": "Risco de lesão pelo frio",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a danos na pele ou nos tecidos devido a baixas temperaturas ambientais. Fatores de risco",
+    "page": 508
+  },
+  {
+    "code": "00245",
+    "title": "Risco de lesão na córnea",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a dano ou trauma infligidos à superfície frontal clara do olho por meios externos. Fatores de risco",
+    "page": 509
+  },
+  {
+    "code": "00219",
+    "title": "Risco de ressecamento ocular",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a filme lacrimal persistentemente instável e/ou deficiente, causando desconforto e/ou prejuízo visual.",
+    "page": 511
+  },
+  {
+    "code": "00087",
+    "title": "Risco de lesão por posicionamento perioperatório",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a danos corporais inadvertidos devido à postura ou ao equipamento de posicionamento necessários durante um procedimento invasivo e/ ou cirúrgico.",
+    "page": 513
+  },
+  {
+    "code": "00287",
+    "title": "Lesão por pressão neonatal",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Dano localizado na pele e/ou no tecido subjacente de um indivíduo com até 28 dias de idade, como resultado de pressão ou pressão em combinação com cisalhamento.",
+    "page": 515
+  },
+  {
+    "code": "00288",
+    "title": "Risco de lesão por pressão neonatal",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a dano localizado na pele e/ou no tecido subjacente de um indivíduo com até 28 dias de idade, como resultado de pressão ou pressão em combinação com cisalhamento.",
+    "page": 517
+  },
+  {
+    "code": "00313",
+    "title": "Lesão por pressão na criança",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Dano localizado na pele e/ou no tecido subjacente de um indivíduo com 29 dias a ≤ 18 anos de idade como resultado de pressão ou pressão em combinação com cisalhamento.",
+    "page": 519
+  },
+  {
+    "code": "00286",
+    "title": "Risco de lesão por pressão na criança",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a dano localizado na pele e/ou no tecido subjacente de um indivíduo com 29 dias a ≤ 18 anos de idade, como resultado de pressão ou pressão em combinação com cisalhamento.",
+    "page": 522
+  },
+  {
+    "code": "00312",
+    "title": "Lesão por pressão no adulto",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Dano localizado na pele e/ou no tecido subjacente de um indivíduo com > 18 anos de idade, como resultado de pressão ou pressão em combinação com cisalhamento.",
+    "page": 524
+  },
+  {
+    "code": "00304",
+    "title": "Risco de lesão por pressão no adulto",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade de um indivíduo > 18 anos a dano localizado na pele e/ou no tecido subjacente, como resultado de pressão ou pressão em combinação com cisalhamento.",
+    "page": 527
+  },
+  {
+    "code": "00250",
+    "title": "Risco de lesão do trato urinário",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a dano inadvertido às estruturas geniturinárias inferiores. Fatores de risco",
+    "page": 529
+  },
+  {
+    "code": "00044",
+    "title": "Integridade tissular prejudicada",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Dano em mucosa, córnea, sistema tegumentar, fáscia muscular, músculo, tendão, vasos sanguíneos, tecido linfático, osso, cartilagem, cápsula articular e/ou ligamento.",
+    "page": 530
+  },
+  {
+    "code": "00248",
+    "title": "Risco de integridade tissular prejudicada",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a dano em mucosa, córnea, sistema tegumentar, fáscia muscular, músculo, tendão, vasos sanguíneos, tecido linfático, osso, cartilagem, cápsula articular e/ou ligamento.",
+    "page": 533
+  },
+  {
+    "code": "00046",
+    "title": "Integridade da pele prejudicada",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Dano à epiderme e/ou à derme. Características definidoras",
+    "page": 535
+  },
+  {
+    "code": "00047",
+    "title": "Risco de integridade da pele prejudicada",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a dano à epiderme e/ou à derme. Fatores de risco",
+    "page": 538
+  },
+  {
+    "code": "00461",
+    "title": "Integridade do complexo mamilo-areolar prejudicada",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Dano localizado à área pigmentada da mama como resultado de umidade excessiva e/ou microtraumas repetidos durante a amamentação.",
+    "page": 540
+  },
+  {
+    "code": "00462",
+    "title": "Risco de integridade do complexo mamilo-areolar prejudicada",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a dano localizado à área pigmentada da mama como resultado de umidade excessiva e/ou microtraumas repetidos durante a amamentação.",
+    "page": 542
+  },
+  {
+    "code": "00045",
+    "title": "Integridade da mucosa oral prejudicada",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Dano localizado nos lábios, tecidos moles, cavidade oral e/ou orofaringe. Características definidoras",
+    "page": 544
+  },
+  {
+    "code": "00247",
+    "title": "Risco de integridade da mucosa oral prejudicada",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a dano localizado nos lábios, tecidos moles, cavidade bucal e/ ou orofaringe. Fatores de risco",
+    "page": 546
+  },
+  {
+    "code": "00306",
+    "title": "Risco de quedas na criança",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade de um indivíduo ≤ 18 anos de idade de passar por um evento que resulta em deslocamento inadvertido para o chão, o piso ou outra área de superfície inferior.",
+    "page": 548
+  },
+  {
+    "code": "00303",
+    "title": "Risco de quedas no adulto",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade de um indivíduo > 18 anos de idade de passar por um evento que resulta em deslocamento inadvertido para o chão, o piso ou outra área de superfície inferior.",
+    "page": 551
+  },
+  {
+    "code": "00039",
+    "title": "Risco de aspiração",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade à entrada de secreções gastrintestinais, secreções orofaríngeas, sólidos ou líquidos nas vias traqueobrônquicas.",
+    "page": 554
+  },
+  {
+    "code": "00031",
+    "title": "Desobstrução ineficaz das vias aéreas",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Habilidade reduzida de eliminar secreções ou obstruções do trato respiratório para manter o fluxo de ar. Características definidoras",
+    "page": 556
+  },
+  {
+    "code": "00463",
+    "title": "Risco de sufocamento acidental",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a uma disponibilidade de oxigênio inadequada. Fatores de risco",
+    "page": 558
+  },
+  {
+    "code": "00374",
+    "title": "Risco de sangramento excessivo",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a uma perda de sangue significativa. Fatores de risco",
+    "page": 560
+  },
+  {
+    "code": "00205",
+    "title": "Risco de choque",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a uma condição manifestada por falha na perfusão ou oxigenação de órgãos vitais. Fatores de risco",
+    "page": 561
+  },
+  {
+    "code": "00291",
+    "title": "Risco de trombose",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade à obstrução de um vaso sanguíneo por um coágulo de sangue que pode romper e se alojar em outro vaso.",
+    "page": 563
+  },
+  {
+    "code": "00425",
+    "title": "Risco de função neurovascular periférica prejudicada",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a alteração na circulação, na sensibilidade e no movimento de uma extremidade. Fatores de risco",
+    "page": 565
+  },
+  {
+    "code": "00156",
+    "title": "Risco de morte súbita do lactente",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a uma morte abrupta e inexplicável em crianças aparentemente saudáveis com menos de 1 ano de idade.",
+    "page": 566
+  },
+  {
+    "code": "00290",
+    "title": "Risco de tentativa de fuga",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a escapar de uma área designada sem supervisão, sem ser detectado e/ou contra as recomendações, em indivíduos que são incapazes de se proteger adequadamente ou que podem",
+    "page": 567
+  },
+  {
+    "code": "00138",
+    "title": "Risco de violência direcionada a outros",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a comportamento física, emocional e/ou sexualmente prejudicial a outra pessoa. Fatores de risco",
+    "page": 569
+  },
+  {
+    "code": "00272",
+    "title": "Risco de mutilação genital feminina",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade à remoção parcial ou total ou a outras lesões nos órgãos reprodutivos externos femininos, por razões não médicas.",
+    "page": 570
+  },
+  {
+    "code": "00466",
+    "title": "Risco de comportamento autolesivo suicida",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a agir de forma prejudicial contra si mesmo, associado a uma intenção de morrer. Fatores de risco",
+    "page": 571
+  },
+  {
+    "code": "00467",
+    "title": "Comportamento autolesivo não suicida",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Danos deliberados e autoinfligidos sem intenção de suicídio ou desvio sexual e para fins que não são socialmente sancionados.",
+    "page": 574
+  },
+  {
+    "code": "00468",
+    "title": "Risco de comportamento autolesivo não suicida",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a danos deliberados e autoinfligidos sem intenção de suicídio ou desvio sexual e para fins que não são socialmente sancionados.",
+    "page": 577
+  },
+  {
+    "code": "00181",
+    "title": "Contaminação",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Exposição a substâncias nocivas no ambiente em níveis que podem causar efeitos adversos à saúde. Características definidoras",
+    "page": 580
+  },
+  {
+    "code": "00180",
+    "title": "Risco de contaminação",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade à exposição a substâncias nocivas no ambiente em níveis que podem causar efeitos adversos à saúde.",
+    "page": 583
+  },
+  {
+    "code": "00469",
+    "title": "Risco de intoxicação acidental",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a ingestão, injeção, inalação ou exposição inesperada a substâncias nocivas. Fatores de risco",
+    "page": 585
+  },
+  {
+    "code": "00404",
+    "title": "Risco de doença ocupacional",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a condição ou distúrbio relacionado ao trabalho resultantes de um evento ou exposição não imediatos.",
+    "page": 587
+  },
+  {
+    "code": "00402",
+    "title": "Risco de lesão física ocupacional",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a dano corporal relacionado ao trabalho. Fatores de risco",
+    "page": 589
+  },
+  {
+    "code": "00217",
+    "title": "Risco de reação alérgica",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a uma resposta imunológica excessiva a alérgenos. Fatores de risco",
+    "page": 591
+  },
+  {
+    "code": "00042",
+    "title": "Risco de reação alérgica ao látex",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a uma resposta imunológica excessiva a produtos de borracha de látex natural ou alimentos reativos ao látex.",
+    "page": 592
+  },
+  {
+    "code": "00008",
+    "title": "Termorregulação ineficaz",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Inabilidade de manter ou regular a temperatura corporal dentro de uma faixa de normalidade. Características definidoras",
+    "page": 593
+  },
+  {
+    "code": "00274",
+    "title": "Risco de termorregulação ineficaz",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade à inabilidade de manter ou regular a temperatura corporal dentro de uma faixa de normalidade.",
+    "page": 595
+  },
+  {
+    "code": "00007",
+    "title": "Hipertermia",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Elevação anormal da temperatura corporal, geralmente como resultado da inabilidade de regular a temperatura corporal central devido a fatores não patológicos.",
+    "page": 596
+  },
+  {
+    "code": "00471",
+    "title": "Risco de hipertermia",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade à elevação anormal da temperatura corporal, geralmente como resultado da inabilidade de regular a temperatura corporal central devido a fatores não patológicos.",
+    "page": 599
+  },
+  {
+    "code": "00474",
+    "title": "Temperatura corporal neonatal diminuída",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Queda não intencional no estado térmico abaixo da faixa diurna normal em indivíduos com até 28 dias de vida.",
+    "page": 601
+  },
+  {
+    "code": "00476",
+    "title": "Risco de temperatura corporal neonatal diminuída",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade à queda não intencional no estado térmico abaixo da faixa diurna normal em indivíduos com até 28 dias de vida.",
+    "page": 604
+  },
+  {
+    "code": "00472",
+    "title": "Temperatura corporal diminuída",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Queda não intencional no estado térmico interno abaixo da faixa diurna normal em indivíduos com mais de 28 dias de vida.",
+    "page": 606
+  },
+  {
+    "code": "00473",
+    "title": "Risco de temperatura corporal diminuída",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade à queda não intencional no estado térmico interno abaixo da faixa diurna normal em indivíduos com mais de 28 dias de vida.",
+    "page": 608
+  },
+  {
+    "code": "00490",
+    "title": "Risco de temperatura corporal perioperatória diminuída",
+    "domain": "Domínio 11: Segurança/proteção",
+    "class": "Classe 3: Violência",
+    "definition": "Suscetibilidade a uma queda inadvertida na temperatura corporal central abaixo de 36 °C, que ocorre no período entre 1 hora antes até 24 horas após uma cirurgia.",
+    "page": 610
+  },
+  {
+    "code": "00380",
+    "title": "Conforto físico prejudicado",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Percepção de falta de tranquilidade, contentamento e bem-estar corporal. Características definidoras",
+    "page": 613
+  },
+  {
+    "code": "00378",
+    "title": "Disposição para conforto físico melhorado",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Padrão de tranquilidade, contentamento e bem-estar corporal, que pode ser fortalecido. Características definidoras",
+    "page": 615
+  },
+  {
+    "code": "00342",
+    "title": "Síndrome do conforto prejudicado no fim da vida",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Deterioração em um conjunto de manifestações físicas, psicológicas, sociais e espirituais devido à iminência do processo de morte.",
+    "page": 616
+  },
+  {
+    "code": "00132",
+    "title": "Dor aguda",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Experiência sensorial e emocional desagradável, associada ou semelhante à associada a um dano tecidual real ou potencial, com duração inferior a 3 meses.",
+    "page": 618
+  },
+  {
+    "code": "00255",
+    "title": "Síndrome da dor crônica",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Dor recorrente ou persistente há no mínimo 3 meses e que afeta significativamente o funcionamento diário ou o bem-estar.",
+    "page": 619
+  },
+  {
+    "code": "00133",
+    "title": "Dor crônica",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Experiência sensorial e emocional desagradável, associada ou semelhante à associada a um dano tecidual real ou potencial, com duração superior a 3 meses.",
+    "page": 620
+  },
+  {
+    "code": "00256",
+    "title": "Dor no trabalho de parto",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Experiência sensorial e emocional, que varia de agradável a desagradável, associada ao trabalho de parto e ao processo de nascimento da criança.",
+    "page": 622
+  },
+  {
+    "code": "00376",
+    "title": "Disposição para conforto social melhorado",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Padrão de tranquilidade, contentamento e bem-estar relacional, que pode ser fortalecido. Características definidoras",
+    "page": 625
+  },
+  {
+    "code": "00383",
+    "title": "Conexão social inadequada",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Sentimento de não pertencer, não ser cuidado ou não ser empoderado em um determinado contexto. Características definidoras",
+    "page": 626
+  },
+  {
+    "code": "00358",
+    "title": "Rede de apoio social inadequada",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Interações interpessoais e organizacionais que são percebidas como insatisfatórias para atender às necessidades de saúde.",
+    "page": 628
+  },
+  {
+    "code": "00475",
+    "title": "Solidão excessiva",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Sentimento opressivo de tristeza, desânimo ou desconforto associado à falta de companhia ou ao fato de estar separado de outras pessoas.",
+    "page": 630
+  },
+  {
+    "code": "00335",
+    "title": "Risco de solidão excessiva",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Suscetibilidade a sentimentos opressivos de tristeza, desânimo ou desconforto associados à falta de companhia ou à separação de outras pessoas.",
+    "page": 632
+  },
+  {
+    "code": "00379",
+    "title": "Conforto psicológico prejudicado",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Percepção de falta de tranquilidade, contentamento e bem-estar mental. Características definidoras",
+    "page": 633
+  },
+  {
+    "code": "00377",
+    "title": "Disposição para conforto psicológico melhorado",
+    "domain": "Domínio 12: Conforto",
+    "class": "Classe 1: Conforto físico",
+    "definition": "Padrão de tranquilidade, contentamento e bem-estar mental, que pode ser fortalecido. Características definidoras",
+    "page": 635
+  },
+  {
+    "code": "00348",
+    "title": "Crescimento atrasado da criança",
+    "domain": "Domínio 13: Crescimento/desenvolvimento",
+    "class": "Classe 1: Crescimento",
+    "definition": "Altura, comprimento, índice de massa corporal, circunferência da cabeça e/ou velocidade de crescimento (cm/ano) inadequados para o sexo, a idade e a etnia de um indivíduo ≤ 18 anos de idade.",
+    "page": 637
+  },
+  {
+    "code": "00478",
+    "title": "Risco de crescimento atrasado da criança",
+    "domain": "Domínio 13: Crescimento/desenvolvimento",
+    "class": "Classe 1: Crescimento",
+    "definition": "Suscetibilidade a altura, comprimento, índice de massa corporal, circunferência da cabeça e/ou velocidade de crescimento (cm/ano) inadequados para o sexo, a idade e a etnia de um indivíduo ≤ 18 anos de idade.",
+    "page": 639
+  },
+  {
+    "code": "00314",
+    "title": "Desenvolvimento atrasado da criança",
+    "domain": "Domínio 13: Crescimento/desenvolvimento",
+    "class": "Classe 1: Crescimento",
+    "definition": "Falha consistente em atingir os marcos de desenvolvimento dentro do prazo esperado, em indivíduos de 1 a 9 anos de idade.",
+    "page": 641
+  },
+  {
+    "code": "00305",
+    "title": "Risco de desenvolvimento atrasado da criança",
+    "domain": "Domínio 13: Crescimento/desenvolvimento",
+    "class": "Classe 1: Crescimento",
+    "definition": "Suscetibilidade a falha consistente em atingir os marcos de desenvolvimento dentro do prazo esperado, em indivíduos de 1 a 9 anos de idade.",
+    "page": 643
+  },
+  {
+    "code": "00315",
+    "title": "Desenvolvimento motor atrasado do lactente",
+    "domain": "Domínio 13: Crescimento/desenvolvimento",
+    "class": "Classe 1: Crescimento",
+    "definition": "Falha consistente em atingir marcos de desenvolvimento relacionados ao fortalecimento normal dos ossos e músculos e à habilidade de mover-se e tocar no ambiente que o cerca, em um indivíduo de 29 dias a 1 ano",
+    "page": 645
+  },
+  {
+    "code": "00316",
+    "title": "Risco de desenvolvimento motor atrasado do lactente",
+    "domain": "Domínio 13: Crescimento/desenvolvimento",
+    "class": "Classe 1: Crescimento",
+    "definition": "Suscetibilidade a falha consistente em atingir marcos de desenvolvimento relacionados ao fortalecimento normal dos ossos e músculos e à habilidade de mover-se e tocar no ambiente que o cerca, em indivíduo de",
+    "page": 647
+  },
+  {
+    "code": "00451",
+    "title": "Organização prejudicada do neurodesenvolvimento do lactente",
+    "domain": "Domínio 13: Crescimento/desenvolvimento",
+    "class": "Classe 1: Crescimento",
+    "definition": "Coordenação diminuída das habilidades cognitivas, motoras e sensoriais, o que pode levar a atrasos para atingir os marcos de desenvolvimento em indivíduos com menos de 1 ano de idade.",
+    "page": 649
+  },
+  {
+    "code": "00452",
+    "title": "Risco de organização prejudicada do neurodesenvolvimento do lactente",
+    "domain": "Domínio 13: Crescimento/desenvolvimento",
+    "class": "Classe 1: Crescimento",
+    "definition": "Suscetibilidade a coordenação diminuída das habilidades cognitivas, motoras e sensoriais, o que pode levar a atrasos para atingir os marcos de desenvolvimento em indivíduos com menos de 1 ano de idade.",
+    "page": 651
+  },
+  {
+    "code": "00453",
+    "title": "Disposição para organização melhorada do neurodesenvolvimento do lactente",
+    "domain": "Domínio 13: Crescimento/desenvolvimento",
+    "class": "Classe 1: Crescimento",
+    "definition": "Padrão de coordenação das habilidades cognitivas, motoras e sensoriais necessárias para atingir os marcos do desenvolvimento em um indivíduo com menos de 1 ano de idade, que pode ser fortalecido.",
+    "page": 653
+  },
+  {
+    "code": "00295",
+    "title": "Resposta ineficaz de sucção-deglutição do lactente",
+    "domain": "Domínio 13: Crescimento/desenvolvimento",
+    "class": "Classe 1: Crescimento",
+    "definition": "Habilidade prejudicada de coordenar a respiração durante o consumo de alimentação oral com segurança em um indivíduo com idade ≤ 1 ano.",
+    "page": 654
+  }
+]
