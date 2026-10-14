@@ -26,7 +26,11 @@ import {
   Target,
   Layers,
   Mic,
-  MicOff
+  MicOff,
+  Pill,
+  AlertTriangle,
+  ShieldAlert,
+  ListChecks
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -132,13 +136,13 @@ export default function CaseStudio() {
     notes: "Paciente lúcido, comunicativo, adotando posição de ortopneia no leito."
   });
 
-  // Estados do Desafio Diagnóstico Lúdico
+  // Estados da Bateria de Desafios Clínicos de Alta Complexidade
   const [challenge, setChallenge] = useState(null);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [isGeneratingChallenge, setIsGeneratingChallenge] = useState(false);
-  const [selectedOptionId, setSelectedOptionId] = useState(null);
-  const [isAnswerSubmitted, setIsAnswerSubmitted] = useState(false);
-  const [showAttendingTip, setShowAttendingTip] = useState(false);
-  const [scoreEarned, setScoreEarned] = useState(0);
+  const [userAnswers, setUserAnswers] = useState({}); // { [questionIdx]: optionId }
+  const [submittedQuestions, setSubmittedQuestions] = useState({}); // { [questionIdx]: boolean }
+  const [revealedTips, setRevealedTips] = useState({}); // { [questionIdx]: boolean }
 
   // Estados de Voz ("Caring out loud")
   const [isListening, setIsListening] = useState(false);
@@ -245,13 +249,13 @@ export default function CaseStudio() {
     }
   }
 
-  // Disparo do Desafio Diagnóstico Lúdico (Garante anonimização estrita LGPD)
+  // Disparo da Bateria de Desafios Clínicos (Garante anonimização estrita LGPD)
   async function handleLaunchChallenge() {
     setIsGeneratingChallenge(true);
-    setSelectedOptionId(null);
-    setIsAnswerSubmitted(false);
-    setShowAttendingTip(false);
-    setScoreEarned(0);
+    setCurrentQuestionIndex(0);
+    setUserAnswers({});
+    setSubmittedQuestions({});
+    setRevealedTips({});
 
     try {
       const sanitizedInitials = formatToInitials(profile.initials || profile.name);
@@ -269,16 +273,43 @@ export default function CaseStudio() {
     }
   }
 
-  // Confirmação da Resposta do Estudante
-  function handleSubmitStudentAnswer() {
-    if (!selectedOptionId || !challenge) return;
-    setIsAnswerSubmitted(true);
-    const chosen = challenge.options.find((o) => o.id === selectedOptionId);
-    if (chosen?.isCorrect) {
-      setScoreEarned(showAttendingTip ? 80 : 100);
-    } else {
-      setScoreEarned(20);
-    }
+  // Lista normalizada de questões (bateria de 4 eixos)
+  const questionsList = challenge?.questions || (challenge?.options ? [{
+    id: 1,
+    category: "Priorização & Julgamento Clínico",
+    questionStem: "Qual é a Conduta Prioritária / Diagnóstico de Enfermagem para este caso?",
+    attendingTip: challenge.attendingTip,
+    options: challenge.options
+  }] : []);
+
+  const activeQuestion = questionsList[currentQuestionIndex] || questionsList[0];
+  const activeSelectedOption = activeQuestion ? userAnswers[currentQuestionIndex] : null;
+  const isActiveSubmitted = activeQuestion ? !!submittedQuestions[currentQuestionIndex] : false;
+  const isTipRevealed = activeQuestion ? !!revealedTips[currentQuestionIndex] : false;
+
+  // Pontuação Total da Bateria
+  const totalCorrect = questionsList.filter((q, idx) => {
+    if (!submittedQuestions[idx]) return false;
+    const ans = userAnswers[idx];
+    const opt = q.options?.find(o => o.id === ans);
+    return opt?.isCorrect;
+  }).length;
+  const totalScore = totalCorrect * 100;
+  const allQuestionsAnswered = questionsList.length > 0 && questionsList.every((_, idx) => submittedQuestions[idx]);
+
+  // Ações do Estudante na Bateria
+  function handleSelectOption(optionId) {
+    if (isActiveSubmitted) return;
+    setUserAnswers((prev) => ({ ...prev, [currentQuestionIndex]: optionId }));
+  }
+
+  function handleSubmitCurrentAnswer() {
+    if (!activeSelectedOption) return;
+    setSubmittedQuestions((prev) => ({ ...prev, [currentQuestionIndex]: true }));
+  }
+
+  function handleToggleTip() {
+    setRevealedTips((prev) => ({ ...prev, [currentQuestionIndex]: !prev[currentQuestionIndex] }));
   }
 
   return (
@@ -822,51 +853,50 @@ export default function CaseStudio() {
         )}
 
         {/* ======================================================== */}
-        {/* MODO 2: O DESAFIO DIAGNÓSTICO LÚDICO (ESTILO AMBOSS/SIMX) */}
+        {/* MODO 2: BATERIA DE DESAFIOS CLÍNICOS (ESTILO AMBOSS/SIMX) */}
         {/* ======================================================== */}
         {viewMode === "challenge" && challenge && (
           <div className="space-y-6 animate-in fade-in">
-            {/* Vinheta Resumo do Caso Montado */}
+            {/* Vinheta Resumo do Caso & Placar Geral */}
             <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
                 <div>
-                  <span className="text-xs font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-lg">
-                    Desafio Clínico Interativo
-                  </span>
-                  <h2 className="text-base font-bold text-slate-900 mt-1">
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-lg">
+                      Bateria de Julgamento Clínico Avançado
+                    </span>
+                    <span className="text-xs font-semibold text-slate-500">
+                      Vivência Real • COFEN 736/2024
+                    </span>
+                  </div>
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-1">
                     {challenge.questionTitle}
                   </h2>
                 </div>
-                <div className="flex items-center gap-2">
+                
+                <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                    <Award className={`h-4 w-4 ${totalCorrect > 0 ? "text-amber-500" : "text-slate-400"}`} />
+                    <span className="text-xs font-bold text-slate-800">
+                      Pontuação: {totalScore} / {questionsList.length * 100} pts
+                    </span>
+                  </div>
+
                   <Button
+                    variant="outline"
                     size="sm"
-                    variant={showAttendingTip ? "default" : "outline"}
-                    onClick={() => setShowAttendingTip(!showAttendingTip)}
-                    className={`rounded-xl text-xs h-8 flex items-center gap-1.5 ${
-                      showAttendingTip
-                        ? "bg-amber-500 hover:bg-amber-600 text-white"
-                        : "border-amber-300 text-amber-800 hover:bg-amber-50"
-                    }`}
+                    onClick={() => setViewMode("builder")}
+                    className="rounded-xl border-slate-300 text-slate-700 text-xs flex items-center gap-1.5"
                   >
-                    <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-                    <span>{showAttendingTip ? "Ocultar Dica Socrática" : "Dica de Raciocínio (AMBOSS Tip)"}</span>
+                    <RotateCcw className="h-3.5 w-3.5" />
+                    <span>Ajustar Escores</span>
                   </Button>
                 </div>
               </div>
 
-              {/* Dica Socrática (Attending Physician Tip) */}
-              {showAttendingTip && (
-                <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1 animate-in fade-in">
-                  <span className="font-bold flex items-center gap-1 text-amber-900">
-                    <Lightbulb className="h-4 w-4 text-amber-600" /> Dica de Raciocínio Clínico:
-                  </span>
-                  <p className="leading-relaxed">{challenge.attendingTip}</p>
-                </div>
-              )}
-
               {/* Prontuário Sintético Baseado no que o Aluno Montou */}
               <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2">
-                <span className="font-bold text-slate-900 block">Dados Clínicos do Paciente:</span>
+                <span className="font-bold text-slate-900 block">Dados Clínicos do Paciente (Anonimizado - LGPD):</span>
                 <p className="leading-relaxed">
                   {challenge.clinicalVignette}
                 </p>
@@ -886,6 +916,11 @@ export default function CaseStudio() {
                   <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
                     Braden: {bradenTotal} pts
                   </span>
+                  {camPositive && (
+                    <span className="bg-rose-50 text-rose-800 px-2 py-0.5 rounded border border-rose-200">
+                      CAM: Delirium Positivo
+                    </span>
+                  )}
                   {caloiTotal > 0 && (
                     <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
                       Dor: {caloiTotal}/10
@@ -894,16 +929,106 @@ export default function CaseStudio() {
                 </div>
               </div>
 
-              {/* PERGUNTA CLÍNICA E OPÇÕES INTERATIVAS */}
-              <div className="space-y-3 pt-2">
-                <span className="text-xs font-bold text-slate-900 block">
-                  Qual é a Resposta Humana / Diagnóstico de Enfermagem Prioritário para este caso?
-                </span>
+              {/* SELETOR DE ABAS DA BATERIA (4 EIXOS DE VIVÊNCIA CLÍNICA) */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                    Eixos de Julgamento Clínico ({questionsList.length} Desafios):
+                  </span>
+                  <span className="text-[11px] font-semibold text-slate-500">
+                    Respondidas: {Object.keys(submittedQuestions).length} de {questionsList.length}
+                  </span>
+                </div>
 
-                <div className="space-y-2.5">
-                  {challenge.options.map((option) => {
-                    const isSelected = selectedOptionId === option.id;
-                    const showFeedback = isAnswerSubmitted;
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {questionsList.map((q, idx) => {
+                    const isCurrent = idx === currentQuestionIndex;
+                    const isSub = !!submittedQuestions[idx];
+                    const chosen = q.options?.find(o => o.id === userAnswers[idx]);
+                    const isRight = chosen?.isCorrect;
+
+                    let tabStyle = "bg-white border-slate-200 text-slate-600 hover:border-slate-300";
+                    if (isCurrent) {
+                      tabStyle = "bg-teal-50/80 border-teal-600 text-teal-900 ring-1 ring-teal-600 font-bold shadow-xs";
+                    } else if (isSub && isRight) {
+                      tabStyle = "bg-emerald-50 border-emerald-300 text-emerald-900";
+                    } else if (isSub && !isRight) {
+                      tabStyle = "bg-rose-50 border-rose-300 text-rose-900";
+                    }
+
+                    return (
+                      <button
+                        key={idx}
+                        onClick={() => setCurrentQuestionIndex(idx)}
+                        className={`p-2.5 rounded-xl border text-left transition-all flex items-start justify-between gap-1.5 ${tabStyle}`}
+                      >
+                        <div className="min-w-0">
+                          <span className="text-[10px] font-bold uppercase block opacity-75">
+                            Q{idx + 1}
+                          </span>
+                          <span className="text-xs font-semibold truncate block">
+                            {q.category}
+                          </span>
+                        </div>
+                        {isSub && (
+                          isRight ? (
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                          ) : (
+                            <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+                          )
+                        )}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* CARD DA QUESTÃO ATIVA */}
+            {activeQuestion && (
+              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+                  <div>
+                    <span className="text-xs font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded">
+                      Questão {currentQuestionIndex + 1} de {questionsList.length} • {activeQuestion.category}
+                    </span>
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 mt-2 leading-relaxed">
+                      {activeQuestion.questionStem}
+                    </h3>
+                  </div>
+
+                  <div className="shrink-0">
+                    <Button
+                      size="sm"
+                      variant={isTipRevealed ? "default" : "outline"}
+                      onClick={handleToggleTip}
+                      className={`rounded-xl text-xs h-8 flex items-center gap-1.5 ${
+                        isTipRevealed
+                          ? "bg-amber-500 hover:bg-amber-600 text-white"
+                          : "border-amber-300 text-amber-800 hover:bg-amber-50"
+                      }`}
+                    >
+                      <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+                      <span>{isTipRevealed ? "Ocultar Dica Socrática" : "Dica de Raciocínio (AMBOSS Tip)"}</span>
+                    </Button>
+                  </div>
+                </div>
+
+                {/* Dica Socrática (Attending Physician Tip) */}
+                {isTipRevealed && (
+                  <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1 animate-in fade-in">
+                    <span className="font-bold flex items-center gap-1 text-amber-900">
+                      <Lightbulb className="h-4 w-4 text-amber-600" /> Dica de Vivência à Beira-Leito:
+                    </span>
+                    <p className="leading-relaxed">{activeQuestion.attendingTip}</p>
+                  </div>
+                )}
+
+                {/* Alternativas de Múltipla Escolha com Distratores Sutis */}
+                <div className="space-y-2.5 pt-1">
+                  {activeQuestion.options?.map((option) => {
+                    const isSelected = activeSelectedOption === option.id;
+                    const showFeedback = isActiveSubmitted;
                     let style = "bg-white border-slate-200 hover:border-slate-300";
 
                     if (isSelected && !showFeedback) {
@@ -923,7 +1048,7 @@ export default function CaseStudio() {
                     return (
                       <div
                         key={option.id}
-                        onClick={() => !isAnswerSubmitted && setSelectedOptionId(option.id)}
+                        onClick={() => handleSelectOption(option.id)}
                         className={`p-3.5 rounded-xl border transition-all cursor-pointer ${style}`}
                       >
                         <div className="flex items-start gap-3">
@@ -950,7 +1075,7 @@ export default function CaseStudio() {
                                   <div className="text-emerald-900">
                                     <span className="font-bold flex items-center gap-1">
                                       <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
-                                      Por que esta alternativa está correta?
+                                      Por que esta conduta é a correta?
                                     </span>
                                     <p className="mt-0.5 leading-relaxed">{option.whyCorrect}</p>
                                   </div>
@@ -958,7 +1083,7 @@ export default function CaseStudio() {
                                   <div className="text-slate-700">
                                     <span className="font-bold flex items-center gap-1 text-slate-900">
                                       <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
-                                      Análise do Distrator: Por que não é a prioridade?
+                                      Análise do Distrator: Por que não é a prioridade / Armadilha da prática:
                                     </span>
                                     <p className="mt-0.5 leading-relaxed">{option.whyDistractor}</p>
                                   </div>
@@ -971,54 +1096,76 @@ export default function CaseStudio() {
                     );
                   })}
                 </div>
-              </div>
 
-              {/* Botão de Confirmação ou Reinício */}
-              <div className="pt-3 border-t border-slate-100 flex items-center justify-between">
-                {!isAnswerSubmitted ? (
-                  <Button
-                    onClick={handleSubmitStudentAnswer}
-                    disabled={!selectedOptionId}
-                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-6 h-10 font-semibold flex items-center gap-2"
-                  >
-                    <Check className="h-4 w-4" /> Confirmar Julgamento Clínico
-                  </Button>
-                ) : (
-                  <div className="flex flex-wrap items-center justify-between w-full gap-3">
+                {/* AÇÕES DA QUESTÃO ATIVA & NAVEGAÇÃO NA BATERIA */}
+                <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
+                  {!isActiveSubmitted ? (
+                    <Button
+                      onClick={handleSubmitCurrentAnswer}
+                      disabled={!activeSelectedOption}
+                      className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-6 h-10 font-semibold flex items-center gap-2"
+                    >
+                      <Check className="h-4 w-4" /> Confirmar Julgamento Clínico
+                    </Button>
+                  ) : (
                     <div className="flex items-center gap-2">
-                      <Award className={`h-5 w-5 ${scoreEarned >= 80 ? "text-amber-500" : "text-slate-400"}`} />
-                      <span className="text-xs font-bold text-slate-800">
-                        Pontuação Obtida: {scoreEarned} / 100 pontos
+                      <span className="text-xs font-bold text-slate-700">
+                        {activeQuestion.options?.find(o => o.id === activeSelectedOption)?.isCorrect ? (
+                          <span className="text-emerald-700 flex items-center gap-1">
+                            <CheckCircle2 className="h-4 w-4" /> Resposta Correta (+100 XP)
+                          </span>
+                        ) : (
+                          <span className="text-rose-600 flex items-center gap-1">
+                            <AlertCircle className="h-4 w-4" /> Resposta Incorreta (Revise os distratores)
+                          </span>
+                        )}
                       </span>
                     </div>
+                  )}
 
-                    <div className="flex gap-2">
+                  <div className="flex items-center gap-2 ml-auto">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
+                      disabled={currentQuestionIndex === 0}
+                      className="rounded-xl border-slate-300 text-slate-700 text-xs font-semibold"
+                    >
+                      <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Questão Anterior
+                    </Button>
+
+                    {currentQuestionIndex < questionsList.length - 1 ? (
                       <Button
-                        variant="outline"
-                        onClick={() => setViewMode("builder")}
-                        className="rounded-xl border-slate-300 text-slate-700 text-xs"
-                      >
-                        Ajustar Escores do Paciente
-                      </Button>
-                      <Button
-                        onClick={handleLaunchChallenge}
+                        size="sm"
+                        onClick={() => setCurrentQuestionIndex((prev) => Math.min(questionsList.length - 1, prev + 1))}
                         className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold"
                       >
-                        Gerar Novo Desafio
+                        Próxima Questão <ArrowRight className="h-3.5 w-3.5 ml-1" />
                       </Button>
-                    </div>
+                    ) : (
+                      allQuestionsAnswered && (
+                        <Button
+                          size="sm"
+                          onClick={handleLaunchChallenge}
+                          className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5"
+                        >
+                          <RotateCcw className="h-3.5 w-3.5" />
+                          <span>Nova Bateria de Casos</span>
+                        </Button>
+                      )
+                    )}
                   </div>
-                )}
+                </div>
               </div>
-            </div>
+            )}
 
             {/* Plano de Cuidados e Prescrição de Enfermagem (Visível Pós-Submissão) */}
-            {isAnswerSubmitted && challenge.recommendedInterventions?.length > 0 && (
+            {challenge.recommendedInterventions?.length > 0 && (
               <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3 animate-in fade-in">
                 <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
                   <ClipboardCheck className="h-4 w-4 text-teal-700" />
                   <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
-                    Prescrição de Enfermagem Recomendada (COFEN nº 736/2024)
+                    Prescrição de Cuidados de Enfermagem (Resolução COFEN nº 736/2024)
                   </h3>
                 </div>
                 <ul className="space-y-2 text-xs text-slate-700">
