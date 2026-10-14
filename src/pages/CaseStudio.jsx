@@ -45,7 +45,7 @@ import {
   computeCaloiTotal,
   RISK_META
 } from "@/lib/riskEngine";
-import { generateRandomName, generateRandomAge } from "@/lib/sampleNames";
+import { generateRandomInitials, generateRandomName, generateRandomAge, formatToInitials } from "@/lib/sampleNames";
 import { generateCaseDiagnosticChallenge } from "@/services/diagnosticChallengeService";
 
 const WIZARD_STEPS = [
@@ -86,9 +86,10 @@ export default function CaseStudio() {
   const [currentStep, setCurrentStep] = useState(0);
   const [viewMode, setViewMode] = useState("builder"); // "builder" | "challenge"
 
-  // Estado do Perfil e Anamnese
+  // Estado do Perfil e Anamnese (LGPD: Anonimizado estritamente com iniciais)
   const [profile, setProfile] = useState({
-    name: "Carlos Eduardo Silva",
+    initials: "J.S.F.",
+    name: "J.S.F.",
     age: "68",
     gender: "M",
     previous_diseases: "Hipertensão Arterial Sistêmica, Insuficiência Cardíaca congestiva CF II.",
@@ -167,13 +168,14 @@ export default function CaseStudio() {
   const caloiTotal = computeCaloiTotal(data);
   const globalRisk = computeGlobalRisk(data);
 
-  // Gerador de Caso Sintético Aleatório
+  // Gerador de Caso Sintético Aleatório (Anonimizado - LGPD)
   function handleGenerateRandomProfile() {
-    const randomName = generateRandomName();
+    const random = generateRandomInitials();
     const randomAge = generateRandomAge();
-    const gender = Math.random() > 0.5 ? "M" : "F";
+    const gender = random.gender;
     setProfile({
-      name: randomName,
+      initials: random.initials,
+      name: random.initials,
       age: String(randomAge),
       gender,
       previous_diseases: "HAS estágio 2, DM tipo 2 em uso de metformina.",
@@ -243,7 +245,7 @@ export default function CaseStudio() {
     }
   }
 
-  // Disparo do Desafio Diagnóstico Lúdico
+  // Disparo do Desafio Diagnóstico Lúdico (Garante anonimização estrita LGPD)
   async function handleLaunchChallenge() {
     setIsGeneratingChallenge(true);
     setSelectedOptionId(null);
@@ -252,7 +254,13 @@ export default function CaseStudio() {
     setScoreEarned(0);
 
     try {
-      const res = await generateCaseDiagnosticChallenge(profile, data);
+      const sanitizedInitials = formatToInitials(profile.initials || profile.name);
+      const safeProfile = {
+        ...profile,
+        initials: sanitizedInitials,
+        name: sanitizedInitials
+      };
+      const res = await generateCaseDiagnosticChallenge(safeProfile, data);
       setChallenge(res);
       setViewMode("challenge");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -372,13 +380,33 @@ export default function CaseStudio() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="sm:col-span-2 space-y-1">
-                      <label className="text-xs font-bold text-slate-700">Nome do Paciente:</label>
+                      <div className="flex items-center justify-between">
+                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                          <span>Iniciais do Paciente (LGPD):</span>
+                          <span className="text-[10px] bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded border border-emerald-200 font-semibold flex items-center gap-1">
+                            <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                            Anonimizado
+                          </span>
+                        </label>
+                      </div>
                       <Input
-                        value={profile.name}
-                        onChange={(e) => setProf("name", e.target.value)}
-                        placeholder="Ex: Carlos Eduardo Silva"
-                        className="rounded-xl border-slate-300 text-xs h-10"
+                        value={profile.initials || profile.name}
+                        onChange={(e) => {
+                          const val = e.target.value;
+                          setProf("initials", val);
+                          setProf("name", val);
+                        }}
+                        onBlur={() => {
+                          const sanitized = formatToInitials(profile.initials || profile.name);
+                          setProf("initials", sanitized);
+                          setProf("name", sanitized);
+                        }}
+                        placeholder="Ex: J.S.F. (apenas iniciais)"
+                        className="rounded-xl border-slate-300 text-xs h-10 font-mono tracking-wider uppercase font-semibold"
                       />
+                      <p className="text-[11px] text-slate-500">
+                        Conforme a LGPD (Lei nº 13.709/2018), informe apenas as iniciais (ex: <strong>J.S.F.</strong>). Nomes completos são convertidos automaticamente.
+                      </p>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">

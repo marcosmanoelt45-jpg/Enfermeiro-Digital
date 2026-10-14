@@ -5,6 +5,7 @@
  */
 
 import { computeGlobalRisk, computeBradenTotal, computeCamPositive, computeCaloiTotal, computeSakTotal } from "@/lib/riskEngine";
+import { formatToInitials } from "@/lib/sampleNames";
 import { sanitizeClinicalDataForAI } from "./aiService";
 
 /**
@@ -20,11 +21,13 @@ function getGeminiApiKey() {
 
 /**
  * Gera um desafio de julgamento diagnóstico baseado no caso clínico montado pelo estudante.
- * @param {object} profile - Perfil do paciente e anamnese
+ * @param {object} profile - Perfil do paciente e anamnese (anonimizado com iniciais)
  * @param {object} assessmentData - Sinais vitais e escalas (Braden, CAM, CALOI, etc.)
  * @returns {Promise<object>} Objeto do desafio com pergunta, dica orientadora, 4 opções e análise de distratores.
  */
 export async function generateCaseDiagnosticChallenge(profile, assessmentData) {
+  const patientInitials = formatToInitials(profile?.initials || profile?.name);
+
   const bradenTotal = computeBradenTotal({
     perception: assessmentData.braden_perception,
     moisture: assessmentData.braden_moisture,
@@ -54,10 +57,13 @@ export async function generateCaseDiagnosticChallenge(profile, assessmentData) {
       const systemPrompt = `Você é um Preceptor e Docente Sênior de Enfermagem especialista em Raciocínio Clínico (AMBOSS Qbank / Osmosis / SimX) e no Processo de Enfermagem (Resolução COFEN nº 736/2024).
 Sua missão: Você NÃO deve dar o diagnóstico pronto de bandeja. Você deve criar um DESAFIO DIAGNÓSTICO LÚDICO DE MÚLTIPLA ESCOLHA para o estudante resolver, com 4 alternativas e análise detalhada de distratores.
 
+DIRETRIZ DE PRIVACIDADE E LGPD (Lei nº 13.709/2018):
+É terminantemente PROIBIDO gerar, inventar ou citar nomes completos de pessoas. Refira-se ao paciente EXCLUSIVAMENTE por suas iniciais (ex: "Paciente ${patientInitials}") ou pelo número do leito hospitalar.
+
 Formato OBRIGATÓRIO de retorno: JSON estrito com esta estrutura:
 {
   "questionTitle": "Título curto do desafio clínico",
-  "clinicalVignette": "Breve vinheta resumindo o paciente e os sinais de alarme",
+  "clinicalVignette": "Breve vinheta resumindo o paciente (apenas iniciais) e os sinais de alarme",
   "attendingTip": "Dica socrática orientadora (estilo AMBOSS Attending Tip) que instiga o olhar sem entregar a resposta",
   "options": [
     {
@@ -95,7 +101,7 @@ Formato OBRIGATÓRIO de retorno: JSON estrito com esta estrutura:
 }`;
 
       const userPrompt = `DADOS DO CASO CLÍNICO MONTADO PELO ESTUDANTE:
-Paciente: ${profile.name || "Paciente"}, ${profile.age || "60"} anos, Sexo: ${profile.gender === "M" ? "Masculino" : "Feminino"}
+Paciente (LGPD): ${patientInitials}, ${profile.age || "60"} anos, Sexo: ${profile.gender === "M" ? "Masculino" : "Feminino"}
 Histórico & Antecedentes: ${profile.previous_diseases || profile.medical_history || "Sem antecedentes relevantes"}
 Medicações: ${profile.current_medications || "Nenhuma"}
 Alergias: ${profile.allergies || "Nega"}
@@ -134,13 +140,13 @@ Crie o Desafio Diagnóstico interativo com 1 opção prioritária correta e 3 di
   }
 
   // MOTOR DETERMINÍSTICO OFFLINE DE ALTA FIDELIDADE (Garante funcionamento 100% sem falhas)
-  return buildDeterministicChallenge(profile, assessmentData, bradenTotal, camPositive, caloiTotal, sakTotal);
+  return buildDeterministicChallenge(patientInitials, profile, assessmentData, bradenTotal, camPositive, caloiTotal, sakTotal);
 }
 
 /**
  * Gera um desafio clínico determinístico baseado nas regras clínicas dos escores.
  */
-function buildDeterministicChallenge(profile, assessmentData, bradenTotal, camPositive, caloiTotal, sakTotal) {
+function buildDeterministicChallenge(patientInitials, profile, assessmentData, bradenTotal, camPositive, caloiTotal, sakTotal) {
   // Identifica a prioridade com base nos escores clínicos reais
   const isHypoxemic = assessmentData.sat < 92 || assessmentData.fr > 22;
   const isHypertensiveOrCardio = assessmentData.pa_sistolica >= 140 || assessmentData.fc > 100;
@@ -150,7 +156,7 @@ function buildDeterministicChallenge(profile, assessmentData, bradenTotal, camPo
 
   let correctId = "A";
   let title = "Desafio de Julgamento Diagnóstico";
-  let vignette = `Paciente ${profile.name || "A. B."}, ${profile.age || 65} anos. PA ${assessmentData.pa_sistolica}/${assessmentData.pa_diastolica} mmHg, FC ${assessmentData.fc} bpm, FR ${assessmentData.fr} irpm, SatO2 ${assessmentData.sat}%. Braden: ${bradenTotal}.`;
+  let vignette = `Paciente ${patientInitials}, ${profile.age || 65} anos. PA ${assessmentData.pa_sistolica}/${assessmentData.pa_diastolica} mmHg, FC ${assessmentData.fc} bpm, FR ${assessmentData.fr} irpm, SatO2 ${assessmentData.sat}%. Braden: ${bradenTotal}.`;
   let tip = "Analise qual alteração clínica representa risco iminente de deterioração funcional ou ameaça imediata à integridade orgânica.";
 
   let options = [];

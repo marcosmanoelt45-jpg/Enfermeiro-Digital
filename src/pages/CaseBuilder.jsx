@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import AssessmentStepContent, { ASSESSMENT_STEPS, DEFAULT_ASSESSMENT_DATA, AssessmentRiskBanner, buildCaseSummary } from "@/components/AssessmentSteps";
-import { generateRandomName, generateRandomAge } from "@/lib/sampleNames";
+import { generateRandomName, generateRandomAge, formatToInitials } from "@/lib/sampleNames";
 
 const PROFILE_STEP = { key: "profile", label: "Perfil", icon: UserRound };
 const QUESTION_STEP = { key: "question", label: "Pergunta", icon: HelpCircle };
@@ -171,13 +171,25 @@ export default function CaseBuilder() {
               <Input className="mt-1" value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Ex: Caso clínico — Risco de queda" />
             </div>
             <div>
-              <label className="text-sm font-medium text-slate-700">Nome do paciente simulado *</label>
+              <label className="text-sm font-medium text-slate-700 flex items-center justify-between">
+                <span>Iniciais do paciente simulado (LGPD) *</span>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-semibold border border-emerald-200">
+                  Anonimizado
+                </span>
+              </label>
               <div className="mt-1 flex gap-2">
-                <Input value={profile.name} onChange={(e) => setProfile({ ...profile, name: e.target.value })} placeholder="Ex: Sr. Silva, Paciente A..." />
-                <Button type="button" variant="outline" size="icon" onClick={() => { const r = generateRandomName(); setProfile((p) => ({ ...p, name: r.name, gender: r.gender })); }} title="Nome aleatório" className="shrink-0 rounded-lg">
+                <Input
+                  value={profile.name}
+                  onChange={(e) => setProfile({ ...profile, name: e.target.value })}
+                  onBlur={() => setProfile((p) => ({ ...p, name: formatToInitials(p.name) }))}
+                  placeholder="Ex: J.S.F. (apenas iniciais)"
+                  className="font-mono uppercase font-semibold"
+                />
+                <Button type="button" variant="outline" size="icon" onClick={() => { const r = generateRandomName(); setProfile((p) => ({ ...p, name: r.name, gender: r.gender })); }} title="Iniciais aleatórias" className="shrink-0 rounded-lg">
                   <Plus className="h-4 w-4 text-teal-600" />
                 </Button>
               </div>
+              <p className="text-[11px] text-slate-500 mt-1">Conforme a LGPD, use somente iniciais (ex: J.S.F.). Nomes completos são convertidos.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

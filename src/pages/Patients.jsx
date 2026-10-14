@@ -3,7 +3,7 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import { Plus, Search, Activity, Loader2, Wand2, Shuffle, Library, BookOpen, Users, UserCircle, LogOut } from "lucide-react";
 import PatientCard from "@/components/PatientCard";
-import { generateRandomName, generateRandomAge } from "@/lib/sampleNames";
+import { generateRandomName, generateRandomAge, formatToInitials } from "@/lib/sampleNames";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
@@ -144,13 +144,25 @@ export default function Patients() {
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <label className="text-sm font-medium text-slate-700">Nome do paciente simulado *</label>
+              <label className="text-sm font-medium text-slate-700 flex items-center justify-between">
+                <span>Iniciais do paciente (LGPD) *</span>
+                <span className="text-[10px] text-emerald-700 bg-emerald-50 px-1.5 py-0.5 rounded font-semibold border border-emerald-200">
+                  Anonimizado
+                </span>
+              </label>
               <div className="mt-1 flex gap-2">
-                <Input value={form.name} onChange={(e) => setForm({ ...form, name: e.target.value })} placeholder="Ex: Paciente A, Sr. Silva..." />
-                <Button type="button" variant="outline" size="icon" onClick={() => {const r = generateRandomName();setForm((f) => ({ ...f, name: r.name, gender: r.gender }));}} title="Gerar nome aleatório" className="shrink-0 rounded-lg">
+                <Input
+                  value={form.name}
+                  onChange={(e) => setForm({ ...form, name: e.target.value })}
+                  onBlur={() => setForm((f) => ({ ...f, name: formatToInitials(f.name) }))}
+                  placeholder="Ex: J.S.F. (apenas iniciais)"
+                  className="font-mono uppercase font-semibold"
+                />
+                <Button type="button" variant="outline" size="icon" onClick={() => {const r = generateRandomName();setForm((f) => ({ ...f, name: r.name, gender: r.gender }));}} title="Gerar iniciais aleatórias" className="shrink-0 rounded-lg">
                   <Wand2 className="h-4 w-4 text-teal-600" />
                 </Button>
               </div>
+              <p className="text-[11px] text-slate-500 mt-1">LGPD: utilize apenas iniciais (ex: J.S.F.). Nomes completos são convertidos.</p>
             </div>
             <div className="grid grid-cols-2 gap-3">
               <div>

@@ -102,20 +102,20 @@ export function sanitizeTextForLGPD(text) {
  */
 export function anonymizePatientName(rawName, identifier = "") {
   if (!rawName || typeof rawName !== "string") {
-    return `Paciente Simulado #${identifier || "X"}`;
+    return `Paciente P.S.${identifier ? ` (#${identifier})` : ""}`;
   }
 
   // Remove prefixos como Seu, Dona, Sr., Sra.
   const clean = rawName
-    .replace(/^(seu|dona|sr\.|sra\.|senhor|senhora)\s+/i, "")
+    .replace(/^(paciente|seu|dona|sr\.|sra\.|senhor|senhora)\s+/i, "")
     .trim();
 
   const parts = clean.split(/\s+/).filter(p => p.length > 0 && !["de", "da", "do", "das", "dos", "e"].includes(p.toLowerCase()));
   
   if (parts.length === 0) {
-    return `Paciente Simulado #${identifier || "X"}`;
+    return `Paciente P.S.${identifier ? ` (#${identifier})` : ""}`;
   }
 
-  const initials = parts.map(p => p[0].toUpperCase() + ".").join(" ");
-  return `Paciente ${initials}${identifier ? ` (Caso #${identifier})` : ""}`;
+  const initials = parts.map(p => p[0].toUpperCase() + ".").join("");
+  return `Paciente ${initials}${identifier ? ` (#${identifier})` : ""}`;
 }
