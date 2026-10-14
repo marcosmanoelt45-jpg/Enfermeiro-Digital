@@ -1,15 +1,11 @@
 import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
 import {
-  Calculator,
-  HelpCircle,
   CheckCircle2,
   AlertTriangle,
   Lightbulb,
   ArrowRight,
-  RotateCcw,
-  BookOpen,
-  FileText
+  FileText,
+  ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
