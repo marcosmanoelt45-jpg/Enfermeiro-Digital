@@ -11,7 +11,9 @@ import {
   Clock,
   ChevronRight,
   ClipboardList,
-  Target
+  Target,
+  PlusCircle,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
@@ -26,10 +28,22 @@ export default function StudentDashboard() {
 
   const learningModules = [
     {
+      id: "montar",
+      title: "Montador de Casos Clínicos",
+      subtitle: "Estúdio de Casos & Desafio",
+      description: "Construa o perfil do paciente do zero com todos os escores clínicos (Braden, CAM, AUDIT, SAK, CALOI) e resolva o desafio diagnóstico da IA.",
+      icon: PlusCircle,
+      path: "/montar-caso",
+      badge: "Novo • Interativo",
+      badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200",
+      accentBg: "bg-emerald-700 text-white",
+      stats: "Braden • CAM • CALOI • SAK • Áudio"
+    },
+    {
       id: "casos",
       title: "Simulador de Casos Clínicos",
       subtitle: "Processo de Enfermagem",
-      description: "Pratique o raciocínio diagnóstico nas 5 etapas do PE com formulários dedicados e conferência de dados em tempo real.",
+      description: "Pratique o raciocínio diagnóstico nas 5 etapas do PE com casos pré-configurados e conferência de dados em tempo real.",
       icon: BookOpen,
       path: "/simulador-casos",
       badge: "6 Cenários Clínicos",
@@ -91,24 +105,31 @@ export default function StudentDashboard() {
                 Olá, {studentName}. Pronto para a prática clínica hoje?
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Desenvolva o julgamento clínico diagnóstico, semiologia e segurança na administração de medicamentos através de simulações estruturadas pelo Processo de Enfermagem (Resolução COFEN nº 736/2024).
+                Monte casos clínicos completos com escores validados (Braden, CAM, AUDIT, SAK, CALOI) ou explore cenários de simulação com desafios diagnósticos formativos (Metodologia AMBOSS & SimX).
               </p>
             </div>
 
             <div className="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
               <Button
-                onClick={() => navigate("/simulador-casos")}
+                onClick={() => navigate("/montar-caso")}
                 className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs sm:text-sm px-5 h-10 shadow-xs flex items-center gap-2"
               >
-                <BookOpen className="h-4 w-4" /> Iniciar Caso Clínico
+                <PlusCircle className="h-4 w-4" /> Montar Meu Caso
                 <ArrowRight className="h-4 w-4" />
               </Button>
               <Button
-                onClick={() => navigate("/laboratorio-calculos")}
+                onClick={() => navigate("/simulador-casos")}
                 variant="outline"
-                className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm px-5 h-10 flex items-center gap-2"
+                className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm px-4 h-10 flex items-center gap-2"
               >
-                <Calculator className="h-4 w-4" /> Cálculo de Doses
+                <BookOpen className="h-4 w-4" /> Casos Prontos
+              </Button>
+              <Button
+                onClick={() => navigate("/laboratorio-calculos")}
+                variant="ghost"
+                className="rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-semibold text-xs sm:text-sm px-3 h-10 flex items-center gap-1.5"
+              >
+                <Calculator className="h-4 w-4" /> Doses
               </Button>
             </div>
           </div>

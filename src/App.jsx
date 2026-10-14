@@ -11,6 +11,7 @@ import ProtectedRoute from '@/components/ProtectedRoute';
 // Páginas Principais da Plataforma do Estudante de Enfermagem
 import StudentDashboard from '@/pages/StudentDashboard';
 import CaseStudySimulator from '@/pages/CaseStudySimulator';
+import CaseStudio from '@/pages/CaseStudio';
 import MedicationDosageLab from '@/pages/MedicationDosageLab';
 import SystemsAssessmentLab from '@/pages/SystemsAssessmentLab';
 import PrivacyPolicyLGPD from '@/pages/PrivacyPolicyLGPD';
@@ -60,6 +61,7 @@ const AuthenticatedApp = () => {
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         {/* Hub Principal do Estudante e Módulos Educacionais */}
         <Route path="/" element={<StudentDashboard />} />
+        <Route path="/montar-caso" element={<CaseStudio />} />
         <Route path="/simulador-casos" element={<CaseStudySimulator />} />
         <Route path="/laboratorio-calculos" element={<MedicationDosageLab />} />
         <Route path="/sistemas-organicos" element={<SystemsAssessmentLab />} />

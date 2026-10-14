@@ -9,6 +9,7 @@ import {
   HelpCircle,
   UserCircle,
   LogOut,
+  PlusCircle,
   LayoutGrid
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -20,6 +21,7 @@ export default function StudentHeader({ activeTab = "hub" }) {
 
   const navLinks = [
     { id: "hub", label: "Início", path: "/", icon: LayoutGrid },
+    { id: "montar", label: "Montar Caso", path: "/montar-caso", icon: PlusCircle },
     { id: "casos", label: "Casos Clínicos", path: "/simulador-casos", icon: BookOpen },
     { id: "calculos", label: "Cálculo de Doses", path: "/laboratorio-calculos", icon: Calculator },
     { id: "sistemas", label: "Semiologia", path: "/sistemas-organicos", icon: Stethoscope },
