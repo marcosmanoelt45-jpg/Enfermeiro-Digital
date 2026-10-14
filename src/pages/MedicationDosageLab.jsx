@@ -9,8 +9,7 @@ import {
   ArrowRight,
   RotateCcw,
   BookOpen,
-  FileText,
-  ShieldCheck
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -37,8 +36,7 @@ const DOSAGE_PROBLEMS = [
       "Equipo de macrogotas com tempo em horas utiliza a fórmula: Gotas/min = V / (T × 3)",
       "Cálculo matemático: 1000 ÷ (8 × 3) = 1000 ÷ 24 = 41,66...",
       "Regra de arredondamento em gotas: como a fração é ≥ 0,5, arredondamos para 42 gotas/minuto."
-    ],
-    safetyNote: "Ajuste o regulador de fluxo para 42 gts/min e cronometre 1 minuto completo no equipo."
+    ]
   },
   {
     id: "prob_2",
@@ -58,8 +56,7 @@ const DOSAGE_PROBLEMS = [
       "Para microgotas com tempo em horas: Microgotas/min = Volume ÷ Tempo",
       "Cálculo matemático: 500 ÷ 12 = 41,66...",
       "Arredondamento: 42 microgotas/minuto (numericamente igual a 42 mL/h em bomba de infusão)."
-    ],
-    safetyNote: "Lembre-se: 1 gota equivale a 3 microgotas. Portanto, Microgotas/min = mL/hora."
+    ]
   },
   {
     id: "prob_3",
@@ -79,8 +76,7 @@ const DOSAGE_PROBLEMS = [
       "Fórmula: Gotas/min = (Volume em mL × 20) ÷ Tempo em minutos",
       "Cálculo matemático: (100 × 20) ÷ 30 = 2000 ÷ 30 = 66,66...",
       "Arredondamento: 67 gotas/minuto."
-    ],
-    safetyNote: "Atenção: Não confunda a fórmula de tempo em horas com tempo em minutos para não hiperinfundir o paciente."
+    ]
   },
   {
     id: "prob_4",
@@ -100,8 +96,7 @@ const DOSAGE_PROBLEMS = [
       "Ao injetar 8 mL de diluente (AD), o volume total da solução reconstituída é 10 mL.",
       "Montagem da proporção direta: 5.000.000 UI --- 10 mL | 2.000.000 UI --- X mL",
       "Cálculo: X = (2.000.000 × 10) ÷ 5.000.000 = 20 ÷ 5 = 4 mL."
-    ],
-    safetyNote: "Atenção: Sempre considere o volume do soluto (pó) na reconstituição para evitar superdosagem."
+    ]
   }
 ];
 
@@ -335,16 +330,6 @@ export default function MedicationDosageLab() {
                   </li>
                 ))}
               </ul>
-            </div>
-
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-2">
-              <span className="text-xs font-bold text-slate-900 uppercase tracking-wide flex items-center gap-1.5">
-                <ShieldCheck className="h-4 w-4 text-teal-700" />
-                Segurança do Paciente
-              </span>
-              <p className="text-xs text-slate-600 leading-relaxed">
-                {problem.safetyNote}
-              </p>
             </div>
           </div>
         </div>

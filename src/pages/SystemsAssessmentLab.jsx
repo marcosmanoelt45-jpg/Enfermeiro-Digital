@@ -111,16 +111,21 @@ const SYSTEMS_MODULES = [
 
 export default function SystemsAssessmentLab() {
   const [selectedSysId, setSelectedSysId] = useState("neuro");
-  const [addedGapsBySys, setAddedGapsBySys] = useState({});
+  const [addedFindingsBySys, setAddedFindingsBySys] = useState({});
 
   const activeSystem = SYSTEMS_MODULES.find((s) => s.id === selectedSysId) || SYSTEMS_MODULES[0];
-  const addedGaps = addedGapsBySys[selectedSysId] || [];
+  const currentAdded = addedFindingsBySys[selectedSysId] || [];
 
-  function handleAddGap(gap) {
-    if (!addedGaps.includes(gap.key)) {
-      setAddedGapsBySys({
-        ...addedGapsBySys,
-        [selectedSysId]: [...addedGaps, gap.key]
+  function handleAddGap(gap, resultingItem) {
+    if (!currentAdded.some((item) => item.key === gap.key)) {
+      const newItem = resultingItem || {
+        label: gap.label.split(" ")[0] || "Dado",
+        value: "Avaliado e Registrado",
+        status: "normal"
+      };
+      setAddedFindingsBySys({
+        ...addedFindingsBySys,
+        [selectedSysId]: [...currentAdded, { ...newItem, key: gap.key }]
       });
     }
   }
@@ -131,18 +136,11 @@ export default function SystemsAssessmentLab() {
 
   const currentDetected = [
     ...activeSystem.caseScenario.findings,
-    ...addedGaps.map((key) => {
-      const g = activeSystem.caseScenario.missingGaps.find((x) => x.key === key);
-      return {
-        label: g?.label.split(" ")[0] || "Dado",
-        value: "Avaliado e Registrado",
-        status: "normal"
-      };
-    })
+    ...currentAdded
   ];
 
   const currentMissingGaps = activeSystem.caseScenario.missingGaps.filter(
-    (g) => !addedGaps.includes(g.key)
+    (g) => !currentAdded.some((item) => item.key === g.key)
   );
 
   const totalParams = currentDetected.length + currentMissingGaps.length;

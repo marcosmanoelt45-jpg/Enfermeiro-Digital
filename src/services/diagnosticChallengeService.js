@@ -29,6 +29,19 @@ function getGeminiApiKey() {
  * @param {object} assessmentData - Sinais vitais e escalas (Braden, CAM, CALOI, etc.)
  * @returns {Promise<object>} Objeto da bateria de desafios com vinheta, 4 questões e prescrição COFEN.
  */
+/**
+ * Embaralha as alternativas para evitar viés de posição fixa e reatribui letras A, B, C, D.
+ */
+export function shuffleOptions(options) {
+  if (!Array.isArray(options) || options.length === 0) return options;
+  const letters = ["A", "B", "C", "D", "E"];
+  const shuffled = [...options].sort(() => Math.random() - 0.5);
+  return shuffled.map((opt, idx) => ({
+    ...opt,
+    id: letters[idx] || String.fromCharCode(65 + idx),
+  }));
+}
+
 export async function generateCaseDiagnosticChallenge(profile, assessmentData) {
   const patientInitials = formatToInitials(profile?.initials || profile?.name);
 
@@ -58,15 +71,20 @@ export async function generateCaseDiagnosticChallenge(profile, assessmentData) {
 
   if (apiKey) {
     try {
-      const systemPrompt = `Você é um Preceptor e Docente Sênior de Enfermagem em Terapia Intensiva e Clínica Médica, especialista no método AMBOSS NextGen NCLEX e na Resolução COFEN nº 736/2024.
+      const systemPrompt = `Você é um Preceptor e Docente Sênior de Enfermagem em Terapia Intensiva e Clínica Médica, especialista em julgamento clínico avançado e na Resolução COFEN nº 736/2024.
 Sua missão: Criar uma BATERIA DE 4 QUESTÕES CLÍNICAS DE ALTA COMPLEXIDADE baseadas na vivência real do plantão hospitalar, com pegadinhas sutis da prática e análise profunda de distratores.
 NÃO faça perguntas puramente teóricas ou óbvias. Crie dilemas reais de conduta que enfermeiros enfrentam à beira-leito.
+
+DIRETRIZ MANDATÓRIA DE PSICOMETRIA & BALANCEAMENTO DE ALTERNATIVAS:
+1. HOMOGENEIDADE ABSOLUTA DE EXTENSÃO: Todas as 4 alternativas (A, B, C, D) DEVEM POSSUIR EXATAMENTE O MESMO NÚMERO DE PALAVRAS (entre 22 e 28 palavras cada). É TERMINANTEMENTE PROIBIDO fazer a alternativa correta mais longa ou mais detalhada do que os distratores!
+2. DISTRATORES DE ALTO NÍVEL: Os distratores devem empregar terminologia clínica impecável e descrever ações que profissionais frequentemente cometem sob pressão de plantão (ex: priorizar gasometria antes de posicionar cabeceira; ofertar oxigênio em alto fluxo em retentor crônico de CO₂; infundir volume rápido em oligúria por disfunção cardíaca; delegar estadiamento de lesão por pressão).
+3. DISTRIBUIÇÃO DA RESPOSTA CORRETA: A resposta correta NÃO DEVE ficar sempre na letra A! Alterne a correta entre A, B, C e D.
 
 DIRETRIZ MANDATÓRIA DE PRIVACIDADE E LGPD (Lei nº 13.709/2018):
 É expressamente PROIBIDO gerar nomes completos de pessoas. Refira-se ao paciente EXCLUSIVAMENTE por suas iniciais ("Paciente ${patientInitials}") ou pelo leito hospitalar.
 
 A bateria DEVE conter EXATAMENTE 4 QUESTÕES com estes eixos temáticos:
-1. "Priorização & Conduta Imediata": O que o enfermeiro faz nos primeiros 5 minutos diante dos sinais vitais e achados, antes do médico chegar? (ex: posicionamento a 45-60°, verificação de permeabilidade de vias aéreas vs armadilha de oxigênio indiscriminado ou infusão rápida errada).
+1. "Priorização & Conduta Imediata": O que o enfermeiro faz nos primeiros 5 minutos diante dos sinais vitais e achados, antes do médico chegar?
 2. "Fisiopatologia & Diagnóstico Crítico": Raciocínio clínico sobre a causa raiz (ex: descompensação de ICC com congestão pulmonar vs EAP, choque séptico inicial vs hipovolemia, delirium hipoativo vs demência).
 3. "Farmacologia Clínica & Iatrogenia": Vigilância dos medicamentos em uso pelo paciente (${profile.current_medications || "conforme caso"}), riscos hidroeletrolíticos (K+, Na+), interações perigosas, cuidados na administração intravenosa e riscos de toxicidade.
 4. "Segurança do Paciente & Legislação Ética (COFEN 736/2024 / Lei 7.498/86)": Atribuições privativas do enfermeiro vs delegação ao técnico de enfermagem, prevenção de LPP grave com Braden alterado, contenção no delirium ou manejo de quedas.
@@ -80,32 +98,32 @@ Formato OBRIGATÓRIO de retorno: JSON estrito com esta estrutura:
       "id": 1,
       "category": "Priorização & Conduta Imediata",
       "questionStem": "Enunciado denso e situacional descrevendo o dilema nos primeiros 5 minutos à beira-leito",
-      "attendingTip": "Dica socrática de vivência (AMBOSS Tip) orientando o olhar sem dar a resposta",
+      "attendingTip": "Dica socrática de vivência orientando o olhar sem dar a resposta",
       "options": [
         {
           "id": "A",
-          "title": "Ação correta prioritária",
+          "title": "Ação correta ou distrator com 22 a 28 palavras rigorosamente balanceadas",
           "isCorrect": true,
           "whyCorrect": "Justificativa fisiopatológica e clínica da prioridade imediata",
           "whyDistractor": null
         },
         {
           "id": "B",
-          "title": "Distrator plausível mas incorreto",
+          "title": "Distrator plausível com exatamente 22 a 28 palavras",
           "isCorrect": false,
           "whyCorrect": null,
           "whyDistractor": "Por que esta conduta é uma armadilha ou atrasa a intervenção prioritária"
         },
         {
           "id": "C",
-          "title": "Distrator secundário",
+          "title": "Distrator secundário com exatamente 22 a 28 palavras",
           "isCorrect": false,
           "whyCorrect": null,
           "whyDistractor": "Por que esta conduta não é a primeira medida a ser tomada"
         },
         {
           "id": "D",
-          "title": "Conduta contraindicada ou iatrogênica",
+          "title": "Conduta contraindicada ou iatrogênica com 22 a 28 palavras",
           "isCorrect": false,
           "whyCorrect": null,
           "whyDistractor": "Explicação do risco iatrogênico desta opção"
@@ -117,21 +135,21 @@ Formato OBRIGATÓRIO de retorno: JSON estrito com esta estrutura:
       "category": "Fisiopatologia & Diagnóstico Crítico",
       "questionStem": "Enunciado sobre correlação fisiopatológica entre histórico e sinais",
       "attendingTip": "Dica orientadora de mecanismo de lesão / disfunção orgânica",
-      "options": [ ... 4 opções A, B, C, D ... ]
+      "options": [ ... 4 opções A, B, C, D de mesmo tamanho ... ]
     },
     {
       "id": 3,
       "category": "Farmacologia Clínica & Iatrogenia",
       "questionStem": "Enunciado sobre os riscos farmacoterapêuticos dos remédios do paciente",
       "attendingTip": "Dica sobre mecanismos de ação e farmacovigilância",
-      "options": [ ... 4 opções A, B, C, D ... ]
+      "options": [ ... 4 opções A, B, C, D de mesmo tamanho ... ]
     },
     {
       "id": 4,
       "category": "Segurança do Paciente & Legislação Ética (COFEN)",
       "questionStem": "Enunciado sobre competência privativa, delegação segura e prevenção de danos",
       "attendingTip": "Dica legal e assistencial sobre o escopo da enfermagem",
-      "options": [ ... 4 opções A, B, C, D ... ]
+      "options": [ ... 4 opções A, B, C, D de mesmo tamanho ... ]
     }
   ],
   "recommendedInterventions": [
@@ -149,7 +167,7 @@ Sinais Vitais: ${vitalsSummary}
 Escores Clínicos: ${scoresSummary}
 Relato da Avaliação: ${assessmentData.notes || "Avaliação regular"}
 
-Gere a Bateria Completa com 4 questões complexas da vivência hospitalar real. Retorne exclusivamente JSON válido.`;
+Gere a Bateria Completa com 4 questões complexas da vivência hospitalar real. As 4 alternativas de cada questão DEVEM ter a mesma quantidade de palavras. Retorne exclusivamente JSON válido.`;
 
       const response = await fetch(
         `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
@@ -169,7 +187,11 @@ Gere a Bateria Completa com 4 questões complexas da vivência hospitalar real. 
         if (text) {
           const parsed = JSON.parse(text);
           if (parsed.questions && parsed.questions.length >= 2) {
-            // Garante compatibilidade plana com código anterior
+            // Embaralha as opções de cada questão para que a correta nunca fique fixa na letra A
+            parsed.questions = parsed.questions.map((q) => ({
+              ...q,
+              options: shuffleOptions(q.options),
+            }));
             parsed.options = parsed.questions[0].options;
             parsed.attendingTip = parsed.questions[0].attendingTip;
             return parsed;
@@ -198,7 +220,7 @@ function buildDeterministicComplexBattery(patientInitials, profile, assessmentDa
   const vignette = `Paciente ${patientInitials}, ${profile.age || 68} anos, internado na unidade de cuidados clínicos. PA ${assessmentData.pa_sistolica}/${assessmentData.pa_diastolica} mmHg, FC ${assessmentData.fc} bpm, FR ${assessmentData.fr} irpm, Tax ${assessmentData.tax}°C, SatO₂ ${assessmentData.sat}%. Escores: Braden ${bradenTotal} pts, CAM ${camPositive ? "Positivo (Delirium)" : "Negativo"}, Dor ${caloiTotal}/10, Risco de Queda (SAK) ${sakTotal} pts. Histórico: ${profile.previous_diseases || "HAS e cardiopatia"}. Medicações: ${profile.current_medications || "Furosemida, Enalapril, Carvedilol"}.`;
 
   // QUESTÃO 1: PRIORIZAÇÃO & CONDUTA IMEDIATA (PRIMEIROS 5 MINUTOS)
-  const q1 = isHypoxemic
+  const q1Raw = isHypoxemic
     ? {
         id: 1,
         category: "Priorização & Conduta Imediata",
@@ -206,32 +228,28 @@ function buildDeterministicComplexBattery(patientInitials, profile, assessmentDa
         attendingTip: "Na hierarquia de emergência ventilatória, a mecânica diafragmática e a desobstrução postural precedem procedimentos invasivos ou administração medicamentosa.",
         options: [
           {
-            id: "A",
-            title: "Elevar imediatamente a cabeceira do leito a 45°-60° (Posição de Fowler alta) e ofertar oxigenoterapia em baixo fluxo (cânula nasal a 2-3 L/min) monitorando a curva pletismográfica.",
+            title: "Posicionar o paciente em decúbito de Fowler a 45°-60°, ofertar oxigenoterapia inicial em baixo fluxo por cânula nasal e monitorar a curva pletismográfica continuamente.",
             isCorrect: true,
-            whyCorrect: "Correto! A elevação da cabeceira reduz a pressão das vísceras abdominais sobre o músculo diafragma, aumentando a complacência pulmonar e a capacidade residual funcional de forma imediata e sem riscos de iatrogenia.",
+            whyCorrect: "Correto! A elevação da cabeceira reduz a pressão das vísceras abdominais sobre o diafragma, aumentando a capacidade residual funcional e otimizando a troca gasosa imediatamente sem risco de iatrogenia.",
             whyDistractor: null
           },
           {
-            id: "B",
-            title: "Instalar máscara com reservatório não reinalante a 15 L/min imediatamente antes de verificar o decúbito do paciente.",
+            title: "Instalar máscara facial com reservatório não reinalante a 15 L/min imediatamente, mantendo o decúbito dorsal horizontal para facilitar a expansão torácica durante a infusão do fluxo de oxigênio.",
             isCorrect: false,
             whyCorrect: null,
-            whyDistractor: "Armadilha de Hiperoxigênio: O uso indiscriminado de altos fluxos sem adequação prévia da mecânica postural pode induzir atelectasia por absorção e narcose por hipercapnia caso o paciente seja retentor crônico de CO₂."
+            whyDistractor: "Armadilha de Hiperoxigênio: O alto fluxo sem adequação prévia da mecânica postural induz atelectasia por absorção e risco de narcose por hipercapnia caso o paciente seja retentor crônico de CO₂."
           },
           {
-            id: "C",
-            title: "Realizar aspiração traqueal vigorosa às cegas para remoção de possíveis rolhas de secreção brônquica.",
+            title: "Realizar aspiração traqueal vigorosa sob pressão negativa contínua para desobstrução imediata de secreções antes de proceder à aferição dos demais parâmetros hemodinâmicos e ventilatórios do leito.",
             isCorrect: false,
             whyCorrect: null,
-            whyDistractor: "Procedimento Iatrogênico: A aspiração sem indicação de secreções em vias aéreas altas provoca broncoespasmo reflexo, hipóxia paradoxal e estímulo vagal grave com bradicardia."
+            whyDistractor: "Procedimento Iatrogênico: A aspiração sem evidência auscultatória prévia de secreção em vias aéreas altas deflagra broncoespasmo reflexo, hipóxia paradoxal e estímulo vagal com bradicardia acentuada."
           },
           {
-            id: "D",
-            title: "Afastar-se do leito para ligar para o médico plantonista solicitando prescrição de broncodilatador inalatório.",
+            title: "Coletar gasometria arterial e aguardar os resultados laboratoriais de pH e pO₂ para definir a conduta postural e a indicação precisa do suporte suplementar de oxigênio da prescrição.",
             isCorrect: false,
             whyCorrect: null,
-            whyDistractor: "Atraso Assistencial: O enfermeiro não deve abandonar o paciente hipoxêmico antes de estabilizar a postura no leito, ofertar oxigênio de suporte e delegar a comunicação à equipe de apoio."
+            whyDistractor: "Atraso Assistencial: A intervenção imediata de posicionamento e suporte de baixo fluxo não pode ser postergada enquanto se aguarda o processamento de exames laboratoriais."
           }
         ]
       }
@@ -242,38 +260,34 @@ function buildDeterministicComplexBattery(patientInitials, profile, assessmentDa
         attendingTip: "Dores agudas intensas ativam o sistema nervoso simpático com liberação maciça de catecolaminas, alterando fisiologicamente a pressão arterial.",
         options: [
           {
-            id: "A",
-            title: "Avaliar detalhadamente as características da dor, checar se a dor está agindo como gatilho adrenérgico para a elevação pressórica e providenciar o manejo álgico prescrito antes de titulações excessivas de anti-hipertensivos.",
+            title: "Investigar as características semiológicas da dor, reconhecer o gatilho adrenérgico na elevação pressórica e providenciar o manejo álgico prescrito antes de titular doses adicionais de anti-hipertensivos.",
             isCorrect: true,
-            whyCorrect: "Correto! O estímulo nociceptivo agudo provoca vasoconstrição reflexa mediada por catecolaminas. Tratar a dor reverte o pico adrenérgico e evita episódios graves de hipotensão rebote após sedação da dor.",
+            whyCorrect: "Correto! O estímulo nociceptivo agudo provoca vasoconstrição reflexa por catecolaminas. Tratar a dor reverte o pico adrenérgico e previne episódios de hipotensão severa rebote após analgesia.",
             whyDistractor: null
           },
           {
-            id: "B",
-            title: "Orientar o técnico a dobrar a dose do anti-hipertensivo imediatamente devido aos níveis de pressão arterial sistólica.",
+            title: "Orientar o técnico de enfermagem a duplicar a dose do anti-hipertensivo imediatamente devido ao nível crítico de pressão arterial sistólica registrado durante o atendimento matutino.",
             isCorrect: false,
             whyCorrect: null,
-            whyDistractor: "Iatrogenia Farmacológica: Ajuste de dose sem ordem médica e sem avaliar a dor como causa precipitante é conduta antiética e expõe o paciente a choque hipotensivo."
+            whyDistractor: "Iatrogenia Farmacológica: Ajuste posológico sem ordem médica e sem tratar a dor como gatilho causal expõe o paciente a colapso hemodinâmico e choque hipotensivo após alívio da dor."
           },
           {
-            id: "C",
-            title: "Colocar o paciente em posição de Trendelenburg para estabilizar a perfusão de órgãos nobres.",
+            title: "Posicionar o paciente em decúbito de Trendelenburg com membros inferiores elevados para estabilizar a perfusão dos órgãos nobres antes de verificar a escala de avaliação da dor.",
             isCorrect: false,
             whyCorrect: null,
-            whyDistractor: "Contraindicação Fisiológica: Trendelenburg eleva o retorno venoso e a pré-carga, sobrecarregando o miocárdio e aumentando o risco de edema agudo de pulmão em pacientes hipertensos."
+            whyDistractor: "Contraindicação Fisiológica: Trendelenburg aumenta abruptamente o retorno venoso e a pré-carga cardíaca, agravando a sobrecarga miocárdica e elevando o risco de edema agudo de pulmão."
           },
           {
-            id: "D",
-            title: "Suspender toda a hidratação e manter o paciente sem nenhuma intervenção até a visita médica da tarde.",
+            title: "Manter o paciente em jejum estrito e sem intervenção terapêutica até a visita médica da tarde, suspendendo toda a hidratação e medicação analgésica previamente aprazada na prescrição.",
             isCorrect: false,
             whyCorrect: null,
-            whyDistractor: "Omissão de Cuidado: A dor de 4/10 ou superior requer conduta ativa de alívio e reavaliação periódica em até 30 minutos."
+            whyDistractor: "Omissão Assistencial: A presença de dor significativa exige intervenção ativa imediata e reavaliação sequencial de enfermagem em até trinta minutos."
           }
         ]
       };
 
   // QUESTÃO 2: FISIOPATOLOGIA & DIAGNÓSTICO CRÍTICO
-  const q2 = hasDelirium
+  const q2Raw = hasDelirium
     ? {
         id: 2,
         category: "Fisiopatologia & Raciocínio Diagnóstico Crítico",
@@ -281,29 +295,25 @@ function buildDeterministicComplexBattery(patientInitials, profile, assessmentDa
         attendingTip: "Diferenciar a instalação aguda do delirium de uma síndrome demencial crônica é o divisor de águas entre investigar uma emergência reversível e negligenciar sepse ou hipóxia.",
         options: [
           {
-            id: "A",
-            title: "Confusão Aguda (Delirium): Trata-se de uma disfunção encefálica aguda e potencialmente reversível, desencadeada por estressores orgânicos (infecção oculta, distúrbio metabólico, hipóxia ou toxicidade medicamentosa), exigindo investigação etiológica imediata.",
+            title: "Confusão Aguda (Delirium): Trata-se de falência cerebral aguda reversível deflagrada por estressores orgânicos, exigindo investigação etiológica de infecção oculta, hipóxia ou distúrbios metabólicos descompensados.",
             isCorrect: true,
             whyCorrect: "Correto! O delirium NUNCA deve ser naturalizado como senescência. Ele reflete falência orgânica cerebral aguda com neuroinflamação e desbalanço colinérgico/dopaminérgico, sendo preditor independente de mortalidade hospitalar.",
             whyDistractor: null
           },
           {
-            id: "B",
-            title: "Confusão Crônica (Demência Senil): O quadro decorre de atrofia cortical progressiva típica do envelhecimento, sem relação com intercorrências clínicas agudas.",
+            title: "Confusão Crônica (Demência Senil): O quadro decorre de degeneração cortical progressiva própria do envelhecimento, sendo esperado o esquecimento e a desorientação temporal sem necessidade de intervenção rápida.",
             isCorrect: false,
             whyCorrect: null,
             whyDistractor: "Armadilha do Idadismo: Aceitar a confusão como 'demência senil' atrasa o diagnóstico de infecções graves (como ITU ou pneumonia) e distúrbios hidroeletrolíticos reversíveis."
           },
           {
-            id: "C",
-            title: "Déficit Cognitivo por Privação Sensorial Isolada: A alteração decorre exclusivamente da ausência de relógio e janelas no quarto, sem base neuroquímica sistêmica.",
+            title: "Privação Sensorial Hospitalar Isolada: A desorientação decorre exclusivamente do confinamento no quarto e da ausência de relógio de parede, sem alteração inflamatória ou neurotransmissora cerebral sistêmica.",
             isCorrect: false,
             whyCorrect: null,
-            whyDistractor: "Simplificação Errónea: Embora o ambiente hospitalar contribua como gatilho, o CAM positivo sinaliza falência neurofuncional que demanda rastreio laboratorial e clínico rigoroso."
+            whyDistractor: "Simplificação Errónea: Embora o ambiente hospitalar contribua como gatilho, o CAM positivo sinaliza disfunção neurovascular grave que demanda rastreio laboratorial rigoroso."
           },
           {
-            id: "D",
-            title: "Psicose Hospitalar Refratária: O paciente desenvolveu distúrbio psiquiátrico primário incurável, cuja conduta isolada é sedação contínua com benzodiazepínicos.",
+            title: "Transtorno Psicótico Tardio: A agitação psicomotora manifesta surto psiquiátrico primário novo sem causa fisiopatológica subjacente, tendo como primeira escolha a contenção mecânica e sedação benzodiazepínica.",
             isCorrect: false,
             whyCorrect: null,
             whyDistractor: "Conduta Iatrogênica Grave: Benzodiazepínicos são os maiores precipitantes e agravantes de delirium em idosos (exceto na abstinência alcoólica), devendo ser evitados."
@@ -317,29 +327,25 @@ function buildDeterministicComplexBattery(patientInitials, profile, assessmentDa
         attendingTip: "Na falência da bomba cardíaca, o acúmulo retrógrado de pressão venosa capilar pulmonar descompensa a troca alvéolo-capilar ao assumir decúbito horizontal.",
         options: [
           {
-            id: "A",
-            title: "Volume de Líquidos Excessivo relacionado ao comprometimento dos mecanismos reguladores de filtração e falência de bomba, evidenciado por edema periférico, congestão pulmonar incipiente e ortopneia.",
+            title: "Volume de Líquidos Excessivo: Congestão pulmonar e retenção hídrica secundárias à falência ventricular retrógrada e ativação neuro-humoral, exigindo controle de balanço hídrico rigoroso e restrição volêmica.",
             isCorrect: true,
             whyCorrect: "Correto! A redução do débito cardíaco ativa o sistema renina-angiotensina-aldosterona gerando retenção hidrossalina crônica. O aumento da pré-carga extravasa para o interstício pulmonar e periférico, exigindo balanço hídrico rigoroso e diuréticos.",
             whyDistractor: null
           },
           {
-            id: "B",
-            title: "Débito Cardíaco Diminuído relacionado exclusivamente a hipovolemia absoluta por desidratação crônica evidenciada por sede.",
+            title: "Débito Cardíaco Diminuído: Hipovolemia absoluta aguda por depleção hidroeletrolítica severa evidenciada por sede intensa, requerendo infusão rápida de cristaloides intravenosos em bolus na primeira hora.",
             isCorrect: false,
             whyCorrect: null,
             whyDistractor: "Erro Diagnóstico Grave: O paciente está com sobrecarga de volume intersticial (edema e congestão), e não em hipovolemia absoluta. Administrar volume aqui causaria edema agudo de pulmão fulminante."
           },
           {
-            id: "C",
-            title: "Troca de Gases Prejudicada decorrente exclusivamente de atelectasia lobar infecciosa com indicação imediata de aspiração brônquica.",
+            title: "Padrão Respiratório Ineficaz: Broncoespasmo primário isolado decorrente de hiper-reatividade de vias aéreas sem relação com insuficiência cardíaca congestiva ou pressões de enchimento ventricular elevadas.",
             isCorrect: false,
             whyCorrect: null,
-            whyDistractor: "Confusão Etiológica: Os estertores em bases associados a ortopneia e edema em cardiopata são cardiogênicos (transudato capilar), e não pneumonia lobar primária bacteriana."
+            whyDistractor: "Confusão Fisiopatológica: Os estertores bibasais associados a ortopneia e edema em cardiopata são decorrentes de transudato capilar pulmonar, e não asma brônquica primária isolada."
           },
           {
-            id: "D",
-            title: "Intolerância à Atividade decorrente de sarcopenia senil primária sem repercussão cardiopulmonar.",
+            title: "Intolerância à Atividade: Perda de massa muscular esquelética por sarcopenia senil exclusiva sem nenhum impacto hemodinâmico, pressórico ou alteração na capacidade de troca de gases alveolares.",
             isCorrect: false,
             whyCorrect: null,
             whyDistractor: "Subestimação Clínica: A limitação funcional decorre da hipoxemia e sobrecarga hemodinâmica da insuficiência cardíaca descompensada, e não apenas de fraqueza muscular."
@@ -348,36 +354,32 @@ function buildDeterministicComplexBattery(patientInitials, profile, assessmentDa
       };
 
   // QUESTÃO 3: FARMACOLOGIA CLÍNICA, ELETRÓLITOS & IATROGENIA
-  const q3 = {
+  const q3Raw = {
     id: 3,
     category: "Farmacologia Clínica, Eletrólitos & Iatrogenia",
     questionStem: `O Paciente ${patientInitials} tem prescrição hospitalar de Furosemida 40mg IV de 12/12h e Enalapril 20mg VO de 12/12h. Durante o plantão matutino, você recebe o resultado de exames laboratoriais: Potássio sérico (K⁺) = 3,1 mEq/L (VR: 3,5 a 5,0) e Creatinina = 1,8 mg/dL. Qual é a conduta de enfermagem e o risco farmacoterapêutico crítico associado a esta associação medicamentosa?`,
     attendingTip: "Diuréticos de alça inibem o cotransportador Na-K-2Cl na alça de Henle, provocando espoliação massiva de potássio na urina, o que predispõe a arritmias cardíacas graves e potencializa toxicidade.",
     options: [
       {
-        id: "A",
-        title: "Identificar o risco iminente de arritmias cardíacas fatais induzidas por hipocalemia (K⁺ = 3,1 mEq/L), suspender temporariamente a administração da Furosemida até comunicação médica e checar no traçado eletrocardiográfico o prolongamento do intervalo QT ou ondas U.",
+        title: "Identificar o risco iminente de arritmias ventriculares por hipocalemia, suspender temporariamente a Furosemida, comunicar o médico e verificar traçado eletrocardiográfico para ondas U ou QT alargado.",
         isCorrect: true,
         whyCorrect: "Correto! A hipocalemia grave potencializa o automatismo cardíaco anômalo, desencadeando torsades de pointes e fibrilação ventricular. O enfermeiro deve alertar imediatamente a equipe para reposição IV guiada e ajuste do diurético.",
         whyDistractor: null
       },
       {
-        id: "B",
-        title: "Administrar a Furosemida em bolus rápido IV sem diluição e liberar dieta rica em sódio para compensar a perda renal.",
+        title: "Administrar a dose prescrita de Furosemida em bolus rápido intravenoso e liberar oferta irrestrita de água potável para compensar as perdas renais decorrentes da diurese forçada.",
         isCorrect: false,
         whyCorrect: null,
         whyDistractor: "Dupla Iatrogenia: O bolus rápido de furosemida causa ototoxicidade irreversível (zumbido e surdez) e piora a hipocalemia crítica; dieta rica em sódio agrava a congestão cardíaca."
       },
       {
-        id: "C",
-        title: "Administrar cloreto de potássio concentrado a 19,1% diretamente em bolus intravenoso rápido na veia periférica para elevar o K⁺ rapidamente.",
+        title: "Infundir cloreto de potássio a 19,1% em bolus direto na veia periférica para rápida reposição eletrolítica antes que o paciente manifeste rebaixamento progressivo do nível de consciência.",
         isCorrect: false,
         whyCorrect: null,
         whyDistractor: "ERRO FATAL (NUNCA FAZER): Cloreto de potássio IV em bolus causa parada cardíaca em assistolia imediata. Deve ser SEMPRE diluído em solução de infusão contínua em bomba e infundido lentamente com monitorização."
       },
       {
-        id: "D",
-        title: "Desconsiderar o valor de K⁺ de 3,1 mEq/L, pois o uso de Enalapril sempre neutraliza completamente as perdas eletrolíticas dos diuréticos em menos de 1 hora.",
+        title: "Manter a conduta inalterada sem comunicação médica, pois a associação com Enalapril anula fisiologicamente a perda de potássio na urina nas próximas horas de observação clínica.",
         isCorrect: false,
         whyCorrect: null,
         whyDistractor: "Conhecimento Erróneo: Embora IECA retenha potássio a longo prazo, diuréticos de alça em fase aguda provocam quedas abruptas que superam o efeito retentor, mantendo o risco arritmogênico real."
@@ -386,42 +388,44 @@ function buildDeterministicComplexBattery(patientInitials, profile, assessmentDa
   };
 
   // QUESTÃO 4: SEGURANÇA DO PACIENTE & LEGISLAÇÃO ÉTICA (COFEN nº 736/2024 / LEI 7.498/86)
-  const q4 = {
+  const q4Raw = {
     id: 4,
     category: "Segurança do Paciente & Legislação Ética (COFEN)",
     questionStem: `O Paciente ${patientInitials} possui escore de Braden de ${bradenTotal} pontos (risco ${bradenTotal <= 14 ? "alto/moderado" : "presente"} de LPP), risco de queda (SAK = ${sakTotal}) e episódios de desorientação têmporo-espacial. Durante a passagem de plantão, o técnico de enfermagem relata que o paciente tentou sair do leito e pergunta se pode amarrá-lo na grade com ataduras de crepe. Conforme a Resolução COFEN nº 736/2024 e a Lei 7.498/86, qual é a decisão técnica e ético-legal privativa do enfermeiro?`,
     attendingTip: "A contenção mecânica é ato excepcional de emergência, regulamentada pelo COFEN com critérios estritos de prescrição, monitorização de perfusão e responsabilidade privativa do enfermeiro.",
     options: [
       {
-        id: "A",
-        title: "Não autorizar a contenção improvisada com ataduras de crepe; realizar avaliação clínica privativa, priorizar intervenções não farmacológicas (presença de familiar, reorientação verbal, iluminação adequada, abaixamento do leito), e, se estritamente necessária como último recurso de segurança física, aplicar dispositivo padronizado com prescrição privativa do enfermeiro e monitorização neurovascular distal documentada a cada 2 horas.",
+        title: "Vetar a amarração improvisada com ataduras, instituir manejo não farmacológico e aplicar contenção mecânica padronizada apenas em último caso mediante prescrição privativa do enfermeiro e monitorização distal.",
         isCorrect: true,
         whyCorrect: "Correto! O COFEN determina que contenção mecânica é procedimento excepcional, jamais preventivo de rotina. Ataduras de crepe causam lesão tecidual por garroteamento e isquemia. O enfermeiro é o responsável técnico privativo pela prescrição e supervisão da perfusão.",
         whyDistractor: null
       },
       {
-        id: "B",
-        title: "Permitir que o técnico de enfermagem decida autonomamente o tipo e duração da amarração sem necessidade de prescrição ou evolução do enfermeiro.",
+        title: "Autorizar o técnico de enfermagem a improvisar a amarração nos membros superiores com atadura de crepe para evitar sobrecarga de trabalho e quedas durante o turno noturno.",
         isCorrect: false,
         whyCorrect: null,
         whyDistractor: "Infração Ética e Legal: O técnico de enfermagem não tem competência legal para prescrever contenções mecânicas. Trata-se de delegação ilegal de ato privativo com responsabilização do enfermeiro por negligência."
       },
       {
-        id: "C",
-        title: "Manter o paciente contido nos quatro membros por 24 horas consecutivas sem soltar os membros para evitar retrabalho da equipe de enfermagem.",
+        title: "Manter o paciente em contenção mecânica contínua nas quatro extremidades por vinte e quatro horas ininterruptas, sem necessidade de reavaliação periódica da perfusão ou integridade da pele periférica.",
         isCorrect: false,
         whyCorrect: null,
         whyDistractor: "Violação Grave de Direitos e Iatrogenia: A contenção prolongada ininterrupta causa rabdomiólise, trombose venosa profunda (TVP), asfixia postural e necrose tecidual por pressão."
       },
       {
-        id: "D",
-        title: "Delegar a troca de curativo de lesão por pressão estágio 3 infectada e desbridamento autolítico ao técnico de enfermagem recém-admitido.",
+        title: "Delegar ao técnico de enfermagem a tomada de decisão sobre necessidade e duração da contenção física, registrando apenas em prontuário caso ocorra lesão por fricção nas grades.",
         isCorrect: false,
         whyCorrect: null,
-        whyDistractor: "Ilegalidade Assistencial: A avaliação tecidual, indicação de coberturas ativas e cuidados com feridas complexas (estágios 3 e 4) são atividades privativas do enfermeiro conforme pareceres normativos do COFEN."
+        whyDistractor: "Ilegalidade Assistencial: A avaliação de risco, indicação de contenção e supervisão são privativas do enfermeiro, não podendo ser transferidas para a equipe técnica sem prescrição formal."
       }
     ]
   };
+
+  // Aplica shuffleOptions em cada uma das 4 questões determinísticas
+  const q1 = { ...q1Raw, options: shuffleOptions(q1Raw.options) };
+  const q2 = { ...q2Raw, options: shuffleOptions(q2Raw.options) };
+  const q3 = { ...q3Raw, options: shuffleOptions(q3Raw.options) };
+  const q4 = { ...q4Raw, options: shuffleOptions(q4Raw.options) };
 
   const questions = [q1, q2, q3, q4];
 

@@ -19,7 +19,9 @@ import {
   Pencil,
   Trash2,
   UserMinus,
+  Sparkles
 } from "lucide-react";
+import { DEMO_TURMA, DEMO_MEMBERS, DEMO_ASSIGNMENTS, DEMO_ANSWERS } from "@/data/demoTurma";
 import { Image as ImageComponent } from "@/components/ui/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -61,6 +63,13 @@ export default function TurmaDetail() {
   async function load(silent = false) {
     if (!silent) setLoading(true);
     try {
+      if (id === "demo-turma-enf-2026") {
+        setTurma(DEMO_TURMA);
+        setMembers(DEMO_MEMBERS);
+        setAssignments(DEMO_ASSIGNMENTS);
+        setAnswers(DEMO_ANSWERS);
+        return;
+      }
       const t = await base44.entities.Turma.get(id);
       setTurma(t);
       const m = await base44.entities.TurmaMember.filter({ turma_id: id }, "-updated_date", 200);

@@ -105,7 +105,7 @@ export default function StudentDashboard() {
                 Olá, {studentName}. Pronto para a prática clínica hoje?
               </h1>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Monte casos clínicos completos com escores validados (Braden, CAM, AUDIT, SAK, CALOI) ou explore cenários de simulação com desafios diagnósticos formativos (Metodologia AMBOSS & SimX).
+                Monte casos clínicos completos com escores validados (Braden, CAM, AUDIT, SAK, CALOI) ou explore cenários de simulação com desafios diagnósticos formativos e julgamento clínico avançado.
               </p>
             </div>
 

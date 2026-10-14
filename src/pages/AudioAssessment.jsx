@@ -1,7 +1,7 @@
-import React, { useMemo, useState } from "react";
+import React, { useMemo, useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate, useParams } from "react-router-dom";
-import { AlertTriangle, ArrowLeft, Settings } from "lucide-react";
+import { AlertTriangle, ArrowLeft, Settings, Mic, MicOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import useAudioRecorder from "@/hooks/useAudioRecorder";
 import RecorderPanel from "@/components/audio/RecorderPanel";
@@ -23,12 +23,67 @@ export default function AudioAssessment() {
   const [creating, setCreating] = useState(false);
   const [stage, setStage] = useState("");
   const [error, setError] = useState("");
+  const [isDictating, setIsDictating] = useState(false);
+  const recognitionRef = useRef(null);
 
   const hasAssemblyKey = Boolean(getAssemblyAiKey());
   const hasGeminiKey = Boolean(audioTranscriptionService.getGeminiKey());
   const hasAnyKey = hasAssemblyKey || hasGeminiKey;
 
   const vitals = useMemo(() => parseVitalsFromTranscript(transcript), [transcript]);
+
+  function toggleLiveDictation() {
+    setError("");
+    if (isDictating) {
+      if (recognitionRef.current) {
+        try { recognitionRef.current.stop(); } catch {}
+      }
+      setIsDictating(false);
+      return;
+    }
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      setError("Reconhecimento de fala direto não suportado por este navegador. Use o Google Chrome ou Microsoft Edge.");
+      setManual(true);
+      return;
+    }
+
+    try {
+      const rec = new SpeechRec();
+      rec.lang = "pt-BR";
+      rec.continuous = true;
+      rec.interimResults = true;
+
+      rec.onresult = (e) => {
+        let finalTrans = "";
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          if (e.results[i].isFinal) finalTrans += e.results[i][0].transcript + " ";
+        }
+        if (finalTrans.trim()) {
+          setTranscript((prev) => (prev ? prev.trim() + " " : "") + finalTrans.trim());
+        }
+      };
+
+      rec.onerror = (ev) => {
+        console.warn("[Voz Ditado] Erro:", ev);
+        if (ev.error === "not-allowed") {
+          setError("Permissão de microfone negada no navegador.");
+        }
+        setIsDictating(false);
+      };
+
+      rec.onend = () => setIsDictating(false);
+
+      rec.start();
+      recognitionRef.current = rec;
+      setIsDictating(true);
+      setManual(true);
+    } catch {
+      setError("Não foi possível acionar o microfone.");
+      setIsDictating(false);
+    }
+  }
 
   async function handleTranscribe() {
     setError("");
@@ -169,13 +224,26 @@ export default function AudioAssessment() {
             <p className="mt-1 text-xs text-amber-700">
               Para transcrição automática do microfone, configure sua chave da AssemblyAI ou do Google Gemini em Minha Conta. Ou se preferir, digite o relato diretamente.
             </p>
-            <Button
-              size="sm"
-              onClick={() => navigate("/conta")}
-              className="mt-3 rounded-xl bg-amber-600 hover:bg-amber-700"
-            >
-              Configurar chave em Minha Conta
-            </Button>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <Button
+                size="sm"
+                onClick={toggleLiveDictation}
+                className={`rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
+                  isDictating ? "bg-rose-600 hover:bg-rose-700 text-white animate-pulse" : "bg-teal-700 hover:bg-teal-800 text-white"
+                }`}
+              >
+                {isDictating ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                <span>{isDictating ? "Parar Ditado ao Vivo" : "Ditar por Voz ao Vivo (Sem Chave)"}</span>
+              </Button>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/conta")}
+                className="rounded-xl border-amber-300 text-amber-900 hover:bg-amber-100 text-xs"
+              >
+                Configurar Chaves Externas em Minha Conta
+              </Button>
+            </div>
           </div>
         )}
 

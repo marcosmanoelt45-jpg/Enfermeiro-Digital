@@ -146,6 +146,8 @@ export default function CaseStudio() {
 
   // Estados de Voz ("Caring out loud")
   const [isListening, setIsListening] = useState(false);
+  const [speechError, setSpeechError] = useState("");
+  const [interimTranscript, setInterimTranscript] = useState("");
   const recognitionRef = useRef(null);
 
   const setParam = (key, val) => setData((prev) => ({ ...prev, [key]: val }));
@@ -211,17 +213,19 @@ export default function CaseStudio() {
 
   // Captação de Voz Ambiental ("Caring out loud")
   function toggleSpeechRecognition() {
+    setSpeechError("");
     if (isListening) {
       if (recognitionRef.current) {
         try { recognitionRef.current.stop(); } catch {}
       }
       setIsListening(false);
+      setInterimTranscript("");
       return;
     }
 
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRec) {
-      alert("Reconhecimento de fala não suportado neste navegador.");
+      setSpeechError("Reconhecimento de fala não suportado neste navegador. Utilize o Google Chrome ou Microsoft Edge.");
       return;
     }
 
@@ -229,23 +233,48 @@ export default function CaseStudio() {
       const rec = new SpeechRec();
       rec.lang = "pt-BR";
       rec.continuous = true;
-      rec.interimResults = false;
+      rec.interimResults = true;
+
       rec.onresult = (e) => {
-        let transcript = "";
+        let finalTrans = "";
+        let interimTrans = "";
         for (let i = e.resultIndex; i < e.results.length; ++i) {
-          if (e.results[i].isFinal) transcript += e.results[i][0].transcript + " ";
+          if (e.results[i].isFinal) {
+            finalTrans += e.results[i][0].transcript + " ";
+          } else {
+            interimTrans += e.results[i][0].transcript;
+          }
         }
-        if (transcript.trim()) {
-          setParam("notes", (data.notes ? data.notes + " " : "") + transcript.trim());
+        setInterimTranscript(interimTrans);
+        if (finalTrans.trim()) {
+          setParam("notes", (data.notes ? data.notes.trim() + " " : "") + finalTrans.trim());
+          setInterimTranscript("");
         }
       };
-      rec.onerror = () => setIsListening(false);
-      rec.onend = () => setIsListening(false);
+
+      rec.onerror = (ev) => {
+        console.warn("[Voz] Erro:", ev);
+        if (ev.error === "not-allowed") {
+          setSpeechError("Acesso ao microfone negado. Habilite a permissão do microfone nas configurações do seu navegador.");
+        } else if (ev.error !== "no-speech") {
+          setSpeechError(`Aviso do microfone: ${ev.error || "falha temporária"}.`);
+        }
+        setIsListening(false);
+        setInterimTranscript("");
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+        setInterimTranscript("");
+      };
+
       rec.start();
       recognitionRef.current = rec;
       setIsListening(true);
     } catch {
+      setSpeechError("Não foi possível acionar o dispositivo de áudio. Verifique suas conexões.");
       setIsListening(false);
+      setInterimTranscript("");
     }
   }
 
@@ -805,6 +834,34 @@ export default function CaseStudio() {
                     </Button>
                   </div>
 
+                  {speechError && (
+                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center justify-between">
+                      <span>{speechError}</span>
+                      <button
+                        type="button"
+                        onClick={() => setSpeechError("")}
+                        className="text-rose-500 hover:text-rose-800 font-bold ml-2 text-xs"
+                      >
+                        Fechar
+                      </button>
+                    </div>
+                  )}
+
+                  {isListening && (
+                    <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-800 flex items-center gap-2 animate-pulse">
+                      <Mic className="h-4 w-4 text-teal-600 animate-bounce" />
+                      <div>
+                        <span className="font-bold">Captação de voz ativa: </span>
+                        <span>Fale naturalmente os achados à beira-leito...</span>
+                        {interimTranscript && (
+                          <p className="mt-1 text-slate-700 italic bg-white/80 p-1.5 rounded-lg border border-teal-100">
+                            "{interimTranscript}..."
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  )}
+
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-700 block">
                       Relato de Enfermagem & Observações da Avaliação:
@@ -1009,7 +1066,7 @@ export default function CaseStudio() {
                       }`}
                     >
                       <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-                      <span>{isTipRevealed ? "Ocultar Dica Socrática" : "Dica de Raciocínio (AMBOSS Tip)"}</span>
+                      <span>{isTipRevealed ? "Ocultar Dica Socrática" : "Dica de Raciocínio Clínico"}</span>
                     </Button>
                   </div>
                 </div>
