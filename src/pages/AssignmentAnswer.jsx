@@ -5,6 +5,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import { ArrowLeft, Loader2, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
+import { DEMO_ASSIGNMENTS } from "@/data/demoTurma";
 
 export default function AssignmentAnswer() {
   const { id } = useParams();
@@ -21,32 +22,50 @@ export default function AssignmentAnswer() {
   useEffect(() => {
     (async () => {
       try {
-        const a = await base44.entities.CaseAssignment.get(id);
+        let a = null;
+        try {
+          a = await base44.entities.CaseAssignment.get(id);
+        } catch {
+          a = DEMO_ASSIGNMENTS.find((item) => item.id === id);
+        }
+        if (!a) {
+          a = DEMO_ASSIGNMENTS.find((item) => item.id === id);
+        }
         setAssignment(a);
+
+        const studentId = user?.id || "demo-student-1";
         const ans = await base44.entities.StudentAnswer.filter(
-          { assignment_id: id, student_id: user.id },
+          { assignment_id: id, student_id: studentId },
           "-updated_date",
           1
         );
-        if (ans[0]) setExisting(ans[0]);
+        if (ans && ans[0]) setExisting(ans[0]);
       } catch (e) {
-        setError(e.message || "Erro ao carregar atividade");
+        // Se ainda não encontrou mas é demo
+        const demo = DEMO_ASSIGNMENTS.find((item) => item.id === id);
+        if (demo) {
+          setAssignment(demo);
+        } else {
+          setError(e.message || "Erro ao carregar atividade");
+        }
       } finally {
         setLoading(false);
       }
     })();
-  }, [id]);
+  }, [id, user?.id]);
 
   async function handleSubmit() {
-    if (!selected) return;
+    if (!selected || !assignment) return;
     setSubmitting(true);
     setError("");
     try {
+      const studentId = user?.id || "demo-student-1";
+      const studentName = user?.full_name || user?.name || user?.email || "Aluno Visitante";
       const created = await base44.entities.StudentAnswer.create({
         assignment_id: id,
         turma_id: assignment.turma_id,
-        student_id: user.id,
-        student_name: user.full_name || user.email,
+        student_id: studentId,
+        student_name: studentName,
         selected_option: selected,
         rationale: rationale.trim(),
         is_correct: selected === assignment.correct_answer,

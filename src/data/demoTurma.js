@@ -44,6 +44,27 @@ export const DEMO_ASSIGNMENTS = [
     patient_name: "Paciente M. H. S. (62 anos)",
     due_date: "2026-10-30",
     created_date: "2026-10-10",
+    scenario: `Paciente M. H. S., 62 anos, sexo masculino, histórico de tabagismo ativo (40 anos/maço) e portador de Doença Pulmonar Obstrutiva Crônica (DPOC) descompensada por infecção bacteriana do trato respiratório inferior. Foi admitido na enfermaria de clínica médica apresentando dispneia moderada a grave em repouso, uso evidente de musculatura acessória intercostal e esternal, batimento de asa de nariz e padrão respiratório superficial taquipneico.
+
+Ao exame físico direcionado:
+• Inspeção: Fácies de sofrimento respiratório agudo, sudorese fria em fronte e cianose perioral discreta.
+• Ausculta pulmonar: Murmúrio vesicular diminuído bilateralmente, com presença de estertores crepitantes em bases e sibilos expiratórios difusos.
+• Sinais vitais de admissão:
+  - PA: 155/95 mmHg
+  - FC: 118 bpm (taquicardia sinusal compensatória)
+  - FR: 32 irpm (taquipneia acentuada)
+  - Tax: 37,8 °C
+  - SpO₂: 86% em ar ambiente
+
+O paciente refere intensa angústia e sensação iminente de asfixia ("sinto que o ar não entra nos pulmões"). Gasometria arterial colhida em ar ambiente revela pH 7,31, PaO₂ 54 mmHg, PaCO₂ 52 mmHg e HCO₃⁻ 25 mEq/L.`,
+    question: "Considerando o raciocínio diagnóstico baseado na NANDA-I 2024-2026 e a atuação privativa do enfermeiro (Resolução COFEN nº 736/2024), qual é o Diagnóstico de Enfermagem PRIORITÁRIO e a respectiva conduta imediata no leito?",
+    options: [
+      "Troca de gases prejudicada (00030) relacionada a desequilíbrio na ventilação-perfusão evidenciada por hipoxemia (SpO₂ 86%) e hipercapnia; Ação imediata: Elevar imediatamente a cabeceira do leito a 45°-60° (Posição de Fowler) e iniciar oxigenoterapia titulada de baixo fluxo (cateter nasal a 1-2 L/min) sob protocolo institucional.",
+      "Padrão respiratório ineficaz (00032) relacionado a fadiga dos músculos respiratórios; Ação imediata: Manter o paciente em decúbito dorsal plano horizontal para repouso absoluto e aguardar visita médica para intubação orotraqueal eletiva.",
+      "Desobstrução ineficaz de vias aéreas (00031) relacionada a exsudato nos alvéolos; Ação imediata: Realizar aspiração nasotraqueal vigorosa imediata com sonda número 14 Fr antes de qualquer suporte ventilatório ou oxigênio.",
+      "Ansiedade aguda (00146) relacionada a sensação de asfixia; Ação imediata: Solicitar prescrição médica de sedativo intravenoso de ação rápida para tranquilizar o paciente antes de avaliar a mecânica ventilatória."
+    ],
+    correct_answer: "Troca de gases prejudicada (00030) relacionada a desequilíbrio na ventilação-perfusão evidenciada por hipoxemia (SpO₂ 86%) e hipercapnia; Ação imediata: Elevar imediatamente a cabeceira do leito a 45°-60° (Posição de Fowler) e iniciar oxigenoterapia titulada de baixo fluxo (cateter nasal a 1-2 L/min) sob protocolo institucional."
   },
   {
     id: "assign-2",
@@ -53,6 +74,26 @@ export const DEMO_ASSIGNMENTS = [
     patient_name: "Paciente A. P. L. (79 anos)",
     due_date: "2026-11-15",
     created_date: "2026-10-12",
+    scenario: `Paciente A. P. L., 79 anos, sexo feminino, admitida há 5 dias na enfermaria clínica para reabilitação após Acidente Vascular Cerebral Isquêmico (AVCi) em hemisfério cerebral esquerdo, com sequela de hemiparesia e hemihipoestesia à direita, além de afasia mista e disfagia moderada a líquidos. A paciente permanece acamada por tempo prolongado e apresenta dependência total para transferências e mudanças de decúbito.
+
+Durante o exame físico tegumentar céfalo-caudal do plantão matutino, o enfermeiro identifica eritema avermelhado bem delimitado sobre a proeminência óssea sacral (diâmetro aproximado de 4 × 3 cm). À digitopressão local, o eritema não esbranquiça (eritema não branqueável), porém não há perda de continuidade da epiderme ou formação de flictenas (Lesão por Pressão em Estágio 1).
+
+Aplicação da Escala de Braden de Risco de LPP:
+• Percepção sensorial: 2 (Muito limitada — responde apenas a estímulos dolorosos)
+• Umidade da pele: 2 (Muito úmida — fralda com episódios frequentes de incontinência urinária)
+• Atividade: 1 (Acamada — confinada ao leito)
+• Mobilidade: 2 (Muito limitada — não realiza mudanças de decúbito sem auxílio total)
+• Nutrição: 2 (Provavelmente inadequada — aceita menos de metade da dieta oferecida)
+• Fricção & Cisalhamento: 2 (Problema em potencial — desliza frequentemente no leito)
+• Escore Total de Braden = 11 pontos (Classificação: ALTO RISCO de LPP).`,
+    question: "De acordo com as diretrizes internacionais (NPIAP/EPUAP) e a taxonomia NANDA-I 2024-2026, qual é o Diagnóstico de Enfermagem prioritário e o plano de cuidados privativo a ser prescrito pelo enfermeiro?",
+    options: [
+      "Integridade da pele prejudicada (00046) relacionada a pressão sobre proeminência óssea e cisalhamento evidenciada por eritema não branqueável em região sacra; Cuidados: Instituir protocolo de reposicionamento a cada 2 horas (decúbitos laterais a 30° evitando compressão do trocânter), instalar colchão pneumático de pressão alternada e aplicar filme transparente ou creme barreira polimérico sem friccionar.",
+      "Risco de lesão por pressão (00249) relacionado a imobilidade física; Cuidados: Realizar massagem circular vigorosa com álcool a 70% sobre a área hiperemiada do sacro para estimular a circulação local.",
+      "Mobilidade física prejudicada (00085) relacionada a déficit neuromuscular; Cuidados: Estimular a paciente a sentar-se na poltrona por 6 horas ininterruptas e suspender o uso de travesseiros e coxins para não sobrecarregar as articulações.",
+      "Déficit no autocuidado para banho (00108) relacionado a sequela de AVC; Cuidados: Higienizar a pele apenas a cada 48 horas para manter o manto lipídico natural e suspender a mudança de decúbito no período noturno para assegurar o repouso."
+    ],
+    correct_answer: "Integridade da pele prejudicada (00046) relacionada a pressão sobre proeminência óssea e cisalhamento evidenciada por eritema não branqueável em região sacra; Cuidados: Instituir protocolo de reposicionamento a cada 2 horas (decúbitos laterais a 30° evitando compressão do trocânter), instalar colchão pneumático de pressão alternada e aplicar filme transparente ou creme barreira polimérico sem friccionar."
   }
 ];
 

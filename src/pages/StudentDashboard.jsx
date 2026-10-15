@@ -13,7 +13,8 @@ import {
   ClipboardList,
   Target,
   PlusCircle,
-  Sparkles
+  Sparkles,
+  Mic
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
@@ -109,18 +110,24 @@ export default function StudentDashboard() {
               </p>
             </div>
 
-            <div className="flex flex-wrap sm:flex-nowrap gap-3 shrink-0">
+            <div className="flex flex-wrap sm:flex-nowrap gap-2.5 shrink-0">
               <Button
                 onClick={() => navigate("/montar-caso")}
-                className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs sm:text-sm px-5 h-10 shadow-xs flex items-center gap-2"
+                className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs sm:text-sm px-4 h-10 shadow-xs flex items-center gap-1.5"
               >
                 <PlusCircle className="h-4 w-4" /> Montar Meu Caso
-                <ArrowRight className="h-4 w-4" />
+              </Button>
+              <Button
+                onClick={() => navigate("/montar-caso?mode=audio")}
+                variant="outline"
+                className="rounded-xl border-emerald-300 text-emerald-800 hover:bg-emerald-50 font-semibold text-xs sm:text-sm px-3.5 h-10 flex items-center gap-1.5"
+              >
+                <Mic className="h-4 w-4 text-emerald-700" /> Caso por Áudio
               </Button>
               <Button
                 onClick={() => navigate("/simulador-casos")}
                 variant="outline"
-                className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm px-4 h-10 flex items-center gap-2"
+                className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm px-3.5 h-10 flex items-center gap-1.5"
               >
                 <BookOpen className="h-4 w-4" /> Casos Prontos
               </Button>

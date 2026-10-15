@@ -21,6 +21,11 @@ import Turmas from '@/pages/Turmas';
 import TurmaDetail from '@/pages/TurmaDetail';
 import AssignmentAnswer from '@/pages/AssignmentAnswer';
 import CaseBuilder from '@/pages/CaseBuilder';
+import AudioAssessment from '@/pages/AudioAssessment';
+import ExpressAssessment from '@/pages/ExpressAssessment';
+import AIDashboard from '@/pages/AIDashboard';
+import Patients from '@/pages/Patients';
+import PatientDetail from '@/pages/PatientDetail';
 import Conta from '@/pages/Conta';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
@@ -71,6 +76,16 @@ const AuthenticatedApp = () => {
         <Route path="/turma/:id" element={<TurmaDetail />} />
         <Route path="/turma/:id/nova-atividade" element={<CaseBuilder />} />
         <Route path="/assignment/:id" element={<AssignmentAnswer />} />
+        
+        {/* Rotas de Áudio e Avaliação Assistencial Hospitalar */}
+        <Route path="/avaliacao-audio" element={<AudioAssessment />} />
+        <Route path="/audio-assessment" element={<AudioAssessment />} />
+        <Route path="/patient/:id/audio-assessment" element={<AudioAssessment />} />
+        <Route path="/patient/:id/assessment" element={<ExpressAssessment />} />
+        <Route path="/patient/:id" element={<PatientDetail />} />
+        <Route path="/assessment/:id/ai" element={<AIDashboard />} />
+        <Route path="/pacientes" element={<Patients />} />
+        
         <Route path="/conta" element={<Conta />} />
       </Route>
       <Route path="*" element={<PageNotFound />} />

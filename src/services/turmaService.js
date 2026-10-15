@@ -1,5 +1,6 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient';
 import { authService } from './authService';
+import { DEMO_TURMA, DEMO_ASSIGNMENTS } from '../data/demoTurma';
 
 const LOCAL_STORAGE_TURMAS_KEY = 'enfermeiro_digital_turmas';
 const LOCAL_STORAGE_MEMBERS_KEY = 'enfermeiro_digital_turma_members';
@@ -29,9 +30,12 @@ export const turmaService = {
   },
 
   async getTurma(id) {
+    if (id === DEMO_TURMA.id) {
+      return DEMO_TURMA;
+    }
     if (!isSupabaseConfigured()) {
       const t = getStored(LOCAL_STORAGE_TURMAS_KEY).find((x) => x.id === id);
-      if (!t) throw new Error('Turma não encontrada');
+      if (!t) return DEMO_TURMA.id === id ? DEMO_TURMA : (() => { throw new Error('Turma não encontrada'); })();
       return t;
     }
     try {
@@ -40,8 +44,9 @@ export const turmaService = {
       return { ...data, created_date: data.created_at, updated_date: data.updated_at };
     } catch {
       const t = getStored(LOCAL_STORAGE_TURMAS_KEY).find((x) => x.id === id);
-      if (!t) throw new Error('Turma não encontrada');
-      return t;
+      if (t) return t;
+      if (id === DEMO_TURMA.id) return DEMO_TURMA;
+      throw new Error('Turma não encontrada');
     }
   },
 
@@ -273,9 +278,14 @@ export const turmaService = {
 
   // Atividades / Estudos de Caso
   async filterCaseAssignments(criteria = {}, orderBy = '-created_date', limit = 200) {
+    const isDemoTurma = criteria.turma_id === DEMO_TURMA.id;
+
     if (!isSupabaseConfigured()) {
       let list = getStored(LOCAL_STORAGE_ASSIGNMENTS_KEY);
       if (criteria.turma_id) list = list.filter((a) => a.turma_id === criteria.turma_id);
+      if (isDemoTurma && list.length === 0) {
+        return DEMO_ASSIGNMENTS;
+      }
       return list;
     }
 
@@ -285,19 +295,29 @@ export const turmaService = {
       query = query.order('created_at', { ascending: false }).limit(limit);
       const { data, error } = await query;
       if (error) throw error;
-      return (data || []).map((a) => ({ ...a, created_date: a.created_at, updated_date: a.updated_at }));
+      const mapped = (data || []).map((a) => ({ ...a, created_date: a.created_at, updated_date: a.updated_at }));
+      if (isDemoTurma && mapped.length === 0) {
+        return DEMO_ASSIGNMENTS;
+      }
+      return mapped;
     } catch {
       let list = getStored(LOCAL_STORAGE_ASSIGNMENTS_KEY);
       if (criteria.turma_id) list = list.filter((a) => a.turma_id === criteria.turma_id);
+      if (isDemoTurma && list.length === 0) {
+        return DEMO_ASSIGNMENTS;
+      }
       return list;
     }
   },
 
   async getCaseAssignment(id) {
+    const demoItem = DEMO_ASSIGNMENTS.find((a) => a.id === id);
+
     if (!isSupabaseConfigured()) {
       const item = getStored(LOCAL_STORAGE_ASSIGNMENTS_KEY).find((a) => a.id === id);
-      if (!item) throw new Error('Atividade não encontrada');
-      return item;
+      if (item) return item;
+      if (demoItem) return demoItem;
+      throw new Error('Atividade não encontrada');
     }
     try {
       const { data, error } = await supabase.from('case_assignments').select('*').eq('id', id).single();
@@ -305,8 +325,9 @@ export const turmaService = {
       return { ...data, created_date: data.created_at, updated_date: data.updated_at };
     } catch {
       const item = getStored(LOCAL_STORAGE_ASSIGNMENTS_KEY).find((a) => a.id === id);
-      if (!item) throw new Error('Atividade não encontrada');
-      return item;
+      if (item) return item;
+      if (demoItem) return demoItem;
+      throw new Error('Atividade não encontrada');
     }
   },
 

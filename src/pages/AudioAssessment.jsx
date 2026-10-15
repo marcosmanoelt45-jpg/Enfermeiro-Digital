@@ -115,14 +115,14 @@ export default function AudioAssessment() {
       }
 
       if (!text) {
-        setError("A transcrição não retornou texto audível. Escreva o relato manualmente.");
+        setError("A transcrição não retornou texto audível. Use o ditado ao vivo ou escreva o relato.");
         setManual(true);
       } else {
         setTranscript(text);
       }
     } catch (err) {
       console.warn("Falha na transcrição:", err);
-      setError(err?.message || "Não foi possível transcrever o áudio. Você pode digitar o relato abaixo.");
+      setError(err?.message || "Não foi possível transcrever o áudio. Você pode usar o ditado ao vivo ou digitar abaixo.");
       setManual(true);
     } finally {
       setTranscribing(false);
@@ -142,16 +142,32 @@ export default function AudioAssessment() {
     try {
       const data = parseVitalsFromTranscript(relato);
       const scores = computeAllScores(data);
+      
+      let targetPatientId = id;
       let patient = null;
-      try {
-        patient = await base44.entities.Patient.get(id);
-      } catch {}
+      if (targetPatientId && targetPatientId !== "novo") {
+        try {
+          patient = await base44.entities.Patient.get(targetPatientId);
+        } catch {}
+      } else {
+        try {
+          const newPat = await base44.entities.Patient.create({
+            name: "Paciente Simulado " + (data.initials || "J.S.F."),
+            age: 68,
+            gender: "M"
+          });
+          targetPatientId = newPat.id;
+          patient = newPat;
+        } catch {
+          targetPatientId = "patient-demo";
+        }
+      }
 
       const assessment = await base44.entities.Assessment.create({
         ...data,
         ...scores,
-        patient_id: id,
-        patient_name: patient?.name,
+        patient_id: targetPatientId,
+        patient_name: patient?.name || "Paciente Simulado",
         notes: relato,
         ai_status: "pending",
       });

@@ -30,7 +30,9 @@ import {
   Pill,
   AlertTriangle,
   ShieldAlert,
-  ListChecks
+  ListChecks,
+  AudioLines,
+  Stethoscope
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -40,6 +42,12 @@ import StudentFooter from "@/components/StudentFooter";
 import VitalSlider from "@/components/VitalSlider";
 import PainLocationPicker from "@/components/PainLocationPicker";
 import RiskBadge from "@/components/RiskBadge";
+import useAudioRecorder from "@/hooks/useAudioRecorder";
+import ClinicalGuideTabs from "@/components/audio/ClinicalGuideTabs";
+import RecorderPanel from "@/components/audio/RecorderPanel";
+import { parseVitalsFromTranscript } from "@/lib/vitalsParser";
+import { audioTranscriptionService } from "@/services/audioTranscriptionService";
+import { getAssemblyAiKey, transcribeAudio } from "@/lib/assemblyai";
 import {
   computeGlobalRisk,
   computeBradenTotal,
@@ -88,7 +96,145 @@ const CALOI_PAIN_CHARS = [
 export default function CaseStudio() {
   const navigate = useNavigate();
   const [currentStep, setCurrentStep] = useState(0);
-  const [viewMode, setViewMode] = useState("builder"); // "builder" | "challenge"
+  const [viewMode, setViewMode] = useState(() => {
+    try {
+      const p = new URLSearchParams(window.location.search);
+      if (p.get("mode") === "audio") return "audio";
+      if (p.get("mode") === "manual") return "builder";
+    } catch {}
+    return "choose"; // "choose" | "builder" | "audio" | "challenge"
+  });
+
+  // Estados do Modo de Áudio
+  const audioRecorder = useAudioRecorder();
+  const [audioTranscript, setAudioTranscript] = useState("");
+  const [isAudioTranscribing, setIsAudioTranscribing] = useState(false);
+  const [audioStage, setAudioStage] = useState("");
+  const [audioError, setAudioError] = useState("");
+  const [isLiveDictatingAudio, setIsLiveDictatingAudio] = useState(false);
+  const liveAudioRecRef = useRef(null);
+
+  // Manipulador de ditado ao vivo para o modo de áudio
+  function toggleLiveAudioDictation() {
+    setAudioError("");
+    if (isLiveDictatingAudio) {
+      if (liveAudioRecRef.current) {
+        try { liveAudioRecRef.current.stop(); } catch {}
+      }
+      setIsLiveDictatingAudio(false);
+      return;
+    }
+
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRec) {
+      setAudioError("Reconhecimento de fala direto não suportado por este navegador. Use o Google Chrome ou Microsoft Edge.");
+      return;
+    }
+
+    try {
+      const rec = new SpeechRec();
+      rec.lang = "pt-BR";
+      rec.continuous = true;
+      rec.interimResults = true;
+
+      rec.onresult = (e) => {
+        let finalTrans = "";
+        for (let i = e.resultIndex; i < e.results.length; ++i) {
+          if (e.results[i].isFinal) {
+            finalTrans += e.results[i][0].transcript + " ";
+          }
+        }
+        if (finalTrans.trim()) {
+          setAudioTranscript((prev) => (prev ? prev.trim() + " " : "") + finalTrans.trim());
+        }
+      };
+
+      rec.onerror = (ev) => {
+        console.warn("[Áudio Estúdio] Erro:", ev);
+        if (ev.error === "not-allowed") {
+          setAudioError("Permissão de microfone negada no navegador.");
+        }
+        setIsLiveDictatingAudio(false);
+      };
+
+      rec.onend = () => setIsLiveDictatingAudio(false);
+
+      rec.start();
+      liveAudioRecRef.current = rec;
+      setIsLiveDictatingAudio(true);
+    } catch {
+      setAudioError("Não foi possível acionar o dispositivo de áudio.");
+      setIsLiveDictatingAudio(false);
+    }
+  }
+
+  // Transcrição com IA do áudio gravado
+  async function handleAudioTranscribe() {
+    setAudioError("");
+    if (!audioRecorder.blob) {
+      setAudioError("Nenhum áudio gravado. Grave o relato antes de transcrever.");
+      return;
+    }
+
+    setIsAudioTranscribing(true);
+    try {
+      const hasAssemblyKey = Boolean(getAssemblyAiKey());
+      const hasGeminiKey = Boolean(audioTranscriptionService.getGeminiKey());
+      let text = "";
+      if (hasAssemblyKey) {
+        text = await transcribeAudio(audioRecorder.blob, {
+          apiKey: getAssemblyAiKey(),
+          onStage: setAudioStage,
+        });
+      } else if (hasGeminiKey) {
+        const res = await audioTranscriptionService.transcribeWithGemini(
+          audioRecorder.blob,
+          (msg) => setAudioStage(msg)
+        );
+        text = res?.text || "";
+      } else {
+        setAudioError("Chave de IA não configurada em Minha Conta. Use o botão 'Ditar por Voz ao Vivo' abaixo para captação instantânea sem chaves, ou digite o relato.");
+        setIsAudioTranscribing(false);
+        return;
+      }
+
+      if (!text) {
+        setAudioError("A transcrição não retornou texto audível. Use o ditado ao vivo.");
+      } else {
+        setAudioTranscript((prev) => (prev ? prev.trim() + " " : "") + text.trim());
+      }
+    } catch (err) {
+      setAudioError(err?.message || "Erro na transcrição. Use o ditado ao vivo.");
+    } finally {
+      setIsAudioTranscribing(false);
+      setAudioStage("");
+    }
+  }
+
+  // Aplicação dos dados extraídos do áudio no caso clínico
+  function applyAudioDataToCase(launchDirectly = false) {
+    const text = audioTranscript.trim();
+    if (!text) {
+      setAudioError("Nenhum relato fornecido ainda. Grave ou dite o caso antes de prosseguir.");
+      return;
+    }
+    const extracted = parseVitalsFromTranscript(text);
+    setData((prev) => ({
+      ...prev,
+      ...extracted,
+      notes: (prev.notes ? prev.notes + "\n" : "") + `[Relato Clínico por Voz]: ${text}`
+    }));
+    setProfile((prev) => ({
+      ...prev,
+      previous_anamnesis: prev.previous_anamnesis || text
+    }));
+
+    if (launchDirectly) {
+      handleLaunchChallenge();
+    } else {
+      setViewMode("builder");
+    }
+  }
 
   // Estado do Perfil e Anamnese (LGPD: Anonimizado estritamente com iniciais)
   const [profile, setProfile] = useState({
@@ -358,27 +504,86 @@ export default function CaseStudio() {
               </span>
             </div>
             <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              {viewMode === "builder" ? "Montar Caso Clínico Próprio" : "Desafio Diagnóstico Interativo"}
+              {viewMode === "choose" && "Novo Caso Clínico: Método de Avaliação"}
+              {viewMode === "builder" && "Montar Caso Clínico Próprio"}
+              {viewMode === "audio" && "Avaliação Clínica por Áudio & Fala"}
+              {viewMode === "challenge" && "Desafio Diagnóstico Interativo"}
             </h1>
             <p className="text-xs sm:text-sm text-slate-500">
-              {viewMode === "builder"
-                ? "Monte a anamnese e todos os escores do paciente (Braden, CAM, Vitais, Dor) e gere um desafio lúdico com análise de distratores."
-                : "Analise as evidências clínicas do caso montado e teste seu raciocínio diagnóstico sem respostas mastigadas."}
+              {viewMode === "choose" && "Selecione entre o preenchimento manual guiado dos escores ou a captação por voz com IA à beira-leito."}
+              {viewMode === "builder" && "Monte a anamnese e todos os escores do paciente (Braden, CAM, Vitais, Dor) e gere um desafio lúdico com análise de distratores."}
+              {viewMode === "audio" && "Grave ou dite o relato do paciente à beira-leito. A IA transcreve e extrai os parâmetros clínicos em tempo real."}
+              {viewMode === "challenge" && "Analise as evidências clínicas do caso montado e teste seu raciocínio diagnóstico sem respostas mastigadas."}
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
-            {viewMode === "builder" ? (
+          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+            {viewMode === "choose" && (
               <Button
-                variant="outline"
+                variant="ghost"
                 size="sm"
-                onClick={handleGenerateRandomProfile}
-                className="rounded-xl border-slate-300 text-slate-700 text-xs flex items-center gap-1.5"
+                onClick={() => navigate("/")}
+                className="rounded-xl text-slate-600 hover:text-slate-900 text-xs flex items-center gap-1.5"
               >
-                <Shuffle className="h-3.5 w-3.5" />
-                <span>Preencher Paciente Aleatório</span>
+                <ArrowLeft className="h-4 w-4" />
+                <span>Voltar ao Painel</span>
               </Button>
-            ) : (
+            )}
+
+            {viewMode === "builder" && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setViewMode("audio")}
+                  className="rounded-xl border-emerald-300 text-emerald-800 hover:bg-emerald-50 text-xs flex items-center gap-1.5"
+                >
+                  <AudioLines className="h-3.5 w-3.5 text-emerald-700" />
+                  <span>Modo por Áudio</span>
+                </Button>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleGenerateRandomProfile}
+                  className="rounded-xl border-slate-300 text-slate-700 text-xs flex items-center gap-1.5"
+                >
+                  <Shuffle className="h-3.5 w-3.5" />
+                  <span>Paciente Aleatório</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode("choose")}
+                  className="rounded-xl text-slate-500 hover:text-slate-800 text-xs"
+                >
+                  Mudar Modo
+                </Button>
+              </>
+            )}
+
+            {viewMode === "audio" && (
+              <>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setViewMode("builder")}
+                  className="rounded-xl border-teal-300 text-teal-800 hover:bg-teal-50 text-xs flex items-center gap-1.5"
+                >
+                  <ClipboardCheck className="h-3.5 w-3.5 text-teal-700" />
+                  <span>Modo Manual</span>
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode("choose")}
+                  className="rounded-xl text-slate-500 hover:text-slate-800 text-xs"
+                >
+                  Mudar Modo
+                </Button>
+              </>
+            )}
+
+            {viewMode === "challenge" && (
               <Button
                 variant="outline"
                 size="sm"
@@ -391,6 +596,293 @@ export default function CaseStudio() {
             )}
           </div>
         </div>
+
+        {/* ======================================================== */}
+        {/* MODO 0: ESCOLHA INICIAL (MANUAL OU ÁUDIO)                 */}
+        {/* ======================================================== */}
+        {viewMode === "choose" && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs text-center max-w-3xl mx-auto space-y-4">
+              <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block">
+                Novo Caso Clínico
+              </span>
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
+                Como você deseja iniciar a avaliação do paciente?
+              </h2>
+              <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
+                Escolha o método mais adequado ao seu momento de aprendizagem. Você poderá alternar entre eles ou ajustar os parâmetros livremente a qualquer momento.
+              </p>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3 text-left">
+                {/* Opção 1: Avaliação Manual */}
+                <div className="rounded-2xl border-2 border-slate-200 hover:border-teal-600 bg-white p-6 transition-all shadow-xs flex flex-col justify-between space-y-4 hover:shadow-sm">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="p-3 rounded-xl bg-teal-50 text-teal-700">
+                        <ClipboardCheck className="h-6 w-6" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
+                        Passo a Passo
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900">
+                      1. Avaliação Manual Guiada
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Preencha detalhadamente sinais vitais, histórico, escalas (Braden, CAM, SAK Quedas, Dor CALOI) e anamnese com controle minucioso de cada slider.
+                    </p>
+                    <ul className="text-xs text-slate-600 space-y-1.5 pt-1">
+                      <li className="flex items-center gap-1.5">• 7 etapas clínicas estruturadas</li>
+                      <li className="flex items-center gap-1.5">• Cálculo imediato dos escores de risco</li>
+                      <li className="flex items-center gap-1.5">• Validação individual de parâmetros</li>
+                    </ul>
+                  </div>
+
+                  <Button
+                    onClick={() => setViewMode("builder")}
+                    className="w-full rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5"
+                  >
+                    <span>Iniciar Avaliação Manual</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+
+                {/* Opção 2: Avaliação por Áudio */}
+                <div className="rounded-2xl border-2 border-slate-200 hover:border-emerald-600 bg-white p-6 transition-all shadow-xs flex flex-col justify-between space-y-4 hover:shadow-sm">
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="p-3 rounded-xl bg-emerald-50 text-emerald-700">
+                        <AudioLines className="h-6 w-6" />
+                      </div>
+                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
+                        Voz & IA • Beira-Leito
+                      </span>
+                    </div>
+                    <h3 className="text-base font-bold text-slate-900">
+                      2. Avaliação por Áudio & Fala
+                    </h3>
+                    <p className="text-xs text-slate-500 leading-relaxed">
+                      Grave ou dite o relato do paciente à beira-leito. A IA transcreve, extrai sinais vitais, Glasgow, dor e escores automaticamente e monta o caso na hora.
+                    </p>
+                    <ul className="text-xs text-slate-600 space-y-1.5 pt-1">
+                      <li className="flex items-center gap-1.5">• Ditado ao vivo direto no navegador</li>
+                      <li className="flex items-center gap-1.5">• Abas de guia clínico para orientar sua fala</li>
+                      <li className="flex items-center gap-1.5">• Extração inteligente de PA, FC, FR, Sat, Dor</li>
+                    </ul>
+                  </div>
+
+                  <Button
+                    onClick={() => setViewMode("audio")}
+                    className="w-full rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5"
+                  >
+                    <Mic className="h-4 w-4" />
+                    <span>Iniciar por Áudio</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* MODO ÁUDIO: CAPTAÇÃO CLÍNICA POR VOZ & IA À BEIRA-LEITO  */}
+        {/* ======================================================== */}
+        {viewMode === "audio" && (
+          <div className="space-y-6 animate-in fade-in">
+            {audioError && (
+              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-center justify-between">
+                <span>{audioError}</span>
+                <button
+                  type="button"
+                  onClick={() => setAudioError("")}
+                  className="font-bold text-rose-600 hover:text-rose-900 ml-2 text-xs"
+                >
+                  Fechar
+                </button>
+              </div>
+            )}
+
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-6 items-start">
+              {/* Coluna Esquerda: Microfone, Ditado e Transcrição */}
+              <div className="md:col-span-5 space-y-4">
+                <RecorderPanel
+                  recording={audioRecorder.recording}
+                  seconds={audioRecorder.seconds}
+                  audioUrl={audioRecorder.url}
+                  busy={isAudioTranscribing}
+                  onStart={audioRecorder.start}
+                  onStop={audioRecorder.stop}
+                  onTranscribe={handleAudioTranscribe}
+                  onManual={() => setViewMode("builder")}
+                  onReset={() => {
+                    audioRecorder.reset();
+                    setAudioTranscript("");
+                    setAudioError("");
+                  }}
+                />
+
+                {/* Botão de Ditado ao Vivo Direto no Navegador */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+                  <div className="flex items-center justify-between">
+                    <span className="text-xs font-bold text-slate-800">Ditado ao Vivo (Nativo)</span>
+                    <span className="text-[10px] text-teal-800 bg-teal-50 px-2 py-0.5 rounded font-semibold border border-teal-200">
+                      Sem Chave de API
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-500 leading-relaxed">
+                    Fale diretamente no microfone do navegador sem precisar de chave externa. O texto é captado e os sinais vitais são extraídos em tempo real.
+                  </p>
+                  <Button
+                    type="button"
+                    onClick={toggleLiveAudioDictation}
+                    className={`w-full rounded-xl text-xs font-semibold flex items-center justify-center gap-2 ${
+                      isLiveDictatingAudio
+                        ? "bg-rose-600 hover:bg-rose-700 text-white animate-pulse"
+                        : "bg-teal-700 hover:bg-teal-800 text-white"
+                    }`}
+                  >
+                    {isLiveDictatingAudio ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
+                    <span>{isLiveDictatingAudio ? "Parar Ditado ao Vivo" : "Iniciar Ditado por Voz ao Vivo"}</span>
+                  </Button>
+                </div>
+
+                {/* Campo de Relato Clínico Editável */}
+                <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
+                  <label className="text-xs font-bold text-slate-800 block">
+                    Transcrição do Relato Clínico:
+                  </label>
+                  <Textarea
+                    value={audioTranscript}
+                    onChange={(e) => setAudioTranscript(e.target.value)}
+                    placeholder="O relato transcrito aparecerá aqui. Você também pode complementar ou editar manualmente..."
+                    className="rounded-xl text-xs border-slate-300 min-h-[140px]"
+                  />
+                  <p className="text-[10px] text-slate-400">
+                    Dica: Fale pressão arterial (ex: 120 por 80), FC, FR, dor, escala de Glasgow e queixas.
+                  </p>
+                </div>
+              </div>
+
+              {/* Coluna Direita: Guia Clínico em Abas & Pré-visualização dos Parâmetros Extraídos */}
+              <div className="md:col-span-7 space-y-4">
+                {/* Abas com Frases Orientadoras */}
+                <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                      Guia Clínico de Verbalização ("Caring Out Loud")
+                    </span>
+                    <span className="text-[10px] text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded">
+                      Clique no snippet para adicionar
+                    </span>
+                  </div>
+                  <ClinicalGuideTabs
+                    onSelectSnippet={(snippet) => {
+                      setAudioTranscript((prev) => (prev ? `${prev} ${snippet}` : snippet.replace(/^,\s*/, "")));
+                    }}
+                  />
+                </div>
+
+                {/* Prévia dos Parâmetros Extraídos em Tempo Real */}
+                {(() => {
+                  const extracted = parseVitalsFromTranscript(audioTranscript);
+                  const hasAny = Object.keys(extracted).length > 0;
+                  return (
+                    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
+                        <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                          Parâmetros Fisiológicos Extraídos da Fala
+                        </span>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${hasAny ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-slate-100 text-slate-500"}`}>
+                          {hasAny ? "Dados Identificados" : "Aguardando Fala"}
+                        </span>
+                      </div>
+
+                      {hasAny ? (
+                        <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
+                          {extracted.pa_sistolica && (
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Pressão Arterial</span>
+                              <span className="font-bold text-slate-900">{extracted.pa_sistolica}/{extracted.pa_diastolica || 80} mmHg</span>
+                            </div>
+                          )}
+                          {extracted.fc && (
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Frequência Cardíaca</span>
+                              <span className="font-bold text-slate-900">{extracted.fc} bpm</span>
+                            </div>
+                          )}
+                          {extracted.fr && (
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Frequência Respiratória</span>
+                              <span className="font-bold text-slate-900">{extracted.fr} irpm</span>
+                            </div>
+                          )}
+                          {extracted.tax && (
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Temperatura</span>
+                              <span className="font-bold text-slate-900">{extracted.tax} °C</span>
+                            </div>
+                          )}
+                          {extracted.sat && (
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Saturação O₂</span>
+                              <span className="font-bold text-slate-900">{extracted.sat} %</span>
+                            </div>
+                          )}
+                          {extracted.caloi_pain_intensity !== undefined && (
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Dor (0-10)</span>
+                              <span className="font-bold text-slate-900">{extracted.caloi_pain_intensity} / 10</span>
+                            </div>
+                          )}
+                          {extracted.glasgow && (
+                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Glasgow</span>
+                              <span className="font-bold text-slate-900">{extracted.glasgow} pts</span>
+                            </div>
+                          )}
+                          {extracted.estado_consciencia && (
+                            <div className="col-span-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
+                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Sensório / Consciência</span>
+                              <span className="font-bold text-slate-900">{extracted.estado_consciencia}</span>
+                            </div>
+                          )}
+                        </div>
+                      ) : (
+                        <p className="text-xs text-slate-400 italic py-2">
+                          Nenhum sinal vital detectado ainda. Fale ou digite por exemplo: "PA 140 por 90, pulso 88, respiração 20, saturação 95%, dor 6 no abdômen".
+                        </p>
+                      )}
+
+                      {/* Botões de Ação para Prosseguir */}
+                      <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-2.5 justify-end">
+                        <Button
+                          variant="outline"
+                          onClick={() => applyAudioDataToCase(false)}
+                          disabled={!audioTranscript.trim()}
+                          className="rounded-xl border-slate-300 text-slate-700 text-xs font-semibold"
+                        >
+                          <ListChecks className="h-4 w-4 mr-1.5" />
+                          <span>Preencher Caso e Ver Passo a Passo</span>
+                        </Button>
+                        <Button
+                          onClick={() => applyAudioDataToCase(true)}
+                          disabled={!audioTranscript.trim() || isGeneratingChallenge}
+                          className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs px-5 font-semibold flex items-center gap-1.5 shadow-xs"
+                        >
+                          <Target className="h-4 w-4 text-teal-400" />
+                          <span>{isGeneratingChallenge ? "Gerando..." : "Preencher e Lançar Desafio IA"}</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  );
+                })()}
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* ======================================================== */}
         {/* MODO 1: MONTADOR DO CASO CLÍNICO (WIZARD DE 7 PASSOS)    */}
