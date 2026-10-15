@@ -23,7 +23,8 @@ import {
   Radio,
   Check,
   Volume2,
-  CheckSquare
+  CheckSquare,
+  Loader2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -33,6 +34,7 @@ import StudentFooter from "@/components/StudentFooter";
 import { useAuth } from "@/lib/AuthContext";
 import { evaluateSbarHandoff } from "@/services/sbarTutorService";
 import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
+import { audioTranscriptionService } from "@/services/audioTranscriptionService";
 
 const PRESET_HANDOFF_SCENARIOS = [
   {
@@ -135,12 +137,21 @@ export default function SbarHandoffLab() {
     recommendation: { time: false, meds: false, monitoring: false }
   });
 
-  // Reconhecimento de Voz Robusto (Web Speech API direto e sob demanda)
+  // Reconhecimento de Voz Dual-Engine (Web Speech API em tempo real + MediaRecorder Fallback com IA)
   const [isListening, setIsListening] = useState(false);
+  const [voiceStarting, setVoiceStarting] = useState(false);
   const [activeListeningField, setActiveListeningField] = useState(null);
+  const [recordingSeconds, setRecordingSeconds] = useState(0);
   const [interimTranscript, setInterimTranscript] = useState("");
   const [voiceError, setVoiceError] = useState("");
+  const [isTranscribingWithAi, setIsTranscribingWithAi] = useState(false);
+
   const recognitionRef = useRef(null);
+  const mediaRecorderRef = useRef(null);
+  const audioChunksRef = useRef([]);
+  const streamRef = useRef(null);
+  const timerRef = useRef(null);
+  const lastVoiceInputLenRef = useRef(0);
 
   // Estados de Avaliação
   const [isEvaluating, setIsEvaluating] = useState(false);
@@ -157,14 +168,34 @@ export default function SbarHandoffLab() {
   // Limpeza de recursos de áudio ao desmontar
   useEffect(() => {
     return () => {
+      if (timerRef.current) clearInterval(timerRef.current);
       if (recognitionRef.current) {
         try {
+          recognitionRef.current.onend = null;
           recognitionRef.current.stop();
         } catch {}
         recognitionRef.current = null;
       }
+      if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+        try {
+          mediaRecorderRef.current.stop();
+        } catch {}
+        mediaRecorderRef.current = null;
+      }
+      if (streamRef.current) {
+        try {
+          streamRef.current.getTracks().forEach((t) => t.stop());
+        } catch {}
+        streamRef.current = null;
+      }
     };
   }, []);
+
+  function formatSeconds(sec) {
+    const m = Math.floor(sec / 60);
+    const s = sec % 60;
+    return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
+  }
 
   // Atualização inteligente dos checklists dinâmicos conforme digitação/voz
   useEffect(() => {
@@ -197,116 +228,226 @@ export default function SbarHandoffLab() {
     });
   }, [sbarData]);
 
-  function stopListening() {
+  async function stopListening(fieldNameOverride = null) {
+    const targetField = fieldNameOverride || activeListeningField;
+
+    // 1. Limpa o cronômetro visual
+    if (timerRef.current) {
+      clearInterval(timerRef.current);
+      timerRef.current = null;
+    }
+
+    // 2. Encerra a Web Speech API
     if (recognitionRef.current) {
       try {
+        recognitionRef.current.onend = null;
         recognitionRef.current.stop();
       } catch {}
       recognitionRef.current = null;
     }
+
+    // 3. Encerra o MediaRecorder e captura o blob binário gravado
+    let recordedBlob = null;
+    if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
+      try {
+        await new Promise((resolve) => {
+          mediaRecorderRef.current.onstop = () => {
+            if (audioChunksRef.current.length > 0) {
+              recordedBlob = new Blob(audioChunksRef.current, {
+                type: mediaRecorderRef.current.mimeType || "audio/webm"
+              });
+            }
+            resolve();
+          };
+          mediaRecorderRef.current.stop();
+        });
+      } catch (e) {
+        console.warn("Aviso ao encerrar MediaRecorder:", e);
+      }
+      mediaRecorderRef.current = null;
+    }
+
+    // 4. Desliga faixas de hardware do microfone
+    if (streamRef.current) {
+      try {
+        streamRef.current.getTracks().forEach((t) => t.stop());
+      } catch {}
+      streamRef.current = null;
+    }
+
     setIsListening(false);
+    setVoiceStarting(false);
     setActiveListeningField(null);
     setInterimTranscript("");
+
+    // 5. Fallback com Florence AI (Gemini): se o microfone gravou áudio mas a Web Speech não digitou texto
+    if (recordedBlob && targetField && recordedBlob.size > 2000) {
+      const currentText = sbarData[targetField] || "";
+      const textLenBefore = lastVoiceInputLenRef.current || 0;
+      if (currentText.length <= textLenBefore) {
+        try {
+          setIsTranscribingWithAi(true);
+          setToastMessage("Florence AI está transcrevendo seu áudio gravado...");
+          const result = await audioTranscriptionService.transcribe(recordedBlob);
+          if (result && result.text) {
+            setSbarData((prev) => {
+              const prevText = prev[targetField] ? prev[targetField].trim() + " " : "";
+              return {
+                ...prev,
+                [targetField]: prevText + result.text.trim()
+              };
+            });
+            setToastMessage("Transcrição realizada com sucesso pela Florence AI!");
+            setTimeout(() => setToastMessage(""), 3500);
+          }
+        } catch (err) {
+          console.warn("Fallback de transcrição com IA:", err);
+        } finally {
+          setIsTranscribingWithAi(false);
+        }
+      }
+    }
   }
 
-  function toggleVoiceInput(fieldName) {
+  async function toggleVoiceInput(fieldName) {
     setVoiceError("");
 
-    // Se já estiver gravando o mesmo campo, encerra
-    if (isListening && activeListeningField === fieldName) {
-      stopListening();
-      setToastMessage("Gravação de voz concluída.");
+    // Se já estiver gravando neste mesmo campo, interrompe
+    if ((isListening || voiceStarting) && activeListeningField === fieldName) {
+      await stopListening(fieldName);
+      setToastMessage("Ditado finalizado.");
       setTimeout(() => setToastMessage(""), 2500);
       return;
     }
 
-    // Se estiver gravando outro campo, encerra o anterior primeiro
-    if (isListening) {
-      stopListening();
+    // Se estiver gravando em outro campo, fecha o anterior
+    if (isListening || voiceStarting) {
+      await stopListening();
     }
 
-    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
-    if (!SpeechRec) {
-      const err = "O reconhecimento de fala não é suportado por este navegador. Por favor, utilize o Google Chrome ou Microsoft Edge no desktop ou mobile.";
-      setVoiceError(err);
-      setToastMessage(err);
-      setTimeout(() => setToastMessage(""), 5000);
+    // ZERO LATÊNCIA VISUAL: o botão muda IMEDIATAMENTE no clique
+    setIsListening(true);
+    setVoiceStarting(true);
+    setActiveListeningField(fieldName);
+    setRecordingSeconds(0);
+    setInterimTranscript("");
+    lastVoiceInputLenRef.current = (sbarData[fieldName] || "").length;
+
+    // Inicia cronômetro visual imediatamente
+    if (timerRef.current) clearInterval(timerRef.current);
+    timerRef.current = setInterval(() => {
+      setRecordingSeconds((s) => s + 1);
+    }, 1000);
+
+    // 1. Solicita e abre microfone com getUserMedia nativo do navegador
+    let stream = null;
+    try {
+      if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        streamRef.current = stream;
+      }
+    } catch (err) {
+      console.warn("getUserMedia falhou ou foi bloqueado:", err);
+      const isDenied = err.name === "NotAllowedError" || err.name === "PermissionDeniedError";
+      const msg = isDenied
+        ? "Permissão de microfone negada. Clique no ícone de cadeado/configurações na barra de endereços para autorizar o microfone."
+        : "Não foi possível conectar ao microfone. Verifique as conexões de áudio do dispositivo.";
+      setVoiceError(msg);
+      setToastMessage(msg);
+      setTimeout(() => setToastMessage(""), 6000);
+      if (timerRef.current) clearInterval(timerRef.current);
+      setIsListening(false);
+      setVoiceStarting(false);
+      setActiveListeningField(null);
       return;
     }
 
-    try {
-      const rec = new SpeechRec();
-      rec.lang = "pt-BR";
-      rec.continuous = true;
-      rec.interimResults = true;
-      rec.maxAlternatives = 1;
+    setVoiceStarting(false);
 
-      rec.onstart = () => {
-        setIsListening(true);
-        setActiveListeningField(fieldName);
-        setInterimTranscript("");
-        setToastMessage(`Microfone ativo para o pilar ${fieldName.toUpperCase()}! Fale com naturalidade...`);
-        setTimeout(() => setToastMessage(""), 3500);
-      };
-
-      rec.onresult = (event) => {
-        let finalTrans = "";
-        let interimTrans = "";
-
-        for (let i = event.resultIndex; i < event.results.length; ++i) {
-          const trans = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            finalTrans += trans + " ";
-          } else {
-            interimTrans += trans;
+    // 2. Inicia MediaRecorder para garantia de contingência e fallback
+    if (stream && typeof MediaRecorder !== "undefined") {
+      try {
+        audioChunksRef.current = [];
+        const types = ["audio/webm", "audio/mp4", "audio/ogg"];
+        const mimeType = types.find((t) => {
+          try {
+            return MediaRecorder.isTypeSupported?.(t);
+          } catch {
+            return false;
           }
-        }
+        });
+        const recorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+        recorder.ondataavailable = (e) => {
+          if (e.data.size > 0) audioChunksRef.current.push(e.data);
+        };
+        recorder.start(250);
+        mediaRecorderRef.current = recorder;
+      } catch (err) {
+        console.warn("Falha ao inicializar MediaRecorder:", err);
+      }
+    }
 
-        setInterimTranscript(interimTrans);
+    // 3. Dispara Web Speech API se disponível no navegador
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRec) {
+      try {
+        const rec = new SpeechRec();
+        rec.lang = "pt-BR";
+        rec.continuous = true;
+        rec.interimResults = true;
+        rec.maxAlternatives = 1;
 
-        if (finalTrans.trim()) {
-          setSbarData((prev) => {
-            const currentVal = prev[fieldName] ? prev[fieldName].trim() + " " : "";
-            return {
-              ...prev,
-              [fieldName]: currentVal + finalTrans.trim()
-            };
-          });
-        }
-      };
+        rec.onstart = () => {
+          setToastMessage(`Microfone aberto para o pilar ${fieldName.toUpperCase()}! Fale com naturalidade...`);
+          setTimeout(() => setToastMessage(""), 3000);
+        };
 
-      rec.onerror = (e) => {
-        console.warn("[SpeechRecognition] Erro:", e.error);
-        if (e.error === "not-allowed" || e.error === "permission-denied") {
-          const msg = "Permissão de microfone negada. Clique no ícone de cadeado/configurações ao lado da barra de endereço para permitir o microfone.";
-          setVoiceError(msg);
-          setToastMessage(msg);
-        } else if (e.error === "network") {
-          setVoiceError("Falha de conexão com o serviço de transcrição do navegador.");
-        } else if (e.error !== "no-speech") {
-          setVoiceError(`Aviso do microfone: ${e.error}`);
-        }
-        setIsListening(false);
-        setActiveListeningField(null);
-        setInterimTranscript("");
-      };
+        rec.onresult = (event) => {
+          let finalTrans = "";
+          let interimTrans = "";
 
-      rec.onend = () => {
-        setIsListening(false);
-        setActiveListeningField(null);
-        setInterimTranscript("");
-      };
+          for (let i = event.resultIndex; i < event.results.length; ++i) {
+            const trans = event.results[i][0].transcript;
+            if (event.results[i].isFinal) {
+              finalTrans += trans + " ";
+            } else {
+              interimTrans += trans;
+            }
+          }
 
-      rec.start();
-      recognitionRef.current = rec;
-    } catch (err) {
-      console.error("[SpeechRecognition] Erro ao iniciar:", err);
-      const msg = "Não foi possível acionar o microfone. Verifique suas conexões de áudio.";
-      setVoiceError(msg);
-      setToastMessage(msg);
-      setIsListening(false);
-      setActiveListeningField(null);
-      setInterimTranscript("");
+          setInterimTranscript(interimTrans);
+
+          if (finalTrans.trim()) {
+            setSbarData((prev) => {
+              const currentVal = prev[fieldName] ? prev[fieldName].trim() + " " : "";
+              return {
+                ...prev,
+                [fieldName]: currentVal + finalTrans.trim()
+              };
+            });
+          }
+        };
+
+        rec.onerror = (e) => {
+          console.warn("[SpeechRecognition] Erro:", e.error);
+          if (e.error === "not-allowed" || e.error === "permission-denied") {
+            setVoiceError("Permissão de microfone negada nas configurações do navegador.");
+          } else if (e.error === "network") {
+            setVoiceError("Conexão de voz do navegador oscilou. O áudio está sendo gravado e será processado pela IA ao parar.");
+          }
+        };
+
+        rec.onend = () => {
+          // O encerramento definitivo é gerenciado pelo stopListening
+        };
+
+        rec.start();
+        recognitionRef.current = rec;
+      } catch (err) {
+        console.warn("[SpeechRecognition] Falha ao iniciar:", err);
+      }
+    } else {
+      setToastMessage("Web Speech não disponível neste navegador. Gravando áudio para transcrição via IA...");
     }
   }
 
@@ -811,30 +952,49 @@ export default function SbarHandoffLab() {
               {/* Área de Digitação & Gravação por Microfone */}
               <div className="space-y-2.5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs font-bold text-slate-900 flex items-center gap-2">
+                  <label className="text-xs font-bold text-slate-900 flex items-center gap-2 flex-wrap">
                     <span>Sua formulação para o pilar {currentGuided.letter}:</span>
                     {isListening && activeListeningField === currentGuided.key && (
-                      <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-600 animate-pulse bg-rose-50 px-2 py-0.5 rounded-full border border-rose-200">
-                        <Radio className="h-3 w-3" /> Ouvindo sua voz em tempo real...
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-rose-600 animate-pulse bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200 shadow-2xs">
+                        <Radio className="h-3 w-3 text-rose-600 animate-ping" />
+                        <span>Ouvindo sua voz ({formatSeconds(recordingSeconds)})... Fale com clareza</span>
+                      </span>
+                    )}
+                    {isTranscribingWithAi && activeListeningField === currentGuided.key && (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-teal-800 animate-pulse bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
+                        <Loader2 className="h-3 w-3 text-teal-700 animate-spin" />
+                        <span>Florence AI transcrevendo áudio...</span>
                       </span>
                     )}
                   </label>
 
-                  {/* Botão de Ditar por Voz com Estilo Vivo */}
+                  {/* Botão de Ditar por Voz com Estilo Vivo e Feedback Imediato */}
                   <Button
                     size="sm"
                     variant={isListening && activeListeningField === currentGuided.key ? "destructive" : "outline"}
                     onClick={() => toggleVoiceInput(currentGuided.key)}
-                    className={`rounded-xl h-9 px-3.5 text-xs font-semibold flex items-center gap-2 transition-all ${
+                    className={`rounded-xl h-9 px-3.5 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                       isListening && activeListeningField === currentGuided.key
-                        ? "bg-rose-600 hover:bg-rose-700 text-white shadow-xs animate-pulse"
+                        ? "bg-rose-600 hover:bg-rose-700 text-white shadow-md ring-2 ring-rose-400 ring-offset-2 animate-pulse"
                         : "border-teal-700 text-teal-800 hover:bg-teal-50"
                     }`}
                   >
                     {isListening && activeListeningField === currentGuided.key ? (
+                      voiceStarting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin text-white" />
+                          <span>Ligando Mic...</span>
+                        </>
+                      ) : (
+                        <>
+                          <MicOff className="h-4 w-4 text-white animate-bounce" />
+                          <span>Parar Ditado ({formatSeconds(recordingSeconds)})</span>
+                        </>
+                      )
+                    ) : isTranscribingWithAi && activeListeningField === currentGuided.key ? (
                       <>
-                        <MicOff className="h-4 w-4" />
-                        <span>Parar Ditado</span>
+                        <Loader2 className="h-4 w-4 animate-spin text-teal-700" />
+                        <span>Transcrevendo...</span>
                       </>
                     ) : (
                       <>
@@ -958,13 +1118,24 @@ export default function SbarHandoffLab() {
                       size="sm"
                       variant={isListening && activeListeningField === pilar.key ? "destructive" : "outline"}
                       onClick={() => toggleVoiceInput(pilar.key)}
-                      className="rounded-lg h-7 px-2.5 text-[11px] font-semibold flex items-center gap-1.5"
+                      className={`rounded-lg h-7 px-2.5 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        isListening && activeListeningField === pilar.key
+                          ? "bg-rose-600 hover:bg-rose-700 text-white shadow-xs animate-pulse ring-2 ring-rose-400"
+                          : ""
+                      }`}
                     >
                       {isListening && activeListeningField === pilar.key ? (
-                        <>
-                          <MicOff className="h-3 w-3 animate-pulse" />
-                          <span>Gravando</span>
-                        </>
+                        voiceStarting ? (
+                          <>
+                            <Loader2 className="h-3 w-3 animate-spin text-white" />
+                            <span>Ligando...</span>
+                          </>
+                        ) : (
+                          <>
+                            <MicOff className="h-3 w-3 animate-pulse text-white" />
+                            <span>Parar ({formatSeconds(recordingSeconds)})</span>
+                          </>
+                        )
                       ) : (
                         <>
                           <Mic className="h-3 w-3 text-teal-700" />
