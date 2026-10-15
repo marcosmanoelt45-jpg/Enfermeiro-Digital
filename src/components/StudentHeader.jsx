@@ -10,7 +10,8 @@ import {
   UserCircle,
   LogOut,
   PlusCircle,
-  LayoutGrid
+  LayoutGrid,
+  ArrowRightLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
@@ -23,6 +24,7 @@ export default function StudentHeader({ activeTab = "hub" }) {
     { id: "hub", label: "Início", path: "/", icon: LayoutGrid },
     { id: "montar", label: "Montar Caso", path: "/montar-caso", icon: PlusCircle },
     { id: "casos", label: "Casos Clínicos", path: "/simulador-casos", icon: BookOpen },
+    { id: "sbar", label: "Plantão SBAR", path: "/passagem-plantao", icon: ArrowRightLeft },
     { id: "calculos", label: "Cálculo de Doses", path: "/laboratorio-calculos", icon: Calculator },
     { id: "sistemas", label: "Semiologia", path: "/sistemas-organicos", icon: Stethoscope },
     { id: "turmas", label: "Minhas Turmas", path: "/turmas", icon: Users },

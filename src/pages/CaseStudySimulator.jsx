@@ -19,7 +19,9 @@ import {
   Target,
   ClipboardList,
   Eye,
-  Check
+  Check,
+  Download,
+  ArrowRightLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -29,6 +31,7 @@ import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
 import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
+import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
 
 export default function CaseStudySimulator() {
   const navigate = useNavigate();
@@ -846,6 +849,31 @@ export default function CaseStudySimulator() {
                       </ul>
                     </div>
                   )}
+
+                  <div className="pt-3 mt-3 border-t border-slate-200/80 flex flex-col gap-2">
+                    <Button
+                      size="sm"
+                      onClick={() => navigate("/passagem-plantao", { state: { caseData: currentCase } })}
+                      className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs w-full"
+                    >
+                      <ArrowRightLeft className="h-3.5 w-3.5" /> Passar Plantão deste Paciente (SBAR)
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => {
+                        exportClinicalCaseToPdf({
+                          caseData: currentCase,
+                          tutorEvaluation: tutorEvaluation
+                        });
+                        setToastMessage("Prontuário gerado em PDF com sucesso!");
+                        setTimeout(() => setToastMessage(""), 3500);
+                      }}
+                      className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center justify-center gap-1.5 w-full"
+                    >
+                      <Download className="h-3.5 w-3.5" /> Baixar Prontuário em PDF
+                    </Button>
+                  </div>
                 </div>
               ) : (
                 <div className="py-6 text-center text-xs text-slate-400 space-y-2">

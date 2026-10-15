@@ -32,7 +32,9 @@ import {
   ShieldAlert,
   ListChecks,
   AudioLines,
-  Stethoscope
+  Stethoscope,
+  Download,
+  ArrowRightLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -43,6 +45,7 @@ import VitalSlider from "@/components/VitalSlider";
 import PainLocationPicker from "@/components/PainLocationPicker";
 import RiskBadge from "@/components/RiskBadge";
 import useAudioRecorder from "@/hooks/useAudioRecorder";
+import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
 import ClinicalGuideTabs from "@/components/audio/ClinicalGuideTabs";
 import RecorderPanel from "@/components/audio/RecorderPanel";
 import { parseVitalsFromTranscript } from "@/lib/vitalsParser";
@@ -1727,6 +1730,51 @@ export default function CaseStudio() {
                     </li>
                   ))}
                 </ul>
+
+                <div className="pt-4 mt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-2.5">
+                  <Button
+                    size="sm"
+                    onClick={() => {
+                      const caseToPass = {
+                        name: profile?.name || "Paciente Simulado",
+                        age: profile?.age || 50,
+                        bed: profile?.bed || "Leito de Internação",
+                        title: challenge?.patientSummary || "Caso Montado no Estúdio",
+                        diagnosis: challenge?.correctDiagnosis || "Diagnóstico de Enfermagem",
+                        vitals: data,
+                        interventions: challenge?.recommendedInterventions
+                      };
+                      navigate("/passagem-plantao", { state: { caseData: caseToPass } });
+                    }}
+                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs w-full sm:w-auto"
+                  >
+                    <ArrowRightLeft className="h-3.5 w-3.5" /> Passar Plantão deste Paciente (SBAR)
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      exportClinicalCaseToPdf({
+                        caseData: {
+                          name: profile?.name || "Paciente Simulado",
+                          age: profile?.age || 50,
+                          bed: profile?.bed || "Leito de Internação",
+                          title: challenge?.patientSummary || "Caso Montado no Estúdio",
+                          diagnosis: challenge?.correctDiagnosis || "Diagnóstico de Enfermagem",
+                          vitals: data,
+                          interventions: challenge?.recommendedInterventions
+                        },
+                        tutorEvaluation: {
+                          safetyScore: totalScore,
+                          summaryFeedback: `Bateria de julgamento clínico concluída com pontuação de ${totalScore} pontos. Prescrição de cuidados COFEN nº 736/2024 formulada.`
+                        }
+                      });
+                    }}
+                    className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                  >
+                    <Download className="h-3.5 w-3.5" /> Baixar Prontuário em PDF
+                  </Button>
+                </div>
               </div>
             )}
           </div>
