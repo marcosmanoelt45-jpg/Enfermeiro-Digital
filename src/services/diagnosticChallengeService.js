@@ -172,7 +172,10 @@ Gere a Bateria Completa com 4 questões complexas da vivência hospitalar real. 
       const savedModel = (typeof localStorage !== "undefined" && localStorage.getItem("enfermeiro_gemini_model")) || null;
       const candidateModels = [
         ...(savedModel ? [savedModel] : []),
-        "gemini-2.5-flash",
+        "gemini-3.5-flash",
+        "gemini-flash-latest",
+        "gemini-3.1-flash-lite",
+        "gemini-3.8-flash",
         "gemini-2.0-flash",
         "gemini-1.5-flash-latest",
         "gemini-1.5-flash",

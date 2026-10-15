@@ -140,8 +140,11 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
 
     const savedModel = (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_gemini_model')) || null;
     const models = [
-      ...(savedModel && savedModel !== 'gemini-3.8-flash' ? [savedModel] : []),
-      'gemini-2.5-flash',
+      ...(savedModel ? [savedModel] : []),
+      'gemini-3.5-flash',
+      'gemini-3.5-transcribe',
+      'gemini-flash-latest',
+      'gemini-3.1-flash-lite',
       'gemini-2.0-flash',
       'gemini-1.5-flash-latest',
       'gemini-1.5-flash'

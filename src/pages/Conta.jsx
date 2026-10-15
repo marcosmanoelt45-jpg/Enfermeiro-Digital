@@ -63,85 +63,83 @@ export default function Conta() {
         return methods.includes("generateContent");
       });
 
-      // Lista de preferência de nomes para a enfermagem clínica
-      const cleanName = (name) => (name || "").replace(/^models\//, "");
-
-      let selectedModel = null;
-      const candidatesInOrder = [
-        "gemini-2.5-flash",
+      // 2. Ordena os modelos candidatos priorizando os modelos da família Gemini 3.x e flash-latest
+      const priorityOrder = [
+        "gemini-3.5-flash",
+        "gemini-flash-latest",
+        "gemini-3.1-flash-lite",
+        "gemini-3.8-flash",
+        "gemini-3.7-flash",
+        "gemini-3.6-flash",
         "gemini-2.0-flash",
         "gemini-1.5-flash-latest",
         "gemini-1.5-flash",
-        "gemini-2.0-flash-exp",
-        "gemini-1.5-flash-8b",
-        "gemini-1.5-pro",
       ];
 
-      for (const pref of candidatesInOrder) {
-        const match = contentModels.find(
+      // Monta lista de candidatos combinando os modelos da conta que suportam generateContent
+      const candidateList = [];
+      for (const pref of priorityOrder) {
+        const found = contentModels.find(
           (m) => cleanName(m.name).toLowerCase() === pref.toLowerCase()
         );
-        if (match) {
-          selectedModel = cleanName(match.name);
-          break;
+        if (found && !candidateList.includes(cleanName(found.name))) {
+          candidateList.push(cleanName(found.name));
         }
       }
 
-      // Se nenhum dos preferidos exatos estiver, procura por similaridade ou pega o primeiro que suporte generateContent
-      if (!selectedModel) {
-        const fallback =
-          contentModels.find((m) => cleanName(m.name).toLowerCase().includes("flash")) ||
-          contentModels[0];
-        if (fallback) {
-          selectedModel = cleanName(fallback.name);
+      // Adiciona outros modelos de texto da conta como retaguarda
+      for (const m of contentModels) {
+        const name = cleanName(m.name);
+        if (
+          !candidateList.includes(name) &&
+          !name.includes("tts") &&
+          !name.includes("image") &&
+          !name.includes("pro-preview")
+        ) {
+          candidateList.push(name);
         }
       }
 
-      if (!selectedModel) {
-        selectedModel = "gemini-2.0-flash";
-      }
+      let activeModel = null;
+      let lastErrorMessage = "";
 
-      // 2. Realiza um ping real no modelo descoberto para garantir funcionamento
-      const pingRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${keyToTest}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ parts: [{ text: "ping" }] }],
-          }),
-        }
-      );
-
-      if (!pingRes.ok) {
-        const errPing = await pingRes.json().catch(() => ({}));
-        const errMsg = errPing?.error?.message;
-        // Se falhar o modelo primário, tenta fallback em gemini-2.0-flash
-        if (selectedModel !== "gemini-2.0-flash") {
-          const retryRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keyToTest}`,
+      for (const modelCandidate of candidateList) {
+        try {
+          const pingRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${modelCandidate}:generateContent?key=${keyToTest}`,
             {
               method: "POST",
               headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({ contents: [{ parts: [{ text: "ping" }] }] }),
+              body: JSON.stringify({
+                contents: [{ parts: [{ text: "ping" }] }],
+              }),
             }
           );
-          if (retryRes.ok) {
-            selectedModel = "gemini-2.0-flash";
-          } else {
-            throw new Error(errMsg || "Erro ao executar geração de teste com o modelo Gemini.");
+
+          if (pingRes.ok) {
+            activeModel = modelCandidate;
+            break;
           }
-        } else {
-          throw new Error(errMsg || "Erro ao executar geração de teste com o modelo Gemini.");
+
+          const errPing = await pingRes.json().catch(() => ({}));
+          lastErrorMessage = errPing?.error?.message || "";
+        } catch (callErr) {
+          lastErrorMessage = callErr.message || "";
         }
       }
 
+      if (!activeModel) {
+        throw new Error(
+          lastErrorMessage || "Nenhum modelo do Google Gemini pôde responder à geração de teste no momento."
+        );
+      }
+
       localStorage.setItem("enfermeiro_gemini_api_key", keyToTest);
-      localStorage.setItem("enfermeiro_gemini_model", selectedModel);
+      localStorage.setItem("enfermeiro_gemini_model", activeModel);
       setGeminiKey(keyToTest);
       toast({
         title: "Google Gemini Conectado!",
-        description: `Sua chave foi validada com sucesso com o modelo ${selectedModel}. Raciocínio diagnóstico e transcrição multimodal ativos.`,
+        description: `Sua chave foi validada com sucesso com o modelo ${activeModel}. Raciocínio diagnóstico e transcrição multimodal ativos.`,
       });
     } catch (e) {
       toast({
