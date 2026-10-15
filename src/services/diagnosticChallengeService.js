@@ -169,33 +169,48 @@ Relato da Avaliação: ${assessmentData.notes || "Avaliação regular"}
 
 Gere a Bateria Completa com 4 questões complexas da vivência hospitalar real. As 4 alternativas de cada questão DEVEM ter a mesma quantidade de palavras. Retorne exclusivamente JSON válido.`;
 
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\n---\n\n${userPrompt}` }] }],
-            generationConfig: { temperature: 0.35, responseMimeType: "application/json" }
-          })
-        }
-      );
+      const savedModel = (typeof localStorage !== "undefined" && localStorage.getItem("enfermeiro_gemini_model")) || null;
+      const candidateModels = [
+        ...(savedModel ? [savedModel] : []),
+        "gemini-2.5-flash",
+        "gemini-2.0-flash",
+        "gemini-1.5-flash-latest",
+        "gemini-1.5-flash",
+      ].filter((v, i, a) => a.indexOf(v) === i);
 
-      if (response.ok) {
-        const json = await response.json();
-        const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          const parsed = JSON.parse(text);
-          if (parsed.questions && parsed.questions.length >= 2) {
-            // Embaralha as opções de cada questão para que a correta nunca fique fixa na letra A
-            parsed.questions = parsed.questions.map((q) => ({
-              ...q,
-              options: shuffleOptions(q.options),
-            }));
-            parsed.options = parsed.questions[0].options;
-            parsed.attendingTip = parsed.questions[0].attendingTip;
-            return parsed;
+      for (const model of candidateModels) {
+        try {
+          const response = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\n---\n\n${userPrompt}` }] }],
+                generationConfig: { temperature: 0.35, responseMimeType: "application/json" }
+              })
+            }
+          );
+
+          if (response.ok) {
+            const json = await response.json();
+            const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
+            if (text) {
+              const parsed = JSON.parse(text);
+              if (parsed.questions && parsed.questions.length >= 2) {
+                // Embaralha as opções de cada questão para que a correta nunca fique fixa na letra A
+                parsed.questions = parsed.questions.map((q) => ({
+                  ...q,
+                  options: shuffleOptions(q.options),
+                }));
+                parsed.options = parsed.questions[0].options;
+                parsed.attendingTip = parsed.questions[0].attendingTip;
+                return parsed;
+              }
+            }
           }
+        } catch (callErr) {
+          console.warn(`Tentativa com modelo ${model} falhou:`, callErr);
         }
       }
     } catch (e) {

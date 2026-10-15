@@ -211,14 +211,15 @@ ESCALAS CLÍNICAS:
 
 Status de Risco Global Calculado: ${clinicalData.status_risco}`;
 
-  // Modelos disponíveis em ordem de prioridade (gemini-3.8-flash como padrão atual da Google AI)
+  // Modelos disponíveis em ordem de prioridade
   const savedModel = (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_gemini_model')) || null;
   const models = [
     ...(savedModel ? [savedModel] : []),
-    'gemini-3.8-flash',
     'gemini-2.5-flash',
     'gemini-2.0-flash',
-    'gemini-1.5-flash'
+    'gemini-1.5-flash-latest',
+    'gemini-1.5-flash',
+    'gemini-1.5-pro'
   ].filter((v, i, a) => a.indexOf(v) === i);
 
   for (const model of models) {

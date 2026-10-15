@@ -37,62 +37,111 @@ export default function Conta() {
 
     setTestingGemini(true);
     try {
-      // Modelos em ordem de prioridade (Google AI Studio recomenda gemini-3.8-flash para novos usuários)
-      const candidateModels = [
-        "gemini-3.8-flash",
+      // 1. Descoberta dinâmica de modelos disponíveis para a chave específica (conforme documentação oficial da Google)
+      const listRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models?key=${keyToTest}`
+      );
+
+      if (!listRes.ok) {
+        const errData = await listRes.json().catch(() => ({}));
+        const msg = errData?.error?.message || "";
+        if (
+          listRes.status === 400 &&
+          (msg.toLowerCase().includes("api key not valid") || msg.toLowerCase().includes("key invalid"))
+        ) {
+          throw new Error("Chave de API inválida. Verifique se copiou a chave completa gerada no Google AI Studio.");
+        }
+        throw new Error(msg || "Não foi possível validar a chave junto ao Google AI Studio.");
+      }
+
+      const listData = await listRes.json().catch(() => ({}));
+      const rawModels = listData?.models || [];
+
+      // Filtra apenas modelos que suportam geração de conteúdo
+      const contentModels = rawModels.filter((m) => {
+        const methods = m.supportedGenerationMethods || m.supportedActions || [];
+        return methods.includes("generateContent");
+      });
+
+      // Lista de preferência de nomes para a enfermagem clínica
+      const cleanName = (name) => (name || "").replace(/^models\//, "");
+
+      let selectedModel = null;
+      const candidatesInOrder = [
         "gemini-2.5-flash",
         "gemini-2.0-flash",
+        "gemini-1.5-flash-latest",
         "gemini-1.5-flash",
+        "gemini-2.0-flash-exp",
+        "gemini-1.5-flash-8b",
+        "gemini-1.5-pro",
       ];
 
-      let successModel = null;
-      let lastErrorMessage = null;
-
-      for (const model of candidateModels) {
-        try {
-          const res = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${keyToTest}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: "ping" }] }],
-              }),
-            }
-          );
-
-          if (res.ok) {
-            successModel = model;
-            break;
-          }
-
-          const errData = await res.json().catch(() => ({}));
-          lastErrorMessage = errData?.error?.message;
-
-          // Se for erro definitivo de chave inválida ou vazia, interrompe a checagem
-          if (res.status === 400 && lastErrorMessage?.toLowerCase().includes("api key not valid")) {
-            throw new Error("Chave de API inválida. Verifique se copiou a chave completa do Google AI Studio.");
-          }
-        } catch (fetchErr) {
-          if (fetchErr.message?.includes("Chave de API inválida")) {
-            throw fetchErr;
-          }
-          lastErrorMessage = fetchErr.message;
+      for (const pref of candidatesInOrder) {
+        const match = contentModels.find(
+          (m) => cleanName(m.name).toLowerCase() === pref.toLowerCase()
+        );
+        if (match) {
+          selectedModel = cleanName(match.name);
+          break;
         }
       }
 
-      if (!successModel) {
-        throw new Error(
-          lastErrorMessage || "Chave de API não aceita pelos modelos Gemini disponíveis."
-        );
+      // Se nenhum dos preferidos exatos estiver, procura por similaridade ou pega o primeiro que suporte generateContent
+      if (!selectedModel) {
+        const fallback =
+          contentModels.find((m) => cleanName(m.name).toLowerCase().includes("flash")) ||
+          contentModels[0];
+        if (fallback) {
+          selectedModel = cleanName(fallback.name);
+        }
+      }
+
+      if (!selectedModel) {
+        selectedModel = "gemini-2.0-flash";
+      }
+
+      // 2. Realiza um ping real no modelo descoberto para garantir funcionamento
+      const pingRes = await fetch(
+        `https://generativelanguage.googleapis.com/v1beta/models/${selectedModel}:generateContent?key=${keyToTest}`,
+        {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            contents: [{ parts: [{ text: "ping" }] }],
+          }),
+        }
+      );
+
+      if (!pingRes.ok) {
+        const errPing = await pingRes.json().catch(() => ({}));
+        const errMsg = errPing?.error?.message;
+        // Se falhar o modelo primário, tenta fallback em gemini-2.0-flash
+        if (selectedModel !== "gemini-2.0-flash") {
+          const retryRes = await fetch(
+            `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent?key=${keyToTest}`,
+            {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({ contents: [{ parts: [{ text: "ping" }] }] }),
+            }
+          );
+          if (retryRes.ok) {
+            selectedModel = "gemini-2.0-flash";
+          } else {
+            throw new Error(errMsg || "Erro ao executar geração de teste com o modelo Gemini.");
+          }
+        } else {
+          throw new Error(errMsg || "Erro ao executar geração de teste com o modelo Gemini.");
+        }
       }
 
       localStorage.setItem("enfermeiro_gemini_api_key", keyToTest);
-      localStorage.setItem("enfermeiro_gemini_model", successModel);
+      localStorage.setItem("enfermeiro_gemini_model", selectedModel);
       setGeminiKey(keyToTest);
       toast({
         title: "Google Gemini Conectado!",
-        description: `Sua chave foi validada com sucesso com o modelo ${successModel}. Raciocínio diagnóstico e transcrição multimodal ativos.`,
+        description: `Sua chave foi validada com sucesso com o modelo ${selectedModel}. Raciocínio diagnóstico e transcrição multimodal ativos.`,
       });
     } catch (e) {
       toast({
