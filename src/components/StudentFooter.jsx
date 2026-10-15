@@ -1,6 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, ShieldCheck, HelpCircle, FileText } from "lucide-react";
+import { Activity, ShieldCheck } from "lucide-react";
 
 export default function StudentFooter() {
   const navigate = useNavigate();

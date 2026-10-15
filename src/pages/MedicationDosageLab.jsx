@@ -12,9 +12,7 @@ import {
   Droplet,
   Beaker,
   BookOpen,
-  Sparkles,
-  HelpCircle,
-  RotateCcw
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -135,7 +133,6 @@ export default function MedicationDosageLab() {
 
   // Estado da Calculadora Interativa Livre (Resgatada do Backup)
   const [calcType, setCalcType] = useState("drip");
-  const [showRef, setShowRef] = useState(true);
   const [calcForm, setCalcForm] = useState({
     drug_name: "",
     concentration: "",

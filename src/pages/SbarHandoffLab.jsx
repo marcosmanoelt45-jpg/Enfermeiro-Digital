@@ -1,27 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useLocation } from "react-router-dom";
 import {
   Mic,
   MicOff,
   Send,
   Sparkles,
-  FileText,
   ShieldCheck,
   AlertTriangle,
   CheckCircle2,
-  HelpCircle,
-  RotateCcw,
   Download,
-  Stethoscope,
   HeartPulse,
   Activity,
-  UserCheck,
   Clock,
-  ArrowRight,
-  MessageSquareQuote,
-  Flame,
-  Award,
-  ChevronDown
+  MessageSquareQuote
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -88,7 +79,6 @@ const PRESET_HANDOFF_SCENARIOS = [
 
 export default function SbarHandoffLab() {
   const location = useLocation();
-  const navigate = useNavigate();
   const { user } = useAuth();
 
   // Caso recebido via navegação ou caso selecionado

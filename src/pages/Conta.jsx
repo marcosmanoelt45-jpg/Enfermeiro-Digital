@@ -2,7 +2,7 @@ import React, { useState, useRef } from "react";
 import { useAuth } from "@/lib/AuthContext";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeft, LogOut, Mail, UserCircle, ShieldCheck, Loader2, GraduationCap, School, Camera, Check, Sparkles, Mic, AudioLines } from "lucide-react";
+import { ArrowLeft, LogOut, Mail, UserCircle, ShieldCheck, Loader2, Camera, Check, Sparkles, Mic } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Image as ImageComponent } from "@/components/ui/image";
@@ -220,7 +220,7 @@ export default function Conta() {
     logout(true);
   }
 
-  async function switchProfile(type) {
+  async function _switchProfile(type) {
     if (switching || user?.user_type === type) return;
     setSwitching(true);
     try {

@@ -5,15 +5,8 @@ import {
   Calculator,
   Stethoscope,
   Users,
-  ArrowRight,
-  Activity,
-  CheckCircle2,
-  Clock,
   ChevronRight,
-  ClipboardList,
-  Target,
   PlusCircle,
-  Sparkles,
   Mic,
   ArrowRightLeft
 } from "lucide-react";

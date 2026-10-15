@@ -5,34 +5,24 @@ import {
   ArrowRight,
   CheckCircle2,
   AlertCircle,
-  Sparkles,
   Shuffle,
   Activity,
   HeartPulse,
   ClipboardCheck,
   BrainCircuit,
-  Wine,
   Footprints,
   FileText,
-  HelpCircle,
   Lightbulb,
   Award,
   RotateCcw,
-  Send,
   UserRound,
   ShieldCheck,
   Check,
-  ChevronRight,
   Target,
-  Layers,
   Mic,
   MicOff,
-  Pill,
-  AlertTriangle,
-  ShieldAlert,
   ListChecks,
   AudioLines,
-  Stethoscope,
   Download,
   ArrowRightLeft
 } from "lucide-react";
@@ -42,7 +32,6 @@ import { Textarea } from "@/components/ui/textarea";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import VitalSlider from "@/components/VitalSlider";
-import PainLocationPicker from "@/components/PainLocationPicker";
 import RiskBadge from "@/components/RiskBadge";
 import useAudioRecorder from "@/hooks/useAudioRecorder";
 import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
@@ -55,12 +44,10 @@ import {
   computeGlobalRisk,
   computeBradenTotal,
   computeCamPositive,
-  computeAuditTotal,
   computeSakTotal,
-  computeCaloiTotal,
-  RISK_META
+  computeCaloiTotal
 } from "@/lib/riskEngine";
-import { generateRandomInitials, generateRandomName, generateRandomAge, formatToInitials } from "@/lib/sampleNames";
+import { generateRandomInitials, generateRandomAge, formatToInitials } from "@/lib/sampleNames";
 import { generateCaseDiagnosticChallenge } from "@/services/diagnosticChallengeService";
 
 const WIZARD_STEPS = [
@@ -112,7 +99,6 @@ export default function CaseStudio() {
   const audioRecorder = useAudioRecorder();
   const [audioTranscript, setAudioTranscript] = useState("");
   const [isAudioTranscribing, setIsAudioTranscribing] = useState(false);
-  const [audioStage, setAudioStage] = useState("");
   const [audioError, setAudioError] = useState("");
   const [isLiveDictatingAudio, setIsLiveDictatingAudio] = useState(false);
   const liveAudioRecRef = useRef(null);

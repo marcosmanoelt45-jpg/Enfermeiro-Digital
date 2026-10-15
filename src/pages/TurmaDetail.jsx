@@ -18,8 +18,7 @@ import {
   Settings,
   Pencil,
   Trash2,
-  UserMinus,
-  Sparkles
+  UserMinus
 } from "lucide-react";
 import { DEMO_TURMA, DEMO_MEMBERS, DEMO_ASSIGNMENTS, DEMO_ANSWERS } from "@/data/demoTurma";
 import { Image as ImageComponent } from "@/components/ui/image";

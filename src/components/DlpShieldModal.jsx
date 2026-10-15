@@ -1,5 +1,5 @@
 import React from "react";
-import { ShieldAlert, Lock, CheckCircle2, AlertTriangle } from "lucide-react";
+import { ShieldAlert, Lock, AlertTriangle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 

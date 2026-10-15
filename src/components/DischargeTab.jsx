@@ -88,7 +88,7 @@ export default function DischargeTab({ patientId }) {
     setEditing(p.id);
   }
 
-  function listField(key, label, placeholder) {
+  function listField(key, label, _placeholder) {
     const items = form[key] || [];
     return (
       <div>

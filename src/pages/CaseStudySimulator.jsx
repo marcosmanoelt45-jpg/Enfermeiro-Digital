@@ -1,9 +1,7 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  BookOpen,
   CheckCircle2,
-  AlertTriangle,
   Lightbulb,
   ArrowRight,
   ArrowLeft,
@@ -15,8 +13,6 @@ import {
   Plus,
   Stethoscope,
   Timer,
-  FileText,
-  Target,
   ClipboardList,
   Eye,
   Check,

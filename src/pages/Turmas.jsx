@@ -11,7 +11,6 @@ import {
   ArrowLeft,
   UserCog,
   ClipboardList,
-  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -25,7 +24,6 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { generateTurmaCode } from "@/lib/turmaUtils";
-import { DEMO_MEMBERSHIP } from "@/data/demoTurma";
 
 export default function Turmas() {
   const { user } = useAuth();

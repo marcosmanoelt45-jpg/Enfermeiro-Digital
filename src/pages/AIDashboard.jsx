@@ -78,7 +78,7 @@ export default function AIDashboard() {
       const fresh = await assessmentService.get(id);
       setAssessment(fresh);
       if (fresh.ai_response || generated) setPlan(fresh.ai_response || generated);
-    } catch (e) {
+    } catch (_e) {
       setAssessment((a) => ({ ...a, ai_status: "error" }));
     }
   }

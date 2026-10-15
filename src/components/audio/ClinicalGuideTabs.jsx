@@ -1,17 +1,14 @@
 import React, { useState } from "react";
 import {
-  Activity,
-  AlertTriangle,
   BrainCircuit,
   HeartPulse,
-  Info,
   ShieldAlert,
   Sparkles,
   UserCheck,
   Zap,
 } from "lucide-react";
 
-export default function ClinicalGuideTabs({ onSelectSnippet }) {
+export default function ClinicalGuideTabs({ onSelectSnippet: _onSelectSnippet = null }) {
   const [activeTab, setActiveTab] = useState("sinais");
 
   const TABS = [

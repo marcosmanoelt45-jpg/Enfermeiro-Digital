@@ -1,5 +1,5 @@
 import React from "react";
-import { AlertCircle, AlertTriangle, CheckCircle2, Plus, Sparkles } from "lucide-react";
+import { AlertCircle, AlertTriangle, CheckCircle2, Plus } from "lucide-react";
 import { describeVitals, getMissingVitals } from "@/lib/vitalsParser";
 
 export default function VitalsChips({ vitals, text = "", onInsertMissing }) {

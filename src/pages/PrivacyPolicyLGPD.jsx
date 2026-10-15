@@ -3,15 +3,9 @@ import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
   ShieldCheck,
-  Lock,
   FileText,
   CheckCircle2,
-  UserCheck,
-  AlertCircle,
-  Building2,
-  HelpCircle,
-  BookOpen,
-  ChevronDown
+  Building2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentFooter from "@/components/StudentFooter";

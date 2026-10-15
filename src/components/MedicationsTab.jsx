@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
-import { Pill, Loader2, Plus, Trash2, Calculator, Droplet, Save, Beaker, BookOpen, Info } from "lucide-react";
+import { Pill, Loader2, Trash2, Calculator, Droplet, Save, Beaker, BookOpen } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";

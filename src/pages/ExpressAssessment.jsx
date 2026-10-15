@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { assessmentService } from "@/services";
 import { useNavigate, useParams } from "react-router-dom";
-import { ArrowLeft, Check, Loader2, Sparkles, Save, RotateCcw } from "lucide-react";
+import { ArrowLeft, Check, Loader2, Sparkles, RotateCcw } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import {

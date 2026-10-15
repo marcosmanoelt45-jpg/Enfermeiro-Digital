@@ -1,6 +1,5 @@
 import React, { useState } from "react";
 import {
-  Stethoscope,
   Brain,
   Wind,
   Heart,
@@ -9,7 +8,6 @@ import {
   BookOpen,
   ClipboardList
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
