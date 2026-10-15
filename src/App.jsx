@@ -27,7 +27,6 @@ import AIDashboard from '@/pages/AIDashboard';
 import Patients from '@/pages/Patients';
 import PatientDetail from '@/pages/PatientDetail';
 import Conta from '@/pages/Conta';
-import SbarHandoffLab from '@/pages/SbarHandoffLab';
 import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
@@ -70,8 +69,6 @@ const AuthenticatedApp = () => {
         <Route path="/montar-caso" element={<CaseStudio />} />
         <Route path="/simulador-casos" element={<CaseStudySimulator />} />
         <Route path="/laboratorio-calculos" element={<MedicationDosageLab />} />
-        <Route path="/passagem-plantao" element={<SbarHandoffLab />} />
-        <Route path="/sbar" element={<SbarHandoffLab />} />
         <Route path="/sistemas-organicos" element={<SystemsAssessmentLab />} />
         <Route path="/banco-casos" element={<CaseLibrary />} />
         <Route path="/referencias" element={<References />} />

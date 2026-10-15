@@ -7,8 +7,7 @@ import {
   Users,
   ChevronRight,
   PlusCircle,
-  Mic,
-  ArrowRightLeft
+  Mic
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
@@ -23,25 +22,13 @@ export default function StudentDashboard() {
 
   const learningModules = [
     {
-      id: "sbar",
-      title: "Passagem de Plantão (SBAR)",
-      subtitle: "Comunicação Segura & Tutoria",
-      description: "Pratique a transição de cuidados por voz ou texto. A tutora Florence audita a segurança do paciente e gera laudo oficial em PDF.",
-      icon: ArrowRightLeft,
-      path: "/passagem-plantao",
-      badge: "Novo • Tutoria Socrática",
-      badgeColor: "bg-teal-50 text-teal-800 border-teal-200",
-      accentBg: "bg-teal-700 text-white",
-      stats: "SBAR • Meta 2 OMS • PDF Oficial"
-    },
-    {
       id: "montar",
       title: "Montador de Casos Clínicos",
       subtitle: "Estúdio de Casos & Desafio",
       description: "Construa o perfil do paciente do zero com todos os escores clínicos (Braden, CAM, AUDIT, SAK, CALOI) e resolva o desafio diagnóstico da IA.",
       icon: PlusCircle,
       path: "/montar-caso",
-      badge: "Interativo",
+      badge: "Novo • Interativo",
       badgeColor: "bg-emerald-50 text-emerald-800 border-emerald-200",
       accentBg: "bg-emerald-700 text-white",
       stats: "Braden • CAM • CALOI • SAK • Áudio"
@@ -136,13 +123,6 @@ export default function StudentDashboard() {
                 className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm px-3.5 h-10 flex items-center gap-1.5"
               >
                 <BookOpen className="h-4 w-4" /> Casos Prontos
-              </Button>
-              <Button
-                onClick={() => navigate("/passagem-plantao")}
-                variant="outline"
-                className="rounded-xl border-teal-300 text-teal-800 hover:bg-teal-50 font-semibold text-xs sm:text-sm px-3.5 h-10 flex items-center gap-1.5"
-              >
-                <ArrowRightLeft className="h-4 w-4 text-teal-700" /> Plantão SBAR
               </Button>
               <Button
                 onClick={() => navigate("/laboratorio-calculos")}

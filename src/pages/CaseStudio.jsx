@@ -23,8 +23,7 @@ import {
   MicOff,
   ListChecks,
   AudioLines,
-  Download,
-  ArrowRightLeft
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1718,24 +1717,6 @@ export default function CaseStudio() {
                 </ul>
 
                 <div className="pt-4 mt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-2.5">
-                  <Button
-                    size="sm"
-                    onClick={() => {
-                      const caseToPass = {
-                        name: profile?.name || "Paciente Simulado",
-                        age: profile?.age || 50,
-                        bed: profile?.bed || "Leito de Internação",
-                        title: challenge?.patientSummary || "Caso Montado no Estúdio",
-                        diagnosis: challenge?.correctDiagnosis || "Diagnóstico de Enfermagem",
-                        vitals: data,
-                        interventions: challenge?.recommendedInterventions
-                      };
-                      navigate("/passagem-plantao", { state: { caseData: caseToPass } });
-                    }}
-                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs w-full sm:w-auto"
-                  >
-                    <ArrowRightLeft className="h-3.5 w-3.5" /> Passar Plantão deste Paciente (SBAR)
-                  </Button>
                   <Button
                     size="sm"
                     variant="outline"

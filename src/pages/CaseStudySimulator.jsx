@@ -16,8 +16,7 @@ import {
   ClipboardList,
   Eye,
   Check,
-  Download,
-  ArrowRightLeft
+  Download
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -847,13 +846,6 @@ export default function CaseStudySimulator() {
                   )}
 
                   <div className="pt-3 mt-3 border-t border-slate-200/80 flex flex-col gap-2">
-                    <Button
-                      size="sm"
-                      onClick={() => navigate("/passagem-plantao", { state: { caseData: currentCase } })}
-                      className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold flex items-center justify-center gap-1.5 shadow-xs w-full"
-                    >
-                      <ArrowRightLeft className="h-3.5 w-3.5" /> Passar Plantão deste Paciente (SBAR)
-                    </Button>
                     <Button
                       size="sm"
                       variant="outline"
