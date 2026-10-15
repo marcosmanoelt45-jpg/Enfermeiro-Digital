@@ -9,6 +9,10 @@ import { Image as ImageComponent } from "@/components/ui/image";
 import { toast } from "@/components/ui/use-toast";
 import PhotoCropper from "@/components/PhotoCropper";
 
+function cleanName(name) {
+  return (name || "").replace(/^models\//, "");
+}
+
 export default function Conta() {
   const { user, logout, checkUserAuth } = useAuth();
   const navigate = useNavigate();
