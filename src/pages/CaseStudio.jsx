@@ -23,7 +23,8 @@ import {
   MicOff,
   ListChecks,
   AudioLines,
-  Download
+  Download,
+  ArrowRightLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -1740,6 +1741,30 @@ export default function CaseStudio() {
                     className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center justify-center gap-1.5 w-full sm:w-auto"
                   >
                     <Download className="h-3.5 w-3.5" /> Baixar Prontuário em PDF
+                  </Button>
+
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      navigate("/passagem-plantao", {
+                        state: {
+                          caseData: {
+                            name: profile?.name || "Paciente Simulado",
+                            age: profile?.age || 50,
+                            bed: profile?.bed || "Leito de Internação",
+                            sector: "Enfermaria Clínica Geral",
+                            diagnosis: challenge?.correctDiagnosis || "Diagnóstico de Enfermagem",
+                            clinicalSummary: challenge?.patientSummary || "Caso clínico montado com escores no Estúdio de Casos.",
+                            vitals: data,
+                            interventions: challenge?.recommendedInterventions
+                          }
+                        }
+                      });
+                    }}
+                    className="rounded-xl border-amber-300 text-amber-900 hover:bg-amber-50 text-xs font-semibold flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                  >
+                    <ArrowRightLeft className="h-3.5 w-3.5 text-amber-700" /> Passar Plantão deste Caso (SBAR)
                   </Button>
                 </div>
               </div>

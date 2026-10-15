@@ -1,0 +1,963 @@
+import React, { useState, useEffect, useRef } from "react";
+import { useLocation } from "react-router-dom";
+import {
+  Mic,
+  MicOff,
+  Send,
+  Sparkles,
+  ShieldCheck,
+  AlertTriangle,
+  CheckCircle2,
+  Download,
+  HeartPulse,
+  Activity,
+  Clock,
+  ArrowRight,
+  MessageSquareQuote,
+  RotateCcw,
+  BookOpen,
+  AlertCircle,
+  Lightbulb
+} from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Textarea } from "@/components/ui/textarea";
+import { Input } from "@/components/ui/input";
+import StudentHeader from "@/components/StudentHeader";
+import StudentFooter from "@/components/StudentFooter";
+import { useAuth } from "@/lib/AuthContext";
+import { evaluateSbarHandoff } from "@/services/sbarTutorService";
+import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
+
+const PRESET_HANDOFF_SCENARIOS = [
+  {
+    id: "pos_op",
+    title: "1º DPO de Colectomia Parcial",
+    sector: "Clínica Cirúrgica • Leito 12-A",
+    bed: "Leito 12-A",
+    age: 58,
+    name: "M.S.L.",
+    diagnosis: "Pós-operatório imediato de colectomia por diverticulite aguda",
+    vitals: { pa_sistolica: 115, pa_diastolica: 72, fc: 84, fr: 17, sat: 98, tax: 36.6 },
+    clinicalSummary: "Paciente lúcido no 1º DPO de colectomia parcial, queixando-se de dor moderada em incisão cirúrgica. Dreno tubular ativo em flanco direito com débito serossanguinolento.",
+    goldenSbar: {
+      situation: "Paciente M.S.L., 58 anos, no Leito 12-A da Clínica Cirúrgica, no 1º DPO de colectomia parcial por diverticulite.",
+      background: "Hipertenso controlado com Losartana. Nega alergias medicamentosas e cirurgias abdominais prévias.",
+      assessment: "PA 115/72 mmHg, FC 84 bpm, afebril, SatO2 98% em ar ambiente. Abdome flácido, doloroso à palpação na incisão (EVA 4/10). Dreno de Portovac com débito serossanguinolento de 120 mL em 12h. Curativo cirúrgico limpo e seco.",
+      recommendation: "Vigiar aspecto e volume do dreno a cada 4 horas; administrar analgesia prescrita às 20h; checar resultado do hematócrito de controle colhido nesta tarde."
+    },
+    educationalPointers: {
+      situation: "Diga quem é, o leito e o motivo cirúrgico em 15 segundos.",
+      background: "Confirme categoricamente que o paciente NÃO tem alergias medicamentosas.",
+      assessment: "Fale números exatos de PA, débito do dreno e nota da dor na escala EVA.",
+      recommendation: "Deixe horários claros de analgesia e exames laboratoriais a checar."
+    }
+  },
+  {
+    id: "icc",
+    title: "ICC Descompensada & Congestão Pulmonar",
+    sector: "UTI Cardiológica • Leito 04",
+    bed: "Leito 04 - UTI",
+    age: 67,
+    name: "J.A.P.",
+    diagnosis: "Insuficiência Cardíaca Congestiva perfil B (úmido e quente)",
+    vitals: { pa_sistolica: 148, pa_diastolica: 94, fc: 96, fr: 23, sat: 92, tax: 36.4 },
+    clinicalSummary: "Admitido por piora progressiva da dispneia aos mínimos esforços e ortopneia. Estertores crepitantes bibasais em terços inferiores e turgência jugular patológica.",
+    goldenSbar: {
+      situation: "Paciente J.A.P., 67 anos, no Leito 04 da UTI Cardiológica, admitido há 6 horas por descompensação de ICC com congestão pulmonar aguda.",
+      background: "Histórico de ICC com fração de ejeção de 32%, HAS e DM2. Relata alergia severa a contraste iodado.",
+      assessment: "PA 148/94 mmHg, FC 96 bpm, FR 23 irpm, SatO2 92% em ar ambiente que subiu para 96% sob cateter nasal a 3 L/min. Estertores crepitantes finos bibasais e edema de MMII +++/4+.",
+      recommendation: "Administrar Furosemida 40 mg IV prescrita para as 20h; realizar balanço hídrico rigoroso de 6 em 6 horas e registrar peso em jejum amanhã cedo."
+    },
+    educationalPointers: {
+      situation: "Identifique o tempo de admissão (6 horas) e o motivo da descompensação.",
+      background: "Obrigatoriamente avise sobre a alergia a contraste iodado antes de qualquer tomografia.",
+      assessment: "Informe a resposta da saturação ao oxigênio (de 92% para 96% a 3 L/min).",
+      recommendation: "Prescreva o controle de diurese e o balanço hídrico rigoroso."
+    }
+  },
+  {
+    id: "delirium",
+    title: "Idoso com Delirium & Risco de Queda",
+    sector: "Enfermaria Geriátrica • Leito 21-B",
+    bed: "Leito 21-B",
+    age: 82,
+    name: "A.B.C.",
+    diagnosis: "Pneumonia Comunitária associada a Delirium Misto",
+    vitals: { pa_sistolica: 132, pa_diastolica: 78, fc: 76, fr: 19, sat: 95, tax: 37.1 },
+    clinicalSummary: "Paciente idoso com flutuação do nível de consciência, desorientação temporal e tentativa recorrente de retirada de punção venosa e evasão do leito.",
+    goldenSbar: {
+      situation: "Paciente A.B.C., 82 anos, Leito 21-B da Geriatria, no 3º dia de internação por pneumonia comunitária em antibioticoterapia venosa.",
+      background: "Diagnóstico prévio de Alzheimer leve e osteoartrose. Histórico de queda no domicílio há 2 meses com contusão em quadril.",
+      assessment: "Sinais vitais estáveis (PA 132/78 mmHg, FC 76 bpm, SatO2 95%). Apresenta flutuação do sensório (CAM positivo), agitou-se no início da tarde tentando levantar-se sem auxílio.",
+      recommendation: "Manter grades do leito sempre elevadas bilateralmente; orientar e apoiar o acompanhante familiar; manter acesso periférico protegido e evitar contenção física mecânica desnecessária."
+    },
+    educationalPointers: {
+      situation: "Informe o dia do antibiótico e a enfermaria geriátrica.",
+      background: "Alerte sobre a queda recente no domicílio para acionar o protocolo de quedas.",
+      assessment: "Descreva a flutuação do CAM e a tentativa de evasão do leito.",
+      recommendation: "Foque nas grades elevadas e na segurança física do paciente sem contenção abusiva."
+    }
+  }
+];
+
+export default function SbarHandoffLab() {
+  const location = useLocation();
+  const { user } = useAuth();
+
+  const passedCase = location.state?.caseData;
+
+  const [activeTab, setActiveTab] = useState("guided"); // "guided" | "free_voice" | "debriefing"
+  const [activeGuidedStep, setActiveGuidedStep] = useState(0); // 0: S, 1: B, 2: A, 3: R
+
+  const [activeScenarioIdx, setActiveScenarioIdx] = useState(0);
+  const [currentCase, setCurrentCase] = useState(() => {
+    return passedCase || PRESET_HANDOFF_SCENARIOS[0];
+  });
+
+  const [sbarData, setSbarData] = useState({
+    situation: "",
+    background: "",
+    assessment: "",
+    recommendation: ""
+  });
+
+  // Checklists Pedagógicos Interativos por Pilar
+  const [checklists, setChecklists] = useState({
+    situation: { bed: false, id: false, reason: false },
+    background: { allergy: false, comorbidities: false, meds: false },
+    assessment: { vitals: false, sato2: false, exam: false },
+    recommendation: { time: false, meds: false, monitoring: false }
+  });
+
+  // Reconhecimento de Voz (Web Speech API)
+  const [isListening, setIsListening] = useState(false);
+  const [activeListeningField, setActiveListeningField] = useState(null);
+  const speechRecognitionRef = useRef(null);
+
+  // Estados de Avaliação
+  const [isEvaluating, setIsEvaluating] = useState(false);
+  const [tutorEvaluation, setTutorEvaluation] = useState(null);
+  const [studentReflections, setStudentReflections] = useState({});
+  const [toastMessage, setToastMessage] = useState("");
+
+  useEffect(() => {
+    if (passedCase) {
+      setCurrentCase(passedCase);
+    }
+  }, [passedCase]);
+
+  // Inicializa suporte a voz (Web Speech Recognition)
+  useEffect(() => {
+    const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (SpeechRec) {
+      const rec = new SpeechRec();
+      rec.continuous = true;
+      rec.interimResults = true;
+      rec.lang = "pt-BR";
+
+      rec.onresult = (event) => {
+        let transcript = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+
+        if (activeListeningField) {
+          setSbarData((prev) => ({
+            ...prev,
+            [activeListeningField]: (prev[activeListeningField] ? prev[activeListeningField].trim() + " " : "") + transcript
+          }));
+        }
+      };
+
+      rec.onerror = (e) => {
+        console.warn("[SpeechRecognition] Erro:", e.error);
+        setIsListening(false);
+        setActiveListeningField(null);
+      };
+
+      rec.onend = () => {
+        setIsListening(false);
+        setActiveListeningField(null);
+      };
+
+      speechRecognitionRef.current = rec;
+    }
+
+    return () => {
+      if (speechRecognitionRef.current) {
+        try { speechRecognitionRef.current.stop(); } catch {}
+      }
+    };
+  }, [activeListeningField]);
+
+  // Atualização inteligente dos checklists dinâmicos conforme digitação/voz
+  useEffect(() => {
+    const s = (sbarData.situation || "").toLowerCase();
+    const b = (sbarData.background || "").toLowerCase();
+    const a = (sbarData.assessment || "").toLowerCase();
+    const r = (sbarData.recommendation || "").toLowerCase();
+
+    setChecklists({
+      situation: {
+        bed: s.includes("leito") || s.includes("box") || s.includes("quarto") || s.includes("enfermaria"),
+        id: s.includes("anos") || s.includes("paciente") || s.includes("m.") || s.includes("j.") || s.includes("a."),
+        reason: s.includes("dpo") || s.includes("colectomia") || s.includes("icc") || s.includes("pneumonia") || s.includes("admi") || s.includes("interna")
+      },
+      background: {
+        allergy: b.includes("alergia") || b.includes("alérg") || b.includes("sem alergia") || b.includes("nega alergia"),
+        comorbidities: b.includes("has") || b.includes("hiperten") || b.includes("icc") || b.includes("dm") || b.includes("alzheimer") || b.includes("comorbidade"),
+        meds: b.includes("losartana") || b.includes("furosemida") || b.includes("uso") || b.includes("medic") || b.includes("remédio")
+      },
+      assessment: {
+        vitals: a.includes("pa") || a.includes("pressão") || a.includes("fc") || a.includes("bpm") || /\d{2,3}\s*\/\s*\d{2,3}/.test(a),
+        sato2: a.includes("sat") || a.includes("oxig") || a.includes("%") || a.includes("ar ambiente") || a.includes("cateter"),
+        exam: a.includes("dor") || a.includes("dreno") || a.includes("eva") || a.includes("estertor") || a.includes("edema") || a.includes("sensório") || a.includes("curativo")
+      },
+      recommendation: {
+        time: r.includes("às") || r.includes("h") || r.includes("horas") || r.includes("noite") || r.includes("amanhã") || r.includes("cedo"),
+        meds: r.includes("administrar") || r.includes("analgesia") || r.includes("furosemida") || r.includes("medic") || r.includes("dose"),
+        monitoring: r.includes("vigiar") || r.includes("checar") || r.includes("balanço") || r.includes("grades") || r.includes("resultado") || r.includes("hematócrito")
+      }
+    });
+  }, [sbarData]);
+
+  function handleSelectScenario(idx) {
+    setActiveScenarioIdx(idx);
+    setCurrentCase(PRESET_HANDOFF_SCENARIOS[idx]);
+    setSbarData({ situation: "", background: "", assessment: "", recommendation: "" });
+    setTutorEvaluation(null);
+    setStudentReflections({});
+    setActiveGuidedStep(0);
+  }
+
+  function handleInsertGoldenExample() {
+    if (currentCase?.goldenSbar) {
+      setSbarData(currentCase.goldenSbar);
+      setToastMessage("Exemplo Padrão Ouro inserido em todos os campos para análise didática!");
+      setTimeout(() => setToastMessage(""), 3500);
+    }
+  }
+
+  function handleInsertFieldExample(fieldKey) {
+    if (currentCase?.goldenSbar?.[fieldKey]) {
+      setSbarData((prev) => ({ ...prev, [fieldKey]: currentCase.goldenSbar[fieldKey] }));
+      setToastMessage(`Exemplo inserido no campo ${fieldKey.toUpperCase()}!`);
+      setTimeout(() => setToastMessage(""), 3000);
+    }
+  }
+
+  function handleClearFields() {
+    setSbarData({ situation: "", background: "", assessment: "", recommendation: "" });
+    setTutorEvaluation(null);
+    setToastMessage("Campos limpos com sucesso.");
+    setTimeout(() => setToastMessage(""), 2500);
+  }
+
+  function toggleVoiceInput(fieldName) {
+    if (!speechRecognitionRef.current) {
+      alert("Seu navegador não possui suporte à API de Reconhecimento de Voz. Utilize digitação ou use o Google Chrome no desktop.");
+      return;
+    }
+
+    if (isListening && activeListeningField === fieldName) {
+      speechRecognitionRef.current.stop();
+      setIsListening(false);
+      setActiveListeningField(null);
+    } else {
+      try {
+        setActiveListeningField(fieldName);
+        setIsListening(true);
+        speechRecognitionRef.current.start();
+      } catch (err) {
+        console.warn("[SpeechRecognition] Já ativo:", err);
+      }
+    }
+  }
+
+  async function handleEvaluateSbar() {
+    const isAnyFilled = sbarData.situation || sbarData.background || sbarData.assessment || sbarData.recommendation;
+    if (!isAnyFilled) {
+      alert("Por favor, preencha ao menos uma etapa do SBAR antes de enviar para a auditoria de Florence.");
+      return;
+    }
+
+    setIsEvaluating(true);
+    try {
+      const evaluation = await evaluateSbarHandoff({
+        caseData: currentCase,
+        sbar: sbarData
+      });
+      setTutorEvaluation(evaluation);
+      setActiveTab("debriefing");
+      window.scrollTo({ top: 350, behavior: "smooth" });
+    } catch (err) {
+      console.error("[SbarHandoffLab] Erro ao avaliar:", err);
+    } finally {
+      setIsEvaluating(false);
+    }
+  }
+
+  function handleDownloadPdf() {
+    exportClinicalCaseToPdf({
+      caseData: currentCase,
+      sbarData: sbarData,
+      tutorEvaluation: tutorEvaluation,
+      studentInfo: {
+        name: user?.name || "Acadêmico de Enfermagem",
+        institution: "Faculdade de Enfermagem • Simulação Clínica",
+        id: "PORTFOLIO-SBAR-2026"
+      }
+    });
+
+    setToastMessage("Prontuário Oficial e Parecer Pedagógico em PDF gerados com sucesso!");
+    setTimeout(() => setToastMessage(""), 3500);
+  }
+
+  // Dados da etapa guiada ativa
+  const guidedStepsMeta = [
+    {
+      key: "situation",
+      letter: "S",
+      title: "Situação (Situation)",
+      subtitle: "A regra de ouro dos primeiros 20 segundos",
+      goal: "Apresente quem é o paciente, em qual leito ele se encontra e qual o motivo imediato do contato ou pós-operatório.",
+      badExample: "❌ Como NÃO falar: 'O paciente do 12 tá meio mal, queixando de dor desde ontem e parece que fez cirurgia.'",
+      goodExample: `✅ Exemplo Ouro: "${currentCase?.goldenSbar?.situation || 'Paciente M.S.L., 58 anos, no Leito 12-A, no 1º DPO de colectomia parcial...'}"`,
+      checklistItems: [
+        { key: "bed", label: "Número do Leito / Quarto citado", done: checklists.situation.bed },
+        { key: "id", label: "Iniciais do paciente e idade", done: checklists.situation.id },
+        { key: "reason", label: "Motivo da admissão ou procedimento cirúrgico", done: checklists.situation.reason }
+      ]
+    },
+    {
+      key: "background",
+      letter: "B",
+      title: "Breve Histórico (Background)",
+      subtitle: "O escudo contra eventos sentinela e erros fatais",
+      goal: "Forneça o contexto clínico indispensável: comorbidades ativas, cirurgias anteriores e a CONFERÊNCIA OBRIGATÓRIA DE ALERGIAS.",
+      badExample: "❌ Como NÃO falar: 'Ele toma remédio de pressão e acho que não tem alergia a nada grave.'",
+      goodExample: `✅ Exemplo Ouro: "${currentCase?.goldenSbar?.background || 'Hipertenso controlado com Losartana. Nega alergias medicamentosas e cirurgias abdominais prévias.'}"`,
+      checklistItems: [
+        { key: "allergy", label: "Status alérgico expressamente confirmado (CRÍTICO)", done: checklists.background.allergy },
+        { key: "comorbidities", label: "Comorbidades relevantes de base (HAS, DM, ICC)", done: checklists.background.comorbidities },
+        { key: "meds", label: "Medicações contínuas de uso domiciliar", done: checklists.background.meds }
+      ]
+    },
+    {
+      key: "assessment",
+      letter: "A",
+      title: "Avaliação Atual (Assessment)",
+      subtitle: "A regra do dado objetivo: 'Nunca diga está estável'",
+      goal: "Comunique parâmetros vitais numéricos (PA, FC, SatO2, Tax), escala de dor EVA e achados de drenos, curativos ou consciência.",
+      badExample: "❌ Como NÃO falar: 'Os sinais vitais tão bons, o dreno tá saindo um líquido e ele tá com um pouco de dor.'",
+      goodExample: `✅ Exemplo Ouro: "${currentCase?.goldenSbar?.assessment || 'PA 115/72 mmHg, FC 84 bpm, SatO2 98%. Dor EVA 4/10 em ferida. Dreno de Portovac com 120 mL serossanguinolento.'}"`,
+      checklistItems: [
+        { key: "vitals", label: "Pressão Arterial (PA) e Frequência Cardíaca (FC) numéricas", done: checklists.assessment.vitals },
+        { key: "sato2", label: "Oximetria de pulso (SatO2) e fração de oxigênio", done: checklists.assessment.sato2 },
+        { key: "exam", label: "Avaliação da dor (EVA), débitos de drenos e curativos", done: checklists.assessment.exam }
+      ]
+    },
+    {
+      key: "recommendation",
+      letter: "R",
+      title: "Recomendação (Recommendation)",
+      subtitle: "A liderança da enfermagem na continuidade do cuidado",
+      goal: "Defina claramente as pendências, cuidados prioritários, horários de medicações e exames que o próximo plantão deve fiscalizar.",
+      badExample: "❌ Como NÃO falar: 'Fica de olho nele na madrugada e qualquer coisa chama o plantonista.'",
+      goodExample: `✅ Exemplo Ouro: "${currentCase?.goldenSbar?.recommendation || 'Vigiar aspecto do dreno a cada 4h; administrar analgesia prescrita às 20h; checar hematócrito de controle.'}"`,
+      checklistItems: [
+        { key: "time", label: "Aprazamentos e horários definidos para ações", done: checklists.recommendation.time },
+        { key: "meds", label: "Medicações prescritas e pendentes para o plantão", done: checklists.recommendation.meds },
+        { key: "monitoring", label: "Vigilância de drenos, balanço hídrico ou exames laboratoriais", done: checklists.recommendation.monitoring }
+      ]
+    }
+  ];
+
+  const currentGuided = guidedStepsMeta[activeGuidedStep];
+
+  return (
+    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
+      <StudentHeader activeTab="sbar" />
+
+      <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-8 space-y-6">
+        {/* Cabeçalho Executivo do Laboratório */}
+        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1.5 max-w-2xl">
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block">
+                Comunicação Efetiva & Segurança • Meta 2 OMS
+              </span>
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
+                Resolução COFEN nº 736/2024
+              </span>
+            </div>
+            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+              Laboratório de Passagem de Plantão SBAR
+            </h1>
+            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
+              Desenvolva a liderança e a síntese clínica verbal na transição de cuidados. A preceptora virtual <strong>Florence</strong> analisa sua fala, detecta pontos cegos, simula consequências de omissões e realiza o debriefing socrático.
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-2 self-start md:self-auto shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleInsertGoldenExample}
+              className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5"
+            >
+              <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Exemplo Padrão Ouro
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
+              onClick={handleClearFields}
+              className="rounded-xl text-slate-500 hover:text-slate-900 text-xs"
+            >
+              <RotateCcw className="h-3.5 w-3.5 mr-1" /> Limpar
+            </Button>
+          </div>
+        </div>
+
+        {/* Notificação Toast */}
+        {toastMessage && (
+          <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs flex items-center gap-2 animate-in fade-in shadow-sm">
+            <CheckCircle2 className="h-4 w-4 text-teal-400 shrink-0" />
+            <span className="font-medium">{toastMessage}</span>
+          </div>
+        )}
+
+        {/* Seletor de Cenários Clínicos de Alta Fidelidade */}
+        <div className="space-y-2">
+          <div className="flex items-center justify-between">
+            <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              1. Selecione o Caso Clínico para Simulação:
+            </span>
+            <span className="text-xs text-slate-500">
+              {PRESET_HANDOFF_SCENARIOS.length} Cenários Disponíveis
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+            {PRESET_HANDOFF_SCENARIOS.map((scenario, idx) => (
+              <div
+                key={scenario.id}
+                onClick={() => handleSelectScenario(idx)}
+                className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
+                  activeScenarioIdx === idx
+                    ? "bg-white border-teal-700 ring-2 ring-teal-700/20 shadow-xs"
+                    : "bg-white border-slate-200 hover:border-slate-300"
+                }`}
+              >
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                    {scenario.sector}
+                  </span>
+                  <span className="text-xs font-bold text-teal-700">
+                    {scenario.name} ({scenario.age}a)
+                  </span>
+                </div>
+                <h3 className="text-xs font-bold text-slate-900 line-clamp-1">
+                  {scenario.title}
+                </h3>
+                <p className="text-[11px] text-slate-500 line-clamp-2 mt-1">
+                  {scenario.clinicalSummary}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Card do Paciente no Leito */}
+        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="space-y-1">
+            <span className="text-[10px] font-bold text-teal-800 uppercase block">Prontuário à Beira-Leito</span>
+            <h2 className="text-sm font-bold text-slate-900">
+              {currentCase.name} • {currentCase.bed || "Leito 12"} • {currentCase.diagnosis || currentCase.title}
+            </h2>
+            <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+              {currentCase.clinicalSummary || currentCase.description}
+            </p>
+          </div>
+
+          <div className="flex flex-wrap items-center gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100 shrink-0">
+            <span className="flex items-center gap-1 font-semibold text-slate-700">
+              <HeartPulse className="h-3.5 w-3.5 text-rose-500" />
+              PA: {currentCase.vitals?.pa_sistolica}/{currentCase.vitals?.pa_diastolica} mmHg
+            </span>
+            <span className="flex items-center gap-1 font-semibold text-slate-700">
+              <Activity className="h-3.5 w-3.5 text-emerald-500" />
+              SatO2: {currentCase.vitals?.sat}%
+            </span>
+            <span className="flex items-center gap-1 font-semibold text-slate-700">
+              <Clock className="h-3.5 w-3.5 text-sky-500" />
+              FC: {currentCase.vitals?.fc} bpm
+            </span>
+          </div>
+        </div>
+
+        {/* NAVEGAÇÃO DE MODOS PEDAGÓGICOS */}
+        <div className="flex border-b border-slate-200 gap-4 text-xs font-bold">
+          <button
+            onClick={() => setActiveTab("guided")}
+            className={`pb-3 px-1 border-b-2 transition-all flex items-center gap-1.5 ${
+              activeTab === "guided"
+                ? "border-teal-700 text-teal-900 font-extrabold"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <BookOpen className="h-4 w-4" />
+            <span>1. Trilha Guiada Passo a Passo (Aprendizagem)</span>
+          </button>
+
+          <button
+            onClick={() => setActiveTab("free_voice")}
+            className={`pb-3 px-1 border-b-2 transition-all flex items-center gap-1.5 ${
+              activeTab === "free_voice"
+                ? "border-teal-700 text-teal-900 font-extrabold"
+                : "border-transparent text-slate-500 hover:text-slate-800"
+            }`}
+          >
+            <Mic className="h-4 w-4" />
+            <span>2. Simulação Rápida à Beira-Leito (Voz & Timer)</span>
+          </button>
+
+          {tutorEvaluation && (
+            <button
+              onClick={() => setActiveTab("debriefing")}
+              className={`pb-3 px-1 border-b-2 transition-all flex items-center gap-1.5 ${
+                activeTab === "debriefing"
+                  ? "border-teal-700 text-teal-900 font-extrabold"
+                  : "border-transparent text-slate-500 hover:text-slate-800"
+              }`}
+            >
+              <MessageSquareQuote className="h-4 w-4 text-teal-700" />
+              <span>3. Debriefing & Parecer Florence (Score: {tutorEvaluation.safetyScore}/100)</span>
+            </button>
+          )}
+        </div>
+
+        {/* CONTEÚDO DA ABA 1: TRILHA GUIADA PASSO A PASSO */}
+        {activeTab === "guided" && (
+          <div className="space-y-6">
+            {/* Seletor dos 4 Passos do SBAR */}
+            <div className="grid grid-cols-4 gap-2">
+              {guidedStepsMeta.map((step, idx) => {
+                const isCurrent = activeGuidedStep === idx;
+                const hasContent = Boolean(sbarData[step.key]?.trim());
+                return (
+                  <button
+                    key={step.key}
+                    onClick={() => setActiveGuidedStep(idx)}
+                    className={`p-3 rounded-xl border text-left transition-all ${
+                      isCurrent
+                        ? "bg-white border-teal-700 ring-2 ring-teal-700/20 shadow-xs"
+                        : "bg-white border-slate-200 hover:border-slate-300"
+                    }`}
+                  >
+                    <div className="flex items-center justify-between">
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-lg text-xs font-extrabold ${
+                        isCurrent ? "bg-teal-700 text-white" : "bg-slate-100 text-slate-700"
+                      }`}>
+                        {step.letter}
+                      </span>
+                      {hasContent && (
+                        <CheckCircle2 className="h-4 w-4 text-teal-600" />
+                      )}
+                    </div>
+                    <span className="text-xs font-bold text-slate-900 block mt-2 line-clamp-1">
+                      {step.title}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+
+            {/* Painel de Ensino do Passo Atual */}
+            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-5">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="text-xs font-bold text-teal-800 uppercase tracking-wide">
+                      Passo {activeGuidedStep + 1} de 4 • O que aprender agora
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 mt-0.5">
+                    {currentGuided.title} — {currentGuided.subtitle}
+                  </h3>
+                  <p className="text-xs text-slate-600 mt-1 leading-relaxed">
+                    {currentGuided.goal}
+                  </p>
+                </div>
+
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => handleInsertFieldExample(currentGuided.key)}
+                  className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold shrink-0"
+                >
+                  <Lightbulb className="h-3.5 w-3.5 text-amber-500 mr-1.5" /> Ver Exemplo Padrão Ouro
+                </Button>
+              </div>
+
+              {/* Comparador Didático: Como NÃO falar vs Exemplo Ouro */}
+              <div className="grid sm:grid-cols-2 gap-3 text-xs">
+                <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 space-y-1">
+                  <span className="font-bold text-rose-800 block text-[11px] uppercase">
+                    Comunicação Ineficaz (Causa de Erros)
+                  </span>
+                  <p className="italic leading-relaxed">{currentGuided.badExample}</p>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 space-y-1">
+                  <span className="font-bold text-teal-800 block text-[11px] uppercase">
+                    Comunicação Efetiva (Padrão Ouro OMS)
+                  </span>
+                  <p className="leading-relaxed">{currentGuided.goodExample}</p>
+                </div>
+              </div>
+
+              {/* Checklist Dinâmico de Segurança */}
+              <div className="p-4 rounded-xl bg-slate-50 border border-slate-100 space-y-2">
+                <span className="text-xs font-bold text-slate-700 block uppercase tracking-wide">
+                  Checklist Dinâmico de Segurança (Atualiza automaticamente enquanto você fala ou digita):
+                </span>
+                <div className="grid sm:grid-cols-3 gap-2">
+                  {currentGuided.checklistItems.map((item, i) => (
+                    <div
+                      key={i}
+                      className={`flex items-center gap-2 p-2 rounded-lg text-xs font-medium border transition-all ${
+                        item.done
+                          ? "bg-white border-teal-600 text-teal-900 shadow-2xs"
+                          : "bg-white/60 border-slate-200 text-slate-500"
+                      }`}
+                    >
+                      <div className={`flex h-4 w-4 items-center justify-center rounded-sm shrink-0 ${
+                        item.done ? "bg-teal-700 text-white" : "border border-slate-300"
+                      }`}>
+                        {item.done && <CheckCircle2 className="h-3 w-3" />}
+                      </div>
+                      <span className="line-clamp-2 leading-tight">{item.label}</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Área de Digitação ou Gravação por Voz */}
+              <div className="space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="text-xs font-bold text-slate-800">
+                    Sua formulação para o pilar {currentGuided.letter}:
+                  </label>
+                  <Button
+                    size="sm"
+                    variant={isListening && activeListeningField === currentGuided.key ? "destructive" : "outline"}
+                    onClick={() => toggleVoiceInput(currentGuided.key)}
+                    className="rounded-xl h-8 px-3 text-xs flex items-center gap-1.5"
+                  >
+                    {isListening && activeListeningField === currentGuided.key ? (
+                      <>
+                        <MicOff className="h-3.5 w-3.5 animate-pulse" /> Gravando fala...
+                      </>
+                    ) : (
+                      <>
+                        <Mic className="h-3.5 w-3.5 text-teal-700" /> Ditar por Voz
+                      </>
+                    )}
+                  </Button>
+                </div>
+
+                <Textarea
+                  rows={4}
+                  value={sbarData[currentGuided.key]}
+                  onChange={(e) => setSbarData({ ...sbarData, [currentGuided.key]: e.target.value })}
+                  placeholder={`Formule o ${currentGuided.title} deste paciente com clareza...`}
+                  className="text-xs rounded-xl border-slate-200 resize-none focus:border-teal-700 leading-relaxed"
+                />
+              </div>
+
+              {/* Navegação entre Passos */}
+              <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+                <Button
+                  size="sm"
+                  variant="outline"
+                  disabled={activeGuidedStep === 0}
+                  onClick={() => setActiveGuidedStep((prev) => Math.max(0, prev - 1))}
+                  className="rounded-xl text-xs"
+                >
+                  Passo Anterior
+                </Button>
+
+                {activeGuidedStep < 3 ? (
+                  <Button
+                    size="sm"
+                    onClick={() => setActiveGuidedStep((prev) => Math.min(3, prev + 1))}
+                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold flex items-center gap-1"
+                  >
+                    Próximo Passo ({guidedStepsMeta[activeGuidedStep + 1]?.letter}) <ArrowRight className="h-3.5 w-3.5" />
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    disabled={isEvaluating}
+                    onClick={handleEvaluateSbar}
+                    className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-2 shadow-xs"
+                  >
+                    {isEvaluating ? (
+                      <>
+                        <Sparkles className="h-3.5 w-3.5 animate-spin text-teal-300" /> Florence analisando...
+                      </>
+                    ) : (
+                      <>
+                        <Send className="h-3.5 w-3.5 text-teal-400" /> Concluir e Transmitir para Florence
+                      </>
+                    )}
+                  </Button>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* CONTEÚDO DA ABA 2: SIMULAÇÃO RÁPIDA À BEIRA-LEITO (ÁUDIO DIRETO) */}
+        {activeTab === "free_voice" && (
+          <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6">
+            <div className="border-b border-slate-100 pb-3">
+              <h3 className="text-sm font-bold text-slate-900">
+                Simulação em Tempo Real (Troca de Turno Contínua)
+              </h3>
+              <p className="text-xs text-slate-500 mt-0.5">
+                Pressione o microfone em cada pilar e fale como se estivesse passando o leito para seu colega de equipe.
+              </p>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              {[
+                { key: "situation", letter: "S", title: "Situação", color: "bg-teal-100 text-teal-800", ph: "Ex.: Paciente M.S.L., 58 anos, no Leito 12-A, no 1º DPO de colectomia..." },
+                { key: "background", letter: "B", title: "Histórico", color: "bg-sky-100 text-sky-800", ph: "Ex.: Hipertenso controlado. Nega alergias conhecidas..." },
+                { key: "assessment", letter: "A", title: "Avaliação", color: "bg-indigo-100 text-indigo-800", ph: "Ex.: PA 115/72, FC 84, SatO2 98%. Dor EVA 4/10 em ferida..." },
+                { key: "recommendation", letter: "R", title: "Recomendação", color: "bg-emerald-100 text-emerald-800", ph: "Ex.: Vigiar dreno a cada 4h; analgesia às 20h; checar hematócrito..." }
+              ].map((pilar) => (
+                <div key={pilar.key} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className={`flex h-6 w-6 items-center justify-center rounded-md font-bold text-xs ${pilar.color}`}>
+                        {pilar.letter}
+                      </span>
+                      <span className="text-xs font-bold text-slate-900">{pilar.title}</span>
+                    </div>
+
+                    <Button
+                      size="sm"
+                      variant={isListening && activeListeningField === pilar.key ? "destructive" : "outline"}
+                      onClick={() => toggleVoiceInput(pilar.key)}
+                      className="rounded-lg h-7 px-2 text-[11px] flex items-center gap-1"
+                    >
+                      {isListening && activeListeningField === pilar.key ? (
+                        <MicOff className="h-3 w-3 animate-pulse" />
+                      ) : (
+                        <Mic className="h-3 w-3 text-slate-600" />
+                      )}
+                      <span>{isListening && activeListeningField === pilar.key ? "Gravando" : "Ditar"}</span>
+                    </Button>
+                  </div>
+
+                  <Textarea
+                    rows={3}
+                    value={sbarData[pilar.key]}
+                    onChange={(e) => setSbarData({ ...sbarData, [pilar.key]: e.target.value })}
+                    placeholder={pilar.ph}
+                    className="text-xs rounded-lg border-slate-200 resize-none bg-white"
+                  />
+                </div>
+              ))}
+            </div>
+
+            <div className="flex justify-end pt-2">
+              <Button
+                size="lg"
+                disabled={isEvaluating}
+                onClick={handleEvaluateSbar}
+                className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-6 h-11 flex items-center gap-2 shadow-xs"
+              >
+                {isEvaluating ? (
+                  <>
+                    <Sparkles className="h-4 w-4 animate-spin text-teal-200" />
+                    <span>Florence está auditando a passagem de plantão...</span>
+                  </>
+                ) : (
+                  <>
+                    <Send className="h-4 w-4" />
+                    <span>Submeter Passagem de Plantão para Florence</span>
+                  </>
+                )}
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {/* CONTEÚDO DA ABA 3: DEBRIEFING SOCRÁTICO DA PRECEPTORA FLORENCE */}
+        {tutorEvaluation && (
+          <div className="bg-white rounded-2xl border border-teal-200 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
+            {/* Topo do Feedback com Score e Grade */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <ShieldCheck className="h-5 w-5 text-teal-700" />
+                  <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block">
+                    Parecer de Preceptoria Clínica • Florence AI
+                  </span>
+                </div>
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900">
+                  Auditoria da Comunicação & Segurança do Paciente
+                </h3>
+                <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                  {tutorEvaluation.summaryFeedback}
+                </p>
+              </div>
+
+              <div className="flex items-center gap-3 bg-teal-50 border border-teal-200 rounded-2xl p-3 shrink-0">
+                <div className="text-right">
+                  <span className="text-[10px] font-bold text-teal-800 uppercase block">Índice de Segurança</span>
+                  <span className="text-2xl font-extrabold text-teal-900 block leading-none">
+                    {tutorEvaluation.safetyScore}/100
+                  </span>
+                </div>
+                <div className="h-10 w-px bg-teal-200" />
+                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-teal-700 text-white">
+                  {tutorEvaluation.grade}
+                </span>
+              </div>
+            </div>
+
+            {/* SIMULADOR DE CONSEQUÊNCIA DE EVENTO SENTINELA (APRENDIZAGEM VIVA) */}
+            {tutorEvaluation.sentinelConsequence && (
+              <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 space-y-1.5">
+                <div className="flex items-center gap-2 text-amber-900 font-bold text-xs uppercase tracking-wide">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+                  <span>Simulador de Consequências no Hospital Real (O que aconteceria se você omitisse esses dados?):</span>
+                </div>
+                <p className="text-xs text-amber-950 leading-relaxed font-medium">
+                  {tutorEvaluation.sentinelConsequence}
+                </p>
+              </div>
+            )}
+
+            {/* Desdobramento dos 4 Pilares SBAR */}
+            <div className="space-y-2">
+              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+                Desempenho por Eixo da Metodologia:
+              </h4>
+              <div className="grid sm:grid-cols-2 md:grid-cols-4 gap-3">
+                {[
+                  { key: "situation", label: "S - Situação", bg: "bg-teal-50 border-teal-200" },
+                  { key: "background", label: "B - Histórico", bg: "bg-sky-50 border-sky-200" },
+                  { key: "assessment", label: "A - Avaliação", bg: "bg-indigo-50 border-indigo-200" },
+                  { key: "recommendation", label: "R - Recomendação", bg: "bg-emerald-50 border-emerald-200" }
+                ].map((col) => {
+                  const pillar = tutorEvaluation.pillarScores?.[col.key];
+                  return (
+                    <div key={col.key} className={`p-3.5 rounded-xl border ${col.bg} space-y-1`}>
+                      <div className="flex items-center justify-between">
+                        <span className="text-xs font-bold text-slate-900">{col.label}</span>
+                        <span className="text-xs font-bold text-slate-700">{pillar?.score || 80}%</span>
+                      </div>
+                      <p className="text-[11px] text-slate-600 leading-tight">
+                        {pillar?.feedback}
+                      </p>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Omissões Críticas e Pontos Fortes */}
+            <div className="grid sm:grid-cols-2 gap-4 text-xs">
+              {tutorEvaluation.criticalOmissions?.length > 0 && (
+                <div className="bg-rose-50 border border-rose-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-1.5 text-rose-800 font-bold">
+                    <AlertCircle className="h-4 w-4 text-rose-600" />
+                    <span>Pontos Críticos que Faltaram na Passagem:</span>
+                  </div>
+                  <ul className="space-y-1.5 text-rose-700">
+                    {tutorEvaluation.criticalOmissions.map((om, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="font-bold">•</span>
+                        <span>{om}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+
+              {tutorEvaluation.strengths?.length > 0 && (
+                <div className="bg-emerald-50 border border-emerald-200 rounded-xl p-4 space-y-2">
+                  <div className="flex items-center gap-1.5 text-emerald-800 font-bold">
+                    <CheckCircle2 className="h-4 w-4 text-emerald-600" />
+                    <span>Pontos Fortes da Sua Comunicação:</span>
+                  </div>
+                  <ul className="space-y-1.5 text-emerald-700">
+                    {tutorEvaluation.strengths.map((st, i) => (
+                      <li key={i} className="flex items-start gap-1.5">
+                        <span className="font-bold">•</span>
+                        <span>{st}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+            </div>
+
+            {/* DEBRIEFING SOCRÁTICO: PERGUNTAS REFLEXIVAS INTERATIVAS */}
+            {tutorEvaluation.socraticQuestions?.length > 0 && (
+              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <MessageSquareQuote className="h-5 w-5 text-teal-700" />
+                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                    Debriefing Socrático da Preceptora (Exercício de Raciocínio Clínico)
+                  </h4>
+                </div>
+                <p className="text-xs text-slate-500">
+                  Responda às questões da tutora para consolidar a fixação das condutas de emergência:
+                </p>
+
+                <div className="space-y-3 pt-1">
+                  {tutorEvaluation.socraticQuestions.map((q, idx) => (
+                    <div key={idx} className="bg-white rounded-xl border border-slate-200 p-3.5 space-y-2">
+                      <p className="text-xs font-semibold text-slate-900">
+                        {idx + 1}. {q}
+                      </p>
+                      <Input
+                        value={studentReflections[idx] || ""}
+                        onChange={(e) => setStudentReflections({ ...studentReflections, [idx]: e.target.value })}
+                        placeholder="Digite sua resposta e justificativa clínica como enfermeiro(a)..."
+                        className="text-xs rounded-lg border-slate-200 focus:border-teal-700"
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Mensagem de Mentoria & Exportação em PDF */}
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100">
+              <div className="text-xs text-slate-600 italic">
+                "{tutorEvaluation.florenceMentorship || 'A comunicação assertiva é a maior ferramenta de proteção da enfermagem.'}"
+              </div>
+
+              <Button
+                onClick={handleDownloadPdf}
+                className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs px-5 h-10 shadow-xs flex items-center gap-2 shrink-0"
+              >
+                <Download className="h-4 w-4" />
+                <span>Exportar Prontuário & Parecer em PDF</span>
+              </Button>
+            </div>
+          </div>
+        )}
+      </main>
+
+      <StudentFooter />
+    </div>
+  );
+}

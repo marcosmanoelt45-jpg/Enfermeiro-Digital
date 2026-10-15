@@ -31,6 +31,7 @@ import Login from '@/pages/Login';
 import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
+import SbarHandoffLab from '@/pages/SbarHandoffLab';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -76,6 +77,8 @@ const AuthenticatedApp = () => {
         <Route path="/turma/:id" element={<TurmaDetail />} />
         <Route path="/turma/:id/nova-atividade" element={<CaseBuilder />} />
         <Route path="/assignment/:id" element={<AssignmentAnswer />} />
+        <Route path="/passagem-plantao" element={<SbarHandoffLab />} />
+        <Route path="/sbar" element={<SbarHandoffLab />} />
         
         {/* Rotas de Áudio e Avaliação Assistencial Hospitalar */}
         <Route path="/avaliacao-audio" element={<AudioAssessment />} />

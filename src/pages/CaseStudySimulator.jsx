@@ -16,7 +16,8 @@ import {
   ClipboardList,
   Eye,
   Check,
-  Download
+  Download,
+  ArrowRightLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -238,13 +239,23 @@ export default function CaseStudySimulator() {
             </p>
           </div>
 
-          <Button
-            onClick={handleGenerateRandom}
-            variant="outline"
-            className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-xs flex items-center gap-2 self-start md:self-auto shrink-0"
-          >
-            <Shuffle className="h-4 w-4" /> Gerar Novo Caso
-          </Button>
+          <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap">
+            <Button
+              onClick={() => navigate('/passagem-plantao', { state: { caseData: currentCase } })}
+              variant="outline"
+              className="rounded-xl border-amber-300 text-amber-900 hover:bg-amber-50 text-xs flex items-center gap-2"
+              title="Pratique a passagem de plantão deste paciente na metodologia SBAR"
+            >
+              <ArrowRightLeft className="h-4 w-4 text-amber-700" /> Passar Plantão (SBAR)
+            </Button>
+            <Button
+              onClick={handleGenerateRandom}
+              variant="outline"
+              className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-xs flex items-center gap-2"
+            >
+              <Shuffle className="h-4 w-4" /> Gerar Novo Caso
+            </Button>
+          </div>
         </div>
 
         {/* Notificação Toast */}

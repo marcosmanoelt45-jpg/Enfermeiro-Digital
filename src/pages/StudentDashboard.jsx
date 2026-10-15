@@ -7,7 +7,8 @@ import {
   Users,
   ChevronRight,
   PlusCircle,
-  Mic
+  Mic,
+  ArrowRightLeft
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
@@ -44,6 +45,18 @@ export default function StudentDashboard() {
       badgeColor: "bg-teal-50 text-teal-800 border-teal-200",
       accentBg: "bg-teal-700 text-white",
       stats: "Avaliação, Diagnóstico e Metas"
+    },
+    {
+      id: "sbar",
+      title: "Laboratório de Passagem de Plantão (SBAR)",
+      subtitle: "Comunicação Segura & Tutoria Florence",
+      description: "Treine a técnica SBAR (Situação, Breve Histórico, Avaliação, Recomendação) com feedback socrático da Tutora Florence, alertas de eventos sentinela e portfólio em PDF.",
+      icon: ArrowRightLeft,
+      path: "/passagem-plantao",
+      badge: "Meta 2 Segurança OMS",
+      badgeColor: "bg-amber-50 text-amber-800 border-amber-200",
+      accentBg: "bg-amber-700 text-white",
+      stats: "Trilha Guiada • Áudio • Debriefing Socrático • PDF"
     },
     {
       id: "calculos",
@@ -123,6 +136,13 @@ export default function StudentDashboard() {
                 className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 font-semibold text-xs sm:text-sm px-3.5 h-10 flex items-center gap-1.5"
               >
                 <BookOpen className="h-4 w-4" /> Casos Prontos
+              </Button>
+              <Button
+                onClick={() => navigate("/passagem-plantao")}
+                variant="outline"
+                className="rounded-xl border-amber-300 text-amber-900 hover:bg-amber-50 font-semibold text-xs sm:text-sm px-3.5 h-10 flex items-center gap-1.5"
+              >
+                <ArrowRightLeft className="h-4 w-4 text-amber-700" /> Plantão SBAR
               </Button>
               <Button
                 onClick={() => navigate("/laboratorio-calculos")}
