@@ -114,7 +114,9 @@ export default function TurmaDetail() {
 
   const myMember = members.find((m) => m.user_id === user?.id);
   const isProfessor =
-    turma?.teacher_id === user?.id || myMember?.role === "professor";
+    turma?.teacher_id === user?.id ||
+    myMember?.role === "professor" ||
+    (user?.user_type === "professor" && id === "demo-turma-enf-2026");
   const isOwner = turma?.teacher_id === user?.id;
   const students = members.filter((m) => m.role === "aluno");
   const professor = members.find((m) => m.role === "professor");
@@ -206,27 +208,27 @@ export default function TurmaDetail() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
+      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
         <div className="mx-auto max-w-2xl px-4 py-4">
           <button
             onClick={() => navigate("/turmas")}
-            className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+            className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition"
           >
             <ArrowLeft className="h-4 w-4" /> Turmas
           </button>
           <div className="mt-2 flex items-start justify-between gap-3">
             <div>
-              <h1 className="text-xl font-semibold text-slate-800">{turma.name}</h1>
+              <h1 className="text-xl font-semibold text-slate-800 dark:text-slate-100">{turma.name}</h1>
               {turma.description && (
-                <p className="text-sm text-slate-500">{turma.description}</p>
+                <p className="text-sm text-slate-500 dark:text-slate-400">{turma.description}</p>
               )}
             </div>
             <div className="flex shrink-0 items-center gap-2">
               {isProfessor && (
                 <button
                   onClick={openEdit}
-                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 px-2.5 py-2 text-sm text-slate-500 hover:bg-slate-50"
+                  className="flex items-center gap-1.5 rounded-xl border border-slate-200 dark:border-slate-700 px-2.5 py-2 text-sm text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                   title="Editar turma"
                 >
                   <Pencil className="h-4 w-4" />
@@ -235,7 +237,7 @@ export default function TurmaDetail() {
               {isProfessor && (
                 <button
                   onClick={copyCode}
-                  className="flex items-center gap-1.5 rounded-xl border-2 border-dashed border-teal-300 px-3 py-2 text-sm font-medium text-teal-700 hover:bg-teal-50"
+                  className="flex items-center gap-1.5 rounded-xl border-2 border-dashed border-teal-300 dark:border-teal-700 px-3 py-2 text-sm font-medium text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-800"
                   title="Copiar código"
                 >
                   {copied ? <CheckCheck className="h-4 w-4" /> : <Hash className="h-4 w-4" />}
@@ -244,14 +246,14 @@ export default function TurmaDetail() {
               )}
             </div>
           </div>
-          <div className="mt-3 flex items-center gap-2 text-xs text-slate-400">
+          <div className="mt-3 flex items-center gap-2 text-xs text-slate-400 dark:text-slate-400">
             <Users className="h-3.5 w-3.5" />
             {students.length} aluno{students.length !== 1 ? "s" : ""}
             {turma.teacher_name && (
               <span className="flex items-center gap-1">
                 ·
                 {professor?.photo_url && (
-                  <div className="h-4 w-4 overflow-hidden rounded-full bg-teal-100">
+                  <div className="h-4 w-4 overflow-hidden rounded-full bg-teal-100 dark:bg-teal-900">
                     <ImageComponent src={professor.photo_url} fittingType="fill" className="h-full w-full" />
                   </div>
                 )}
@@ -264,15 +266,15 @@ export default function TurmaDetail() {
 
       <main className="mx-auto max-w-2xl px-4 py-4 space-y-4">
         {isProfessor && (
-          <section className="rounded-2xl border border-slate-200 bg-white p-4">
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
             <div className="mb-3 flex items-center justify-between">
-              <h2 className="flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-                <UserCircle className="h-4 w-4 text-teal-600" /> Alunos da turma
+              <h2 className="flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+                <UserCircle className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Alunos da turma
               </h2>
               <Button
                 size="sm"
                 onClick={() => navigate(`/turma/${id}/nova-atividade`)}
-                className="rounded-xl bg-teal-600 hover:bg-teal-700"
+                className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white"
               >
                 <Plus className="h-4 w-4" /> Nova atividade
               </Button>
@@ -280,17 +282,17 @@ export default function TurmaDetail() {
             {students.length === 0 ? (
               <p className="text-sm text-slate-400">
                 Nenhum aluno entrou ainda. Compartilhe o código{" "}
-                <span className="font-mono font-medium text-teal-700">{turma.code}</span>.
+                <span className="font-mono font-medium text-teal-700 dark:text-teal-400">{turma.code}</span>.
               </p>
             ) : (
               <div className="space-y-1.5">
                 {students.map((s) => (
                   <div
                     key={s.id}
-                    className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 px-3 py-2"
+                    className="flex items-center justify-between gap-2 rounded-xl bg-slate-50 dark:bg-slate-800/80 px-3 py-2"
                   >
                     <div className="flex min-w-0 items-center gap-2">
-                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-teal-100">
+                      <div className="h-8 w-8 shrink-0 overflow-hidden rounded-full bg-teal-100 dark:bg-teal-900">
                         {s.photo_url ? (
                           <ImageComponent src={s.photo_url} fittingType="fill" className="h-full w-full" />
                         ) : (
@@ -299,7 +301,7 @@ export default function TurmaDetail() {
                           </div>
                         )}
                       </div>
-                      <span className="min-w-0 truncate text-xs text-slate-600">
+                      <span className="min-w-0 truncate text-xs text-slate-600 dark:text-slate-300">
                         {s.user_name || s.user_email}
                       </span>
                     </div>
@@ -308,24 +310,24 @@ export default function TurmaDetail() {
                         <AlertDialogTrigger asChild>
                           <button
                             disabled={busy}
-                            className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs text-rose-500 hover:bg-rose-50 disabled:opacity-50"
+                            className="flex shrink-0 items-center gap-1 rounded-lg px-2 py-1 text-xs text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-50"
                             title="Expulsar aluno"
                           >
                             <UserMinus className="h-3.5 w-3.5" /> Expulsar
                           </button>
                         </AlertDialogTrigger>
-                        <AlertDialogContent>
+                        <AlertDialogContent className="dark:bg-slate-900 dark:border-slate-800">
                           <AlertDialogHeader>
-                            <AlertDialogTitle>Expulsar aluno?</AlertDialogTitle>
-                            <AlertDialogDescription>
+                            <AlertDialogTitle className="text-slate-900 dark:text-slate-100">Expulsar aluno?</AlertDialogTitle>
+                            <AlertDialogDescription className="text-slate-500 dark:text-slate-400">
                               {s.user_name || s.user_email} será removido da turma e perderá acesso às atividades. Ele poderá entrar novamente com o código.
                             </AlertDialogDescription>
                           </AlertDialogHeader>
                           <AlertDialogFooter>
-                            <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                            <AlertDialogCancel className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">Cancelar</AlertDialogCancel>
                             <AlertDialogAction
                               onClick={() => expelStudent(s.id)}
-                              className="bg-rose-600 hover:bg-rose-700"
+                              className="bg-rose-600 hover:bg-rose-700 text-white"
                             >
                               Expulsar
                             </AlertDialogAction>
@@ -341,15 +343,15 @@ export default function TurmaDetail() {
         )}
 
         {isProfessor && (
-          <section className="rounded-2xl border border-slate-200 bg-white p-4">
-            <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-              <Settings className="h-4 w-4 text-teal-600" /> Configurações da turma
+          <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+            <h2 className="mb-3 flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+              <Settings className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Configurações da turma
             </h2>
             <div className="flex flex-col gap-2">
               <Button
                 variant="outline"
                 onClick={openEdit}
-                className="justify-start rounded-xl"
+                className="justify-start rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200 font-bold"
               >
                 <Pencil className="h-4 w-4" /> Editar nome e descrição
               </Button>
@@ -358,23 +360,23 @@ export default function TurmaDetail() {
                   <Button
                     variant="outline"
                     disabled={busy}
-                    className="justify-start rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 hover:text-rose-700"
+                    className="justify-start rounded-xl border-rose-200 dark:border-rose-900 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/40 hover:text-rose-700 font-bold"
                   >
                     <Trash2 className="h-4 w-4" /> Excluir turma
                   </Button>
                 </AlertDialogTrigger>
-                <AlertDialogContent>
+                <AlertDialogContent className="dark:bg-slate-900 dark:border-slate-800">
                   <AlertDialogHeader>
-                    <AlertDialogTitle>Excluir turma permanentemente?</AlertDialogTitle>
-                    <AlertDialogDescription>
+                    <AlertDialogTitle className="text-slate-900 dark:text-slate-100">Excluir turma permanentemente?</AlertDialogTitle>
+                    <AlertDialogDescription className="text-slate-500 dark:text-slate-400">
                       Esta ação não pode ser desfeita. Todos os alunos, atividades e respostas desta turma serão apagados.
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
-                    <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                    <AlertDialogCancel className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">Cancelar</AlertDialogCancel>
                     <AlertDialogAction
                       onClick={deleteTurma}
-                      className="bg-rose-600 hover:bg-rose-700"
+                      className="bg-rose-600 hover:bg-rose-700 text-white"
                     >
                       Excluir tudo
                     </AlertDialogAction>
@@ -386,11 +388,11 @@ export default function TurmaDetail() {
         )}
 
         <section>
-          <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-700">
-            <ClipboardList className="h-4 w-4 text-teal-600" /> Atividades
+          <h2 className="mb-2 flex items-center gap-1.5 text-sm font-semibold text-slate-700 dark:text-slate-200">
+            <ClipboardList className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Atividades
           </h2>
           {assignments.length === 0 ? (
-            <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-400">
+            <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center text-sm text-slate-400">
               {isProfessor
                 ? "Nenhuma atividade publicada. Toque em \"Nova atividade\" para compartilhar um caso."
                 : "Nenhuma atividade disponível ainda."}
@@ -403,12 +405,12 @@ export default function TurmaDetail() {
                 return (
                   <div
                     key={a.id}
-                    className="rounded-2xl border border-slate-200 bg-white p-4"
+                    className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4"
                   >
                     <div className="flex items-start justify-between gap-3">
                       <div className="min-w-0">
-                        <p className="font-medium text-slate-800">{a.title}</p>
-                        <p className="mt-0.5 line-clamp-2 text-sm text-slate-500">
+                        <p className="font-medium text-slate-800 dark:text-slate-100">{a.title}</p>
+                        <p className="mt-0.5 line-clamp-2 text-sm text-slate-500 dark:text-slate-400">
                           {a.question}
                         </p>
                         {a.due_date && (
@@ -421,7 +423,7 @@ export default function TurmaDetail() {
                             onClick={() =>
                               setExpanded((e) => ({ ...e, [a.id]: !e[a.id] }))
                             }
-                            className="flex items-center gap-1 rounded-lg border border-slate-200 px-2 py-1 text-xs text-slate-500 hover:bg-slate-50"
+                            className="flex items-center gap-1 rounded-lg border border-slate-200 dark:border-slate-700 px-2 py-1 text-xs text-slate-500 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                           >
                             {ans.length} resposta{ans.length !== 1 ? "s" : ""}
                             {open ? (
@@ -434,24 +436,24 @@ export default function TurmaDetail() {
                             <AlertDialogTrigger asChild>
                               <button
                                 disabled={busy}
-                                className="flex items-center rounded-lg border border-rose-200 px-1.5 py-1 text-xs text-rose-500 hover:bg-rose-50 disabled:opacity-50"
+                                className="flex items-center rounded-lg border border-rose-200 dark:border-rose-900 px-1.5 py-1 text-xs text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 disabled:opacity-50"
                                 title="Excluir atividade"
                               >
                                 <Trash2 className="h-3.5 w-3.5" />
                               </button>
                             </AlertDialogTrigger>
-                            <AlertDialogContent>
+                            <AlertDialogContent className="dark:bg-slate-900 dark:border-slate-800">
                               <AlertDialogHeader>
-                                <AlertDialogTitle>Excluir atividade?</AlertDialogTitle>
-                                <AlertDialogDescription>
+                                <AlertDialogTitle className="text-slate-900 dark:text-slate-100">Excluir atividade?</AlertDialogTitle>
+                                <AlertDialogDescription className="text-slate-500 dark:text-slate-400">
                                   "{a.title}" e todas as respostas dos alunos serão apagados permanentemente.
                                 </AlertDialogDescription>
                               </AlertDialogHeader>
                               <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                <AlertDialogCancel className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">Cancelar</AlertDialogCancel>
                                 <AlertDialogAction
                                   onClick={() => deleteAssignment(a.id)}
-                                  className="bg-rose-600 hover:bg-rose-700"
+                                  className="bg-rose-600 hover:bg-rose-700 text-white"
                                 >
                                   Excluir
                                 </AlertDialogAction>
@@ -463,7 +465,7 @@ export default function TurmaDetail() {
                         <Button
                           size="sm"
                           onClick={() => navigate(`/assignment/${a.id}`)}
-                          className="shrink-0 rounded-xl bg-teal-600 hover:bg-teal-700"
+                          className="shrink-0 rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold"
                         >
                           Responder
                         </Button>
@@ -471,10 +473,10 @@ export default function TurmaDetail() {
                     </div>
 
                     {isProfessor && open && (
-                      <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
+                      <div className="mt-3 space-y-2 border-t border-slate-100 dark:border-slate-800 pt-3">
                         <p className="text-xs text-slate-400">
                           Resposta correta:{" "}
-                          <span className="font-medium text-slate-700">
+                          <span className="font-medium text-slate-700 dark:text-slate-200">
                             {a.correct_answer}
                           </span>
                         </p>
@@ -486,14 +488,14 @@ export default function TurmaDetail() {
                           ans.map((r) => (
                             <div
                               key={r.id}
-                              className="rounded-xl bg-slate-50 p-2.5 text-sm"
+                              className="rounded-xl bg-slate-50 dark:bg-slate-800/80 p-2.5 text-sm"
                             >
                               <div className="flex items-center justify-between">
-                                <span className="font-medium text-slate-700">
+                                <span className="font-medium text-slate-700 dark:text-slate-200">
                                   {r.student_name || "Aluno"}
                                 </span>
                                 {r.is_correct ? (
-                                  <span className="flex items-center gap-1 text-xs text-emerald-600">
+                                  <span className="flex items-center gap-1 text-xs text-emerald-600 dark:text-emerald-400">
                                     <Check className="h-3.5 w-3.5" /> Correto
                                   </span>
                                 ) : (
@@ -502,7 +504,7 @@ export default function TurmaDetail() {
                                   </span>
                                 )}
                               </div>
-                              <p className="mt-1 text-slate-600">
+                              <p className="mt-1 text-slate-600 dark:text-slate-300">
                                 Escolha: {r.selected_option}
                               </p>
                               {r.rationale && (
@@ -524,41 +526,41 @@ export default function TurmaDetail() {
       </main>
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
-        <p className="text-[11px] text-slate-400">
-          © 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos do Enfermeiro Digital
+        <p className="text-[11px] text-slate-400 dark:text-slate-400">
+          © 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfermeiro Digital
         </p>
       </footer>
 
       <Dialog open={editOpen} onOpenChange={setEditOpen}>
-        <DialogContent className="rounded-2xl">
+        <DialogContent className="rounded-2xl dark:bg-slate-900 dark:border-slate-800">
           <DialogHeader>
-            <DialogTitle>Editar turma</DialogTitle>
+            <DialogTitle className="text-slate-900 dark:text-slate-100">Editar turma</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label className="text-sm font-medium text-slate-700">Nome da turma</Label>
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Nome da turma</Label>
               <Input
                 value={editForm.name}
                 onChange={(e) => setEditForm((f) => ({ ...f, name: e.target.value }))}
-                className="mt-1"
+                className="mt-1 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
               />
             </div>
             <div>
-              <Label className="text-sm font-medium text-slate-700">Descrição</Label>
+              <Label className="text-sm font-medium text-slate-700 dark:text-slate-300">Descrição</Label>
               <Input
                 value={editForm.description}
                 onChange={(e) => setEditForm((f) => ({ ...f, description: e.target.value }))}
-                className="mt-1"
+                className="mt-1 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 placeholder="Opcional"
               />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setEditOpen(false)}>Cancelar</Button>
+            <Button variant="outline" onClick={() => setEditOpen(false)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">Cancelar</Button>
             <Button
               onClick={saveEdit}
               disabled={busy || !editForm.name.trim()}
-              className="bg-teal-600 hover:bg-teal-700"
+              className="bg-teal-600 hover:bg-teal-700 text-white"
             >
               {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}
             </Button>

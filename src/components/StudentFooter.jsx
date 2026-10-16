@@ -1,34 +1,57 @@
-import React from "react";
+import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Activity, ShieldCheck } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
+import MobileBottomDock from "@/components/mobile/MobileBottomDock";
+import MobilePocketDrawer from "@/components/mobile/MobilePocketDrawer";
 
-export default function StudentFooter() {
+export default function StudentFooter({ onOpenOptions }) {
   const navigate = useNavigate();
+  const { user, logout } = useAuth();
+  const [isPocketDrawerOpen, setIsPocketDrawerOpen] = useState(false);
 
   return (
-    <footer className="mt-auto border-t border-slate-200/80 bg-white py-6 text-slate-500">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
-        <div className="flex items-center gap-2">
-          <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-teal-700 text-white">
-            <Activity className="h-3.5 w-3.5" />
+    <>
+      <footer className="mt-auto border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-950 pt-6 pb-24 md:py-6 text-slate-500 dark:text-slate-400 transition-colors">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
+          <div className="flex items-center gap-2">
+            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-700 dark:bg-emerald-600 text-white shadow-xs">
+              <Activity className="h-3.5 w-3.5" />
+            </div>
+            <span className="font-bold text-slate-800 dark:text-slate-200">Enfermeiro Digital</span>
+            <span className="text-slate-300 dark:text-slate-600">•</span>
+            <span className="text-emerald-700 dark:text-emerald-400 font-medium">Raciocínio Clínico & Simulação de Enfermagem</span>
           </div>
-          <span className="font-semibold text-slate-700">Enfermeiro Digital</span>
-          <span className="text-slate-400">•</span>
-          <span>Plataforma de Simulação & Educação Clínica</span>
-        </div>
 
-        <div className="flex items-center gap-6">
-          <button
-            onClick={() => navigate("/privacidade-lgpd")}
-            className="hover:text-teal-700 flex items-center gap-1.5 transition-colors font-medium"
-          >
-            <ShieldCheck className="h-4 w-4 text-slate-400" />
-            <span>Central de Ajuda, FAQ & LGPD</span>
-          </button>
-          <span className="text-slate-300">|</span>
-          <span className="text-slate-400">Resolução COFEN nº 736/2024</span>
+          <div className="flex items-center gap-6">
+            <button
+              onClick={() => navigate("/privacidade-lgpd")}
+              className="hover:text-emerald-700 dark:hover:text-emerald-400 flex items-center gap-1.5 transition-colors font-medium"
+            >
+              <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <span>Ajuda, FAQ & LGPD</span>
+            </button>
+            <span className="text-slate-200 dark:text-slate-700">|</span>
+            <span className="text-slate-500 dark:text-slate-400 font-medium">
+              Criador & Detentor dos Direitos: <strong className="text-slate-700 dark:text-slate-200">Marcos Manoel Tavares Neumann</strong>
+            </span>
+          </div>
         </div>
-      </div>
-    </footer>
+      </footer>
+
+      {/* Dock Inferior Móvel Estilo Orizon (Aparece em telas < md) */}
+      <MobileBottomDock
+        onOpenPocketMenu={() => setIsPocketDrawerOpen(true)}
+      />
+
+      {/* Bottom Sheet Deslizante Vaul para Ferramentas de Bolso */}
+      <MobilePocketDrawer
+        isOpen={isPocketDrawerOpen}
+        onOpenChange={setIsPocketDrawerOpen}
+        currentUser={user}
+        onLogout={logout}
+        onOpenOptions={onOpenOptions}
+      />
+    </>
   );
 }

@@ -4,6 +4,7 @@ import { queryClientInstance } from '@/lib/query-client'
 import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
+import { ThemeProvider } from '@/lib/ThemeContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
@@ -32,6 +33,7 @@ import Register from '@/pages/Register';
 import ForgotPassword from '@/pages/ForgotPassword';
 import ResetPassword from '@/pages/ResetPassword';
 import SbarHandoffLab from '@/pages/SbarHandoffLab';
+import ProcedimentosLab from '@/pages/ProcedimentosLab';
 
 const AuthenticatedApp = () => {
   const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
@@ -68,9 +70,13 @@ const AuthenticatedApp = () => {
         {/* Hub Principal do Estudante e Módulos Educacionais */}
         <Route path="/" element={<StudentDashboard />} />
         <Route path="/montar-caso" element={<CaseStudio />} />
+        <Route path="/case-studio" element={<CaseStudio />} />
         <Route path="/simulador-casos" element={<CaseStudySimulator />} />
+        <Route path="/case-study" element={<CaseStudySimulator />} />
         <Route path="/laboratorio-calculos" element={<MedicationDosageLab />} />
+        <Route path="/dosage-lab" element={<MedicationDosageLab />} />
         <Route path="/sistemas-organicos" element={<SystemsAssessmentLab />} />
+        <Route path="/systems-assessment" element={<SystemsAssessmentLab />} />
         <Route path="/banco-casos" element={<CaseLibrary />} />
         <Route path="/referencias" element={<References />} />
         <Route path="/turmas" element={<Turmas />} />
@@ -79,6 +85,10 @@ const AuthenticatedApp = () => {
         <Route path="/assignment/:id" element={<AssignmentAnswer />} />
         <Route path="/passagem-plantao" element={<SbarHandoffLab />} />
         <Route path="/sbar" element={<SbarHandoffLab />} />
+        <Route path="/sbar-lab" element={<SbarHandoffLab />} />
+        <Route path="/procedimentos" element={<ProcedimentosLab />} />
+        <Route path="/skills-lab" element={<ProcedimentosLab />} />
+        <Route path="/videoteca" element={<ProcedimentosLab />} />
         
         {/* Rotas de Áudio e Avaliação Assistencial Hospitalar */}
         <Route path="/avaliacao-audio" element={<AudioAssessment />} />
@@ -87,6 +97,7 @@ const AuthenticatedApp = () => {
         <Route path="/patient/:id/assessment" element={<ExpressAssessment />} />
         <Route path="/patient/:id" element={<PatientDetail />} />
         <Route path="/assessment/:id/ai" element={<AIDashboard />} />
+        <Route path="/ai-dashboard" element={<AIDashboard />} />
         <Route path="/pacientes" element={<Patients />} />
         
         <Route path="/conta" element={<Conta />} />
@@ -98,15 +109,17 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <AuthProvider>
-      <QueryClientProvider client={queryClientInstance}>
-        <Router>
-          <ScrollToTop />
-          <AuthenticatedApp />
-        </Router>
-        <Toaster />
-      </QueryClientProvider>
-    </AuthProvider>
+    <ThemeProvider>
+      <AuthProvider>
+        <QueryClientProvider client={queryClientInstance}>
+          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+            <ScrollToTop />
+            <AuthenticatedApp />
+          </Router>
+          <Toaster />
+        </QueryClientProvider>
+      </AuthProvider>
+    </ThemeProvider>
   );
 }
 

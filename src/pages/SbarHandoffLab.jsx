@@ -24,7 +24,8 @@ import {
   Check,
   Volume2,
   CheckSquare,
-  Loader2
+  Loader2,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -155,12 +156,15 @@ export default function SbarHandoffLab() {
   const streamRef = useRef(null);
   const timerRef = useRef(null);
   const lastVoiceInputLenRef = useRef(0);
+  const isListeningRef = useRef(false);
+  const interimTranscriptRef = useRef("");
 
   // Estados de Avaliação
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [tutorEvaluation, setTutorEvaluation] = useState(null);
   const [studentReflections, setStudentReflections] = useState({});
   const [toastMessage, setToastMessage] = useState("");
+  const [showGoldComparison, setShowGoldComparison] = useState(false);
 
   useEffect(() => {
     if (passedCase) {
@@ -241,6 +245,8 @@ export default function SbarHandoffLab() {
   async function stopListening(fieldNameOverride = null) {
     const targetField = fieldNameOverride || activeListeningField;
 
+    isListeningRef.current = false;
+
     // 1. Limpa o cronômetro visual
     if (timerRef.current) {
       clearInterval(timerRef.current);
@@ -256,7 +262,20 @@ export default function SbarHandoffLab() {
       recognitionRef.current = null;
     }
 
-    // 3. Encerra o MediaRecorder e captura o blob binário gravado
+    // 3. Flush imediato de palavras intermediárias para não perder o fim da fala
+    const pendingInterim = (interimTranscriptRef.current || "").trim();
+    if (pendingInterim && targetField) {
+      setSbarData((prev) => {
+        const currentVal = prev[targetField] ? prev[targetField].trim() + " " : "";
+        return {
+          ...prev,
+          [targetField]: currentVal + pendingInterim
+        };
+      });
+    }
+    interimTranscriptRef.current = "";
+
+    // 4. Encerra o MediaRecorder e captura o blob binário gravado
     let recordedBlob = null;
     if (mediaRecorderRef.current && mediaRecorderRef.current.state !== "inactive") {
       try {
@@ -277,7 +296,7 @@ export default function SbarHandoffLab() {
       mediaRecorderRef.current = null;
     }
 
-    // 4. Desliga faixas de hardware do microfone
+    // 5. Desliga faixas de hardware do microfone
     if (streamRef.current) {
       try {
         streamRef.current.getTracks().forEach((t) => t.stop());
@@ -289,11 +308,11 @@ export default function SbarHandoffLab() {
     setVoiceStarting(false);
     setInterimTranscript("");
 
-    // 5. ATIVA IMEDIATAMENTE O FEEDBACK VISUAL DE PROCESSAMENTO
+    // 6. Ativa feedback visual de processamento se houver áudio a transcrever
     if (targetField) {
       setProcessingField(targetField);
       setIsProcessingAudio(true);
-      setToastMessage(`Áudio recebido para ${targetField.toUpperCase()}! Processando transcrição...`);
+      setToastMessage(`Processando áudio para o pilar ${targetField.toUpperCase()}...`);
     }
 
     try {
@@ -304,13 +323,13 @@ export default function SbarHandoffLab() {
       const textLenBefore = lastVoiceInputLenRef.current || 0;
 
       // Se a Web Speech já capturou novo conteúdo
-      if (currentText.length > textLenBefore) {
+      if (currentText.length > textLenBefore || pendingInterim.length > 0) {
         setToastMessage(`Transcrição do pilar ${targetField.toUpperCase()} concluída com sucesso!`);
         setTimeout(() => setToastMessage(""), 3000);
       } else if (recordedBlob && targetField && recordedBlob.size > 1500) {
         // Fallback com IA (Gemini / AssemblyAI) se a Web Speech não digitou texto
         setIsTranscribingWithAi(true);
-        setToastMessage("Florence AI está transcrevendo o áudio gravado em alta fidelidade...");
+        setToastMessage("Transcrevendo o áudio gravado em alta fidelidade...");
         const result = await audioTranscriptionService.transcribe(recordedBlob);
         if (result && result.text) {
           setSbarData((prev) => {
@@ -320,7 +339,7 @@ export default function SbarHandoffLab() {
               [targetField]: prevText + result.text.trim()
             };
           });
-          setToastMessage(`Florence AI transcreveu o pilar ${targetField.toUpperCase()} com sucesso!`);
+          setToastMessage(`Pilar ${targetField.toUpperCase()} transcrito com sucesso!`);
           setTimeout(() => setToastMessage(""), 3500);
         }
       } else if (recordedBlob && recordedBlob.size <= 1500) {
@@ -423,6 +442,9 @@ export default function SbarHandoffLab() {
     const SpeechRec = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (SpeechRec) {
       try {
+        isListeningRef.current = true;
+        interimTranscriptRef.current = "";
+
         const rec = new SpeechRec();
         rec.lang = "pt-BR";
         rec.continuous = true;
@@ -447,6 +469,7 @@ export default function SbarHandoffLab() {
             }
           }
 
+          interimTranscriptRef.current = interimTrans;
           setInterimTranscript(interimTrans);
 
           if (finalTrans.trim()) {
@@ -461,16 +484,28 @@ export default function SbarHandoffLab() {
         };
 
         rec.onerror = (e) => {
-          console.warn("[SpeechRecognition] Erro:", e.error);
+          console.warn("[SpeechRecognition] Aviso:", e.error);
+          if (e.error === "no-speech") {
+            // Pausa natural do usuário ao respirar ou raciocinar - não interrompe
+            return;
+          }
           if (e.error === "not-allowed" || e.error === "permission-denied") {
             setVoiceError("Permissão de microfone negada nas configurações do navegador.");
+            isListeningRef.current = false;
           } else if (e.error === "network") {
             setVoiceError("Conexão de voz do navegador oscilou. O áudio está sendo gravado e será processado pela IA ao parar.");
           }
         };
 
         rec.onend = () => {
-          // O encerramento definitivo é gerenciado pelo stopListening
+          // Se o usuário ainda não encerrou conscientemente a escuta, reconecta automaticamente
+          if (isListeningRef.current && recognitionRef.current) {
+            try {
+              rec.start();
+            } catch (reErr) {
+              console.debug("[SpeechRecognition] Auto-reconect silencioso:", reErr);
+            }
+          }
         };
 
         rec.start();
@@ -642,35 +677,27 @@ export default function SbarHandoffLab() {
   const currentCheckedPercent = Math.round((currentCheckedCount / currentGuided.checklistItems.length) * 100);
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100">
       <StudentHeader activeTab="sbar" />
 
-      <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-8 space-y-6">
-        {/* Cabeçalho Executivo do Laboratório */}
-        <div className="rounded-2xl border border-slate-200/90 bg-white p-6 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1.5 max-w-2xl">
-            <div className="flex flex-wrap items-center gap-2">
-              <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block">
-                Comunicação Efetiva & Segurança • Meta 2 OMS
-              </span>
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-800 border border-teal-200">
-                Resolução COFEN nº 736/2024
-              </span>
-            </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              Laboratório de Passagem de Plantão SBAR
+      <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-6 space-y-6">
+        {/* Barra Superior Limpa e Funcional */}
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+              Passagem de Plantão SBAR
             </h1>
-            <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-              Desenvolva a liderança e a síntese clínica verbal na transição de cuidados. A preceptora virtual <strong>Florence</strong> analisa sua fala por microfone, detecta pontos cegos, simula consequências de omissões e realiza o debriefing socrático.
-            </p>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              Meta 2 OMS • COFEN 736/2024
+            </span>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 self-start md:self-auto shrink-0">
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
             <Button
               variant="outline"
               size="sm"
               onClick={handleInsertGoldenExample}
-              className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
             >
               <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Exemplo Padrão Ouro
             </Button>
@@ -678,7 +705,7 @@ export default function SbarHandoffLab() {
               variant="ghost"
               size="sm"
               onClick={handleClearFields}
-              className="rounded-xl text-slate-500 hover:text-slate-900 text-xs"
+              className="rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 text-xs"
             >
               <RotateCcw className="h-3.5 w-3.5 mr-1" /> Limpar
             </Button>
@@ -687,9 +714,9 @@ export default function SbarHandoffLab() {
 
         {/* Notificação Toast */}
         {toastMessage && (
-          <div className="p-3.5 rounded-xl bg-slate-900 text-white text-xs flex items-center justify-between gap-2 animate-in fade-in shadow-md">
+          <div className="p-3.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs flex items-center justify-between gap-2 animate-in fade-in shadow-md">
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-teal-400 shrink-0" />
+              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
               <span className="font-medium">{toastMessage}</span>
             </div>
             {isListening && (
@@ -700,25 +727,25 @@ export default function SbarHandoffLab() {
 
         {/* Alerta de Erro de Microfone */}
         {voiceError && (
-          <div className="p-3.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-900 text-xs flex items-center gap-2.5 shadow-2xs animate-in fade-in">
+          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-900 dark:text-rose-200 text-xs flex items-center gap-2.5 shadow-2xs animate-in fade-in">
             <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
             <div className="flex-1 font-medium">{voiceError}</div>
             <button
               onClick={() => setVoiceError("")}
-              className="text-xs font-bold text-rose-700 hover:underline shrink-0"
+              className="text-xs font-bold text-rose-700 dark:text-rose-300 hover:underline shrink-0"
             >
               Fechar
             </button>
           </div>
         )}
 
-        {/* Seletor de Cenários Clínicos de Alta Fidelidade */}
+        {/* Seletor de Cenários Clínicos */}
         <div className="space-y-2">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700 uppercase tracking-wide">
-              1. Selecione o Caso Clínico para Simulação:
+            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+              1. Selecione o Caso Clínico:
             </span>
-            <span className="text-xs text-slate-500">
+            <span className="text-xs text-slate-500 dark:text-slate-400">
               {PRESET_HANDOFF_SCENARIOS.length} Cenários Disponíveis
             </span>
           </div>
@@ -730,22 +757,22 @@ export default function SbarHandoffLab() {
                 onClick={() => handleSelectScenario(idx)}
                 className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
                   activeScenarioIdx === idx
-                    ? "bg-white border-teal-700 ring-2 ring-teal-700/20 shadow-xs"
-                    : "bg-white border-slate-200 hover:border-slate-300"
+                    ? "bg-white dark:bg-slate-900 border-emerald-600 ring-2 ring-emerald-600/20 shadow-xs"
+                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                 }`}
               >
                 <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700">
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                     {scenario.sector}
                   </span>
-                  <span className="text-xs font-bold text-teal-700">
+                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
                     {scenario.name} ({scenario.age}a)
                   </span>
                 </div>
-                <h3 className="text-xs font-bold text-slate-900 line-clamp-1">
+                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
                   {scenario.title}
                 </h3>
-                <p className="text-[11px] text-slate-500 line-clamp-2 mt-1 leading-relaxed">
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 leading-relaxed">
                   {scenario.clinicalSummary}
                 </p>
               </div>
@@ -754,32 +781,32 @@ export default function SbarHandoffLab() {
         </div>
 
         {/* Card do Paciente no Leito */}
-        <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="space-y-1">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-teal-800 uppercase block">Prontuário à Beira-Leito</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-700">
+              <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase block">Prontuário à Beira-Leito</span>
+              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                 {currentCase.bed || "Leito de Internação"}
               </span>
             </div>
-            <h2 className="text-sm font-bold text-slate-900">
+            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
               {currentCase.name} • {currentCase.diagnosis || currentCase.title}
             </h2>
-            <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
               {currentCase.clinicalSummary || currentCase.description}
             </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-xs bg-slate-50 p-3 rounded-xl border border-slate-100 shrink-0">
-            <span className="flex items-center gap-1 font-semibold text-slate-700">
+          <div className="flex flex-wrap items-center gap-3 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shrink-0">
+            <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
               <HeartPulse className="h-3.5 w-3.5 text-rose-500" />
               PA: {currentCase.vitals?.pa_sistolica}/{currentCase.vitals?.pa_diastolica} mmHg
             </span>
-            <span className="flex items-center gap-1 font-semibold text-slate-700">
+            <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
               <Activity className="h-3.5 w-3.5 text-emerald-500" />
               SatO2: {currentCase.vitals?.sat}%
             </span>
-            <span className="flex items-center gap-1 font-semibold text-slate-700">
+            <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
               <Clock className="h-3.5 w-3.5 text-sky-500" />
               FC: {currentCase.vitals?.fc} bpm
             </span>
@@ -787,13 +814,13 @@ export default function SbarHandoffLab() {
         </div>
 
         {/* NAVEGAÇÃO DE MODOS PEDAGÓGICOS */}
-        <div className="flex border-b border-slate-200 gap-4 text-xs font-bold overflow-x-auto no-scrollbar">
+        <div className="flex border-b border-slate-200 dark:border-slate-800 gap-4 text-xs font-bold overflow-x-auto no-scrollbar">
           <button
             onClick={() => setActiveTab("guided")}
             className={`pb-3 px-1 border-b-2 whitespace-nowrap transition-all flex items-center gap-1.5 ${
               activeTab === "guided"
-                ? "border-teal-700 text-teal-900 font-extrabold"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "border-teal-700 text-teal-900 dark:border-teal-400 dark:text-teal-300 font-extrabold"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
             }`}
           >
             <BookOpen className="h-4 w-4" />
@@ -804,8 +831,8 @@ export default function SbarHandoffLab() {
             onClick={() => setActiveTab("free_voice")}
             className={`pb-3 px-1 border-b-2 whitespace-nowrap transition-all flex items-center gap-1.5 ${
               activeTab === "free_voice"
-                ? "border-teal-700 text-teal-900 font-extrabold"
-                : "border-transparent text-slate-500 hover:text-slate-800"
+                ? "border-teal-700 text-teal-900 dark:border-teal-400 dark:text-teal-300 font-extrabold"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
             }`}
           >
             <Mic className="h-4 w-4" />
@@ -817,11 +844,11 @@ export default function SbarHandoffLab() {
               onClick={() => setActiveTab("debriefing")}
               className={`pb-3 px-1 border-b-2 whitespace-nowrap transition-all flex items-center gap-1.5 ${
                 activeTab === "debriefing"
-                  ? "border-teal-700 text-teal-900 font-extrabold"
-                  : "border-transparent text-slate-500 hover:text-slate-800"
+                  ? "border-teal-700 text-teal-900 dark:border-teal-400 dark:text-teal-300 font-extrabold"
+                  : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
               }`}
             >
-              <MessageSquareQuote className="h-4 w-4 text-teal-700" />
+              <MessageSquareQuote className="h-4 w-4 text-teal-700 dark:text-teal-400" />
               <span>3. Debriefing & Parecer Florence (Score: {tutorEvaluation.safetyScore}/100)</span>
             </button>
           )}
@@ -841,24 +868,24 @@ export default function SbarHandoffLab() {
                     onClick={() => setActiveGuidedStep(idx)}
                     className={`p-3.5 rounded-xl border text-left transition-all ${
                       isCurrent
-                        ? `bg-white ${step.activeBorder} ring-2 shadow-xs`
-                        : "bg-white border-slate-200 hover:border-slate-300"
+                        ? `bg-white dark:bg-slate-900 ${step.activeBorder} ring-2 shadow-xs`
+                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                     }`}
                   >
                     <div className="flex items-center justify-between">
                       <span className={`flex h-6 w-6 items-center justify-center rounded-lg text-xs font-extrabold ${
-                        isCurrent ? step.accentBg : "bg-slate-100 text-slate-700"
+                        isCurrent ? step.accentBg : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
                       }`}>
                         {step.letter}
                       </span>
                       {hasContent && (
-                        <CheckCircle2 className="h-4 w-4 text-teal-600" />
+                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
                       )}
                     </div>
-                    <span className="text-xs font-bold text-slate-900 block mt-2.5 truncate">
+                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block mt-2.5 truncate">
                       {step.title}
                     </span>
-                    <span className="text-[10px] text-slate-500 block truncate mt-0.5">
+                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block truncate mt-0.5">
                       {step.subtitle}
                     </span>
                   </button>
@@ -867,95 +894,109 @@ export default function SbarHandoffLab() {
             </div>
 
             {/* Painel Central de Ensino e Formulação */}
-            <div className="bg-white rounded-2xl border border-slate-200/90 p-6 sm:p-7 shadow-xs space-y-6">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-5">
               {/* Topo do Passo */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="space-y-1">
                   <div className="flex items-center gap-2">
                     <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${currentGuided.badgeColor}`}>
                       Passo {activeGuidedStep + 1} de 4 • Pilar {currentGuided.letter}
                     </span>
-                    <span className="text-xs font-semibold text-slate-500">
-                      Progresso do Checklist: {currentCheckedCount}/3 ({currentCheckedPercent}%)
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
+                      Checklist: {currentCheckedCount}/3 ({currentCheckedPercent}%)
                     </span>
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900">
+                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
                     {currentGuided.title} — {currentGuided.subtitle}
                   </h3>
-                  <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                  <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
                     {currentGuided.goal}
                   </p>
                 </div>
 
-                <Button
-                  size="sm"
-                  variant="outline"
-                  onClick={() => handleInsertFieldExample(currentGuided.key)}
-                  className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold shrink-0 shadow-2xs"
-                >
-                  <Lightbulb className="h-3.5 w-3.5 text-amber-500 mr-1.5" /> Adotar Exemplo Padrão Ouro
-                </Button>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => setShowGoldComparison((v) => !v)}
+                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold shrink-0 shadow-2xs flex items-center gap-1.5"
+                  >
+                    <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+                    <span>{showGoldComparison ? "Ocultar Comparativo" : "Ver Exemplo & Comparativo"}</span>
+                    <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showGoldComparison ? "rotate-180" : ""}`} />
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    onClick={() => handleInsertFieldExample(currentGuided.key)}
+                    className="rounded-xl border-emerald-300 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/60 text-xs font-semibold shrink-0 shadow-2xs"
+                  >
+                    Adotar Exemplo Ouro
+                  </Button>
+                </div>
               </div>
 
-              {/* Comparador Didático: Como NÃO falar vs Exemplo Ouro */}
-              <div className="grid sm:grid-cols-2 gap-3.5 text-xs">
-                {/* ❌ Como NÃO falar */}
-                <div className="p-4 rounded-xl bg-rose-50/70 border border-rose-200/80 text-rose-950 space-y-2 flex flex-col justify-between">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-1.5 font-bold text-rose-800 text-[11px] uppercase tracking-wide">
-                      <AlertOctagon className="h-3.5 w-3.5 text-rose-600 shrink-0" />
-                      <span>Comunicação Ineficaz (Causa de Erros Clínicos)</span>
-                    </div>
-                    <p className="italic leading-relaxed font-medium">
-                      "{currentGuided.badExample}"
-                    </p>
-                  </div>
-                  <p className="text-[11px] text-rose-700 pt-2 border-t border-rose-200/60 leading-normal">
-                    <strong>Por que falha:</strong> {currentGuided.badReason}
-                  </p>
-                </div>
-
-                {/* ✅ Padrão Ouro */}
-                <div className="p-4 rounded-xl bg-teal-50/70 border border-teal-200/80 text-teal-950 space-y-2 flex flex-col justify-between">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <div className="flex items-center gap-1.5 font-bold text-teal-800 text-[11px] uppercase tracking-wide">
-                        <CheckCircle2 className="h-3.5 w-3.5 text-teal-600 shrink-0" />
-                        <span>Comunicação Efetiva (Padrão Ouro COFEN/OMS)</span>
+              {/* Comparador Didático Opcional (Divulgação Progressiva - sem poluir o fluxo) */}
+              {showGoldComparison && (
+                <div className="grid sm:grid-cols-2 gap-3.5 text-xs animate-in fade-in">
+                  {/* ❌ Como NÃO falar */}
+                  <div className="p-4 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900 text-rose-950 dark:text-rose-200 space-y-2 flex flex-col justify-between">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center gap-1.5 font-bold text-rose-800 dark:text-rose-300 text-[11px] uppercase tracking-wide">
+                        <AlertOctagon className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                        <span>Comunicação Ineficaz (Causa de Erros Clínicos)</span>
                       </div>
-                      <button
-                        onClick={() => handleInsertFieldExample(currentGuided.key)}
-                        className="text-[10px] font-bold text-teal-700 hover:underline"
-                      >
-                        Copiar texto
-                      </button>
+                      <p className="italic leading-relaxed font-medium">
+                        "{currentGuided.badExample}"
+                      </p>
                     </div>
-                    <p className="leading-relaxed font-semibold">
-                      "{currentGuided.goodExample}"
+                    <p className="text-[11px] text-rose-700 dark:text-rose-300 pt-2 border-t border-rose-200/60 dark:border-rose-900/60 leading-normal">
+                      <strong>Por que falha:</strong> {currentGuided.badReason}
                     </p>
                   </div>
-                  <p className="text-[11px] text-teal-800 pt-2 border-t border-teal-200/60 leading-normal">
-                    <strong>Vantagem assistencial:</strong> {currentGuided.goodReason}
-                  </p>
-                </div>
-              </div>
 
-              {/* Checklist Dinâmico de Segurança com Barra de Progresso */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200/80 space-y-3">
+                  {/* ✅ Padrão Ouro */}
+                  <div className="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900 text-emerald-950 dark:text-emerald-200 space-y-2 flex flex-col justify-between">
+                    <div className="space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300 text-[11px] uppercase tracking-wide">
+                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                          <span>Comunicação Efetiva (Padrão Ouro COFEN/OMS)</span>
+                        </div>
+                        <button
+                          onClick={() => handleInsertFieldExample(currentGuided.key)}
+                          className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
+                        >
+                          Copiar texto
+                        </button>
+                      </div>
+                      <p className="leading-relaxed font-semibold">
+                        "{currentGuided.goodExample}"
+                      </p>
+                    </div>
+                    <p className="text-[11px] text-emerald-800 dark:text-emerald-300 pt-2 border-t border-emerald-200/60 dark:border-emerald-900/60 leading-normal">
+                      <strong>Vantagem assistencial:</strong> {currentGuided.goodReason}
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Checklist Dinâmico de Segurança */}
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 uppercase tracking-wide flex items-center gap-1.5">
-                    <CheckSquare className="h-4 w-4 text-teal-700" />
-                    Checklist Dinâmico de Segurança (Atualiza ao falar ou digitar):
+                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
+                    <CheckSquare className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                    Checklist Dinâmico de Segurança:
                   </span>
-                  <span className="text-xs font-bold text-teal-800">
-                    {currentCheckedCount} de 3 itens ({currentCheckedPercent}%)
+                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400">
+                    {currentCheckedCount} de 3 ({currentCheckedPercent}%)
                   </span>
                 </div>
 
                 {/* Barra de Progresso Suave */}
-                <div className="w-full h-1.5 bg-slate-200 rounded-full overflow-hidden">
+                <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
                   <div
-                    className="h-full bg-teal-700 transition-all duration-300 rounded-full"
+                    className="h-full bg-emerald-600 dark:bg-emerald-500 transition-all duration-300 rounded-full"
                     style={{ width: `${currentCheckedPercent}%` }}
                   />
                 </div>
@@ -967,13 +1008,13 @@ export default function SbarHandoffLab() {
                       onClick={() => handleToggleChecklistItem(currentGuided.key, item.key)}
                       className={`flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer select-none ${
                         item.done
-                          ? "bg-white border-teal-600 text-teal-950 shadow-2xs"
-                          : "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-white"
+                          ? "bg-white dark:bg-slate-800 border-emerald-600 dark:border-emerald-500 text-emerald-950 dark:text-emerald-100 shadow-2xs"
+                          : "bg-white/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 hover:bg-white dark:hover:bg-slate-800"
                       }`}
                       title="Clique para marcar/desmarcar este item"
                     >
                       <div className={`flex h-4 w-4 items-center justify-center rounded-md shrink-0 transition-colors ${
-                        item.done ? "bg-teal-700 text-white" : "border border-slate-300 bg-white"
+                        item.done ? "bg-emerald-600 text-white" : "border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900"
                       }`}>
                         {item.done ? <Check className="h-3 w-3 stroke-[3]" /> : null}
                       </div>
@@ -986,23 +1027,23 @@ export default function SbarHandoffLab() {
               {/* Área de Digitação & Gravação por Microfone */}
               <div className="space-y-2.5">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs font-bold text-slate-900 flex items-center gap-2 flex-wrap">
+                  <label className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 flex-wrap">
                     <span>Sua formulação para o pilar {currentGuided.letter}:</span>
                     {isListening && activeListeningField === currentGuided.key && (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-rose-600 animate-pulse bg-rose-50 px-2.5 py-0.5 rounded-full border border-rose-200 shadow-2xs">
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-rose-600 animate-pulse bg-rose-50 dark:bg-rose-950/40 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800 shadow-2xs">
                         <Radio className="h-3 w-3 text-rose-600 animate-ping" />
                         <span>Ouvindo sua voz ({formatSeconds(recordingSeconds)})... Fale com clareza</span>
                       </span>
                     )}
                     {(isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key && (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-teal-800 animate-pulse bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200 shadow-2xs">
-                        <Loader2 className="h-3.5 w-3.5 text-teal-700 animate-spin" />
-                        <span>Áudio recebido! Florence AI transcrevendo...</span>
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 animate-pulse bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 shadow-2xs">
+                        <Loader2 className="h-3.5 w-3.5 text-emerald-600 animate-spin" />
+                        <span>Áudio recebido! Transcrevendo...</span>
                       </span>
                     )}
                   </label>
 
-                  {/* Botão de Ditar por Voz com Estilo Vivo e Feedback Imediato */}
+                  {/* Botão de Ditar por Voz */}
                   <Button
                     size="sm"
                     disabled={(isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key}
@@ -1012,8 +1053,8 @@ export default function SbarHandoffLab() {
                       isListening && activeListeningField === currentGuided.key
                         ? "bg-rose-600 hover:bg-rose-700 text-white shadow-md ring-2 ring-rose-400 ring-offset-2 animate-pulse"
                         : (isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key
-                        ? "bg-teal-50 border-teal-600 text-teal-900"
-                        : "border-teal-700 text-teal-800 hover:bg-teal-50"
+                        ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-600 text-emerald-900 dark:text-emerald-200"
+                        : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
                     }`}
                   >
                     {isListening && activeListeningField === currentGuided.key ? (
@@ -1030,12 +1071,12 @@ export default function SbarHandoffLab() {
                       )
                     ) : (isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin text-teal-700" />
+                        <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
                         <span>Transcrevendo...</span>
                       </>
                     ) : (
                       <>
-                        <Mic className="h-4 w-4 text-teal-700" />
+                        <Mic className="h-4 w-4 text-emerald-600" />
                         <span>Ditar por Voz</span>
                       </>
                     )}
@@ -1044,8 +1085,8 @@ export default function SbarHandoffLab() {
 
                 {/* Balão de Fala Interina ao Vivo */}
                 {isListening && activeListeningField === currentGuided.key && interimTranscript && (
-                  <div className="p-2.5 rounded-xl bg-teal-50 border border-teal-200 text-teal-900 text-xs flex items-center gap-2 animate-in fade-in">
-                    <Volume2 className="h-4 w-4 text-teal-700 shrink-0 animate-bounce" />
+                  <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-2 animate-in fade-in">
+                    <Volume2 className="h-4 w-4 text-emerald-600 shrink-0 animate-bounce" />
                     <span className="italic font-medium">"{interimTranscript}"</span>
                   </div>
                 )}
@@ -1055,17 +1096,17 @@ export default function SbarHandoffLab() {
                   value={sbarData[currentGuided.key]}
                   onChange={(e) => setSbarData({ ...sbarData, [currentGuided.key]: e.target.value })}
                   placeholder={`Formule o ${currentGuided.title} deste paciente com clareza clínica e dados objetivos...`}
-                  className="text-xs sm:text-sm rounded-xl border-slate-200 resize-none focus:border-teal-700 focus:ring-1 focus:ring-teal-700 leading-relaxed shadow-2xs"
+                  className="text-xs sm:text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 resize-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 leading-relaxed shadow-2xs"
                 />
 
-                <div className="flex items-center justify-between text-[11px] text-slate-500">
+                <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
                   <span>Dica: Use dados numéricos e cite horário específico de medicações.</span>
                   <span>{sbarData[currentGuided.key]?.length || 0} caracteres</span>
                 </div>
               </div>
 
               {/* Navegação entre Passos */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100">
+              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
                 <Button
                   size="sm"
                   variant="outline"
@@ -1074,7 +1115,7 @@ export default function SbarHandoffLab() {
                     if (isListening) stopListening();
                     setActiveGuidedStep((prev) => Math.max(0, prev - 1));
                   }}
-                  className="rounded-xl text-xs font-semibold"
+                  className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Passo Anterior
                 </Button>
@@ -1086,7 +1127,7 @@ export default function SbarHandoffLab() {
                       if (isListening) stopListening();
                       setActiveGuidedStep((prev) => Math.min(3, prev + 1));
                     }}
-                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs"
                   >
                     <span>Próximo Passo: {guidedStepsMeta[activeGuidedStep + 1]?.letter} ({guidedStepsMeta[activeGuidedStep + 1]?.title.split(" ")[0]})</span>
                     <ArrowRight className="h-3.5 w-3.5" />
@@ -1096,15 +1137,15 @@ export default function SbarHandoffLab() {
                     size="sm"
                     disabled={isEvaluating}
                     onClick={handleEvaluateSbar}
-                    className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold flex items-center gap-2 shadow-xs"
+                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 shadow-xs"
                   >
                     {isEvaluating ? (
                       <>
-                        <Sparkles className="h-3.5 w-3.5 animate-spin text-teal-300" /> Florence analisando...
+                        <Sparkles className="h-3.5 w-3.5 animate-spin text-white" /> Florence analisando...
                       </>
                     ) : (
                       <>
-                        <Send className="h-3.5 w-3.5 text-teal-400" /> Concluir e Transmitir para Florence
+                        <Send className="h-3.5 w-3.5 text-white" /> Concluir e Transmitir para Florence
                       </>
                     )}
                   </Button>
@@ -1116,19 +1157,19 @@ export default function SbarHandoffLab() {
 
         {/* CONTEÚDO DA ABA 2: SIMULAÇÃO RÁPIDA À BEIRA-LEITO (ÁUDIO DIRETO) */}
         {activeTab === "free_voice" && (
-          <div className="bg-white rounded-2xl border border-slate-200 p-6 sm:p-7 shadow-xs space-y-6">
-            <div className="border-b border-slate-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6">
+            <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900">
+                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
                   Simulação em Tempo Real (Troca de Turno Contínua)
                 </h3>
-                <p className="text-xs text-slate-500 mt-0.5">
+                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
                   Dite a passagem de plantão por voz em cada pilar com seu microfone. Fale com clareza e ritmo pausado.
                 </p>
               </div>
 
               {isListening && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 border border-rose-200 text-rose-700 text-xs font-bold animate-pulse">
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold animate-pulse">
                   <Radio className="h-3.5 w-3.5 text-rose-600" />
                   <span>Microfone Ligado no Pilar {activeListeningField?.toUpperCase()}</span>
                 </div>
@@ -1137,22 +1178,22 @@ export default function SbarHandoffLab() {
 
             <div className="grid md:grid-cols-2 gap-4">
               {[
-                { key: "situation", letter: "S", title: "Situação", color: "bg-indigo-100 text-indigo-800", ph: "Ex.: Paciente M.S.L., 58 anos, no Leito 12-A, no 1º DPO de colectomia..." },
-                { key: "background", letter: "B", title: "Histórico", color: "bg-amber-100 text-amber-800", ph: "Ex.: Hipertenso controlado com Losartana. Nega alergias..." },
-                { key: "assessment", letter: "A", title: "Avaliação", color: "bg-rose-100 text-rose-800", ph: "Ex.: PA 115/72, FC 84, SatO2 98%. Dor EVA 4/10 em incisão..." },
-                { key: "recommendation", letter: "R", title: "Recomendação", color: "bg-teal-100 text-teal-800", ph: "Ex.: Vigiar dreno a cada 4h; analgesia às 20h; checar hematócrito..." }
+                { key: "situation", letter: "S", title: "Situação", color: "bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300", ph: "Ex.: Paciente M.S.L., 58 anos, no Leito 12-A, no 1º DPO de colectomia..." },
+                { key: "background", letter: "B", title: "Histórico", color: "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300", ph: "Ex.: Hipertenso controlado com Losartana. Nega alergias..." },
+                { key: "assessment", letter: "A", title: "Avaliação", color: "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300", ph: "Ex.: PA 115/72, FC 84, SatO2 98%. Dor EVA 4/10 em incisão..." },
+                { key: "recommendation", letter: "R", title: "Recomendação", color: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300", ph: "Ex.: Vigiar dreno a cada 4h; analgesia às 20h; checar hematócrito..." }
               ].map((pilar) => (
-                <div key={pilar.key} className="p-4 rounded-xl border border-slate-200 bg-slate-50/50 space-y-2.5">
+                <div key={pilar.key} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className={`flex h-6 w-6 items-center justify-center rounded-md font-bold text-xs ${pilar.color}`}>
                         {pilar.letter}
                       </span>
-                      <span className="text-xs font-bold text-slate-900">{pilar.title}</span>
+                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{pilar.title}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                      <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
                         {Object.values(checklists[pilar.key] || {}).filter(Boolean).length}/3 itens
                       </span>
 
@@ -1165,8 +1206,8 @@ export default function SbarHandoffLab() {
                           isListening && activeListeningField === pilar.key
                             ? "bg-rose-600 hover:bg-rose-700 text-white shadow-xs animate-pulse ring-2 ring-rose-400"
                             : (isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key
-                            ? "bg-teal-50 border-teal-600 text-teal-900"
-                            : ""
+                            ? "bg-teal-50 dark:bg-teal-950/40 border-teal-600 text-teal-900 dark:text-teal-200"
+                            : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
                         }`}
                       >
                         {isListening && activeListeningField === pilar.key ? (
@@ -1183,12 +1224,12 @@ export default function SbarHandoffLab() {
                           )
                         ) : (isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key ? (
                           <>
-                            <Loader2 className="h-3 w-3 animate-spin text-teal-700" />
+                            <Loader2 className="h-3 w-3 animate-spin text-teal-700 dark:text-teal-400" />
                             <span>Transcrevendo...</span>
                           </>
                         ) : (
                           <>
-                            <Mic className="h-3 w-3 text-teal-700" />
+                            <Mic className="h-3 w-3 text-teal-700 dark:text-teal-400" />
                             <span>Ditar</span>
                           </>
                         )}
@@ -1197,14 +1238,14 @@ export default function SbarHandoffLab() {
                   </div>
 
                   {(isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key && (
-                    <div className="p-2 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 text-[11px] flex items-center gap-2 animate-pulse">
-                      <Loader2 className="h-3.5 w-3.5 text-teal-700 animate-spin shrink-0" />
-                      <span className="font-medium">Áudio recebido! Florence AI transcrevendo...</span>
+                    <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-900 dark:text-teal-200 text-[11px] flex items-center gap-2 animate-pulse">
+                      <Loader2 className="h-3.5 w-3.5 text-teal-700 dark:text-teal-400 animate-spin shrink-0" />
+                      <span className="font-medium">Áudio recebido! Transcrevendo...</span>
                     </div>
                   )}
 
                   {isListening && activeListeningField === pilar.key && interimTranscript && (
-                    <div className="p-2 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 text-[11px] italic">
+                    <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-900 dark:text-teal-200 text-[11px] italic">
                       "{interimTranscript}"
                     </div>
                   )}
@@ -1214,7 +1255,7 @@ export default function SbarHandoffLab() {
                     value={sbarData[pilar.key]}
                     onChange={(e) => setSbarData({ ...sbarData, [pilar.key]: e.target.value })}
                     placeholder={pilar.ph}
-                    className="text-xs rounded-lg border-slate-200 resize-none bg-white leading-relaxed"
+                    className="text-xs rounded-lg border-slate-200 dark:border-slate-700 resize-none bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 leading-relaxed"
                   />
                 </div>
               ))}
@@ -1245,32 +1286,32 @@ export default function SbarHandoffLab() {
 
         {/* CONTEÚDO DA ABA 3: DEBRIEFING SOCRÁTICO DA PRECEPTORA FLORENCE */}
         {tutorEvaluation && (
-          <div className="bg-white rounded-2xl border border-teal-200 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-teal-200 dark:border-teal-900/60 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
             {/* Topo do Feedback com Score e Grade */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 pb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-teal-700" />
-                  <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block">
+                  <ShieldCheck className="h-5 w-5 text-teal-700 dark:text-teal-400" />
+                  <span className="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase tracking-wider block">
                     Parecer de Preceptoria Clínica • Florence AI
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900">
+                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">
                   Auditoria da Comunicação & Segurança do Paciente
                 </h3>
-                <p className="text-xs text-slate-600 max-w-2xl leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
                   {tutorEvaluation.summaryFeedback}
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 bg-teal-50 border border-teal-200 rounded-2xl p-3 shrink-0">
+              <div className="flex items-center gap-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-2xl p-3 shrink-0">
                 <div className="text-right">
-                  <span className="text-[10px] font-bold text-teal-800 uppercase block">Índice de Segurança</span>
-                  <span className="text-2xl font-extrabold text-teal-900 block leading-none">
+                  <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 uppercase block">Índice de Segurança</span>
+                  <span className="text-2xl font-extrabold text-teal-900 dark:text-teal-200 block leading-none">
                     {tutorEvaluation.safetyScore}/100
                   </span>
                 </div>
-                <div className="h-10 w-px bg-teal-200" />
+                <div className="h-10 w-px bg-teal-200 dark:bg-teal-800" />
                 <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-teal-700 text-white">
                   {tutorEvaluation.grade}
                 </span>
@@ -1279,12 +1320,12 @@ export default function SbarHandoffLab() {
 
             {/* SIMULADOR DE CONSEQUÊNCIA DE EVENTO SENTINELA (APRENDIZAGEM VIVA) */}
             {tutorEvaluation.sentinelConsequence && (
-              <div className="p-4 rounded-xl bg-amber-50/80 border border-amber-200 space-y-1.5">
-                <div className="flex items-center gap-2 text-amber-900 font-bold text-xs uppercase tracking-wide">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 shrink-0" />
+              <div className="p-4 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-1.5">
+                <div className="flex items-center gap-2 text-amber-900 dark:text-amber-300 font-bold text-xs uppercase tracking-wide">
+                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
                   <span>Simulador de Consequências no Hospital Real (O que aconteceria se você omitisse esses dados?):</span>
                 </div>
-                <p className="text-xs text-amber-950 leading-relaxed font-medium">
+                <p className="text-xs text-amber-950 dark:text-amber-200 leading-relaxed font-medium">
                   {tutorEvaluation.sentinelConsequence}
                 </p>
               </div>
@@ -1292,7 +1333,7 @@ export default function SbarHandoffLab() {
 
             {/* Desdobramento dos 4 Pilares SBAR */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-700 uppercase tracking-wide">
+              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
                 Desempenho por Eixo da Metodologia:
               </h4>
 
@@ -1305,14 +1346,14 @@ export default function SbarHandoffLab() {
                 ].map((pillar) => {
                   const data = tutorEvaluation.pillarScores?.[pillar.key] || { score: 75, feedback: "Informações registradas com clareza." };
                   return (
-                    <div key={pillar.key} className="p-3.5 rounded-xl border border-slate-200 bg-slate-50 space-y-1">
+                    <div key={pillar.key} className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900">{pillar.label}</span>
-                        <span className={`text-xs font-extrabold ${data.score >= 80 ? 'text-teal-700' : 'text-amber-700'}`}>
+                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{pillar.label}</span>
+                        <span className={`text-xs font-extrabold ${data.score >= 80 ? 'text-teal-700 dark:text-teal-400' : 'text-amber-700 dark:text-amber-400'}`}>
                           {data.score} pts
                         </span>
                       </div>
-                      <p className="text-[11px] text-slate-600 leading-normal">
+                      <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-normal">
                         {data.feedback}
                       </p>
                     </div>
@@ -1324,12 +1365,12 @@ export default function SbarHandoffLab() {
             {/* Omissões Críticas e Pontos Fortes */}
             <div className="grid sm:grid-cols-2 gap-4 text-xs pt-1">
               {tutorEvaluation.criticalOmissions?.length > 0 && (
-                <div className="p-4 rounded-xl bg-rose-50 border border-rose-200 space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold text-rose-800">
+                <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-2">
+                  <div className="flex items-center gap-1.5 font-bold text-rose-800 dark:text-rose-300">
                     <AlertTriangle className="h-4 w-4" />
                     <span>Omissões Críticas que Devem ser Corrigidas:</span>
                   </div>
-                  <ul className="space-y-1.5 text-rose-700">
+                  <ul className="space-y-1.5 text-rose-700 dark:text-rose-200">
                     {tutorEvaluation.criticalOmissions.map((om, i) => (
                       <li key={i} className="flex items-start gap-1.5">
                         <span className="font-bold">•</span>
@@ -1341,12 +1382,12 @@ export default function SbarHandoffLab() {
               )}
 
               {tutorEvaluation.strengths?.length > 0 && (
-                <div className="p-4 rounded-xl bg-emerald-50 border border-emerald-200 space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold text-emerald-800">
+                <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-2">
+                  <div className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300">
                     <CheckCircle2 className="h-4 w-4" />
                     <span>Pontos Fortes da Sua Comunicação:</span>
                   </div>
-                  <ul className="space-y-1.5 text-emerald-700">
+                  <ul className="space-y-1.5 text-emerald-700 dark:text-emerald-200">
                     {tutorEvaluation.strengths.map((st, i) => (
                       <li key={i} className="flex items-start gap-1.5">
                         <span className="font-bold">•</span>
@@ -1360,28 +1401,28 @@ export default function SbarHandoffLab() {
 
             {/* DEBRIEFING SOCRÁTICO: PERGUNTAS REFLEXIVAS INTERATIVAS */}
             {tutorEvaluation.socraticQuestions?.length > 0 && (
-              <div className="bg-slate-50 border border-slate-200 rounded-2xl p-5 space-y-3">
+              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3">
                 <div className="flex items-center gap-2">
-                  <MessageSquareQuote className="h-5 w-5 text-teal-700" />
-                  <h4 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                  <MessageSquareQuote className="h-5 w-5 text-teal-700 dark:text-teal-400" />
+                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
                     Debriefing Socrático da Preceptora (Exercício de Raciocínio Clínico)
                   </h4>
                 </div>
-                <p className="text-xs text-slate-500">
+                <p className="text-xs text-slate-500 dark:text-slate-400">
                   Responda às questões da tutora para consolidar a fixação das condutas de emergência:
                 </p>
 
                 <div className="space-y-3 pt-1">
                   {tutorEvaluation.socraticQuestions.map((q, idx) => (
-                    <div key={idx} className="bg-white rounded-xl border border-slate-200 p-3.5 space-y-2">
-                      <p className="text-xs font-semibold text-slate-900">
+                    <div key={idx} className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 p-3.5 space-y-2">
+                      <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
                         {idx + 1}. {q}
                       </p>
                       <Input
                         value={studentReflections[idx] || ""}
                         onChange={(e) => setStudentReflections({ ...studentReflections, [idx]: e.target.value })}
                         placeholder="Digite sua resposta e justificativa clínica como enfermeiro(a)..."
-                        className="text-xs rounded-lg border-slate-200 focus:border-teal-700"
+                        className="text-xs rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:border-teal-700"
                       />
                     </div>
                   ))}
@@ -1390,14 +1431,14 @@ export default function SbarHandoffLab() {
             )}
 
             {/* Mensagem de Mentoria & Exportação em PDF */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100">
-              <div className="text-xs text-slate-600 italic">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+              <div className="text-xs text-slate-600 dark:text-slate-400 italic">
                 "{tutorEvaluation.florenceMentorship || 'A comunicação assertiva é a maior ferramenta de proteção da enfermagem.'}"
               </div>
 
               <Button
                 onClick={handleDownloadPdf}
-                className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs px-5 h-10 shadow-xs flex items-center gap-2 shrink-0"
+                className="rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs px-5 h-10 shadow-xs flex items-center gap-2 shrink-0"
               >
                 <Download className="h-4 w-4" />
                 <span>Exportar Prontuário & Parecer em PDF</span>

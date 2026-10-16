@@ -79,16 +79,16 @@ export default function PhotoCropper({ file, onConfirm, onCancel }) {
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white p-5">
+      <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 dark:border dark:border-slate-800 p-5 shadow-2xl">
         <div className="mb-3 flex items-center gap-2">
           <ZoomIn className="h-5 w-5 text-teal-600" />
-          <h2 className="text-base font-semibold text-slate-800">Ajustar foto</h2>
+          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Ajustar foto</h2>
         </div>
         <p className="mb-3 text-xs text-slate-400">Arraste para posicionar e use o controle para aproximar.</p>
 
         <div className="mx-auto flex flex-col items-center gap-3">
           <div
-            className="relative overflow-hidden rounded-2xl bg-slate-100 touch-none select-none"
+            className="relative overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800 touch-none select-none"
             style={{ width: CONTAINER, height: CONTAINER }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
@@ -131,7 +131,7 @@ export default function PhotoCropper({ file, onConfirm, onCancel }) {
         </div>
 
         <div className="mt-5 flex gap-3">
-          <Button variant="outline" onClick={onCancel} className="flex-1 rounded-xl" disabled={busy}>
+          <Button variant="outline" onClick={onCancel} className="flex-1 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800" disabled={busy}>
             Cancelar
           </Button>
           <Button onClick={handleConfirm} className="flex-1 rounded-xl bg-teal-600 hover:bg-teal-700" disabled={busy || !imgEl}>

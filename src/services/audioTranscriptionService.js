@@ -84,7 +84,7 @@ export const audioTranscriptionService = {
         'content-type': 'application/json',
       },
       body: JSON.stringify({
-        audio_url,
+        audio_url: upload_url,
         language_code: 'pt',
         punctuate: true,
         format_text: true,
@@ -142,7 +142,7 @@ export const audioTranscriptionService = {
     const supportedMimes = ['audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav', 'audio/aac', 'audio/mp3', 'audio/flac'];
     const sanitizedMimeType = supportedMimes.includes(cleanMime) ? cleanMime : 'audio/webm';
 
-    if (onProgress) onProgress('Florence AI ouvindo relato clínico em português...');
+    if (onProgress) onProgress('Transcrevendo áudio em alta fidelidade...');
 
     const prompt = `Você é um especialista em transcrição clínica de enfermagem e terminologia médica em português (pt-BR).
 Ouça atentamente este áudio gravado por um enfermeiro à beira-leito.
@@ -204,11 +204,31 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
         const data = await response.json();
         const textOutput = data?.candidates?.[0]?.content?.parts?.[0]?.text;
         if (textOutput) {
-          const parsed = JSON.parse(textOutput);
-          if (parsed.transcricao) {
+          let extractedText = '';
+          let extractedSummary = '';
+          try {
+            const cleaned = textOutput.replace(/```(?:json)?\s*([\s\S]*?)\s*```/g, '$1').trim();
+            const parsed = JSON.parse(cleaned);
+            extractedText = parsed.transcricao || parsed.text || '';
+            extractedSummary = parsed.resumo_clinico || parsed.summary || '';
+          } catch {
+            const match = textOutput.match(/\{[\s\S]*\}/);
+            if (match) {
+              try {
+                const parsed = JSON.parse(match[0]);
+                extractedText = parsed.transcricao || parsed.text || '';
+                extractedSummary = parsed.resumo_clinico || parsed.summary || '';
+              } catch {}
+            }
+            if (!extractedText) {
+              extractedText = textOutput.replace(/```(?:json)?\s*|\s*```/g, '').trim();
+            }
+          }
+
+          if (extractedText) {
             return {
-              text: parsed.transcricao,
-              summary: parsed.resumo_clinico || '',
+              text: extractedText,
+              summary: extractedSummary,
               engine: `Google Gemini (${model})`,
             };
           }

@@ -21,9 +21,11 @@ function getGeminiApiKey() {
       return import.meta.env.VITE_GEMINI_API_KEY;
     }
   } catch {}
-  if (typeof process !== "undefined" && process.env && process.env.VITE_GEMINI_API_KEY) {
-    return process.env.VITE_GEMINI_API_KEY;
-  }
+  try {
+    if (typeof globalThis !== "undefined" && globalThis.process?.env?.VITE_GEMINI_API_KEY) {
+      return globalThis.process.env.VITE_GEMINI_API_KEY;
+    }
+  } catch {}
   return "";
 }
 

@@ -78,7 +78,7 @@ export default function Turmas() {
     setRoleSaving(true);
     setError("");
     try {
-      await base44.auth.updateMe({ user_type: type });
+      await base44.auth.updateMe({ user_type: type, role: type });
       window.location.reload();
     } catch (e) {
       setError(e.message || "Erro ao definir perfil");
@@ -165,14 +165,14 @@ export default function Turmas() {
 
   if (needsRole) {
     return (
-      <div className="min-h-screen bg-slate-50 flex items-center justify-center px-4">
-        <div className="w-full max-w-md rounded-3xl border border-slate-200 bg-white p-6 shadow-sm">
+      <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center px-4 transition-colors">
+        <div className="w-full max-w-md rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm">
           <div className="mb-5 text-center">
             <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-teal-600 text-white">
               <UserCog className="h-6 w-6" />
             </div>
-            <h1 className="text-lg font-semibold text-slate-800">Como você vai usar o app?</h1>
-            <p className="mt-1 text-sm text-slate-500">
+            <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100">Como você vai usar o app?</h1>
+            <p className="mt-1 text-sm text-slate-500 dark:text-slate-400">
               Escolha seu perfil para continuar.
             </p>
           </div>
@@ -181,25 +181,25 @@ export default function Turmas() {
               onClick={() => setSelectedRole("aluno")}
               className={`rounded-2xl border-2 p-5 text-left transition ${
                 selectedRole === "aluno"
-                  ? "border-teal-600 bg-teal-50"
-                  : "border-slate-200 hover:border-teal-500 hover:bg-teal-50"
+                  ? "border-teal-600 bg-teal-50 dark:bg-teal-950/40"
+                  : "border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-600 hover:bg-teal-50/50 dark:hover:bg-slate-800"
               }`}
             >
-              <GraduationCap className="h-7 w-7 text-teal-600" />
-              <p className="mt-2 font-semibold text-slate-800">Aluno</p>
-              <p className="text-xs text-slate-500">Entrar em turmas e responder casos</p>
+              <GraduationCap className="h-7 w-7 text-teal-600 dark:text-teal-400" />
+              <p className="mt-2 font-semibold text-slate-800 dark:text-slate-100">Aluno</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Entrar em turmas e responder casos</p>
             </button>
             <button
               onClick={() => setSelectedRole("professor")}
               className={`rounded-2xl border-2 p-5 text-left transition ${
                 selectedRole === "professor"
-                  ? "border-teal-600 bg-teal-50"
-                  : "border-slate-200 hover:border-teal-500 hover:bg-teal-50"
+                  ? "border-teal-600 bg-teal-50 dark:bg-teal-950/40"
+                  : "border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-600 hover:bg-teal-50/50 dark:hover:bg-slate-800"
               }`}
             >
-              <ClipboardList className="h-7 w-7 text-teal-600" />
-              <p className="mt-2 font-semibold text-slate-800">Professor</p>
-              <p className="text-xs text-slate-500">Criar turmas e compartilhar casos</p>
+              <ClipboardList className="h-7 w-7 text-teal-600 dark:text-teal-400" />
+              <p className="mt-2 font-semibold text-slate-800 dark:text-slate-100">Professor</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400">Criar turmas e compartilhar casos</p>
             </button>
           </div>
 
@@ -208,14 +208,14 @@ export default function Turmas() {
               <Button
                 onClick={() => chooseRole(selectedRole)}
                 disabled={roleSaving}
-                className="w-full rounded-xl bg-teal-600 hover:bg-teal-700"
+                className="w-full rounded-xl bg-teal-600 hover:bg-teal-700 text-white"
               >
                 {roleSaving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
               </Button>
               <Button
                 variant="outline"
                 onClick={() => navigate(`/register?role=${selectedRole}`)}
-                className="w-full rounded-xl"
+                className="w-full rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300"
               >
                 Criar conta
               </Button>
@@ -223,7 +223,7 @@ export default function Turmas() {
           )}
 
           {error && (
-            <div className="mt-4 rounded-lg bg-rose-50 p-2 text-sm text-rose-600">{error}</div>
+            <div className="mt-4 rounded-lg bg-rose-50 dark:bg-rose-950/40 p-2 text-sm text-rose-600 dark:text-rose-400">{error}</div>
           )}
         </div>
       </div>
@@ -231,46 +231,57 @@ export default function Turmas() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
+      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
         <div className="mx-auto max-w-2xl px-4 py-4">
           <div className="flex items-center justify-between">
             <button
               onClick={() => navigate("/")}
-              className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700"
+              className="flex items-center gap-1 text-sm text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200 transition"
             >
               <ArrowLeft className="h-4 w-4" /> Voltar
             </button>
-            <h1 className="text-lg font-semibold text-slate-800">Minhas Turmas</h1>
+            <div className="flex items-center gap-2">
+              <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-300">
+                {isProfessor ? "Professor" : "Aluno"}
+              </span>
+              <button
+                type="button"
+                onClick={() => chooseRole(isProfessor ? "aluno" : "professor")}
+                disabled={roleSaving}
+                className="text-[11px] text-slate-400 hover:text-teal-600 dark:hover:text-teal-400 underline transition"
+                title="Trocar visão entre Aluno e Professor"
+              >
+                {roleSaving ? "Trocando..." : `Mudar p/ ${isProfessor ? "Aluno" : "Professor"}`}
+              </button>
+            </div>
             {isProfessor ? (
               <Button
                 onClick={() => setCreateOpen(true)}
                 size="sm"
-                className="rounded-xl bg-teal-600 hover:bg-teal-700"
+                className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white"
               >
                 <Plus className="h-4 w-4" /> Criar turma
               </Button>
-            ) : (
-              <span className="text-xs text-slate-400">Aluno</span>
-            )}
+            ) : null}
           </div>
 
           {!isProfessor && (
-            <div className="mt-4 rounded-2xl border border-slate-200 bg-white p-4">
-              <Label className="flex items-center gap-1.5 text-slate-700">
-                <Hash className="h-4 w-4 text-teal-600" /> Entrar em uma turma com código
+            <div className="mt-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+              <Label className="flex items-center gap-1.5 text-slate-700 dark:text-slate-200">
+                <Hash className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Entrar em uma turma com código
               </Label>
               <div className="mt-2 flex gap-2">
                 <Input
                   value={joinCode}
                   onChange={(e) => setJoinCode(e.target.value)}
                   placeholder="Ex: AB3X9K"
-                  className="uppercase rounded-xl"
+                  className="uppercase rounded-xl bg-white dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100"
                 />
                 <Button
                   onClick={handleJoin}
                   disabled={joining || !joinCode.trim()}
-                  className="shrink-0 rounded-xl bg-teal-600 hover:bg-teal-700"
+                  className="shrink-0 rounded-xl bg-teal-600 hover:bg-teal-700 text-white"
                 >
                   {joining ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
                 </Button>
@@ -285,7 +296,7 @@ export default function Turmas() {
 
       <main className="mx-auto max-w-2xl px-4 py-4 space-y-3">
         {/* CARD DA TURMA MODELO / DEMONSTRAÇÃO */}
-        <div className="rounded-2xl border-2 border-teal-200 bg-gradient-to-r from-teal-50/80 to-sky-50/80 p-4 shadow-2xs">
+        <div className="rounded-2xl border-2 border-teal-200 dark:border-teal-800/60 bg-gradient-to-r from-teal-50/80 to-sky-50/80 dark:from-slate-900 dark:to-slate-900/90 p-4 shadow-2xs">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white shadow-xs">
@@ -293,24 +304,24 @@ export default function Turmas() {
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800 bg-teal-100 px-2 py-0.5 rounded-full border border-teal-200">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-800">
                     Turma Modelo / Demonstração
                   </span>
-                  <span className="text-[11px] font-bold text-slate-500">
+                  <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
                     Código: ENF2026
                   </span>
                 </div>
-                <h3 className="text-sm font-bold text-slate-900 mt-1">
+                <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 mt-1">
                   Enfermagem Clínica &amp; Terapia Intensiva — 2026
                 </h3>
-                <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">
+                <p className="text-xs text-slate-600 dark:text-slate-300 mt-0.5 leading-relaxed">
                   Turma exemplo com 7 alunos fictícios, 2 estudos de caso atribuídos e respostas corrigidas para exploração do módulo docente/discente.
                 </p>
               </div>
             </div>
           </div>
-          <div className="mt-3 pt-3 border-t border-teal-100 flex items-center justify-between">
-            <span className="text-xs text-teal-700 font-medium">Ambiente Interativo Ativo</span>
+          <div className="mt-3 pt-3 border-t border-teal-100 dark:border-slate-800 flex items-center justify-between">
+            <span className="text-xs text-teal-700 dark:text-teal-400 font-medium">Ambiente Interativo Ativo</span>
             <Button
               size="sm"
               onClick={() => navigate("/turma/demo-turma-enf-2026")}
@@ -324,7 +335,7 @@ export default function Turmas() {
 
         {/* LISTA DE TURMAS DO USUÁRIO */}
         <div className="pt-2">
-          <span className="text-xs font-bold text-slate-500 uppercase tracking-wide block mb-2 px-1">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide block mb-2 px-1">
             Suas Turmas ({memberships.length})
           </span>
 
@@ -333,7 +344,7 @@ export default function Turmas() {
               <Loader2 className="h-6 w-6 animate-spin text-teal-600" />
             </div>
           ) : memberships.length === 0 ? (
-            <div className="py-8 text-center text-xs text-slate-400 bg-white rounded-2xl border border-dashed border-slate-200 p-6">
+            <div className="py-8 text-center text-xs text-slate-400 bg-white dark:bg-slate-900 rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 p-6">
               {isProfessor
                 ? 'Você ainda não criou turmas próprias. Toque em "Criar turma" acima para iniciar.'
                 : 'Você ainda não entrou em turmas criadas por seus professores. Use o campo acima para inserir o código.'}
@@ -344,21 +355,21 @@ export default function Turmas() {
                 <button
                   key={m.id}
                   onClick={() => navigate(`/turma/${m.turma_id}`)}
-                  className="flex w-full items-center justify-between rounded-2xl border border-slate-200 bg-white p-4 text-left transition hover:border-teal-300 hover:shadow-xs"
+                  className="flex w-full items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-left transition hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-xs"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 text-teal-700">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-teal-700 dark:text-teal-400">
                       <Users className="h-5 w-5" />
                     </div>
                     <div>
-                      <p className="font-medium text-slate-800">{m.turma_name}</p>
+                      <p className="font-medium text-slate-800 dark:text-slate-100">{m.turma_name}</p>
                       <p className="text-xs text-slate-400">
                         Código: {m.turma_code} ·{" "}
                         {m.role === "professor" ? "Professor" : "Aluno"}
                       </p>
                     </div>
                   </div>
-                  <ArrowLeft className="h-4 w-4 rotate-180 text-slate-300" />
+                  <ArrowLeft className="h-4 w-4 rotate-180 text-slate-300 dark:text-slate-600" />
                 </button>
               ))}
             </div>
@@ -367,30 +378,30 @@ export default function Turmas() {
       </main>
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
-        <p className="text-[11px] text-slate-400">
-          © 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos do Enfermeiro Digital
+        <p className="text-[11px] text-slate-400 dark:text-slate-400">
+          © 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfermeiro Digital
         </p>
       </footer>
 
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
-        <DialogContent className="rounded-2xl">
+        <DialogContent className="rounded-2xl dark:bg-slate-900 dark:border-slate-800">
           <DialogHeader>
-            <DialogTitle>Criar nova turma</DialogTitle>
+            <DialogTitle className="text-slate-900 dark:text-slate-100">Criar nova turma</DialogTitle>
           </DialogHeader>
           <div className="space-y-3">
             <div>
-              <Label>Nome da turma *</Label>
+              <Label className="text-slate-700 dark:text-slate-300">Nome da turma *</Label>
               <Input
-                className="mt-1"
+                className="mt-1 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
                 placeholder="Ex: Enfermagem 2026 — Turma A"
               />
             </div>
             <div>
-              <Label>Descrição (opcional)</Label>
+              <Label className="text-slate-700 dark:text-slate-300">Descrição (opcional)</Label>
               <Textarea
-                className="mt-1 min-h-[70px]"
+                className="mt-1 min-h-[70px] dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
                 value={form.description}
                 onChange={(e) => setForm({ ...form, description: e.target.value })}
                 placeholder="Disciplina, semestre, observações..."
@@ -400,17 +411,17 @@ export default function Turmas() {
               Um código de entrada será gerado automaticamente para você compartilhar com os alunos.
             </p>
             {error && (
-              <div className="rounded-lg bg-rose-50 p-2 text-sm text-rose-600">{error}</div>
+              <div className="rounded-lg bg-rose-50 dark:bg-rose-950/40 p-2 text-sm text-rose-600 dark:text-rose-400">{error}</div>
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>
+            <Button variant="outline" onClick={() => setCreateOpen(false)} className="dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">
               Cancelar
             </Button>
             <Button
               onClick={handleCreate}
               disabled={saving || !form.name.trim()}
-              className="bg-teal-600 hover:bg-teal-700"
+              className="bg-teal-600 hover:bg-teal-700 text-white"
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar turma"}
             </Button>

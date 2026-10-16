@@ -5,9 +5,10 @@ import {
   Heart,
   Layers,
   ChevronRight,
-  BookOpen,
-  ClipboardList
+  Lightbulb,
+  ChevronDown
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
@@ -110,6 +111,7 @@ const SYSTEMS_MODULES = [
 export default function SystemsAssessmentLab() {
   const [selectedSysId, setSelectedSysId] = useState("neuro");
   const [addedFindingsBySys, setAddedFindingsBySys] = useState({});
+  const [showPearls, setShowPearls] = useState(false);
 
   const activeSystem = SYSTEMS_MODULES.find((s) => s.id === selectedSysId) || SYSTEMS_MODULES[0];
   const currentAdded = addedFindingsBySys[selectedSysId] || [];
@@ -117,15 +119,23 @@ export default function SystemsAssessmentLab() {
   function handleAddGap(gap, resultingItem) {
     if (!currentAdded.some((item) => item.key === gap.key)) {
       const newItem = resultingItem || {
-        label: gap.label.split(" ")[0] || "Dado",
-        value: "Avaliado e Registrado",
+        label: gap.label || "Dado Clínico",
+        value: gap.hint || "Avaliado e Registrado no prontuário",
         status: "normal"
       };
       setAddedFindingsBySys({
         ...addedFindingsBySys,
-        [selectedSysId]: [...currentAdded, { ...newItem, key: gap.key }]
+        [selectedSysId]: [...currentAdded, { ...newItem, key: gap.key, canRemove: true }]
       });
     }
+  }
+
+  function handleRemoveGap(item) {
+    const key = item.key;
+    setAddedFindingsBySys({
+      ...addedFindingsBySys,
+      [selectedSysId]: currentAdded.filter((x) => x.key !== key)
+    });
   }
 
   function handleSelectSystem(sys) {
@@ -145,28 +155,51 @@ export default function SystemsAssessmentLab() {
   const completeness = totalParams > 0 ? Math.round((currentDetected.length / totalParams) * 100) : 100;
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100">
       <StudentHeader activeTab="sistemas" />
 
-      <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-8 space-y-6">
-        {/* Cabeçalho Clínico Limpo */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block">
-              Semiologia & Avaliação Céfalo-Caudal
-            </span>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
+      <main className="flex-1 mx-auto max-w-5xl w-full px-4 sm:px-6 py-6 space-y-6">
+        {/* Barra Superior Limpa e Funcional */}
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="flex items-center gap-2.5 flex-wrap">
+            <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
               Semiologia por Sistemas Orgânicos
             </h1>
-            <p className="text-xs sm:text-sm text-slate-500">
-              Treine a inspeção metódica de sinais, manobras semiológicas e prevenção de pontos cegos.
-            </p>
+            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              Avaliação Céfalo-Caudal
+            </span>
           </div>
-          <div className="flex items-center gap-2 bg-slate-50 border border-slate-200 px-3.5 py-2 rounded-xl text-xs font-semibold text-slate-700 self-start sm:self-auto">
-            <ClipboardList className="h-4 w-4 text-teal-700" />
-            <span>Exame Físico Estruturado</span>
+
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowPearls((v) => !v)}
+              className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+            >
+              <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
+              <span>{showPearls ? "Ocultar Pérolas" : "Pérolas da Prática"}</span>
+              <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showPearls ? "rotate-180" : ""}`} />
+            </Button>
           </div>
         </div>
+
+        {/* Pérolas Clínicas Sob Demanda (Divulgação Progressiva) */}
+        {showPearls && (
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-amber-200 dark:border-amber-900/60 p-4 shadow-xs space-y-2.5 animate-in fade-in">
+            <span className="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
+              <Lightbulb className="h-4 w-4 text-amber-500" />
+              Pérolas Clínicas — {activeSystem.title}
+            </span>
+            <div className="grid sm:grid-cols-2 gap-2.5">
+              {activeSystem.clinicalPearls.map((pearl, idx) => (
+                <div key={idx} className="p-3 rounded-xl bg-amber-50/70 dark:bg-amber-950/20 border border-amber-200/60 dark:border-amber-900/40 text-xs text-amber-950 dark:text-amber-200 leading-relaxed">
+                  <p>{pearl}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
 
         {/* Grade de Navegação dos Sistemas */}
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
@@ -179,20 +212,20 @@ export default function SystemsAssessmentLab() {
                 onClick={() => handleSelectSystem(sys)}
                 className={`p-3.5 rounded-2xl border text-left transition-all ${
                   isSelected
-                    ? "bg-white border-teal-700 ring-1 ring-teal-700 shadow-xs"
-                    : "bg-white border-slate-200 hover:border-slate-300"
+                    ? "bg-white dark:bg-slate-900 border-emerald-600 ring-2 ring-emerald-600/20 shadow-xs"
+                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
                 }`}
               >
                 <div className="flex items-center justify-between">
-                  <div className={`p-2 rounded-xl ${isSelected ? "bg-teal-700 text-white" : "bg-slate-100 text-slate-600"}`}>
+                  <div className={`p-2 rounded-xl ${isSelected ? "bg-emerald-600 text-white" : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400"}`}>
                     <Icon className="h-4 w-4" />
                   </div>
-                  <ChevronRight className={`h-4 w-4 ${isSelected ? "text-teal-700" : "text-slate-300"}`} />
+                  <ChevronRight className={`h-4 w-4 ${isSelected ? "text-emerald-600 dark:text-emerald-400" : "text-slate-300 dark:text-slate-600"}`} />
                 </div>
-                <h3 className="text-xs font-bold text-slate-900 mt-2 line-clamp-1">
+                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 mt-2 line-clamp-1">
                   {sys.title.split("&")[0]}
                 </h3>
-                <p className="text-[10px] text-slate-500 mt-0.5 line-clamp-1">
+                <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 line-clamp-1">
                   {sys.description}
                 </p>
               </button>
@@ -200,64 +233,36 @@ export default function SystemsAssessmentLab() {
           })}
         </div>
 
-        {/* Cenário do Sistema Selecionado & Radar de Lacunas */}
-        <div className="grid lg:grid-cols-3 gap-6">
-          <div className="lg:col-span-2 space-y-5">
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-              <div className="flex items-center justify-between border-b border-slate-100 pb-3">
-                <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${activeSystem.badgeColor}`}>
-                  {activeSystem.title}
-                </span>
-                <span className="text-xs font-medium text-slate-400">
-                  Cenário Simulado
-                </span>
-              </div>
-
-              <div>
-                <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">
-                  Identificação do Paciente
-                </span>
-                <p className="text-sm font-semibold text-slate-900 mt-0.5">
-                  {activeSystem.caseScenario.patient}
-                </p>
-              </div>
-
-              {/* Radar Clínico */}
-              <ClinicalGapRadar
-                detectedItems={currentDetected}
-                missingGaps={currentMissingGaps}
-                onAddGap={handleAddGap}
-                completenessPercentage={completeness}
-                title={`Investigação do ${activeSystem.title.split("&")[0]}`}
-              />
-            </div>
-          </div>
-
-          {/* Painel Lateral: Pérolas Clínicas */}
-          <div className="space-y-4">
-            <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
-              <span className="text-xs font-bold text-slate-900 uppercase tracking-wide block">
-                Pérolas da Prática Semiologia
+        {/* Cenário do Sistema Selecionado & Radar de Lacunas em Largura Total */}
+        <div className="w-full space-y-4">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+            <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <span className={`text-xs font-bold px-2.5 py-1 rounded-lg border ${activeSystem.badgeColor}`}>
+                {activeSystem.title}
               </span>
-
-              <div className="space-y-2.5">
-                {activeSystem.clinicalPearls.map((pearl, idx) => (
-                  <div key={idx} className="p-3 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 leading-relaxed">
-                    <p>{pearl}</p>
-                  </div>
-                ))}
-              </div>
+              <span className="text-xs font-medium text-slate-400 dark:text-slate-400">
+                Cenário Simulado à Beira-Leito
+              </span>
             </div>
 
-            <div className="rounded-2xl border border-slate-200 bg-white p-5 text-xs text-slate-700 shadow-xs space-y-2">
-              <span className="font-bold flex items-center gap-1.5 text-slate-900">
-                <BookOpen className="h-4 w-4 text-teal-700" />
-                Sistematização do Exame Físico
+            <div>
+              <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider block">
+                Identificação do Paciente
               </span>
-              <p className="text-slate-500 leading-relaxed">
-                A coleta metódica céfalo-caudal assegura que nenhuma resposta humana seja omitida antes da prescrição de enfermagem.
+              <p className="text-sm font-semibold text-slate-900 dark:text-slate-100 mt-0.5">
+                {activeSystem.caseScenario.patient}
               </p>
             </div>
+
+            {/* Radar Clínico */}
+            <ClinicalGapRadar
+              detectedItems={currentDetected}
+              missingGaps={currentMissingGaps}
+              onAddGap={handleAddGap}
+              onRemoveGap={handleRemoveGap}
+              completenessPercentage={completeness}
+              title={`Investigação do ${activeSystem.title.split("&")[0]}`}
+            />
           </div>
         </div>
       </main>

@@ -133,14 +133,14 @@ export default function CaseBuilder() {
   const assessmentStep = step - 1;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
+      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
         <div className="mx-auto max-w-2xl px-4 py-3">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate(`/turma/${id}`)} className="rounded-xl">
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/turma/${id}`)} className="rounded-xl dark:hover:bg-slate-800">
               <ArrowLeft className="h-5 w-5" />
             </Button>
-            <h1 className="text-base font-semibold text-slate-800">Montar caso clínico</h1>
+            <h1 className="text-base font-semibold text-slate-800 dark:text-slate-100">Montar caso clínico</h1>
           </div>
           <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
             {WIZARD_STEPS.map((s, i) => {
@@ -284,8 +284,8 @@ export default function CaseBuilder() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700">Resposta correta (oculta para os alunos) *</label>
-              <select value={correctAnswer} onChange={(e) => setCorrectAnswer(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Resposta correta (oculta para os alunos) *</label>
+              <select value={correctAnswer} onChange={(e) => setCorrectAnswer(e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-900 dark:text-slate-100 px-3 py-2 text-sm">
                 <option value="">Selecione a resposta correta...</option>
                 {options.map((o) => o.trim()).filter(Boolean).map((o) => (
                   <option key={o} value={o}>{o}</option>
@@ -294,29 +294,29 @@ export default function CaseBuilder() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700">Comentário do professor (opcional)</label>
-              <Textarea className="mt-1 min-h-[60px]" value={explanation} onChange={(e) => setExplanation(e.target.value)} placeholder="Justificativa clínica que poderá ser compartilhada após a resposta..." />
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Comentário do professor (opcional)</label>
+              <Textarea className="mt-1 min-h-[60px] dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100" value={explanation} onChange={(e) => setExplanation(e.target.value)} placeholder="Justificativa clínica que poderá ser compartilhada após a resposta..." />
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700">Prazo (opcional)</label>
-              <Input type="date" className="mt-1" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
+              <label className="text-sm font-medium text-slate-700 dark:text-slate-300">Prazo (opcional)</label>
+              <Input type="date" className="mt-1 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100" value={dueDate} onChange={(e) => setDueDate(e.target.value)} />
             </div>
 
             {error && (
-              <div className="rounded-lg bg-rose-50 p-2 text-sm text-rose-600">{error}</div>
+              <div className="rounded-lg bg-rose-50 dark:bg-rose-950/40 p-2 text-sm text-rose-600 dark:text-rose-400">{error}</div>
             )}
           </div>
         )}
       </main>
 
-      <footer className="fixed bottom-0 inset-x-0 border-t border-slate-200 bg-white/95 backdrop-blur">
+      <footer className="fixed bottom-0 inset-x-0 border-t border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur">
         <div className="mx-auto max-w-2xl px-4 py-3 flex gap-3">
-          <Button variant="outline" onClick={prev} disabled={step === 0} className="flex-1 rounded-xl py-5">Anterior</Button>
+          <Button variant="outline" onClick={prev} disabled={step === 0} className="flex-1 rounded-xl py-5 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">Anterior</Button>
           {step < WIZARD_STEPS.length - 1 ? (
-            <Button onClick={next} className="flex-1 rounded-xl bg-teal-600 py-5 hover:bg-teal-700">Próximo</Button>
+            <Button onClick={next} className="flex-1 rounded-xl bg-teal-600 py-5 hover:bg-teal-700 text-white">Próximo</Button>
           ) : (
-            <Button onClick={handleSave} disabled={saving} className="flex-1 rounded-xl bg-teal-600 py-5 hover:bg-teal-700">
+            <Button onClick={handleSave} disabled={saving} className="flex-1 rounded-xl bg-teal-600 py-5 hover:bg-teal-700 text-white font-bold">
               {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Check className="mr-2 h-5 w-5" /> Publicar atividade</>}
             </Button>
           )}

@@ -10,3 +10,5 @@ export * from './dischargeService';
 export * from './auditService';
 export * from './aiService';
 export * from './audioTranscriptionService';
+export * from './clinicalGamificationService';
+export * from './procedureService';

@@ -1215,7 +1215,7 @@ Relato original registrado pelo profissional: "${text}"`;
     patient_name,
     age,
     gender,
-    structured_anamnesis,
+    structured_anamnesis: structuredAnamnesis,
     medical_history: medicalHistoryParts.join('; '),
     previous_diseases: previousDiseasesParts.join(', '),
     notes: clinicalNotesParts.join(' '),

@@ -78,7 +78,7 @@ export default function AIDashboard() {
       const fresh = await assessmentService.get(id);
       setAssessment(fresh);
       if (fresh.ai_response || generated) setPlan(fresh.ai_response || generated);
-    } catch (_e) {
+    } catch {
       setAssessment((a) => ({ ...a, ai_status: "error" }));
     }
   }
@@ -129,16 +129,16 @@ export default function AIDashboard() {
   ];
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
+      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
         <div className="mx-auto max-w-2xl px-4 py-3">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate(`/patient/${assessment.patient_id}`)} className="rounded-xl">
+            <Button variant="ghost" size="icon" onClick={() => navigate(`/patient/${assessment.patient_id}`)} className="rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="min-w-0 flex-1">
-              <h1 className="truncate text-base font-semibold text-slate-800">Plano de Cuidados IA</h1>
-              <p className="text-xs text-slate-400">{patient?.name} · {new Date(assessment.created_date).toLocaleString("pt-BR")}</p>
+              <h1 className="truncate text-base font-semibold text-slate-800 dark:text-slate-100">Plano de Cuidados IA</h1>
+              <p className="text-xs text-slate-400 dark:text-slate-400">{patient?.name} · {new Date(assessment.created_date).toLocaleString("pt-BR")}</p>
             </div>
             <RiskBadge status={assessment.risk_status} size="sm" />
           </div>
@@ -147,11 +147,11 @@ export default function AIDashboard() {
 
       <main className="mx-auto max-w-2xl px-4 py-4 space-y-4">
         {/* Banner Mandatório Human-in-the-Loop & Blindagem LGPD */}
-        <div className="flex items-start gap-3 rounded-2xl border border-blue-200 bg-blue-50/80 p-3.5 text-xs text-blue-900 shadow-sm">
-          <ShieldAlert className="h-5 w-5 text-blue-600 shrink-0 mt-0.5" />
+        <div className="flex items-start gap-3 rounded-2xl border border-blue-200 dark:border-blue-900/60 bg-blue-50/80 dark:bg-blue-950/40 p-3.5 text-xs text-blue-900 dark:text-blue-200 shadow-sm">
+          <ShieldAlert className="h-5 w-5 text-blue-600 dark:text-blue-400 shrink-0 mt-0.5" />
           <div className="space-y-0.5">
-            <p className="font-semibold text-blue-950">Sistema de Apoio à Decisão Clínica (SADC) · Supervisão Obrigatória</p>
-            <p className="text-blue-800 leading-relaxed">
+            <p className="font-semibold text-blue-950 dark:text-blue-100">Sistema de Apoio à Decisão Clínica (SADC) · Supervisão Obrigatória</p>
+            <p className="text-blue-800 dark:text-blue-300 leading-relaxed">
               Sugestão de diagnósticos fundamentada na taxonomia NANDA-I, NIC e NOC. Em conformidade com a Resolução CFM nº 2.454/2026 e COFEN nº 736/2024, estes dados foram previamente desidentificados e não substituem o julgamento clínico autônomo do profissional de enfermagem.
             </p>
           </div>
@@ -161,30 +161,30 @@ export default function AIDashboard() {
           {vitals.map((v) => {
             const Icon = v.icon;
             return (
-              <div key={v.label} className="rounded-xl border border-slate-200 bg-white p-2 text-center">
-                <Icon className="mx-auto h-3.5 w-3.5 text-slate-400" />
-                <p className="mt-0.5 text-[10px] uppercase tracking-wide text-slate-400">{v.label}</p>
-                <p className="text-sm font-semibold text-slate-800">{v.value}</p>
+              <div key={v.label} className="rounded-xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-2 text-center">
+                <Icon className="mx-auto h-3.5 w-3.5 text-slate-400 dark:text-slate-400" />
+                <p className="mt-0.5 text-[10px] uppercase tracking-wide text-slate-400 dark:text-slate-400">{v.label}</p>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{v.value}</p>
               </div>
             );
           })}
         </div>
 
         {isPending && (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-teal-200 bg-teal-50 p-8 text-center">
-            <Loader2 className="h-8 w-8 animate-spin text-teal-600" />
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/40 p-8 text-center">
+            <Loader2 className="h-8 w-8 animate-spin text-teal-600 dark:text-teal-400" />
             <div>
-              <p className="font-medium text-teal-800">Processando plano de cuidados taxonômico...</p>
-              <p className="text-sm text-teal-600">A IA clínica anonimizada analisa os sinais vitais e escores (NANDA-I/NIC/NOC).</p>
+              <p className="font-medium text-teal-800 dark:text-teal-200">Processando plano de cuidados taxonômico...</p>
+              <p className="text-sm text-teal-600 dark:text-teal-400">A IA clínica anonimizada analisa os sinais vitais e escores (NANDA-I/NIC/NOC).</p>
             </div>
           </div>
         )}
 
         {isError && (
-          <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-200 bg-red-50 p-6 text-center">
-            <AlertCircle className="h-8 w-8 text-red-500" />
-            <p className="text-sm font-medium text-red-700">Não foi possível gerar o plano agora.</p>
-            <Button onClick={regenerate} variant="outline" className="rounded-xl">
+          <div className="flex flex-col items-center gap-3 rounded-2xl border border-red-200 dark:border-red-900/60 bg-red-50 dark:bg-red-950/40 p-6 text-center">
+            <AlertCircle className="h-8 w-8 text-red-500 dark:text-red-400" />
+            <p className="text-sm font-medium text-red-700 dark:text-red-300">Não foi possível gerar o plano agora.</p>
+            <Button onClick={regenerate} variant="outline" className="rounded-xl border-red-300 dark:border-red-800 text-red-700 dark:text-red-300">
               <RefreshCw className="mr-2 h-4 w-4" /> Tentar novamente
             </Button>
           </div>
@@ -194,48 +194,48 @@ export default function AIDashboard() {
           <>
             {/* Banner de transparência do motor de IA */}
             {!plan.ai_engine?.includes("Gemini") ? (
-              <div className="rounded-2xl border border-amber-200 bg-amber-50/80 p-3.5 text-xs text-amber-900 shadow-xs flex items-start gap-2.5">
-                <Zap className="h-4 w-4 text-amber-600 shrink-0 mt-0.5" />
+              <div className="rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/40 p-3.5 text-xs text-amber-900 dark:text-amber-200 shadow-xs flex items-start gap-2.5">
+                <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="space-y-1">
-                  <p className="font-semibold text-amber-950">Motor Clínico Offline Ativo (Processamento Instantâneo)</p>
-                  <p className="text-amber-800 leading-relaxed">
+                  <p className="font-semibold text-amber-950 dark:text-amber-100">Motor Clínico Offline Ativo (Processamento Instantâneo)</p>
+                  <p className="text-amber-800 dark:text-amber-300 leading-relaxed">
                     Estes diagnósticos foram estruturados pelo algoritmo determinístico local de enfermagem (baseado em regras NANDA-I no seu navegador). Para que a <strong>Inteligência Artificial generativa do Google Gemini</strong> analise o relato de forma personalizada e aprofundada (pensando clinicamente por 3 a 5 segundos), configure sua chave gratuita em{" "}
-                    <Link to="/conta" className="underline font-semibold text-amber-900 hover:text-amber-700">
+                    <Link to="/conta" className="underline font-semibold text-amber-900 dark:text-amber-200 hover:text-amber-700">
                       Minha Conta
                     </Link>.
                   </p>
                 </div>
               </div>
             ) : (
-              <div className="rounded-2xl border border-teal-200 bg-teal-50/80 p-3 text-xs text-teal-900 shadow-xs flex items-center gap-2">
-                <Sparkles className="h-4 w-4 text-teal-600 shrink-0" />
+              <div className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/80 dark:bg-teal-950/40 p-3 text-xs text-teal-900 dark:text-teal-200 shadow-xs flex items-center gap-2">
+                <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
                 <p>
                   Plano gerado com <strong>Inteligência Artificial Generativa ({plan.ai_engine})</strong> via raciocínio clínico adaptativo.
                 </p>
               </div>
             )}
 
-            <div className="rounded-2xl border border-teal-200 bg-gradient-to-br from-teal-50 to-white p-4 shadow-sm">
+            <div className="rounded-2xl border border-teal-200 dark:border-teal-800/80 bg-gradient-to-br from-teal-50 to-white dark:from-teal-950/30 dark:to-slate-900 p-4 shadow-sm">
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
-                  <Sparkles className="h-4 w-4 text-teal-600" />
-                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-700">Síntese Diagnóstica</p>
+                  <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-700 dark:text-teal-300">Síntese Diagnóstica</p>
                 </div>
                 <div className="flex items-center gap-1.5">
                   {plan.ai_engine && (
-                    <span className="rounded-full bg-teal-100/80 px-2 py-0.5 text-[10px] font-medium text-teal-800 border border-teal-200">
+                    <span className="rounded-full bg-teal-100/80 dark:bg-teal-900/60 px-2 py-0.5 text-[10px] font-medium text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-700">
                       {plan.ai_engine}
                     </span>
                   )}
-                  <span className="rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold text-amber-800">
+                  <span className="rounded-full bg-amber-100 dark:bg-amber-900/60 px-2 py-0.5 text-[10px] font-semibold text-amber-800 dark:text-amber-300">
                     SADC NANDA-I
                   </span>
                 </div>
               </div>
-              <p className="mt-2 text-sm text-slate-700 leading-relaxed">{plan.resumo || plan.summary}</p>
+              <p className="mt-2 text-sm text-slate-700 dark:text-slate-300 leading-relaxed">{plan.resumo || plan.summary}</p>
               {assessment.notes && (
-                <div className="mt-3 rounded-xl border border-slate-200 bg-white/80 p-2.5 text-xs text-slate-600">
-                  <span className="font-semibold text-slate-700">Relato & Anotações à beira-leito: </span>
+                <div className="mt-3 rounded-xl border border-slate-200 dark:border-slate-800 bg-white/80 dark:bg-slate-800/80 p-2.5 text-xs text-slate-600 dark:text-slate-300">
+                  <span className="font-semibold text-slate-700 dark:text-slate-200">Relato & Anotações à beira-leito: </span>
                   {assessment.notes}
                 </div>
               )}
@@ -243,10 +243,10 @@ export default function AIDashboard() {
                 <div className="mt-2.5 flex items-center gap-2">
                   <span className={`inline-block rounded-full px-2.5 py-0.5 text-xs font-medium uppercase ${
                     plan.prioridade === 'critica'
-                      ? 'bg-rose-100 text-rose-800 font-semibold border border-rose-200'
+                      ? 'bg-rose-100 dark:bg-rose-950/70 text-rose-800 dark:text-rose-300 font-semibold border border-rose-200 dark:border-rose-800'
                       : plan.prioridade === 'alta'
-                      ? 'bg-orange-100 text-orange-800 font-semibold'
-                      : 'bg-teal-100 text-teal-800'
+                      ? 'bg-orange-100 dark:bg-orange-950/70 text-orange-800 dark:text-orange-300 font-semibold'
+                      : 'bg-teal-100 dark:bg-teal-950/70 text-teal-800 dark:text-teal-300'
                   }`}>
                     Prioridade Clínica: {plan.prioridade}
                   </span>
@@ -255,14 +255,14 @@ export default function AIDashboard() {
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
-              <Button onClick={regenerate} variant="outline" size="sm" className="rounded-xl">
+              <Button onClick={regenerate} variant="outline" size="sm" className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
                 <RefreshCw className="mr-2 h-4 w-4" /> Regenerar Plano
               </Button>
               <Button
                 onClick={importDiagnoses}
                 disabled={importing || imported}
                 size="sm"
-                className="rounded-xl bg-teal-600 hover:bg-teal-700 shadow-sm"
+                className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-sm"
               >
                 {importing ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -276,7 +276,7 @@ export default function AIDashboard() {
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">
                 Diagnósticos de Enfermagem Propostos ({diagnoses.length})
               </p>
               <div className="space-y-3">

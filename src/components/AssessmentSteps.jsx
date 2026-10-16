@@ -81,12 +81,23 @@ function SourceLink({ srcKey }) {
 function VoiceNotesButton({ onText }) {
   const [listening, setListening] = useState(false);
   const recognitionRef = useRef(null);
+  const isListeningRef = useRef(false);
+  const interimRef = useRef("");
 
   function toggle() {
     if (listening) {
+      isListeningRef.current = false;
       if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch {}
+        try {
+          recognitionRef.current.onend = null;
+          recognitionRef.current.stop();
+        } catch {}
       }
+      const pending = (interimRef.current || "").trim();
+      if (pending && onText) {
+        onText(pending);
+      }
+      interimRef.current = "";
       setListening(false);
       return;
     }
@@ -98,23 +109,54 @@ function VoiceNotesButton({ onText }) {
     }
 
     try {
+      isListeningRef.current = true;
+      interimRef.current = "";
+
       const rec = new SpeechRecognition();
       rec.lang = "pt-BR";
       rec.continuous = true;
-      rec.interimResults = false;
+      rec.interimResults = true;
+
       rec.onresult = (e) => {
-        let transcript = "";
+        let finalTrans = "";
+        let interimTrans = "";
         for (let i = e.resultIndex; i < e.results.length; ++i) {
-          if (e.results[i].isFinal) transcript += e.results[i][0].transcript + " ";
+          if (e.results[i].isFinal) {
+            finalTrans += e.results[i][0].transcript + " ";
+          } else {
+            interimTrans += e.results[i][0].transcript;
+          }
         }
-        if (transcript.trim()) onText(transcript.trim());
+        interimRef.current = interimTrans;
+        if (finalTrans.trim() && onText) {
+          onText(finalTrans.trim());
+          interimRef.current = "";
+        }
       };
-      rec.onerror = () => setListening(false);
-      rec.onend = () => setListening(false);
+
+      rec.onerror = (e) => {
+        if (e.error === "no-speech") return; // Pausa natural
+        if (e.error === "not-allowed") {
+          isListeningRef.current = false;
+          setListening(false);
+        }
+      };
+
+      rec.onend = () => {
+        if (isListeningRef.current && recognitionRef.current) {
+          try {
+            rec.start();
+          } catch (err) {
+            console.debug("[VoiceNotes] Auto-restart silencioso:", err);
+          }
+        }
+      };
+
       rec.start();
       recognitionRef.current = rec;
       setListening(true);
     } catch {
+      isListeningRef.current = false;
       setListening(false);
     }
   }

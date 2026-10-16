@@ -39,6 +39,7 @@ docs/referencias/
 *.pdf
 scratch/
 _backup_assistencial_v1/
+_backup_pre_mobile/
 .claude/
 .kilo/
 agent/

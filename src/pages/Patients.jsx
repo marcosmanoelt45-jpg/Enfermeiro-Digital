@@ -134,7 +134,7 @@ export default function Patients() {
       </main>
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
-        <p className="text-[11px] text-slate-400">© 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos do Enfermeiro Digital</p>
+        <p className="text-[11px] text-slate-400">© 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfermeiro Digital</p>
       </footer>
 
       <Dialog open={open} onOpenChange={setOpen}>

@@ -60,16 +60,16 @@ export default function PatientDetail() {
   if (!patient) return <div className="py-20 text-center text-slate-400">Paciente não encontrado</div>;
 
   return (
-    <div className="min-h-screen bg-slate-50">
-      <header className="sticky top-0 z-10 border-b border-slate-200 bg-white/90 backdrop-blur">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100 transition-colors">
+      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
         <div className="mx-auto max-w-2xl px-4 py-3">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="rounded-xl">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="rounded-xl text-slate-700 dark:text-slate-200 dark:hover:bg-slate-800">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="min-w-0">
-              <h1 className="truncate text-base font-semibold text-slate-800">{patient.name}</h1>
-              <p className="text-xs text-slate-400">
+              <h1 className="truncate text-base font-semibold text-slate-800 dark:text-slate-100">{patient.name}</h1>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
                 {[patient.age != null && `${patient.age} anos`, patient.gender === "M" ? "Masculino" : patient.gender === "F" ? "Feminino" : patient.gender === "Outro" ? "Outro" : null].filter(Boolean).join(" · ")}
               </p>
             </div>
@@ -78,7 +78,7 @@ export default function PatientDetail() {
       </header>
 
       <main className="mx-auto max-w-2xl px-4 py-4 space-y-4">
-        <div className="flex gap-1 overflow-x-auto rounded-2xl bg-slate-100 p-1">
+        <div className="flex gap-1 overflow-x-auto rounded-2xl bg-slate-100 dark:bg-slate-800/80 p-1">
           {[
             { key: "perfil", label: "Perfil" },
             { key: "anamnese", label: "Anamnese" },
@@ -88,7 +88,15 @@ export default function PatientDetail() {
             { key: "evolucao", label: "Evolução" },
             { key: "alta", label: "Plano de Alta" }
           ].map((t) => (
-            <button key={t.key} onClick={() => setTab(t.key)} className={`whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition ${tab === t.key ? "bg-white text-teal-700 shadow-sm" : "text-slate-500"}`}>
+            <button
+              key={t.key}
+              onClick={() => setTab(t.key)}
+              className={`whitespace-nowrap rounded-xl px-3 py-2 text-sm font-medium transition ${
+                tab === t.key
+                  ? "bg-white text-teal-700 shadow-sm dark:bg-slate-900 dark:text-teal-400 dark:shadow"
+                  : "text-slate-600 dark:text-slate-300 hover:text-slate-900 dark:hover:text-white"
+              }`}
+            >
               {t.label}
             </button>
           ))}
@@ -97,15 +105,15 @@ export default function PatientDetail() {
         {tab === "avaliacoes" && (
           <>
             {hasDraft && (
-              <div className="rounded-2xl border border-teal-200 bg-teal-50/80 p-4 shadow-sm space-y-2">
+              <div className="rounded-2xl border border-teal-200 dark:border-teal-800/60 bg-teal-50/80 dark:bg-teal-950/40 p-4 shadow-sm space-y-2">
                 <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2 text-teal-900 font-semibold text-sm">
-                    <FileText className="h-4 w-4 text-teal-700" />
+                  <div className="flex items-center gap-2 text-teal-900 dark:text-teal-200 font-semibold text-sm">
+                    <FileText className="h-4 w-4 text-teal-700 dark:text-teal-400" />
                     Avaliação em andamento (Rascunho salvo)
                   </div>
                   <span className="flex h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
-                <p className="text-xs text-teal-800">
+                <p className="text-xs text-teal-800 dark:text-teal-300">
                   Você possui escalas e anotações preenchidas que não foram perdidas. Deseja continuar de onde parou?
                 </p>
                 <div className="flex gap-2 pt-1">
@@ -118,7 +126,7 @@ export default function PatientDetail() {
                   <Button
                     variant="outline"
                     onClick={discardDraft}
-                    className="rounded-xl border-rose-200 text-rose-600 hover:bg-rose-50 text-xs py-2 h-auto"
+                    className="rounded-xl border-rose-200 dark:border-rose-900/60 text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-950/50 text-xs py-2 h-auto"
                   >
                     <Trash2 className="mr-1 h-3.5 w-3.5" /> Descartar
                   </Button>
@@ -126,18 +134,18 @@ export default function PatientDetail() {
               </div>
             )}
 
-            <Button onClick={() => navigate(`/patient/${id}/assessment`)} className="w-full rounded-2xl bg-teal-600 py-6 text-base hover:bg-teal-700">
+            <Button onClick={() => navigate(`/patient/${id}/assessment`)} className="w-full rounded-2xl bg-teal-600 py-6 text-base text-white hover:bg-teal-700 shadow-sm">
               <ClipboardList className="mr-2 h-5 w-5" /> {hasDraft ? "Retomar Avaliação Express" : "Iniciar Avaliação Express"}
             </Button>
 
-            <Button onClick={() => navigate(`/patient/${id}/audio-assessment`)} variant="outline" className="w-full rounded-2xl border-teal-300 py-5 text-base text-teal-700 hover:bg-teal-50">
+            <Button onClick={() => navigate(`/patient/${id}/audio-assessment`)} variant="outline" className="w-full rounded-2xl border-teal-300 dark:border-teal-700/70 py-5 text-base text-teal-700 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/40">
               <Mic className="mr-2 h-5 w-5" /> Avaliação por Áudio
             </Button>
 
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Avaliações</p>
+              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">Avaliações</p>
               {assessments.length === 0 ? (
-                <div className="rounded-2xl border border-dashed border-slate-200 bg-white p-6 text-center text-sm text-slate-400">
+                <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center text-sm text-slate-500 dark:text-slate-400">
                   Nenhuma avaliação registrada.
                 </div>
               ) : (
@@ -146,21 +154,21 @@ export default function PatientDetail() {
                     <button
                       key={a.id}
                       onClick={() => navigate(`/assessment/${a.id}/ai`)}
-                      className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 bg-white p-3 text-left shadow-sm hover:border-teal-300 transition"
+                      className="flex w-full items-center gap-3 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 text-left shadow-sm hover:border-teal-300 dark:hover:border-teal-600 transition"
                     >
-                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 text-teal-700">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">
                         <Activity className="h-5 w-5" />
                       </div>
                       <div className="min-w-0 flex-1">
-                        <p className="text-sm font-medium text-slate-800">
+                        <p className="text-sm font-medium text-slate-800 dark:text-slate-100">
                           PA {a.pa_sistolica}/{a.pa_diastolica} · FC {a.fc} · Sat {a.sat}%
                         </p>
-                        <p className="text-xs text-slate-400">
+                        <p className="text-xs text-slate-500 dark:text-slate-400">
                           {new Date(a.created_date).toLocaleString("pt-BR")}
                         </p>
                       </div>
                       <RiskBadge status={a.risk_status} size="sm" />
-                      <ChevronRight className="h-4 w-4 text-slate-300" />
+                      <ChevronRight className="h-4 w-4 text-slate-400 dark:text-slate-400" />
                     </button>
                   ))}
                 </div>
@@ -183,7 +191,7 @@ export default function PatientDetail() {
       </main>
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
-        <p className="text-[11px] text-slate-400">Criado por Marcos Manoel Tavares Neumann</p>
+        <p className="text-[11px] text-slate-500 dark:text-slate-400">Criado por Marcos Manoel Tavares Neumann</p>
       </footer>
     </div>
   );

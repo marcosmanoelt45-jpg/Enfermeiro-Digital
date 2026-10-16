@@ -99,17 +99,30 @@ export default function CaseStudio() {
   const audioRecorder = useAudioRecorder();
   const [audioTranscript, setAudioTranscript] = useState("");
   const [isAudioTranscribing, setIsAudioTranscribing] = useState(false);
+  const [audioStage, setAudioStage] = useState("");
   const [audioError, setAudioError] = useState("");
   const [isLiveDictatingAudio, setIsLiveDictatingAudio] = useState(false);
   const liveAudioRecRef = useRef(null);
+  const isLiveDictatingRef = useRef(false);
+  const liveAudioInterimRef = useRef("");
 
   // Manipulador de ditado ao vivo para o modo de áudio
   function toggleLiveAudioDictation() {
     setAudioError("");
     if (isLiveDictatingAudio) {
+      isLiveDictatingRef.current = false;
       if (liveAudioRecRef.current) {
-        try { liveAudioRecRef.current.stop(); } catch {}
+        try {
+          liveAudioRecRef.current.onend = null;
+          liveAudioRecRef.current.stop();
+        } catch {}
       }
+      // Flush de áudio intermediário retido no buffer
+      const pending = (liveAudioInterimRef.current || "").trim();
+      if (pending) {
+        setAudioTranscript((prev) => (prev ? prev.trim() + " " : "") + pending);
+      }
+      liveAudioInterimRef.current = "";
       setIsLiveDictatingAudio(false);
       return;
     }
@@ -121,6 +134,9 @@ export default function CaseStudio() {
     }
 
     try {
+      isLiveDictatingRef.current = true;
+      liveAudioInterimRef.current = "";
+
       const rec = new SpeechRec();
       rec.lang = "pt-BR";
       rec.continuous = true;
@@ -128,31 +144,49 @@ export default function CaseStudio() {
 
       rec.onresult = (e) => {
         let finalTrans = "";
+        let interimTrans = "";
         for (let i = e.resultIndex; i < e.results.length; ++i) {
           if (e.results[i].isFinal) {
             finalTrans += e.results[i][0].transcript + " ";
+          } else {
+            interimTrans += e.results[i][0].transcript;
           }
         }
+        liveAudioInterimRef.current = interimTrans;
         if (finalTrans.trim()) {
           setAudioTranscript((prev) => (prev ? prev.trim() + " " : "") + finalTrans.trim());
+          liveAudioInterimRef.current = "";
         }
       };
 
       rec.onerror = (ev) => {
-        console.warn("[Áudio Estúdio] Erro:", ev);
+        console.warn("[Áudio Estúdio] Aviso:", ev);
+        if (ev.error === "no-speech") {
+          return; // Pausa normal ao respirar/pensar
+        }
         if (ev.error === "not-allowed") {
           setAudioError("Permissão de microfone negada no navegador.");
+          isLiveDictatingRef.current = false;
+          setIsLiveDictatingAudio(false);
         }
-        setIsLiveDictatingAudio(false);
       };
 
-      rec.onend = () => setIsLiveDictatingAudio(false);
+      rec.onend = () => {
+        if (isLiveDictatingRef.current && liveAudioRecRef.current) {
+          try {
+            rec.start();
+          } catch (err) {
+            console.debug("[Áudio Estúdio] Auto-restart ignorado:", err);
+          }
+        }
+      };
 
       rec.start();
       liveAudioRecRef.current = rec;
       setIsLiveDictatingAudio(true);
     } catch {
       setAudioError("Não foi possível acionar o dispositivo de áudio.");
+      isLiveDictatingRef.current = false;
       setIsLiveDictatingAudio(false);
     }
   }
@@ -284,6 +318,8 @@ export default function CaseStudio() {
   const [speechError, setSpeechError] = useState("");
   const [interimTranscript, setInterimTranscript] = useState("");
   const recognitionRef = useRef(null);
+  const isListeningRef = useRef(false);
+  const speechInterimRef = useRef("");
 
   const setParam = (key, val) => setData((prev) => ({ ...prev, [key]: val }));
   const setProf = (key, val) => setProfile((prev) => ({ ...prev, [key]: val }));
@@ -350,9 +386,18 @@ export default function CaseStudio() {
   function toggleSpeechRecognition() {
     setSpeechError("");
     if (isListening) {
+      isListeningRef.current = false;
       if (recognitionRef.current) {
-        try { recognitionRef.current.stop(); } catch {}
+        try {
+          recognitionRef.current.onend = null;
+          recognitionRef.current.stop();
+        } catch {}
       }
+      const pending = (speechInterimRef.current || "").trim();
+      if (pending) {
+        setParam("notes", (data.notes ? data.notes.trim() + " " : "") + pending);
+      }
+      speechInterimRef.current = "";
       setIsListening(false);
       setInterimTranscript("");
       return;
@@ -365,6 +410,9 @@ export default function CaseStudio() {
     }
 
     try {
+      isListeningRef.current = true;
+      speechInterimRef.current = "";
+
       const rec = new SpeechRec();
       rec.lang = "pt-BR";
       rec.continuous = true;
@@ -380,27 +428,38 @@ export default function CaseStudio() {
             interimTrans += e.results[i][0].transcript;
           }
         }
+        speechInterimRef.current = interimTrans;
         setInterimTranscript(interimTrans);
         if (finalTrans.trim()) {
           setParam("notes", (data.notes ? data.notes.trim() + " " : "") + finalTrans.trim());
+          speechInterimRef.current = "";
           setInterimTranscript("");
         }
       };
 
       rec.onerror = (ev) => {
-        console.warn("[Voz] Erro:", ev);
+        console.warn("[Voz] Aviso:", ev);
+        if (ev.error === "no-speech") {
+          return; // Silêncio normal ao raciocinar
+        }
         if (ev.error === "not-allowed") {
           setSpeechError("Acesso ao microfone negado. Habilite a permissão do microfone nas configurações do seu navegador.");
-        } else if (ev.error !== "no-speech") {
+          isListeningRef.current = false;
+          setIsListening(false);
+          setInterimTranscript("");
+        } else {
           setSpeechError(`Aviso do microfone: ${ev.error || "falha temporária"}.`);
         }
-        setIsListening(false);
-        setInterimTranscript("");
       };
 
       rec.onend = () => {
-        setIsListening(false);
-        setInterimTranscript("");
+        if (isListeningRef.current && recognitionRef.current) {
+          try {
+            rec.start();
+          } catch (err) {
+            console.debug("[Voz] Auto-restart silencioso:", err);
+          }
+        }
       };
 
       rec.start();
@@ -408,6 +467,7 @@ export default function CaseStudio() {
       setIsListening(true);
     } catch {
       setSpeechError("Não foi possível acionar o dispositivo de áudio. Verifique suas conexões.");
+      isListeningRef.current = false;
       setIsListening(false);
       setInterimTranscript("");
     }
@@ -477,44 +537,47 @@ export default function CaseStudio() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col text-slate-800">
-      <StudentHeader activeTab="casos" />
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 transition-colors">
+      <StudentHeader activeTab="montar" />
 
-      <main className="flex-1 mx-auto max-w-5xl w-full px-4 sm:px-6 py-8 space-y-6">
-        {/* Cabeçalho do Estúdio */}
-        <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-          <div className="space-y-1">
-            <div className="flex items-center gap-2">
-              <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block">
-                Estúdio de Montagem & Julgamento Diagnóstico
-              </span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                COFEN 736/2024
-              </span>
+      <main className="flex-1 mx-auto max-w-5xl w-full px-4 sm:px-6 py-6 space-y-6">
+        {/* Barra Superior Minimalista e Funcional (Sem poluição de banners gigantes) */}
+        <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-slate-800">
+          <div className="flex items-center gap-3">
+            <button
+              onClick={() => navigate("/")}
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
+              aria-label="Voltar ao Painel"
+              title="Voltar ao Painel"
+            >
+              <ArrowLeft className="h-5 w-5" />
+            </button>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wider">
+                  COFEN 736/2024
+                </span>
+                <span className="text-xs font-semibold text-slate-400 dark:text-slate-400 hidden sm:inline">
+                  • Julgamento Clínico
+                </span>
+              </div>
+              <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight mt-0.5">
+                {viewMode === "choose" && "Novo Caso Clínico"}
+                {viewMode === "builder" && "Montar Caso Clínico"}
+                {viewMode === "audio" && "Avaliação por Áudio & Fala"}
+                {viewMode === "challenge" && "Desafio Diagnóstico Interativo"}
+              </h1>
             </div>
-            <h1 className="text-xl sm:text-2xl font-bold tracking-tight text-slate-900">
-              {viewMode === "choose" && "Novo Caso Clínico: Método de Avaliação"}
-              {viewMode === "builder" && "Montar Caso Clínico Próprio"}
-              {viewMode === "audio" && "Avaliação Clínica por Áudio & Fala"}
-              {viewMode === "challenge" && "Desafio Diagnóstico Interativo"}
-            </h1>
-            <p className="text-xs sm:text-sm text-slate-500">
-              {viewMode === "choose" && "Selecione entre o preenchimento manual guiado dos escores ou a captação por voz com IA à beira-leito."}
-              {viewMode === "builder" && "Monte a anamnese e todos os escores do paciente (Braden, CAM, Vitais, Dor) e gere um desafio lúdico com análise de distratores."}
-              {viewMode === "audio" && "Grave ou dite o relato do paciente à beira-leito. A IA transcreve e extrai os parâmetros clínicos em tempo real."}
-              {viewMode === "challenge" && "Analise as evidências clínicas do caso montado e teste seu raciocínio diagnóstico sem respostas mastigadas."}
-            </p>
           </div>
 
-          <div className="flex flex-wrap items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2">
             {viewMode === "choose" && (
               <Button
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/")}
-                className="rounded-xl text-slate-600 hover:text-slate-900 text-xs flex items-center gap-1.5"
+                className="rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs flex items-center gap-1.5"
               >
-                <ArrowLeft className="h-4 w-4" />
                 <span>Voltar ao Painel</span>
               </Button>
             )}
@@ -525,27 +588,27 @@ export default function CaseStudio() {
                   variant="outline"
                   size="sm"
                   onClick={() => setViewMode("audio")}
-                  className="rounded-xl border-emerald-300 text-emerald-800 hover:bg-emerald-50 text-xs flex items-center gap-1.5"
+                  className="rounded-xl border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-xs flex items-center gap-1.5"
                 >
-                  <AudioLines className="h-3.5 w-3.5 text-emerald-700" />
-                  <span>Modo por Áudio</span>
+                  <AudioLines className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span className="hidden sm:inline">Modo</span> Áudio
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleGenerateRandomProfile}
-                  className="rounded-xl border-slate-300 text-slate-700 text-xs flex items-center gap-1.5"
+                  className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
                 >
                   <Shuffle className="h-3.5 w-3.5" />
-                  <span>Paciente Aleatório</span>
+                  <span className="hidden sm:inline">Gerar</span> Aleatório
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setViewMode("choose")}
-                  className="rounded-xl text-slate-500 hover:text-slate-800 text-xs"
+                  className="rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-xs"
                 >
-                  Mudar Modo
+                  Trocar Modo
                 </Button>
               </>
             )}
@@ -556,18 +619,18 @@ export default function CaseStudio() {
                   variant="outline"
                   size="sm"
                   onClick={() => setViewMode("builder")}
-                  className="rounded-xl border-teal-300 text-teal-800 hover:bg-teal-50 text-xs flex items-center gap-1.5"
+                  className="rounded-xl border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-xs flex items-center gap-1.5"
                 >
-                  <ClipboardCheck className="h-3.5 w-3.5 text-teal-700" />
+                  <ClipboardCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
                   <span>Modo Manual</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setViewMode("choose")}
-                  className="rounded-xl text-slate-500 hover:text-slate-800 text-xs"
+                  className="rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-xs"
                 >
-                  Mudar Modo
+                  Trocar Modo
                 </Button>
               </>
             )}
@@ -577,98 +640,97 @@ export default function CaseStudio() {
                 variant="outline"
                 size="sm"
                 onClick={() => setViewMode("builder")}
-                className="rounded-xl border-slate-300 text-slate-700 text-xs flex items-center gap-1.5"
+                className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
-                <span>Ajustar Parâmetros do Caso</span>
+                <span>Ajustar Parâmetros</span>
               </Button>
             )}
           </div>
         </div>
 
         {/* ======================================================== */}
-        {/* MODO 0: ESCOLHA INICIAL (MANUAL OU ÁUDIO)                 */}
+        {/* MODO 0: ESCOLHA INICIAL LIMPA (MANUAL OU ÁUDIO)          */}
         {/* ======================================================== */}
         {viewMode === "choose" && (
-          <div className="space-y-6 animate-in fade-in">
-            <div className="rounded-2xl border border-slate-200 bg-white p-6 sm:p-8 shadow-xs text-center max-w-3xl mx-auto space-y-4">
-              <span className="text-xs font-bold text-teal-800 uppercase tracking-wider block">
-                Novo Caso Clínico
-              </span>
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900">
-                Como você deseja iniciar a avaliação do paciente?
+          <div className="space-y-6 animate-in fade-in max-w-3xl mx-auto pt-4">
+            <div className="text-center space-y-1.5">
+              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
+                Como deseja iniciar a avaliação do paciente?
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 max-w-xl mx-auto leading-relaxed">
-                Escolha o método mais adequado ao seu momento de aprendizagem. Você poderá alternar entre eles ou ajustar os parâmetros livremente a qualquer momento.
+              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
+                Escolha o método mais adequado ao seu momento de aprendizagem. Você poderá alternar a qualquer momento.
               </p>
+            </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 pt-3 text-left">
-                {/* Opção 1: Avaliação Manual */}
-                <div className="rounded-2xl border-2 border-slate-200 hover:border-teal-600 bg-white p-6 transition-all shadow-xs flex flex-col justify-between space-y-4 hover:shadow-sm">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="p-3 rounded-xl bg-teal-50 text-teal-700">
-                        <ClipboardCheck className="h-6 w-6" />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 text-slate-600 border border-slate-200">
-                        Passo a Passo
-                      </span>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              {/* Opção 1: Avaliação Manual Guiada */}
+              <div
+                onClick={() => setViewMode("builder")}
+                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-white dark:bg-slate-900 p-6 sm:p-7 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 group-hover:scale-105 transition-transform">
+                      <ClipboardCheck className="h-6 w-6" />
                     </div>
-                    <h3 className="text-base font-bold text-slate-900">
-                      1. Avaliação Manual Guiada
-                    </h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      Preencha detalhadamente sinais vitais, histórico, escalas (Braden, CAM, SAK Quedas, Dor CALOI) e anamnese com controle minucioso de cada slider.
-                    </p>
-                    <ul className="text-xs text-slate-600 space-y-1.5 pt-1">
-                      <li className="flex items-center gap-1.5">• 7 etapas clínicas estruturadas</li>
-                      <li className="flex items-center gap-1.5">• Cálculo imediato dos escores de risco</li>
-                      <li className="flex items-center gap-1.5">• Validação individual de parâmetros</li>
-                    </ul>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                      Passo a Passo
+                    </span>
                   </div>
-
-                  <Button
-                    onClick={() => setViewMode("builder")}
-                    className="w-full rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5"
-                  >
-                    <span>Iniciar Avaliação Manual</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Avaliação Manual Guiada
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Preencha sinais vitais, histórico e escalas validadas (Braden, CAM, SAK e Dor) com sliders de precisão clínica.
+                  </p>
                 </div>
 
-                {/* Opção 2: Avaliação por Áudio */}
-                <div className="rounded-2xl border-2 border-slate-200 hover:border-emerald-600 bg-white p-6 transition-all shadow-xs flex flex-col justify-between space-y-4 hover:shadow-sm">
-                  <div className="space-y-3">
-                    <div className="flex items-center justify-between">
-                      <div className="p-3 rounded-xl bg-emerald-50 text-emerald-700">
-                        <AudioLines className="h-6 w-6" />
-                      </div>
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-800 border border-emerald-200">
-                        Voz & IA • Beira-Leito
-                      </span>
-                    </div>
-                    <h3 className="text-base font-bold text-slate-900">
-                      2. Avaliação por Áudio & Fala
-                    </h3>
-                    <p className="text-xs text-slate-500 leading-relaxed">
-                      Grave ou dite o relato do paciente à beira-leito. A IA transcreve, extrai sinais vitais, Glasgow, dor e escores automaticamente e monta o caso na hora.
-                    </p>
-                    <ul className="text-xs text-slate-600 space-y-1.5 pt-1">
-                      <li className="flex items-center gap-1.5">• Ditado ao vivo direto no navegador</li>
-                      <li className="flex items-center gap-1.5">• Abas de guia clínico para orientar sua fala</li>
-                      <li className="flex items-center gap-1.5">• Extração inteligente de PA, FC, FR, Sat, Dor</li>
-                    </ul>
-                  </div>
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setViewMode("builder");
+                  }}
+                  className="w-full rounded-2xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <span>Iniciar Avaliação Manual</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
 
-                  <Button
-                    onClick={() => setViewMode("audio")}
-                    className="w-full rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5"
-                  >
-                    <Mic className="h-4 w-4" />
-                    <span>Iniciar por Áudio</span>
-                    <ArrowRight className="h-4 w-4" />
-                  </Button>
+              {/* Opção 2: Avaliação por Voz */}
+              <div
+                onClick={() => setViewMode("audio")}
+                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-white dark:bg-slate-900 p-6 sm:p-7 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-400 group-hover:scale-105 transition-transform">
+                      <AudioLines className="h-6 w-6" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      Voz & IA • Beira-Leito
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Avaliação por Áudio & Fala
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Dite ou grave o relato clínico à beira-leito. A IA transcreve e extrai os sinais vitais e escores automaticamente.
+                  </p>
                 </div>
+
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setViewMode("audio");
+                  }}
+                  className="w-full rounded-2xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <Mic className="h-4 w-4" />
+                  <span>Iniciar por Áudio</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           </div>
@@ -712,14 +774,14 @@ export default function CaseStudio() {
                 />
 
                 {/* Botão de Ditado ao Vivo Direto no Navegador */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3">
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800">Ditado ao Vivo (Nativo)</span>
-                    <span className="text-[10px] text-teal-800 bg-teal-50 px-2 py-0.5 rounded font-semibold border border-teal-200">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Ditado ao Vivo (Nativo)</span>
+                    <span className="text-[10px] text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded font-semibold border border-emerald-200 dark:border-emerald-800">
                       Sem Chave de API
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 leading-relaxed">
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
                     Fale diretamente no microfone do navegador sem precisar de chave externa. O texto é captado e os sinais vitais são extraídos em tempo real.
                   </p>
                   <Button
@@ -728,7 +790,7 @@ export default function CaseStudio() {
                     className={`w-full rounded-xl text-xs font-semibold flex items-center justify-center gap-2 ${
                       isLiveDictatingAudio
                         ? "bg-rose-600 hover:bg-rose-700 text-white animate-pulse"
-                        : "bg-teal-700 hover:bg-teal-800 text-white"
+                        : "bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white"
                     }`}
                   >
                     {isLiveDictatingAudio ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -737,17 +799,17 @@ export default function CaseStudio() {
                 </div>
 
                 {/* Campo de Relato Clínico Editável */}
-                <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-2">
-                  <label className="text-xs font-bold text-slate-800 block">
+                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2">
+                  <label className="text-xs font-bold text-slate-800 dark:text-slate-100 block">
                     Transcrição do Relato Clínico:
                   </label>
                   <Textarea
                     value={audioTranscript}
                     onChange={(e) => setAudioTranscript(e.target.value)}
                     placeholder="O relato transcrito aparecerá aqui. Você também pode complementar ou editar manualmente..."
-                    className="rounded-xl text-xs border-slate-300 min-h-[140px]"
+                    className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-[140px]"
                   />
-                  <p className="text-[10px] text-slate-400">
+                  <p className="text-[10px] text-slate-400 dark:text-slate-400">
                     Dica: Fale pressão arterial (ex: 120 por 80), FC, FR, dor, escala de Glasgow e queixas.
                   </p>
                 </div>
@@ -756,12 +818,12 @@ export default function CaseStudio() {
               {/* Coluna Direita: Guia Clínico em Abas & Pré-visualização dos Parâmetros Extraídos */}
               <div className="md:col-span-7 space-y-4">
                 {/* Abas com Frases Orientadoras */}
-                <div className="bg-white rounded-2xl border border-slate-200 p-4 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                    <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs space-y-3">
+                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                    <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide">
                       Guia Clínico de Verbalização ("Caring Out Loud")
                     </span>
-                    <span className="text-[10px] text-teal-700 font-semibold bg-teal-50 px-2 py-0.5 rounded">
+                    <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-800/60">
                       Clique no snippet para adicionar
                     </span>
                   </div>
@@ -777,12 +839,12 @@ export default function CaseStudio() {
                   const extracted = parseVitalsFromTranscript(audioTranscript);
                   const hasAny = Object.keys(extracted).length > 0;
                   return (
-                    <div className="bg-white rounded-2xl border border-slate-200 p-5 shadow-xs space-y-3">
-                      <div className="flex items-center justify-between border-b border-slate-100 pb-2">
-                        <span className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-3">
+                      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
+                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
                           Parâmetros Fisiológicos Extraídos da Fala
                         </span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${hasAny ? "bg-emerald-50 text-emerald-800 border border-emerald-200" : "bg-slate-100 text-slate-500"}`}>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${hasAny ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"}`}>
                           {hasAny ? "Dados Identificados" : "Aguardando Fala"}
                         </span>
                       </div>
@@ -790,56 +852,56 @@ export default function CaseStudio() {
                       {hasAny ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
                           {extracted.pa_sistolica && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Pressão Arterial</span>
-                              <span className="font-bold text-slate-900">{extracted.pa_sistolica}/{extracted.pa_diastolica || 80} mmHg</span>
+                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Pressão Arterial</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.pa_sistolica}/{extracted.pa_diastolica || 80} mmHg</span>
                             </div>
                           )}
                           {extracted.fc && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Frequência Cardíaca</span>
-                              <span className="font-bold text-slate-900">{extracted.fc} bpm</span>
+                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Frequência Cardíaca</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.fc} bpm</span>
                             </div>
                           )}
                           {extracted.fr && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Frequência Respiratória</span>
-                              <span className="font-bold text-slate-900">{extracted.fr} irpm</span>
+                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Frequência Respiratória</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.fr} irpm</span>
                             </div>
                           )}
                           {extracted.tax && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Temperatura</span>
-                              <span className="font-bold text-slate-900">{extracted.tax} °C</span>
+                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Temperatura</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.tax} °C</span>
                             </div>
                           )}
                           {extracted.sat && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Saturação O₂</span>
-                              <span className="font-bold text-slate-900">{extracted.sat} %</span>
+                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Saturação O₂</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.sat} %</span>
                             </div>
                           )}
                           {extracted.caloi_pain_intensity !== undefined && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Dor (0-10)</span>
-                              <span className="font-bold text-slate-900">{extracted.caloi_pain_intensity} / 10</span>
+                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Dor (0-10)</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.caloi_pain_intensity} / 10</span>
                             </div>
                           )}
                           {extracted.glasgow && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Glasgow</span>
-                              <span className="font-bold text-slate-900">{extracted.glasgow} pts</span>
+                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Glasgow</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.glasgow} pts</span>
                             </div>
                           )}
                           {extracted.estado_consciencia && (
-                            <div className="col-span-2 p-2.5 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                              <span className="text-[10px] text-slate-400 block uppercase font-bold">Sensório / Consciência</span>
-                              <span className="font-bold text-slate-900">{extracted.estado_consciencia}</span>
+                            <div className="col-span-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
+                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Sensório / Consciência</span>
+                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.estado_consciencia}</span>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-400 italic py-2">
+                        <p className="text-xs text-slate-400 dark:text-slate-400 italic py-2">
                           Nenhum sinal vital detectado ainda. Fale ou digite por exemplo: "PA 140 por 90, pulso 88, respiração 20, saturação 95%, dor 6 no abdômen".
                         </p>
                       )}
@@ -879,7 +941,7 @@ export default function CaseStudio() {
         {viewMode === "builder" && (
           <div className="space-y-6">
             {/* Barra de Progresso do Wizard */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-2 shadow-xs">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 shadow-xs">
               <div className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
                 {WIZARD_STEPS.map((s, idx) => {
                   const Icon = s.icon;
@@ -891,10 +953,10 @@ export default function CaseStudio() {
                       onClick={() => setCurrentStep(idx)}
                       className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
                         isActive
-                          ? "bg-teal-700 text-white shadow-xs"
+                          ? "bg-emerald-600 text-white shadow-xs"
                           : isDone
-                          ? "bg-slate-100 text-teal-900 font-medium"
-                          : "text-slate-500 hover:bg-slate-50"
+                          ? "bg-slate-100 dark:bg-slate-800 text-emerald-800 dark:text-emerald-400 font-medium"
+                          : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60"
                       }`}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -906,15 +968,15 @@ export default function CaseStudio() {
             </div>
 
             {/* Conteúdo do Passo Ativo */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-6 animate-in fade-in">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-6 animate-in fade-in">
               {/* PASSO 0: PERFIL & ANAMNESE */}
               {currentStep === 0 && (
                 <div className="space-y-4">
-                  <div className="border-b border-slate-100 pb-3">
-                    <h2 className="text-base font-bold text-slate-900">
+                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
+                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                       Identificação do Paciente & Anamnese Clínica
                     </h2>
-                    <p className="text-xs text-slate-500">
+                    <p className="text-xs text-slate-500 dark:text-slate-400">
                       Cadastre os dados demográficos e o histórico de admissão para contextualizar o caso.
                     </p>
                   </div>
@@ -961,11 +1023,11 @@ export default function CaseStudio() {
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Sexo:</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Sexo:</label>
                         <select
                           value={profile.gender}
                           onChange={(e) => setProf("gender", e.target.value)}
-                          className="w-full rounded-xl border border-slate-300 text-xs h-10 px-3 bg-white"
+                          className="w-full rounded-xl border border-slate-300 dark:border-slate-700 text-xs h-10 px-3 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
                         >
                           <option value="M">Masculino</option>
                           <option value="F">Feminino</option>
@@ -975,7 +1037,7 @@ export default function CaseStudio() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Histórico & Doenças Prévias:</label>
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Histórico & Doenças Prévias:</label>
                     <Input
                       value={profile.previous_diseases}
                       onChange={(e) => setProf("previous_diseases", e.target.value)}
@@ -1164,8 +1226,8 @@ export default function CaseStudio() {
                         key={item.key}
                         className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                           data[item.key]
-                            ? "bg-slate-100 border-teal-700 text-slate-900"
-                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "bg-emerald-50 dark:bg-emerald-950/60 border-teal-600 dark:border-emerald-500 text-slate-900 dark:text-emerald-200"
+                            : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                         }`}
                       >
                         <input
@@ -1175,8 +1237,8 @@ export default function CaseStudio() {
                           className="mt-0.5 rounded border-slate-300 text-teal-700 focus:ring-teal-600"
                         />
                         <div className="space-y-0.5">
-                          <span className="text-xs font-bold text-slate-900 block">{item.label}</span>
-                          <span className="text-[11px] text-slate-500">{item.desc}</span>
+                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">{item.label}</span>
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400">{item.desc}</span>
                         </div>
                       </label>
                     ))}
@@ -1187,16 +1249,16 @@ export default function CaseStudio() {
               {/* PASSO 4: QUEDAS & ÁLCOOL (SAK & AUDIT) */}
               {currentStep === 4 && (
                 <div className="space-y-5">
-                  <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900">
+                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                         Estratificação de Risco de Quedas (SAK)
                       </h2>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         Identifique fatores de risco intrínsecos e extrínsecos no ambiente de internação.
                       </p>
                     </div>
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 text-slate-800 border border-slate-200">
+                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                       SAK: {sakTotal} pts
                     </span>
                   </div>
@@ -1207,8 +1269,8 @@ export default function CaseStudio() {
                         key={item.key}
                         className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
                           data[item.key]
-                            ? "bg-slate-100 border-teal-700 text-slate-900"
-                            : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
+                            ? "bg-emerald-50 dark:bg-emerald-950/60 border-teal-600 dark:border-emerald-500 text-slate-900 dark:text-emerald-200"
+                            : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
                         }`}
                       >
                         <span className="text-xs font-semibold">{item.label}</span>
@@ -1227,16 +1289,16 @@ export default function CaseStudio() {
               {/* PASSO 5: ESCALA CALOI (DOR) */}
               {currentStep === 5 && (
                 <div className="space-y-5">
-                  <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900">
+                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                         Avaliação Multidimensional da Dor (CALOI)
                       </h2>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         Caracterize a intensidade, localização anatômica e descritores sensoriais.
                       </p>
                     </div>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${caloiTotal >= 7 ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-slate-100 text-slate-800 border-slate-200"}`}>
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${caloiTotal >= 7 ? "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800" : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700"}`}>
                       Intensidade: {caloiTotal}/10
                     </span>
                   </div>
@@ -1254,7 +1316,7 @@ export default function CaseStudio() {
                     />
 
                     <div className="pt-2">
-                      <label className="text-xs font-bold text-slate-700 block mb-2">
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-2">
                         Características e Descritores da Dor:
                       </label>
                       <div className="flex flex-wrap gap-2">
@@ -1273,8 +1335,8 @@ export default function CaseStudio() {
                               }}
                               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                                 isSel
-                                  ? "bg-slate-800 text-white border-slate-800"
-                                  : "bg-white text-slate-600 border-slate-200 hover:border-slate-300"
+                                  ? "bg-emerald-700 dark:bg-emerald-600 text-white border-emerald-700"
+                                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
                               }`}
                             >
                               {char}
@@ -1358,12 +1420,12 @@ export default function CaseStudio() {
               )}
 
               {/* Navegação Entre Passos & Disparo do Desafio Lúdico */}
-              <div className="pt-4 border-t border-slate-100 flex items-center justify-between">
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
                 <Button
                   variant="outline"
                   onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
                   disabled={currentStep === 0}
-                  className="rounded-xl border-slate-300 text-slate-700 text-xs font-semibold"
+                  className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1.5" /> Passo Anterior
                 </Button>
@@ -1371,7 +1433,7 @@ export default function CaseStudio() {
                 {currentStep < WIZARD_STEPS.length - 1 ? (
                   <Button
                     onClick={() => setCurrentStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1))}
-                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-5 font-semibold"
+                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-5 font-semibold shadow-xs"
                   >
                     Próximo Passo <ArrowRight className="h-4 w-4 ml-1.5" />
                   </Button>
@@ -1379,9 +1441,9 @@ export default function CaseStudio() {
                   <Button
                     onClick={handleLaunchChallenge}
                     disabled={isGeneratingChallenge}
-                    className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs px-6 h-11 font-semibold flex items-center gap-2 shadow-xs"
+                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-6 h-11 font-semibold flex items-center gap-2 shadow-xs"
                   >
-                    <Target className="h-4 w-4 text-teal-400" />
+                    <Target className="h-4 w-4 text-emerald-200" />
                     <span>{isGeneratingChallenge ? "Gerando Desafio..." : "Gerar Desafio Diagnóstico (IA)"}</span>
                   </Button>
                 )}
@@ -1396,26 +1458,26 @@ export default function CaseStudio() {
         {viewMode === "challenge" && challenge && (
           <div className="space-y-6 animate-in fade-in">
             {/* Vinheta Resumo do Caso & Placar Geral */}
-            <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-teal-800 bg-teal-50 px-2.5 py-1 rounded-lg">
+                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
                       Bateria de Julgamento Clínico Avançado
                     </span>
-                    <span className="text-xs font-semibold text-slate-500">
+                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
                       Vivência Real • COFEN 736/2024
                     </span>
                   </div>
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900 mt-1">
+                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 mt-1">
                     {challenge.questionTitle}
                   </h2>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 bg-slate-100 px-3 py-1.5 rounded-xl border border-slate-200">
+                  <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
                     <Award className={`h-4 w-4 ${totalCorrect > 0 ? "text-amber-500" : "text-slate-400"}`} />
-                    <span className="text-xs font-bold text-slate-800">
+                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
                       Pontuação: {totalScore} / {questionsList.length * 100} pts
                     </span>
                   </div>
@@ -1424,7 +1486,7 @@ export default function CaseStudio() {
                     variant="outline"
                     size="sm"
                     onClick={() => setViewMode("builder")}
-                    className="rounded-xl border-slate-300 text-slate-700 text-xs flex items-center gap-1.5"
+                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     <span>Ajustar Escores</span>
@@ -1433,34 +1495,34 @@ export default function CaseStudio() {
               </div>
 
               {/* Prontuário Sintético Baseado no que o Aluno Montou */}
-              <div className="p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs text-slate-700 space-y-2">
-                <span className="font-bold text-slate-900 block">Dados Clínicos do Paciente (Anonimizado - LGPD):</span>
+              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-2">
+                <span className="font-bold text-slate-900 dark:text-slate-100 block">Dados Clínicos do Paciente (Anonimizado - LGPD):</span>
                 <p className="leading-relaxed">
                   {challenge.clinicalVignette}
                 </p>
-                <div className="pt-2 border-t border-slate-200 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-600">
-                  <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
+                <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
+                  <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                     PA: {data.pa_sistolica}/{data.pa_diastolica} mmHg
                   </span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
+                  <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                     FC: {data.fc} bpm
                   </span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
+                  <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                     FR: {data.fr} irpm
                   </span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
+                  <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                     SatO2: {data.sat}%
                   </span>
-                  <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
+                  <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                     Braden: {bradenTotal} pts
                   </span>
                   {camPositive && (
-                    <span className="bg-rose-50 text-rose-800 px-2 py-0.5 rounded border border-rose-200">
+                    <span className="bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-800">
                       CAM: Delirium Positivo
                     </span>
                   )}
                   {caloiTotal > 0 && (
-                    <span className="bg-white px-2 py-0.5 rounded border border-slate-200">
+                    <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
                       Dor: {caloiTotal}/10
                     </span>
                   )}
@@ -1470,10 +1532,10 @@ export default function CaseStudio() {
               {/* SELETOR DE ABAS DA BATERIA (4 EIXOS DE VIVÊNCIA CLÍNICA) */}
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-slate-700 uppercase tracking-wider">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
                     Eixos de Julgamento Clínico ({questionsList.length} Desafios):
                   </span>
-                  <span className="text-[11px] font-semibold text-slate-500">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
                     Respondidas: {Object.keys(submittedQuestions).length} de {questionsList.length}
                   </span>
                 </div>
@@ -1485,13 +1547,13 @@ export default function CaseStudio() {
                     const chosen = q.options?.find(o => o.id === userAnswers[idx]);
                     const isRight = chosen?.isCorrect;
 
-                    let tabStyle = "bg-white border-slate-200 text-slate-600 hover:border-slate-300";
+                    let tabStyle = "bg-white dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600";
                     if (isCurrent) {
-                      tabStyle = "bg-teal-50/80 border-teal-600 text-teal-900 ring-1 ring-teal-600 font-bold shadow-xs";
+                      tabStyle = "bg-teal-50/80 dark:bg-teal-950/80 border-teal-600 dark:border-teal-500 text-teal-900 dark:text-teal-200 ring-1 ring-teal-600 dark:ring-teal-500 font-bold shadow-xs";
                     } else if (isSub && isRight) {
-                      tabStyle = "bg-emerald-50 border-emerald-300 text-emerald-900";
+                      tabStyle = "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300";
                     } else if (isSub && !isRight) {
-                      tabStyle = "bg-rose-50 border-rose-300 text-rose-900";
+                      tabStyle = "bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-300";
                     }
 
                     return (
@@ -1510,9 +1572,9 @@ export default function CaseStudio() {
                         </div>
                         {isSub && (
                           isRight ? (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0 mt-0.5" />
+                            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
                           ) : (
-                            <AlertCircle className="h-4 w-4 text-rose-500 shrink-0 mt-0.5" />
+                            <AlertCircle className="h-4 w-4 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
                           )
                         )}
                       </button>
@@ -1524,13 +1586,13 @@ export default function CaseStudio() {
 
             {/* CARD DA QUESTÃO ATIVA */}
             {activeQuestion && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-4">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 pb-3 gap-2">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2">
                   <div>
-                    <span className="text-xs font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded">
+                    <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded border border-teal-200 dark:border-teal-800">
                       Questão {currentQuestionIndex + 1} de {questionsList.length} • {activeQuestion.category}
                     </span>
-                    <h3 className="text-sm sm:text-base font-bold text-slate-900 mt-2 leading-relaxed">
+                    <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 mt-2 leading-relaxed">
                       {activeQuestion.questionStem}
                     </h3>
                   </div>
@@ -1543,7 +1605,7 @@ export default function CaseStudio() {
                       className={`rounded-xl text-xs h-8 flex items-center gap-1.5 ${
                         isTipRevealed
                           ? "bg-amber-500 hover:bg-amber-600 text-white"
-                          : "border-amber-300 text-amber-800 hover:bg-amber-50"
+                          : "border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
                       }`}
                     >
                       <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
@@ -1554,9 +1616,9 @@ export default function CaseStudio() {
 
                 {/* Dica Socrática (Attending Physician Tip) */}
                 {isTipRevealed && (
-                  <div className="p-3.5 rounded-xl bg-amber-50 border border-amber-200 text-xs text-amber-950 space-y-1 animate-in fade-in">
-                    <span className="font-bold flex items-center gap-1 text-amber-900">
-                      <Lightbulb className="h-4 w-4 text-amber-600" /> Dica de Vivência à Beira-Leito:
+                  <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-xs text-amber-950 dark:text-amber-200 space-y-1 animate-in fade-in">
+                    <span className="font-bold flex items-center gap-1 text-amber-900 dark:text-amber-300">
+                      <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Dica de Vivência à Beira-Leito:
                     </span>
                     <p className="leading-relaxed">{activeQuestion.attendingTip}</p>
                   </div>
@@ -1567,19 +1629,19 @@ export default function CaseStudio() {
                   {activeQuestion.options?.map((option) => {
                     const isSelected = activeSelectedOption === option.id;
                     const showFeedback = isActiveSubmitted;
-                    let style = "bg-white border-slate-200 hover:border-slate-300";
+                    let style = "bg-white dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-800 dark:text-slate-200";
 
                     if (isSelected && !showFeedback) {
-                      style = "bg-slate-100 border-teal-700 ring-1 ring-teal-700 shadow-xs";
+                      style = "bg-emerald-50 dark:bg-emerald-950/60 border-teal-700 dark:border-emerald-500 ring-1 ring-teal-700 dark:ring-emerald-500 shadow-xs text-slate-900 dark:text-emerald-100";
                     }
 
                     if (showFeedback) {
                       if (option.isCorrect) {
-                        style = "bg-emerald-50/80 border-emerald-500 text-emerald-950 font-medium";
+                        style = "bg-emerald-50/80 dark:bg-emerald-950/80 border-emerald-500 dark:border-emerald-600 text-emerald-950 dark:text-emerald-200 font-medium";
                       } else if (isSelected && !option.isCorrect) {
-                        style = "bg-rose-50/80 border-rose-400 text-rose-950";
+                        style = "bg-rose-50/80 dark:bg-rose-950/80 border-rose-400 dark:border-rose-600 text-rose-950 dark:text-rose-200";
                       } else {
-                        style = "bg-slate-50 border-slate-200 text-slate-500 opacity-70";
+                        style = "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 opacity-70";
                       }
                     }
 
@@ -1699,17 +1761,17 @@ export default function CaseStudio() {
 
             {/* Plano de Cuidados e Prescrição de Enfermagem (Visível Pós-Submissão) */}
             {challenge.recommendedInterventions?.length > 0 && (
-              <div className="bg-white rounded-2xl border border-slate-200 p-6 shadow-xs space-y-3 animate-in fade-in">
-                <div className="flex items-center gap-2 border-b border-slate-100 pb-3">
-                  <ClipboardCheck className="h-4 w-4 text-teal-700" />
-                  <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wide">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-3 animate-in fade-in">
+                <div className="flex items-center gap-2 border-b border-slate-100 dark:border-slate-800 pb-3">
+                  <ClipboardCheck className="h-4 w-4 text-teal-700 dark:text-teal-400" />
+                  <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
                     Prescrição de Cuidados de Enfermagem (Resolução COFEN nº 736/2024)
                   </h3>
                 </div>
-                <ul className="space-y-2 text-xs text-slate-700">
+                <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-200">
                   {challenge.recommendedInterventions.map((care, i) => (
                     <li key={i} className="flex items-start gap-2">
-                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 text-slate-700 text-[10px] font-bold shrink-0 mt-0.5">
+                      <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[10px] font-bold shrink-0 mt-0.5">
                         {i + 1}
                       </span>
                       <span className="leading-relaxed">{care}</span>
@@ -1717,7 +1779,7 @@ export default function CaseStudio() {
                   ))}
                 </ul>
 
-                <div className="pt-4 mt-3 border-t border-slate-100 flex flex-col sm:flex-row items-center gap-2.5">
+                <div className="pt-4 mt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center gap-2.5">
                   <Button
                     size="sm"
                     variant="outline"

@@ -3,14 +3,16 @@ import { supabase, isSupabaseConfigured, markSupabaseOffline } from './supabaseC
 const LOCAL_STORAGE_USER_KEY = 'enfermeiro_digital_local_user';
 
 function createLocalFallbackUser(email, extra = {}) {
+  const defaultType = extra.user_type || 'aluno';
+  const defaultName = extra.full_name || (defaultType === 'professor' ? 'Professor' : 'Aluno');
   const mockUser = {
-    id: 'nurse-' + Math.random().toString(36).substring(2, 9),
+    id: 'user-' + Math.random().toString(36).substring(2, 9),
     email,
-    full_name: extra.full_name || email.split('@')[0],
-    name: extra.full_name || email.split('@')[0],
-    role: extra.user_type || 'enfermeiro',
-    user_type: extra.user_type || 'enfermeiro',
-    coren: extra.coren || 'COREN-SP 123456',
+    full_name: defaultName,
+    name: defaultName,
+    role: defaultType,
+    user_type: defaultType,
+    coren: extra.coren || (defaultType === 'professor' ? 'COREN-SP 123456-DOCENTE' : ''),
     org_id: 'default-org-uuid',
   };
   localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(mockUser));
@@ -74,10 +76,20 @@ export const authService = {
       }
 
       const profile = await this.getProfile(user.id);
+      const pendingRole = typeof localStorage !== 'undefined' ? localStorage.getItem('pending_oauth_role') : null;
+      if (pendingRole && (!profile || !profile.role)) {
+        localStorage.removeItem('pending_oauth_role');
+        try {
+          await this.updateProfile(user.id, { role: pendingRole });
+        } catch {}
+      }
+
+      const finalRole = profile?.role || user.user_metadata?.user_type || pendingRole || 'aluno';
       return {
         ...user,
         ...profile,
-        user_type: profile?.role || user.user_metadata?.user_type || 'enfermeiro',
+        user_type: finalRole,
+        role: finalRole,
         name: profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0],
         coren: profile?.coren || user.user_metadata?.coren || '',
         org_id: profile?.org_id || null,
@@ -139,9 +151,9 @@ export const authService = {
     }
   },
 
-  async login(email, password) {
+  async login(email, password, { user_type = 'aluno' } = {}) {
     if (!isSupabaseConfigured()) {
-      const mockUser = createLocalFallbackUser(email);
+      const mockUser = createLocalFallbackUser(email, { user_type });
       return { user: mockUser };
     }
 
@@ -151,18 +163,23 @@ export const authService = {
         password,
       });
       if (error) throw error;
+      if (data.user && user_type) {
+        try {
+          await this.updateProfile(data.user.id, { role: user_type });
+        } catch {}
+      }
       return data;
     } catch (err) {
       if (isNetworkOrDnsError(err)) {
         console.warn('Conexão remota pendente de DNS/rede. Ativando sessão local resiliente.');
-        const mockUser = createLocalFallbackUser(email);
+        const mockUser = createLocalFallbackUser(email, { user_type });
         return { user: mockUser };
       }
       throw err;
     }
   },
 
-  async register(email, password, { full_name, user_type = 'enfermeiro', coren = '' } = {}) {
+  async register(email, password, { full_name, user_type = 'aluno', coren = '' } = {}) {
     if (!isSupabaseConfigured()) {
       const mockUser = createLocalFallbackUser(email, { full_name, user_type, coren });
       return { user: mockUser };
@@ -214,6 +231,7 @@ export const authService = {
 
   async logout() {
     localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+    localStorage.removeItem('pending_oauth_role');
     try {
       if (isSupabaseConfigured()) {
         await supabase.auth.signOut();
@@ -249,14 +267,21 @@ export const authService = {
     }
   },
 
-  async loginWithProvider(provider = 'google', redirectTo) {
+  async loginWithProvider(provider = 'google', redirectTo, { user_type = 'aluno' } = {}) {
     const targetUrl = redirectTo || window.location.origin;
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem('pending_oauth_role', user_type);
+    }
+
+    const demoName = user_type === 'professor' ? 'Professor Google Demo' : 'Aluno Google Demo';
+    const demoEmail = user_type === 'professor' ? 'professor.google@hospital.digital' : 'aluno.google@hospital.digital';
+    const demoCoren = user_type === 'professor' ? 'COREN-SP 999999-DOCENTE' : '';
 
     if (!isSupabaseConfigured()) {
-      const mockUser = createLocalFallbackUser('google.enfermeiro@hospital.digital', {
-        full_name: 'Enfermeiro Google Demo',
-        user_type: 'enfermeiro',
-        coren: 'COREN-SP 999999',
+      const mockUser = createLocalFallbackUser(demoEmail, {
+        full_name: demoName,
+        user_type,
+        coren: demoCoren,
       });
       window.location.href = targetUrl;
       return { user: mockUser };
@@ -268,6 +293,9 @@ export const authService = {
         options: {
           redirectTo: targetUrl,
           skipBrowserRedirect: true,
+          queryParams: {
+            user_type,
+          },
         },
       });
 
@@ -281,10 +309,10 @@ export const authService = {
           return data;
         } catch {
           console.warn('Endpoint OAuth do Supabase inacessível (DNS/rede). Ativando login Google de demonstração.');
-          const mockUser = createLocalFallbackUser('google.enfermeiro@hospital.digital', {
-            full_name: 'Enfermeiro Google Demo',
-            user_type: 'enfermeiro',
-            coren: 'COREN-SP 999999',
+          const mockUser = createLocalFallbackUser(demoEmail, {
+            full_name: demoName,
+            user_type,
+            coren: demoCoren,
           });
           window.location.href = targetUrl;
           return { user: mockUser };
@@ -292,10 +320,10 @@ export const authService = {
       }
     } catch (err) {
       console.warn('Falha na autenticação OAuth do Supabase. Ativando login local resiliente:', err);
-      const mockUser = createLocalFallbackUser('google.enfermeiro@hospital.digital', {
-        full_name: 'Enfermeiro Google Demo',
-        user_type: 'enfermeiro',
-        coren: 'COREN-SP 999999',
+      const mockUser = createLocalFallbackUser(demoEmail, {
+        full_name: demoName,
+        user_type,
+        coren: demoCoren,
       });
       window.location.href = targetUrl;
       return { user: mockUser };

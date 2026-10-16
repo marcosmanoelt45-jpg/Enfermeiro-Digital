@@ -259,5 +259,133 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
       value: "Creme barreira hidrofóbico a cada troca de fralda",
       status: "normal"
     }
+  },
+
+  glicemia: {
+    title: "Glicemia Capilar (HGT) à Beira-Leito",
+    maneuver: "Você realiza a desinfecção da face lateral da polpa digital com álcool a 70%, aguarda secagem completa e realiza punção com lanceta retrátil estéril, desprezando a primeira gota e aplicando a segunda gota na fita reagente do glicosímetro.",
+    prompt: "Qual valor e interpretação clínica você obtém no glicosímetro?",
+    options: [
+      {
+        id: "opt_1",
+        label: "HGT de 54 mg/dL — Hipoglicemia severa acompanhada de sudorese fria e tremores.",
+        isCorrect: false,
+        feedback: "Incorreto: Hipoglicemia causaria rebaixamento súbito do nível de consciência, taquicardia reflexa e sudorese profusa, incompatível com a estabilidade neurológica observada."
+      },
+      {
+        id: "opt_2",
+        label: "HGT de 148 mg/dL — Hiperglicemia pós-prandial moderada, comum em resposta ao estresse inflamatório agudo.",
+        isCorrect: true,
+        feedback: "Correto! O valor de 148 mg/dL reflete elevação glicêmica reacional ao estresse fisiológico e liberação de cortisol/adrenalina, necessitando monitoramento sem insulina de urgência neste momento."
+      },
+      {
+        id: "opt_3",
+        label: "HGT de 480 mg/dL — Hiperglicemia crítica com risco iminente de cetoacidose ou estado hiperosmolar.",
+        isCorrect: false,
+        feedback: "Incorreto: Glicemia > 400 mg/dL exigiria protocolo institucional de bomba de infusão contínua de insulina regular e hidratação vigorosa imediata."
+      }
+    ],
+    pearl: "A hiperglicemia de estresse é frequente em infecções agudas e internações. A antissepsia deve secar completamente antes da punção para que o álcool residual não altere quimicamente o valor da fita.",
+    resultingItem: {
+      label: "Glicemia Capilar",
+      value: "148 mg/dL (Hiperglicemia leve por estresse inflamatório)",
+      status: "altered"
+    }
+  },
+
+  alergias: {
+    title: "Investigação Detalhada de Alergias e Hipersensibilidades",
+    maneuver: "Você entrevista detalhadamente o paciente e seu acompanhante, revisa o histórico prévio de internações, checa prontuário e inspeciona a colocação da pulseira de identificação de alergia.",
+    prompt: "Qual é o status de segurança identificado na investigação de alergias?",
+    options: [
+      {
+        id: "opt_1",
+        label: "Alergia grave conhecida e confirmada a Penicilinas e Derivados com histórico de anafilaxia prévia.",
+        isCorrect: false,
+        feedback: "Incorreto: Não há histórico registrado ou relato familiar de hipersensibilidade prévia a antibióticos beta-lactâmicos."
+      },
+      {
+        id: "opt_2",
+        label: "Nega alergias medicamentosas, alimentares ou a látex. Ausência de reações adversas conhecidas e pulseira verde de identificação checada.",
+        isCorrect: true,
+        feedback: "Correto! A confirmação ativa e documentada da ausência de histórico alérgico autoriza a administração segura das medicações prescritas conforme o protocolo de Metas Internacionais de Segurança do Paciente."
+      },
+      {
+        id: "opt_3",
+        label: "Hipersensibilidade documentada a anti-inflamatórios não esteroidais (AINEs) com broncoespasmo prévio.",
+        isCorrect: false,
+        feedback: "Incorreto: O paciente relata uso esporádico prévio de analgésicos e anti-inflamatórios orais comuns sem qualquer intercorrência respiratória ou cutânea."
+      }
+    ],
+    pearl: "A investigação ativa de alergias no momento da admissão é barreira fundamental da Meta 1 e Meta 3 de Segurança do Paciente. Nunca presuma que 'não refere' no prontuário signifique ausência de alergia sem confirmação direta.",
+    resultingItem: {
+      label: "Alergias & Hipersensibilidade",
+      value: "Nega histórico de alergias medicamentosas ou látex (Checado e Documentado)",
+      status: "normal"
+    }
+  },
+
+  pulsos: {
+    title: "Palpação de Pulsos Periféricos e Perfusão Distal",
+    maneuver: "Você realiza a palpação bimanual simultânea dos pulsos radiais, pediosos e tibiais posteriores, analisando frequência, ritmo, amplitude (escala de 0 a 4+) e simetria bilateral.",
+    prompt: "Qual característica semiológica dos pulsos arteriais periféricos é constatada?",
+    options: [
+      {
+        id: "opt_1",
+        label: "Pulsos radiais e pediosos cheios (+3/+4), rítmicos, simétricos bilateralmente e com boa amplitude de onda.",
+        isCorrect: true,
+        feedback: "Correto! Pulsos periféricos amplos e simétricos indicam volemia preservada, débito cardíaco satisfatório e ausência de oclusão arterial periférica aguda."
+      },
+      {
+        id: "opt_2",
+        label: "Pulsos periféricos filiformes (+1/+4), taquisfigmia acentuada e assimetria entre membros inferiores.",
+        isCorrect: false,
+        feedback: "Incorreto: Pulsos filiformes seriam encontrados em choque hipovolêmico ou cardiogênico severo com colapso circulatório, o que não condiz com a PA de 160/95 mmHg e FC compensada."
+      },
+      {
+        id: "opt_3",
+        label: "Pulsos distais ausentes em membro inferior esquerdo com palidez cutânea e frialdade localizada.",
+        isCorrect: false,
+        feedback: "Incorreto: A ausência unilateral de pulso distal caracterizaria trombose arterial aguda (6 Ps de Pratt), um quadro de urgência cirúrgica vascular não presente."
+      }
+    ],
+    pearl: "A palpação simétrica e comparativa de pulsos previne diagnósticos errôneos de hipoperfusão sistêmica quando na verdade há variação anatômica ou ateromatose segmentar.",
+    resultingItem: {
+      label: "Pulsos Periféricos",
+      value: "Cheios, rítmicos e simétricos bilateralmente (+3/+4)",
+      status: "normal"
+    }
+  },
+
+  braden: {
+    title: "Aplicação da Escala Preditiva de Braden para LPP",
+    maneuver: "Você avalia sistematicamente os 6 subfatores de risco preditivo da Escala de Braden: percepção sensorial, umidade, atividade, mobilidade, nutrição e fricção/cisalhamento.",
+    prompt: "Qual é a pontuação total da Escala de Braden e a respectiva estratificação de risco?",
+    options: [
+      {
+        id: "opt_1",
+        label: "Braden = 8 pontos (Risco Altíssimo de Lesão por Pressão).",
+        isCorrect: false,
+        feedback: "Incorreto: 8 pontos representa paciente com paralisia total, completamente imóvel, inconsciente e com nutrição severamente deficitária."
+      },
+      {
+        id: "opt_2",
+        label: "Braden = 14 pontos (Risco Moderado) — Exige medidas preventivas ativas imediatas como alívio mecânico e proteção tópica.",
+        isCorrect: true,
+        feedback: "Correto! A pontuação de 14 pontos enquadra o paciente na faixa de Risco Moderado (13 a 14 pontos), tornando mandatória a instituição imediata do pacote de prevenção de LPP (mudança de decúbito e hidratação de pele)."
+      },
+      {
+        id: "opt_3",
+        label: "Braden = 22 pontos (Sem Risco de Lesão por Pressão).",
+        isCorrect: false,
+        feedback: "Incorreto: A pontuação de 22 indicaria paciente plenamente ativo, com mobilidade total e deambulação independente."
+      }
+    ],
+    pearl: "Na Escala de Braden, menor pontuação significa MAIOR risco (escala inversa de 6 a 23). Pacientes com pontuação ≤ 14 devem ter intervenções profiláticas prioritárias já na admissão.",
+    resultingItem: {
+      label: "Escala de Braden",
+      value: "14 pontos — Risco Moderado (Plano de prevenção instituído)",
+      status: "altered"
+    }
   }
 };

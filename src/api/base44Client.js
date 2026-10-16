@@ -14,9 +14,9 @@ import { parseClinicalSpeech } from '@/lib/clinicalSpeechParser';
 export const base44 = {
   auth: {
     me: () => authService.getCurrentUser(),
-    loginViaEmailPassword: (email, pass) => authService.login(email, pass),
-    loginWithProvider: (prov, ret) => authService.loginWithProvider(prov, ret),
-    register: ({ email, password, full_name, user_type, coren }) =>
+    loginViaEmailPassword: (email, pass, opts) => authService.login(email, pass, opts),
+    loginWithProvider: (prov, ret, opts) => authService.loginWithProvider(prov, ret, opts),
+    register: ({ email, password, full_name, user_type = 'aluno', coren }) =>
       authService.register(email, password, { full_name, user_type, coren }),
     updateMe: (updates) => {
       return authService.getCurrentUser().then((u) => {

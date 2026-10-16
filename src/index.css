@@ -52,7 +52,7 @@
     --secondary-foreground: 210 40% 98%;
 
     --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted-foreground: 215 25% 75%;
 
     --accent: 217.2 32.6% 17.5%;
     --accent-foreground: 210 40% 98%;
@@ -71,6 +71,88 @@
     @apply border-border;
   }
   body {
-    @apply bg-background text-foreground;
+    @apply bg-background text-foreground antialiased selection:bg-emerald-100 selection:text-emerald-900;
+    -webkit-tap-highlight-color: transparent;
   }
 }
+
+/* Ocultar barra de rolagem mantendo funcionalidade de scroll por toque */
+@layer utilities {
+  .no-scrollbar::-webkit-scrollbar {
+    display: none;
+  }
+  .no-scrollbar {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+}
+
+/* Escala Dinâmica de Tipografia Clínica (Tamanho de Fonte Acessível) */
+html.font-size-normal,
+html.font-size-normal body {
+  font-size: 14px !important;
+}
+html.font-size-large,
+html.font-size-large body {
+  font-size: 16.5px !important;
+}
+html.font-size-xlarge,
+html.font-size-xlarge body {
+  font-size: 19px !important;
+}
+
+/* Modo Plantão Noturno (Anti-Ofuscamento para Beira-Leito) */
+html.night-shift-mode {
+  filter: sepia(0.22) brightness(0.88) contrast(0.95);
+  transition: filter 0.3s ease;
+}
+
+/* Feedback tátil visual sutil */
+@keyframes haptic-shake {
+  0%, 100% { transform: translateX(0); }
+  25% { transform: translateX(-2px); }
+  75% { transform: translateX(2px); }
+}
+.haptic-active-shake {
+  animation: haptic-shake 0.15s ease-in-out 2;
+}
+
+/* ========================================================================== */
+/* Regras Globais de Contraste e Neutralização de Tema Escuro (WCAG AA)        */
+/* ========================================================================== */
+html.dark,
+html.dark body {
+  background-color: #020617;
+  color: #f8fafc;
+}
+
+html.dark .min-h-screen.bg-slate-50 {
+  background-color: #020617;
+}
+
+/* Garantir legibilidade de botões com texto cinza no modo escuro */
+html.dark button.text-slate-700:not(.bg-white):not([class*="bg-emerald"]):not([class*="bg-teal"]) {
+  color: #cbd5e1;
+}
+
+html.dark button.text-slate-800:not(.bg-white):not([class*="bg-emerald"]):not([class*="bg-teal"]) {
+  color: #f1f5f9;
+}
+
+/* Salvaguarda de contraste estrito para textos secundários no modo escuro (WCAG AA) */
+html.dark .text-slate-500:not([class*="bg-"]):not(button):not(svg) {
+  color: #94a3b8;
+}
+
+html.dark .text-slate-400:not([class*="bg-"]):not(button):not(svg) {
+  color: #cbd5e1;
+}
+
+/* Neutralização de inputs nativos e selects no modo escuro */
+html.dark input,
+html.dark select,
+html.dark textarea {
+  color-scheme: dark;
+}
+
+
