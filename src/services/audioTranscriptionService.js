@@ -33,10 +33,20 @@ export const audioTranscriptionService = {
     ).trim();
   },
 
+  // Retorna a chave do OpenRouter se configurada
+  getOpenRouterKey() {
+    return (
+      (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_openrouter_api_key')) ||
+      (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_OPENROUTER_API_KEY) ||
+      ''
+    ).trim();
+  },
+
   // Identifica qual motor de transcrição está ativo por padrão
   getActiveEngine() {
     if (this.getAssemblyAIKey()) return 'AssemblyAI';
     if (this.getGeminiKey()) return 'Google Gemini (Multimodal)';
+    if (this.getOpenRouterKey()) return 'OpenRouter (Multimodal)';
     return 'Navegador (Web Speech API)';
   },
 
@@ -88,7 +98,7 @@ export const audioTranscriptionService = {
 
     const { id: transcriptId } = await transcriptRes.json();
 
-    // 3. Polling até conclusão (máximo 30s)
+    // 3. Polling até conclusão (máximo 35s)
     const startTime = Date.now();
     while (Date.now() - startTime < 35000) {
       await new Promise((r) => setTimeout(r, 1500));
@@ -126,7 +136,13 @@ export const audioTranscriptionService = {
     if (onProgress) onProgress('Codificando áudio para transcrição via Gemini...');
     const base64Audio = await blobToBase64(audioBlob);
 
-    if (onProgress) onProgress('Ouvindo e analisando relato clínico com Gemini...');
+    // Sanitiza o MIME type: remove parâmetros extras de codecs (ex.: audio/webm;codecs=opus -> audio/webm)
+    const rawMime = (audioBlob.type || 'audio/webm').toLowerCase();
+    const cleanMime = rawMime.split(';')[0].trim();
+    const supportedMimes = ['audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav', 'audio/aac', 'audio/mp3', 'audio/flac'];
+    const sanitizedMimeType = supportedMimes.includes(cleanMime) ? cleanMime : 'audio/webm';
+
+    if (onProgress) onProgress('Florence AI ouvindo relato clínico em português...');
 
     const prompt = `Você é um especialista em transcrição clínica de enfermagem e terminologia médica em português (pt-BR).
 Ouça atentamente este áudio gravado por um enfermeiro à beira-leito.
@@ -141,14 +157,14 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
     const savedModel = (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_gemini_model')) || null;
     const models = [
       ...(savedModel ? [savedModel] : []),
-      'gemini-3.5-flash',
-      'gemini-3.5-transcribe',
-      'gemini-flash-latest',
-      'gemini-3.1-flash-lite',
+      'gemini-2.5-flash',
       'gemini-2.0-flash',
-      'gemini-1.5-flash-latest',
-      'gemini-1.5-flash'
+      'gemini-1.5-flash',
+      'gemini-2.5-flash-lite',
+      'gemini-2.0-flash-lite',
+      'gemini-flash-latest'
     ].filter((v, i, a) => a.indexOf(v) === i);
+
     for (const model of models) {
       try {
         const response = await fetch(
@@ -163,7 +179,7 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
                   parts: [
                     {
                       inlineData: {
-                        mimeType: audioBlob.type || 'audio/webm',
+                        mimeType: sanitizedMimeType,
                         data: base64Audio,
                       },
                     },
@@ -180,7 +196,8 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
         );
 
         if (!response.ok) {
-          console.warn(`Erro no modelo ${model}:`, await response.text());
+          const errText = await response.text();
+          console.warn(`Erro no modelo Gemini Audio ${model}:`, errText);
           continue;
         }
 
@@ -234,7 +251,7 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
 
     // 4. Se não conseguiu transcrever por nenhuma IA e não tem texto
     throw new Error(
-      'Nenhuma transcrição foi gerada. Configure uma chave da API do AssemblyAI ou do Google Gemini na página Minha Conta, ou digite o relato no campo de texto.'
+      'Nenhuma chave de IA foi detectada para transcrição do áudio gravado. Configure uma chave do Google Gemini na página Minha Conta ou fale pausadamente usando o Google Chrome.'
     );
   },
 

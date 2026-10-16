@@ -35,6 +35,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { evaluateSbarHandoff } from "@/services/sbarTutorService";
 import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
 import { audioTranscriptionService } from "@/services/audioTranscriptionService";
+import { evaluateSbarChecklists } from "@/lib/sbarSpeechMatcher";
 
 const PRESET_HANDOFF_SCENARIOS = [
   {
@@ -95,7 +96,7 @@ const PRESET_HANDOFF_SCENARIOS = [
     clinicalSummary: "Paciente idoso com flutuação do nível de consciência, desorientação temporal e tentativa recorrente de retirada de punção venosa e evasão do leito.",
     goldenSbar: {
       situation: "Paciente A.B.C., 82 anos, Leito 21-B da Geriatria, no 3º dia de internação por pneumonia comunitária em antibioticoterapia venosa.",
-      background: "Diagnóstico prévio de Alzheimer leve e osteoartrose. Histórico de queda no domicílio há 2 meses com contusão em quadril.",
+      background: "Diagnóstico prévio de Alzheimer leve e osteoartrose. Nega alergias medicamentosas conhecidas. Histórico de queda no domicílio há 2 meses com contusão em quadril.",
       assessment: "Sinais vitais estáveis (PA 132/78 mmHg, FC 76 bpm, SatO2 95%). Apresenta flutuação do sensório (CAM positivo), agitou-se no início da tarde tentando levantar-se sem auxílio.",
       recommendation: "Manter grades do leito sempre elevadas bilateralmente; orientar e apoiar o acompanhante familiar; manter acesso periférico protegido e evitar contenção física mecânica desnecessária."
     },
@@ -145,6 +146,8 @@ export default function SbarHandoffLab() {
   const [interimTranscript, setInterimTranscript] = useState("");
   const [voiceError, setVoiceError] = useState("");
   const [isTranscribingWithAi, setIsTranscribingWithAi] = useState(false);
+  const [isProcessingAudio, setIsProcessingAudio] = useState(false);
+  const [processingField, setProcessingField] = useState(null);
 
   const recognitionRef = useRef(null);
   const mediaRecorderRef = useRef(null);
@@ -199,34 +202,41 @@ export default function SbarHandoffLab() {
 
   // Atualização inteligente dos checklists dinâmicos conforme digitação/voz
   useEffect(() => {
-    const s = (sbarData.situation || "").toLowerCase();
-    const b = (sbarData.background || "").toLowerCase();
-    const a = (sbarData.assessment || "").toLowerCase();
-    const r = (sbarData.recommendation || "").toLowerCase();
-
-    setChecklists({
+    const autoChecked = evaluateSbarChecklists(sbarData, currentCase);
+    setChecklists((prev) => ({
       situation: {
-        bed: s.includes("leito") || s.includes("box") || s.includes("quarto") || s.includes("enfermaria"),
-        id: s.includes("anos") || s.includes("paciente") || s.includes("m.") || s.includes("j.") || s.includes("a."),
-        reason: s.includes("dpo") || s.includes("colectomia") || s.includes("icc") || s.includes("pneumonia") || s.includes("admi") || s.includes("interna")
+        bed: prev.situation.bed || autoChecked.situation.bed,
+        id: prev.situation.id || autoChecked.situation.id,
+        reason: prev.situation.reason || autoChecked.situation.reason
       },
       background: {
-        allergy: b.includes("alergia") || b.includes("alérg") || b.includes("sem alergia") || b.includes("nega alergia"),
-        comorbidities: b.includes("has") || b.includes("hiperten") || b.includes("icc") || b.includes("dm") || b.includes("alzheimer") || b.includes("comorbidade"),
-        meds: b.includes("losartana") || b.includes("furosemida") || b.includes("uso") || b.includes("medic") || b.includes("remédio")
+        allergy: prev.background.allergy || autoChecked.background.allergy,
+        comorbidities: prev.background.comorbidities || autoChecked.background.comorbidities,
+        meds: prev.background.meds || autoChecked.background.meds
       },
       assessment: {
-        vitals: a.includes("pa") || a.includes("pressão") || a.includes("fc") || a.includes("bpm") || /\d{2,3}\s*\/\s*\d{2,3}/.test(a),
-        sato2: a.includes("sat") || a.includes("oxig") || a.includes("%") || a.includes("ar ambiente") || a.includes("cateter"),
-        exam: a.includes("dor") || a.includes("dreno") || a.includes("eva") || a.includes("estertor") || a.includes("edema") || a.includes("sensório") || a.includes("curativo")
+        vitals: prev.assessment.vitals || autoChecked.assessment.vitals,
+        sato2: prev.assessment.sato2 || autoChecked.assessment.sato2,
+        exam: prev.assessment.exam || autoChecked.assessment.exam
       },
       recommendation: {
-        time: r.includes("às") || r.includes("h") || r.includes("horas") || r.includes("noite") || r.includes("amanhã") || r.includes("cedo"),
-        meds: r.includes("administrar") || r.includes("analgesia") || r.includes("furosemida") || r.includes("medic") || r.includes("dose"),
-        monitoring: r.includes("vigiar") || r.includes("checar") || r.includes("balanço") || r.includes("grades") || r.includes("resultado") || r.includes("hematócrito")
+        time: prev.recommendation.time || autoChecked.recommendation.time,
+        meds: prev.recommendation.meds || autoChecked.recommendation.meds,
+        monitoring: prev.recommendation.monitoring || autoChecked.recommendation.monitoring
       }
-    });
-  }, [sbarData]);
+    }));
+  }, [sbarData, currentCase]);
+
+  // Permite ao acadêmico marcar/desmarcar itens manualmente caso deseje validação direta
+  function handleToggleChecklistItem(pillarKey, itemKey) {
+    setChecklists((prev) => ({
+      ...prev,
+      [pillarKey]: {
+        ...prev[pillarKey],
+        [itemKey]: !prev[pillarKey]?.[itemKey]
+      }
+    }));
+  }
 
   async function stopListening(fieldNameOverride = null) {
     const targetField = fieldNameOverride || activeListeningField;
@@ -277,35 +287,57 @@ export default function SbarHandoffLab() {
 
     setIsListening(false);
     setVoiceStarting(false);
-    setActiveListeningField(null);
     setInterimTranscript("");
 
-    // 5. Fallback com Florence AI (Gemini): se o microfone gravou áudio mas a Web Speech não digitou texto
-    if (recordedBlob && targetField && recordedBlob.size > 2000) {
-      const currentText = sbarData[targetField] || "";
+    // 5. ATIVA IMEDIATAMENTE O FEEDBACK VISUAL DE PROCESSAMENTO
+    if (targetField) {
+      setProcessingField(targetField);
+      setIsProcessingAudio(true);
+      setToastMessage(`Áudio recebido para ${targetField.toUpperCase()}! Processando transcrição...`);
+    }
+
+    try {
+      // Janela de estabilização de 400ms para capturar os últimos eventos assíncronos da fala
+      await new Promise((resolve) => setTimeout(resolve, 400));
+
+      const currentText = (sbarData[targetField] || "").trim();
       const textLenBefore = lastVoiceInputLenRef.current || 0;
-      if (currentText.length <= textLenBefore) {
-        try {
-          setIsTranscribingWithAi(true);
-          setToastMessage("Florence AI está transcrevendo seu áudio gravado...");
-          const result = await audioTranscriptionService.transcribe(recordedBlob);
-          if (result && result.text) {
-            setSbarData((prev) => {
-              const prevText = prev[targetField] ? prev[targetField].trim() + " " : "";
-              return {
-                ...prev,
-                [targetField]: prevText + result.text.trim()
-              };
-            });
-            setToastMessage("Transcrição realizada com sucesso pela Florence AI!");
-            setTimeout(() => setToastMessage(""), 3500);
-          }
-        } catch (err) {
-          console.warn("Fallback de transcrição com IA:", err);
-        } finally {
-          setIsTranscribingWithAi(false);
+
+      // Se a Web Speech já capturou novo conteúdo
+      if (currentText.length > textLenBefore) {
+        setToastMessage(`Transcrição do pilar ${targetField.toUpperCase()} concluída com sucesso!`);
+        setTimeout(() => setToastMessage(""), 3000);
+      } else if (recordedBlob && targetField && recordedBlob.size > 1500) {
+        // Fallback com IA (Gemini / AssemblyAI) se a Web Speech não digitou texto
+        setIsTranscribingWithAi(true);
+        setToastMessage("Florence AI está transcrevendo o áudio gravado em alta fidelidade...");
+        const result = await audioTranscriptionService.transcribe(recordedBlob);
+        if (result && result.text) {
+          setSbarData((prev) => {
+            const prevText = prev[targetField] ? prev[targetField].trim() + " " : "";
+            return {
+              ...prev,
+              [targetField]: prevText + result.text.trim()
+            };
+          });
+          setToastMessage(`Florence AI transcreveu o pilar ${targetField.toUpperCase()} com sucesso!`);
+          setTimeout(() => setToastMessage(""), 3500);
         }
+      } else if (recordedBlob && recordedBlob.size <= 1500) {
+        setToastMessage("Áudio muito breve. Fale com naturalidade um pouco mais próximo ao microfone.");
+        setTimeout(() => setToastMessage(""), 3000);
       }
+    } catch (err) {
+      console.warn("Aviso na transcrição de áudio:", err);
+      const msg = err?.message || "Não foi possível transcrever o áudio automaticamente.";
+      setVoiceError(msg);
+      setToastMessage(msg);
+      setTimeout(() => setToastMessage(""), 6000);
+    } finally {
+      setIsTranscribingWithAi(false);
+      setIsProcessingAudio(false);
+      setProcessingField(null);
+      setActiveListeningField(null);
     }
   }
 
@@ -932,11 +964,13 @@ export default function SbarHandoffLab() {
                   {currentGuided.checklistItems.map((item, i) => (
                     <div
                       key={i}
-                      className={`flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-semibold border transition-all ${
+                      onClick={() => handleToggleChecklistItem(currentGuided.key, item.key)}
+                      className={`flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer select-none ${
                         item.done
                           ? "bg-white border-teal-600 text-teal-950 shadow-2xs"
-                          : "bg-white/70 border-slate-200 text-slate-500"
+                          : "bg-white/70 border-slate-200 text-slate-500 hover:border-slate-300 hover:bg-white"
                       }`}
+                      title="Clique para marcar/desmarcar este item"
                     >
                       <div className={`flex h-4 w-4 items-center justify-center rounded-md shrink-0 transition-colors ${
                         item.done ? "bg-teal-700 text-white" : "border border-slate-300 bg-white"
@@ -960,10 +994,10 @@ export default function SbarHandoffLab() {
                         <span>Ouvindo sua voz ({formatSeconds(recordingSeconds)})... Fale com clareza</span>
                       </span>
                     )}
-                    {isTranscribingWithAi && activeListeningField === currentGuided.key && (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-teal-800 animate-pulse bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200">
-                        <Loader2 className="h-3 w-3 text-teal-700 animate-spin" />
-                        <span>Florence AI transcrevendo áudio...</span>
+                    {(isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key && (
+                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-teal-800 animate-pulse bg-teal-50 px-2.5 py-0.5 rounded-full border border-teal-200 shadow-2xs">
+                        <Loader2 className="h-3.5 w-3.5 text-teal-700 animate-spin" />
+                        <span>Áudio recebido! Florence AI transcrevendo...</span>
                       </span>
                     )}
                   </label>
@@ -971,11 +1005,14 @@ export default function SbarHandoffLab() {
                   {/* Botão de Ditar por Voz com Estilo Vivo e Feedback Imediato */}
                   <Button
                     size="sm"
+                    disabled={(isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key}
                     variant={isListening && activeListeningField === currentGuided.key ? "destructive" : "outline"}
                     onClick={() => toggleVoiceInput(currentGuided.key)}
                     className={`rounded-xl h-9 px-3.5 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
                       isListening && activeListeningField === currentGuided.key
                         ? "bg-rose-600 hover:bg-rose-700 text-white shadow-md ring-2 ring-rose-400 ring-offset-2 animate-pulse"
+                        : (isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key
+                        ? "bg-teal-50 border-teal-600 text-teal-900"
                         : "border-teal-700 text-teal-800 hover:bg-teal-50"
                     }`}
                   >
@@ -991,7 +1028,7 @@ export default function SbarHandoffLab() {
                           <span>Parar Ditado ({formatSeconds(recordingSeconds)})</span>
                         </>
                       )
-                    ) : isTranscribingWithAi && activeListeningField === currentGuided.key ? (
+                    ) : (isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key ? (
                       <>
                         <Loader2 className="h-4 w-4 animate-spin text-teal-700" />
                         <span>Transcrevendo...</span>
@@ -1114,36 +1151,57 @@ export default function SbarHandoffLab() {
                       <span className="text-xs font-bold text-slate-900">{pilar.title}</span>
                     </div>
 
-                    <Button
-                      size="sm"
-                      variant={isListening && activeListeningField === pilar.key ? "destructive" : "outline"}
-                      onClick={() => toggleVoiceInput(pilar.key)}
-                      className={`rounded-lg h-7 px-2.5 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
-                        isListening && activeListeningField === pilar.key
-                          ? "bg-rose-600 hover:bg-rose-700 text-white shadow-xs animate-pulse ring-2 ring-rose-400"
-                          : ""
-                      }`}
-                    >
-                      {isListening && activeListeningField === pilar.key ? (
-                        voiceStarting ? (
+                    <div className="flex items-center gap-2">
+                      <span className="text-[10px] font-bold text-teal-800 bg-teal-50 px-2 py-0.5 rounded-full border border-teal-200">
+                        {Object.values(checklists[pilar.key] || {}).filter(Boolean).length}/3 itens
+                      </span>
+
+                      <Button
+                        size="sm"
+                        disabled={(isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key}
+                        variant={isListening && activeListeningField === pilar.key ? "destructive" : "outline"}
+                        onClick={() => toggleVoiceInput(pilar.key)}
+                        className={`rounded-lg h-7 px-2.5 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                          isListening && activeListeningField === pilar.key
+                            ? "bg-rose-600 hover:bg-rose-700 text-white shadow-xs animate-pulse ring-2 ring-rose-400"
+                            : (isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key
+                            ? "bg-teal-50 border-teal-600 text-teal-900"
+                            : ""
+                        }`}
+                      >
+                        {isListening && activeListeningField === pilar.key ? (
+                          voiceStarting ? (
+                            <>
+                              <Loader2 className="h-3 w-3 animate-spin text-white" />
+                              <span>Ligando...</span>
+                            </>
+                          ) : (
+                            <>
+                              <MicOff className="h-3 w-3 animate-pulse text-white" />
+                              <span>Parar ({formatSeconds(recordingSeconds)})</span>
+                            </>
+                          )
+                        ) : (isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key ? (
                           <>
-                            <Loader2 className="h-3 w-3 animate-spin text-white" />
-                            <span>Ligando...</span>
+                            <Loader2 className="h-3 w-3 animate-spin text-teal-700" />
+                            <span>Transcrevendo...</span>
                           </>
                         ) : (
                           <>
-                            <MicOff className="h-3 w-3 animate-pulse text-white" />
-                            <span>Parar ({formatSeconds(recordingSeconds)})</span>
+                            <Mic className="h-3 w-3 text-teal-700" />
+                            <span>Ditar</span>
                           </>
-                        )
-                      ) : (
-                        <>
-                          <Mic className="h-3 w-3 text-teal-700" />
-                          <span>Ditar</span>
-                        </>
-                      )}
-                    </Button>
+                        )}
+                      </Button>
+                    </div>
                   </div>
+
+                  {(isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key && (
+                    <div className="p-2 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 text-[11px] flex items-center gap-2 animate-pulse">
+                      <Loader2 className="h-3.5 w-3.5 text-teal-700 animate-spin shrink-0" />
+                      <span className="font-medium">Áudio recebido! Florence AI transcrevendo...</span>
+                    </div>
+                  )}
 
                   {isListening && activeListeningField === pilar.key && interimTranscript && (
                     <div className="p-2 rounded-lg bg-teal-50 border border-teal-200 text-teal-900 text-[11px] italic">
