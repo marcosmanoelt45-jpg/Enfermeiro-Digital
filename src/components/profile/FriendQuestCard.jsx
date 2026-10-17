@@ -51,16 +51,16 @@ export default function FriendQuestCard({ quest }) {
         <div className="flex items-center gap-2">
           {/* Dupla de avatares sobrepostos */}
           <div className="flex -space-x-2 overflow-hidden">
-            <div className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-teal-600 text-white flex items-center justify-center text-xs font-bold shadow-xs">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-white dark:ring-slate-900 bg-teal-600 text-white text-xs font-bold shadow-xs">
               Você
             </div>
-            <div className="inline-block h-8 w-8 rounded-full ring-2 ring-white dark:ring-slate-900 bg-purple-600 text-white overflow-hidden shadow-xs">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full ring-2 ring-white dark:ring-slate-900 bg-purple-600 text-white overflow-hidden shadow-xs">
               {partnerAvatar ? (
                 <img src={partnerAvatar} alt={partnerName} className="h-full w-full object-cover" />
               ) : (
-                <div className="flex h-full w-full items-center justify-center text-xs font-bold">
+                <span className="text-xs font-bold">
                   {partnerName?.charAt(0)}
-                </div>
+                </span>
               )}
             </div>
           </div>
@@ -95,7 +95,7 @@ export default function FriendQuestCard({ quest }) {
         <div className="flex items-center justify-between text-[11px] pt-1">
           <div className="flex items-center gap-1 text-emerald-700 dark:text-emerald-400 font-semibold">
             <Sparkles className="h-3 w-3" />
-            <span>Recompensa: +{rewardXp} XP & Distintivo "{rewardBadge}"</span>
+            <span>Recompensa: +{rewardXp} PE & Distintivo "{rewardBadge}"</span>
           </div>
           {isCompleted && (
             <span className="flex items-center gap-1 font-bold text-emerald-600">
