@@ -250,6 +250,55 @@ function getPast7Days() {
   return result;
 }
 
+// Catálogo de Utilidades Pedagógicas para Pontos de Estudo (PE)
+export const STUDY_POINTS_STORE_ITEMS = [
+  {
+    id: 'goti_hint',
+    title: 'Dica Socrática do Goti',
+    cost: 15,
+    icon: 'Lightbulb',
+    category: 'Suporte Clínico',
+    description: 'Desbloqueia pista analítica fundamentada no COFEN/NANDA para resolver cálculos ou casos difíceis.',
+    benefit: 'Dica avançada liberada no próximo desafio.',
+  },
+  {
+    id: 'rare_simulation',
+    title: 'Simulação Rara de Alta Complexidade',
+    cost: 40,
+    icon: 'Flame',
+    category: 'Desafio Avançado',
+    description: 'Acesso prioritário a cenários graves (Choque Séptico Refratário, PCR em Gestante, EAP Hipertensivo).',
+    benefit: 'Desbloqueia caso especial no simulador.',
+  },
+  {
+    id: 'streak_freeze',
+    title: 'Seguro de Plantão (Congelar Ofensiva)',
+    cost: 30,
+    icon: 'Shield',
+    category: 'Rotina de Estudos',
+    description: 'Protege seus dias consecutivos de estudo caso sua escala hospitalar fique sobrecarregada.',
+    benefit: '+1 Congelamento de Plantão em sua conta.',
+  },
+  {
+    id: 'ai_deep_audit',
+    title: 'Auditoria de Conduta com o Goti',
+    cost: 20,
+    icon: 'Sparkles',
+    category: 'Debriefing IA',
+    description: 'Relatório aprofundado com análise de raciocínio diagnóstico e recomendações de estudo da IA.',
+    benefit: 'Debriefing minucioso no SBAR ou caso clínico.',
+  },
+  {
+    id: 'skill_badge_seal',
+    title: 'Emissão de Laudo de Proficiência',
+    cost: 75,
+    icon: 'Award',
+    category: 'Certificação',
+    description: 'Gera laudo formativo com chancela do Preceptor Goti e memorial descritivo em PDF.',
+    benefit: 'Exportação de atestado de competência simulada.',
+  },
+];
+
 function getDefaultState() {
   return {
     streak: 3,
@@ -257,7 +306,10 @@ function getDefaultState() {
     streakFreezeAvailable: 1,
     lastActiveDate: getTodayString(),
     weeklyDays: getPast7Days(),
-    totalXp: 480,
+    totalXp: 480, // Mantido para compatibilidade
+    studyPoints: 480, // Pontos de Estudo (PE)
+    spentStudyPoints: 0,
+    unlockedItems: ['goti_hint'],
     solvedCases: 7,
     accuracyRate: 88, // %
     safeDosagesCount: 14,
@@ -380,6 +432,7 @@ export const clinicalGamificationService = {
     }
 
     state.totalXp = (state.totalXp || 0) + earnedXp;
+    state.studyPoints = (state.studyPoints ?? state.totalXp ?? 0) + earnedXp;
 
     // Atualiza streak se for a primeira atividade do dia
     if (state.lastActiveDate !== today) {
@@ -448,6 +501,7 @@ export const clinicalGamificationService = {
     return {
       state,
       earnedXp,
+      earnedPe: earnedXp,
     };
   },
 
@@ -481,7 +535,8 @@ export const clinicalGamificationService = {
 
     if (reacted) {
       state.encouragementsSent = (state.encouragementsSent || 0) + 1;
-      state.totalXp = (state.totalXp || 0) + 10; // ganha +10 XP por apoiar um colega
+      state.totalXp = (state.totalXp || 0) + 10;
+      state.studyPoints = (state.studyPoints ?? state.totalXp ?? 0) + 10;
     }
 
     this.saveState(state);
@@ -514,5 +569,54 @@ export const clinicalGamificationService = {
       return { success: true, remaining: state.streakFreezeAvailable };
     }
     return { success: false, reason: 'Sem congelamentos disponíveis no momento.' };
+  },
+
+  /**
+   * Retorna o saldo atual de Pontos de Estudo (PE).
+   */
+  getStudyPoints() {
+    const state = this.getState();
+    return state.studyPoints ?? state.totalXp ?? 0;
+  },
+
+  /**
+   * Gasta Pontos de Estudo (PE) em uma funcionalidade pedagógica ou benefício.
+   * @param {number} cost - Custo em PE
+   * @param {string} itemId - Identificador do item (ex: 'goti_hint', 'rare_simulation', 'streak_freeze')
+   */
+  spendStudyPoints(cost, itemId) {
+    const state = this.getState();
+    const currentPe = state.studyPoints ?? state.totalXp ?? 0;
+
+    if (currentPe < cost) {
+      return {
+        success: false,
+        reason: `Saldo insuficiente de Pontos de Estudo. Você tem ${currentPe} PE e necessita de ${cost} PE. Complete casos clínicos para ganhar mais PE!`,
+        currentPe,
+      };
+    }
+
+    // Debita o saldo de PE
+    state.studyPoints = currentPe - cost;
+    state.spentStudyPoints = (state.spentStudyPoints || 0) + cost;
+
+    // Se for streak_freeze, adiciona 1 congelamento
+    if (itemId === 'streak_freeze') {
+      state.streakFreezeAvailable = (state.streakFreezeAvailable || 0) + 1;
+    }
+
+    // Registra item desbloqueado se já não tiver
+    if (!state.unlockedItems) state.unlockedItems = [];
+    if (!state.unlockedItems.includes(itemId)) {
+      state.unlockedItems.push(itemId);
+    }
+
+    this.saveState(state);
+    return {
+      success: true,
+      remainingPe: state.studyPoints,
+      itemId,
+      streakFreezeAvailable: state.streakFreezeAvailable,
+    };
   },
 };

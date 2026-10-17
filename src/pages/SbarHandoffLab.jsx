@@ -164,7 +164,16 @@ export default function SbarHandoffLab() {
 
   const passedCase = location.state?.caseData;
 
-  const [activeTab, setActiveTab] = useState("guided"); // "guided" | "free_voice" | "debriefing"
+  const [viewMode, setViewMode] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    if (params.get("tab") || params.get("mode") || passedCase) return "workspace";
+    return "choose";
+  });
+
+  const [activeTab, setActiveTab] = useState(() => {
+    const params = new URLSearchParams(location.search);
+    return params.get("tab") || "guided";
+  }); // "guided" | "free_voice" | "debriefing"
   const [activeGuidedStep, setActiveGuidedStep] = useState(0); // 0: S, 1: B, 2: A, 3: R
 
   const [activeScenarioIdx, setActiveScenarioIdx] = useState(0);
@@ -738,36 +747,237 @@ export default function SbarHandoffLab() {
       <StudentHeader activeTab="sbar" />
 
       <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-6 space-y-6">
-        {/* Barra Superior Limpa e Funcional */}
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Passagem de Plantão SBAR
-            </h1>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-              Meta 2 OMS • COFEN 736/2024
-            </span>
-          </div>
+        {/* ======================================================== */}
+        {/* MODO 0: ESCOLHA INICIAL LIMPA DO SBAR (IGUAL AO MONTAR) */}
+        {/* ======================================================== */}
+        {viewMode === "choose" ? (
+          <div className="space-y-6 animate-in fade-in max-w-4xl mx-auto pt-2 pb-8">
+            {/* Header da Escolha com o Goti */}
+            <div className="text-center space-y-3">
+              <div className="flex justify-center">
+                <div className="p-3 rounded-3xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 shadow-sm">
+                  <GotiMascot
+                    size={68}
+                    state="speaking"
+                    showSpeech={true}
+                    speechText="Escolha como deseja praticar a passagem de plantão SBAR hoje!"
+                    interactive={false}
+                  />
+                </div>
+              </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleInsertGoldenExample}
-              className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
-            >
-              <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Exemplo Padrão Ouro
-            </Button>
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={handleClearFields}
-              className="rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 text-xs"
-            >
-              <RotateCcw className="h-3.5 w-3.5 mr-1" /> Limpar
-            </Button>
+              <div>
+                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
+                  Laboratório de Passagem de Plantão SBAR
+                </h2>
+                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-lg mx-auto mt-1">
+                  Meta 2 da OMS para Segurança do Paciente. Evite perda de informações críticas entre turnos.
+                </p>
+              </div>
+            </div>
+
+            {/* As 4 Modalidades do SBAR */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
+              {/* Opção 1: Passagem por Áudio */}
+              <div
+                onClick={() => {
+                  setActiveTab("free_voice");
+                  setViewMode("workspace");
+                }}
+                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 bg-white dark:bg-slate-900 p-6 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-400 group-hover:scale-105 transition-transform">
+                      <Mic className="h-6 w-6" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                      Reconhecimento de Voz
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
+                    Passagem por Áudio (Voz)
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Treine falando livremente ou tópico por tópico. O Enfere transcreve sua voz em tempo real e audita menção a leito, sinais vitais e alergias.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTab("free_voice");
+                    setViewMode("workspace");
+                  }}
+                  className="w-full rounded-2xl bg-teal-700 hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <span>Iniciar por Áudio</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Opção 2: Passagem Estruturada por Texto */}
+              <div
+                onClick={() => {
+                  setActiveTab("guided");
+                  setViewMode("workspace");
+                }}
+                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 bg-white dark:bg-slate-900 p-6 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400 group-hover:scale-105 transition-transform">
+                      <BookOpen className="h-6 w-6" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                      Passo a Passo Guiado
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
+                    Passagem Estruturada (Manual / Texto)
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Preencha cada um dos 4 pilares (Situação, Histórico, Avaliação e Recomendação) pelo teclado, com checklists assépticos e dicas padrão-ouro.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTab("guided");
+                    setViewMode("workspace");
+                  }}
+                  className="w-full rounded-2xl bg-indigo-700 hover:bg-indigo-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <span>Iniciar Modo Guiado</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Opção 3: Simulação Rápida Beira-Leito */}
+              <div
+                onClick={() => {
+                  const criticalCase = PRESET_HANDOFF_SCENARIOS.find((c) => c.id === "sepse_urinaria") || PRESET_HANDOFF_SCENARIOS[1];
+                  setCurrentCase(criticalCase);
+                  setActiveTab("free_voice");
+                  setViewMode("workspace");
+                  setToastMessage("Simulação Beira-Leito iniciada! Priorize os dados de emergência do paciente.");
+                }}
+                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-amber-500 dark:hover:border-amber-500 bg-white dark:bg-slate-900 p-6 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400 group-hover:scale-105 transition-transform">
+                      <Clock className="h-6 w-6" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
+                      Caso Crítico • 2 min
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
+                    Simulação Rápida Beira-Leito
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Cenário de urgência beira-leito (Sepse com Hipotensão ou ICC Descompensada). Treine a agilidade de passar dados críticos em menos de 2 minutos.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    const criticalCase = PRESET_HANDOFF_SCENARIOS.find((c) => c.id === "sepse_urinaria") || PRESET_HANDOFF_SCENARIOS[1];
+                    setCurrentCase(criticalCase);
+                    setActiveTab("free_voice");
+                    setViewMode("workspace");
+                  }}
+                  className="w-full rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-xs"
+                >
+                  <span>Iniciar Simulação Rápida</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+
+              {/* Opção 4: Exercícios Anteriores & Revisão */}
+              <div
+                onClick={() => {
+                  setActiveTab("debriefing");
+                  setViewMode("workspace");
+                }}
+                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-white dark:bg-slate-900 p-6 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
+              >
+                <div className="space-y-3">
+                  <div className="flex items-center justify-between">
+                    <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 group-hover:scale-105 transition-transform">
+                      <RotateCcw className="h-6 w-6" />
+                    </div>
+                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      Histórico & Laudos
+                    </span>
+                  </div>
+                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
+                    Exercícios Anteriores & Debriefings
+                  </h3>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                    Acesse o histórico das suas passagens de plantão, notas emitidas pelo Preceptor Goti e gere relatórios de proficiência em PDF.
+                  </p>
+                </div>
+
+                <Button
+                  onClick={(e) => {
+                    e.stopPropagation();
+                    setActiveTab("debriefing");
+                    setViewMode("workspace");
+                  }}
+                  variant="outline"
+                  className="w-full rounded-2xl border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-2xs"
+                >
+                  <span>Ver Histórico & Debriefings</span>
+                  <ArrowRight className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
           </div>
-        </div>
+        ) : (
+          <>
+            {/* Barra Superior Limpa e Funcional com Botão de Voltar para Modos */}
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-2.5 flex-wrap">
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => setViewMode("choose")}
+                  className="rounded-xl text-xs font-bold text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 h-8 px-2.5 -ml-1 flex items-center gap-1"
+                >
+                  <ArrowLeft className="w-3.5 h-3.5" /> Modos SBAR
+                </Button>
+                <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
+                <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                  Passagem de Plantão SBAR
+                </h1>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+                  Meta 2 OMS • COFEN 736/2024
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleInsertGoldenExample}
+                  className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                >
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Exemplo Padrão Ouro
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
+                  onClick={handleClearFields}
+                  className="rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 text-xs"
+                >
+                  <RotateCcw className="h-3.5 w-3.5 mr-1" /> Limpar
+                </Button>
+              </div>
+            </div>
 
         {/* Notificação Toast */}
         {toastMessage && (
@@ -1487,6 +1697,8 @@ export default function SbarHandoffLab() {
               </Button>
             </div>
           </div>
+        )}
+        </>
         )}
       </main>
 

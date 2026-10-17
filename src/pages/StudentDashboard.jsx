@@ -24,6 +24,7 @@ import MobileHeader from "@/components/mobile/MobileHeader";
 import HeroCourseCard from "@/components/mobile/HeroCourseCard";
 import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
 import ClinicalModuleCard from "@/components/mobile/ClinicalModuleCard";
+import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -33,6 +34,8 @@ export default function StudentDashboard() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("all");
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
+  const [briefingModuleId, setBriefingModuleId] = useState(null);
+  const [isBriefingOpen, setIsBriefingOpen] = useState(false);
 
   const cleanUserName = user?.name ? user.name.split(" ")[0] : (user?.full_name ? user.full_name.split(" ")[0] : "");
   const isGeneric = !cleanUserName || ['estudante', 'enfermeiro', 'aluno', 'professor'].includes(cleanUserName.toLowerCase());
@@ -373,6 +376,15 @@ export default function StudentDashboard() {
                   to={mod.path}
                   featured={mod.featured}
                   badgeText={mod.badgeText}
+                  onClick={() => {
+                    triggerHaptic(15);
+                    if (mod.id !== "turmas") {
+                      setBriefingModuleId(mod.id);
+                      setIsBriefingOpen(true);
+                    } else {
+                      navigate(mod.path);
+                    }
+                  }}
                 />
               ))}
             </div>
@@ -392,6 +404,18 @@ export default function StudentDashboard() {
       <ClinicalOptionsModal
         isOpen={isOptionsModalOpen}
         onClose={() => setIsOptionsModalOpen(false)}
+      />
+
+      {/* Modal de Briefing do Goti */}
+      <ModuleBriefingModal
+        isOpen={isBriefingOpen}
+        moduleId={briefingModuleId}
+        onClose={() => setIsBriefingOpen(false)}
+        onSelectAction={(action, targetPath) => {
+          setIsBriefingOpen(false);
+          const destination = action.query ? `${targetPath}${action.query}` : targetPath;
+          navigate(destination);
+        }}
       />
     </div>
   );

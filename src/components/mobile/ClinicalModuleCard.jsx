@@ -11,12 +11,13 @@ export default function ClinicalModuleCard({
   to,
   progress = null,
   featured = false,
-  badgeText = ''
+  badgeText = '',
+  onClick = null
 }) {
-  return (
-    <Link
-      to={to}
-      className={`group block p-4 bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-200 active:scale-[0.98] ${
+  const content = (
+    <div
+      onClick={onClick}
+      className={`group block p-4 bg-white dark:bg-slate-900 rounded-2xl border transition-all duration-200 active:scale-[0.98] cursor-pointer ${
         featured
           ? 'border-emerald-200 dark:border-emerald-800/80 shadow-sm shadow-emerald-100/50 dark:shadow-none hover:border-emerald-400 dark:hover:border-emerald-500'
           : 'border-slate-100 dark:border-slate-800 shadow-[0_2px_8px_rgba(0,0,0,0.04)] dark:shadow-none hover:border-emerald-200 dark:hover:border-slate-700 hover:shadow-md'
@@ -72,6 +73,16 @@ export default function ClinicalModuleCard({
           </div>
         </div>
       </div>
+    </div>
+  );
+
+  if (onClick) {
+    return content;
+  }
+
+  return (
+    <Link to={to} className="block">
+      {content}
     </Link>
   );
 }

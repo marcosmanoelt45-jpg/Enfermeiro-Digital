@@ -26,7 +26,7 @@ export default function NightingaleLevelCard({ xp = 0 }) {
 
         <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-bold text-sm shadow-xs">
           <Zap className="h-4 w-4 fill-amber-500 text-amber-500" />
-          <span>{xp} XP</span>
+          <span>{xp} PE</span>
         </div>
       </div>
 
@@ -42,7 +42,7 @@ export default function NightingaleLevelCard({ xp = 0 }) {
           </span>
           {next ? (
             <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-              Faltam {xpToNext} XP para <strong className="font-bold">{next.title}</strong>
+              Faltam {xpToNext} PE para <strong className="font-bold">{next.title}</strong>
             </span>
           ) : (
             <span className="font-bold text-amber-600 dark:text-amber-400">

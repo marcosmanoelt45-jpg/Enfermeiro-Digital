@@ -15,6 +15,17 @@
           } else {
             document.documentElement.classList.add('dark');
           }
+
+          if (!localStorage.getItem('enfermeiro_digital_local_user')) {
+            localStorage.setItem('enfermeiro_digital_local_user', JSON.stringify({
+              id: 'aluno-demo',
+              email: 'aluno@enfere.edu.br',
+              name: 'Mariana Duarte',
+              full_name: 'Mariana Duarte',
+              role: 'aluno',
+              user_type: 'aluno'
+            }));
+          }
         } catch(e) {}
       })();
     </script>

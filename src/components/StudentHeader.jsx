@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
@@ -13,157 +13,264 @@ import {
   ArrowRightLeft,
   Sun,
   Moon,
-  Video
+  Video,
+  Sparkles,
+  Coins,
+  MessageCircleQuestion,
+  MessageSquare
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/ThemeContext";
 
 import GotiMascot from "@/components/mascot/GotiMascot";
+import GotiChatDrawer from "@/components/mascot/GotiChatDrawer";
+import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
+import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
+import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 
 export default function StudentHeader({ activeTab = "hub" }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { theme, toggleTheme, triggerHaptic } = useTheme();
 
+  // Estados dos Modais do Goti e Navegação
+  const [briefingModuleId, setBriefingModuleId] = useState(null);
+  const [isBriefingOpen, setIsBriefingOpen] = useState(false);
+  const [isGotiChatOpen, setIsGotiChatOpen] = useState(false);
+  const [isStudyPointsOpen, setIsStudyPointsOpen] = useState(false);
+  const [studyPoints, setStudyPoints] = useState(() => clinicalGamificationService.getStudyPoints());
+
+  useEffect(() => {
+    function handleStorage() {
+      setStudyPoints(clinicalGamificationService.getStudyPoints());
+    }
+    window.addEventListener("storage", handleStorage);
+    return () => window.removeEventListener("storage", handleStorage);
+  }, []);
+
   const navLinks = [
-    { id: "hub", label: "Início", path: "/", icon: LayoutGrid },
-    { id: "procedimentos", label: "Procedimentos", path: "/procedimentos", icon: Video },
-    { id: "montar", label: "Montar Caso", path: "/montar-caso", icon: PlusCircle },
-    { id: "casos", label: "Casos Clínicos", path: "/simulador-casos", icon: BookOpen },
-    { id: "sbar", label: "Plantão SBAR", path: "/passagem-plantao", icon: ArrowRightLeft },
-    { id: "calculos", label: "Cálculo de Doses", path: "/laboratorio-calculos", icon: Calculator },
-    { id: "sistemas", label: "Semiologia", path: "/sistemas-organicos", icon: Stethoscope },
-    { id: "turmas", label: "Minhas Turmas", path: "/turmas", icon: Users },
+    { id: "hub", label: "Início", path: "/", icon: LayoutGrid, hasBriefing: false },
+    { id: "procedimentos", label: "Procedimentos", path: "/procedimentos", icon: Video, hasBriefing: true },
+    { id: "montar", label: "Montar Caso", path: "/montar-caso", icon: PlusCircle, hasBriefing: true },
+    { id: "casos", label: "Casos Clínicos", path: "/simulador-casos", icon: BookOpen, hasBriefing: true },
+    { id: "sbar", label: "Plantão SBAR", path: "/passagem-plantao", icon: ArrowRightLeft, hasBriefing: true },
+    { id: "calculos", label: "Cálculo de Doses", path: "/laboratorio-calculos", icon: Calculator, hasBriefing: true },
+    { id: "sistemas", label: "Semiologia", path: "/sistemas-organicos", icon: Stethoscope, hasBriefing: true },
+    { id: "turmas", label: "Minhas Turmas", path: "/turmas", icon: Users, hasBriefing: false },
   ];
 
-  return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl transition-colors">
-      <div className="mx-auto max-w-7xl px-4 sm:px-6">
-        <div className="flex h-16 items-center justify-between gap-4">
-          {/* Logo e Nome da Plataforma Enfere com o Novo Goti Animado */}
-          <button
-            onClick={() => {
-              triggerHaptic(15);
-              navigate("/");
-            }}
-            className="flex items-center gap-3 text-left group transition tap-press"
-          >
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 shadow-2xs group-hover:scale-105 transition-transform overflow-visible">
-              <GotiMascot size={38} state="idle" interactive={false} showGlow={false} />
-            </div>
-            <div>
-              <span className="font-black text-base text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
-                Enfere
-                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">app</span>
-              </span>
-              <span className="text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium">
-                Simulação & Prática Clínica
-              </span>
-            </div>
-          </button>
+  function handleNavClick(link) {
+    triggerHaptic(12);
+    if (link.hasBriefing) {
+      setBriefingModuleId(link.id);
+      setIsBriefingOpen(true);
+    } else {
+      navigate(link.path);
+    }
+  }
 
-          {/* Navegação Principal Desktop */}
-          <nav className="hidden md:flex items-center gap-1">
+  function handleBriefingAction(action, targetPath) {
+    setIsBriefingOpen(false);
+    triggerHaptic(20);
+    const destination = action.query ? `${targetPath}${action.query}` : targetPath;
+    navigate(destination);
+  }
+
+  return (
+    <>
+      <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl transition-colors">
+        <div className="mx-auto max-w-7xl px-4 sm:px-6">
+          <div className="flex h-16 items-center justify-between gap-3">
+            {/* Logo e Nome da Plataforma Enfere com o Novo Goti Animado */}
+            <button
+              onClick={() => {
+                triggerHaptic(15);
+                navigate("/");
+              }}
+              className="flex items-center gap-3 text-left group transition tap-press shrink-0"
+            >
+              <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 shadow-2xs group-hover:scale-105 transition-transform overflow-visible">
+                <GotiMascot size={40} state="idle" interactive={false} showGlow={false} />
+              </div>
+              <div>
+                <span className="font-black text-base text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
+                  Enfere
+                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">app</span>
+                </span>
+                <span className="text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium">
+                  Simulação & Prática Clínica
+                </span>
+              </div>
+            </button>
+
+            {/* Navegação Principal Desktop */}
+            <nav className="hidden lg:flex items-center gap-1">
+              {navLinks.map((link) => {
+                const Icon = link.icon;
+                const isActive = activeTab === link.id;
+                return (
+                  <button
+                    key={link.id}
+                    onClick={() => handleNavClick(link)}
+                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all tap-press ${
+                      isActive
+                        ? "bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 font-bold border border-teal-200 dark:border-teal-800 shadow-2xs"
+                        : "text-slate-600 dark:text-slate-300 hover:text-teal-800 dark:hover:text-teal-400 hover:bg-slate-100/70 dark:hover:bg-slate-900"
+                    }`}
+                  >
+                    <Icon className={`h-4 w-4 ${isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-400"}`} />
+                    <span>{link.label}</span>
+                  </button>
+                );
+              })}
+            </nav>
+
+            {/* Ações do Usuário: Chat Goti IA, Pontos de Estudo (PE), Tema e Perfil */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* Botão de Chat com o Preceptor Goti IA */}
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic(20);
+                  setIsGotiChatOpen(true);
+                }}
+                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-200 hover:bg-teal-100/80 dark:hover:bg-teal-900/80 text-xs font-bold transition-all active:scale-95 shadow-2xs"
+                title="Conversar diretamente com o Preceptor Goti IA"
+              >
+                <div className="relative flex items-center justify-center">
+                  <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                </div>
+                <span className="hidden sm:inline">Goti IA</span>
+                <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-teal-200/60 dark:bg-teal-800/60 text-teal-900 dark:text-teal-200 font-extrabold">
+                  Chat
+                </span>
+              </button>
+
+              {/* Saldo de Pontos de Estudo (PE) */}
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic(20);
+                  setIsStudyPointsOpen(true);
+                }}
+                className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-xs font-black transition-all active:scale-95"
+                title="Ver saldo e gastar Pontos de Estudo (PE)"
+              >
+                <Coins className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
+                <span>{studyPoints}</span>
+                <span className="text-[10px] font-bold text-amber-700/80 dark:text-amber-400/80">PE</span>
+              </button>
+
+              {/* Alternador Rápido de Tema (Claro / Escuro) */}
+              <button
+                type="button"
+                onClick={() => {
+                  triggerHaptic(25);
+                  toggleTheme();
+                }}
+                className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-teal-700 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200/80 dark:border-slate-800 transition-all active:scale-95"
+                title={theme === 'dark' ? "Mudar para Modo Claro" : "Mudar para Modo Escuro"}
+                aria-label="Alternar tema claro e escuro"
+              >
+                {theme === 'dark' ? (
+                  <Sun className="h-4 w-4 text-amber-400" />
+                ) : (
+                  <Moon className="h-4 w-4 text-slate-700" />
+                )}
+              </button>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => navigate("/conta")}
+                className="rounded-xl border-slate-200 dark:border-slate-800 text-xs font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:border-teal-300 dark:hover:border-teal-700 hover:text-teal-800 dark:hover:text-teal-400 dark:bg-slate-900 h-9 px-2.5 sm:px-3"
+              >
+                <UserCircle className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <span className="hidden md:inline">Conta</span>
+              </Button>
+
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={() => logout(true)}
+                className="rounded-xl text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 h-9 px-2 sm:px-2.5"
+                title="Sair da Plataforma"
+              >
+                <LogOut className="h-4 w-4" />
+              </Button>
+            </div>
+          </div>
+
+          {/* Barra de Navegação Mobile (Chips Deslizáveis) */}
+          <div className="flex lg:hidden items-center gap-1.5 overflow-x-auto py-2.5 border-t border-slate-100 dark:border-slate-800/80 no-scrollbar">
             {navLinks.map((link) => {
               const Icon = link.icon;
               const isActive = activeTab === link.id;
               return (
                 <button
                   key={link.id}
-                  onClick={() => {
-                    triggerHaptic(10);
-                    navigate(link.path);
-                  }}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all tap-press ${
+                  onClick={() => handleNavClick(link)}
+                  className={`flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
                     isActive
-                      ? "bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 font-bold border border-teal-200 dark:border-teal-800 shadow-2xs"
-                      : "text-slate-600 dark:text-slate-300 hover:text-teal-800 dark:hover:text-teal-400 hover:bg-slate-100/70 dark:hover:bg-slate-900"
+                      ? "bg-teal-700 dark:bg-teal-600 text-white shadow-xs"
+                      : "text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-teal-200 hover:text-teal-700 dark:hover:text-teal-400"
                   }`}
                 >
-                  <Icon className={`h-4 w-4 ${isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-400"}`} />
+                  <Icon className="h-3.5 w-3.5" />
                   {link.label}
                 </button>
               );
             })}
-          </nav>
-
-          {/* Ações do Usuário & FAQ / Ajuda */}
-          <div className="flex items-center gap-2">
-            {/* Alternador Rápido de Tema (Claro / Escuro) */}
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic(25);
-                toggleTheme();
-              }}
-              className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200/80 dark:border-slate-800 transition-all active:scale-95"
-              title={theme === 'dark' ? "Mudar para Modo Claro" : "Mudar para Modo Escuro"}
-              aria-label="Alternar tema claro e escuro"
-            >
-              {theme === 'dark' ? (
-                <Sun className="h-4 w-4 text-amber-400" />
-              ) : (
-                <Moon className="h-4 w-4 text-slate-700" />
-              )}
-            </button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => navigate("/privacidade-lgpd")}
-              className="hidden sm:flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400 hover:text-emerald-800 dark:hover:text-emerald-300 hover:bg-emerald-50/50 dark:hover:bg-slate-900 rounded-xl"
-              title="Central de Ajuda, FAQ & Governança LGPD"
-            >
-              <HelpCircle className="h-4 w-4 text-slate-400" />
-              <span>Ajuda & FAQ</span>
-            </Button>
-
-
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/conta")}
-              className="rounded-xl border-slate-200 dark:border-slate-800 text-xs font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:border-emerald-300 dark:hover:border-emerald-700 hover:text-emerald-800 dark:hover:text-emerald-400 dark:bg-slate-900"
-            >
-              <UserCircle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-              <span className="hidden sm:inline">Minha Conta</span>
-            </Button>
-
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={() => logout(true)}
-              className="rounded-xl text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5"
-            >
-              <LogOut className="h-4 w-4" />
-              <span className="hidden sm:inline">Sair</span>
-            </Button>
           </div>
         </div>
+      </header>
 
-        {/* Barra de Navegação Mobile (Chips Deslizáveis Verdes & Brancos) */}
-        <div className="flex md:hidden items-center gap-1.5 overflow-x-auto py-2.5 border-t border-slate-100 dark:border-slate-800/80 no-scrollbar">
-          {navLinks.map((link) => {
-            const Icon = link.icon;
-            const isActive = activeTab === link.id;
-            return (
-              <button
-                key={link.id}
-                onClick={() => navigate(link.path)}
-                className={`flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                  isActive
-                    ? "bg-emerald-700 dark:bg-emerald-600 text-white shadow-xs"
-                    : "text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-emerald-200 hover:text-emerald-700 dark:hover:text-emerald-400"
-                }`}
-              >
-                <Icon className="h-3.5 w-3.5" />
-                {link.label}
-              </button>
-            );
-          })}
+      {/* Botão Flutuante do Goti (Canto Inferior Direito) */}
+      <button
+        onClick={() => {
+          triggerHaptic(20);
+          setIsGotiChatOpen(true);
+        }}
+        className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2 p-2.5 sm:px-4 sm:py-2.5 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
+        title="Dúvidas clínicas? Pergunte ao Preceptor Goti"
+      >
+        <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center overflow-visible">
+          <GotiMascot size={32} state="idle" showSpeech={false} interactive={false} />
         </div>
-      </div>
-    </header>
+        <div className="hidden sm:block text-left">
+          <span className="text-xs font-black block leading-none">Preceptor Goti</span>
+          <span className="text-[10px] text-teal-100 block font-medium">Tirar Dúvida IA</span>
+        </div>
+        <span className="flex h-2.5 w-2.5 relative">
+          <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+        </span>
+      </button>
+
+      {/* Modal Intersticial de Briefing com o Goti nas 6 Abas */}
+      <ModuleBriefingModal
+        isOpen={isBriefingOpen}
+        moduleId={briefingModuleId}
+        onClose={() => setIsBriefingOpen(false)}
+        onSelectAction={handleBriefingAction}
+      />
+
+      {/* Gaveta / Modal de Chat com o Preceptor Goti */}
+      <GotiChatDrawer
+        isOpen={isGotiChatOpen}
+        onClose={() => setIsGotiChatOpen(false)}
+      />
+
+      {/* Modal de Saldo e Gastos de Pontos de Estudo (PE) */}
+      <GotiStudyPointsModal
+        isOpen={isStudyPointsOpen}
+        onClose={() => {
+          setIsStudyPointsOpen(false);
+          setStudyPoints(clinicalGamificationService.getStudyPoints());
+        }}
+      />
+    </>
   );
 }

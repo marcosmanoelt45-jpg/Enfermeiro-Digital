@@ -10,7 +10,8 @@ import {
   Droplet,
   Beaker,
   BookOpen,
-  Shuffle
+  Shuffle,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -331,43 +332,55 @@ export default function MedicationDosageLab() {
         {/* ========================================================================= */}
         {activeTab === "desafios" && (
           <div className="space-y-6 animate-in fade-in">
-            {/* Cabeçalho Limpo: 1 Caso por Vez + Botão de Sorteio Aleatório + Mascote Goti */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-              <div className="flex items-center gap-4">
-                <GotiMascot
-                  mood={feedback?.isCorrect ? "celebrate" : evaluating ? "think" : "idle"}
-                  speechBubble={
-                    feedback?.isCorrect
-                      ? "Incrível! Dosagem perfeita e cálculo validado!"
-                      : evaluating
-                      ? "Deixe-me conferir as etapas do seu cálculo..."
-                      : "Resolva este desafio! A dosagem correta protege o paciente."
-                  }
-                  size="sm"
-                />
-                <div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wide">
-                      {problem.category}
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">
-                      Desafio Clínico {selectedIdx + 1} de {DOSAGE_PROBLEMS.length}
-                    </span>
-                  </div>
-                  <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
-                    {problem.title}
-                  </h2>
+            {/* Cabeçalho Limpo: Identificação e Ação de Sorteio */}
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wide">
+                    {problem.category}
+                  </span>
+                  <span className="text-xs text-slate-400 font-medium">
+                    Desafio Clínico {selectedIdx + 1} de {DOSAGE_PROBLEMS.length}
+                  </span>
                 </div>
+                <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 mt-1 tracking-tight">
+                  {problem.title}
+                </h2>
               </div>
 
               <Button
                 onClick={handleRandomProblem}
                 variant="outline"
-                className="rounded-xl border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-xs font-bold flex items-center gap-2 shadow-2xs self-start md:self-auto shrink-0 py-2.5 px-4"
+                className="rounded-xl border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-xs font-bold flex items-center gap-2 shadow-2xs self-start sm:self-auto shrink-0 py-2.5 px-4 tap-press hover-lift"
               >
                 <Shuffle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                <span>🎲 Sortear Novo Desafio Clínico</span>
+                <span>🎲 Sortear Novo Desafio</span>
               </Button>
+            </div>
+
+            {/* Dica & Tutoria Socrática do Preceptor Goti */}
+            <div className="rounded-2xl border border-teal-200/80 dark:border-teal-800/80 bg-gradient-to-r from-teal-50/80 via-emerald-50/40 to-white dark:from-teal-950/40 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+              <GotiMascot
+                mood={feedback?.isCorrect ? "celebrate" : evaluating ? "think" : "idle"}
+                size={110}
+                interactive={true}
+              />
+              <div className="flex-1 text-center sm:text-left space-y-1">
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 text-[11px] font-bold uppercase tracking-wider">
+                  <Sparkles className="w-3 h-3 text-amber-500" />
+                  Preceptor Goti Digital
+                </div>
+                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">
+                  {feedback?.isCorrect
+                    ? "Incrível! Dosagem perfeita e cálculo validado com rigor de segurança!"
+                    : evaluating
+                    ? "Deixe-me conferir as etapas do seu cálculo clínico..."
+                    : "Resolva este desafio! A dosagem correta protege o paciente contra iatrogenias."}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400">
+                  Clique no Goti para ver mais dicas de farmacologia aplicada ou ative o Preceptor IA.
+                </p>
+              </div>
             </div>
 
             {/* Bancada Principal Limpa de Cálculo Clínico (Sem ruído lateral - CLT / Sweller) */}

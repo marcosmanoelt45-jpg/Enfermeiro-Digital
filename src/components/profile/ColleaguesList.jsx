@@ -94,7 +94,7 @@ export default function ColleaguesList({ colleagues = [], onUpdate }) {
                         {c.streak} dias
                       </span>
                       <span>·</span>
-                      <span className="font-semibold text-slate-600 dark:text-slate-300">{c.xp} XP</span>
+                      <span className="font-semibold text-slate-600 dark:text-slate-300">{c.xp} PE</span>
                     </div>
                   </div>
                 </div>

@@ -16,7 +16,7 @@ export default function WeeklyActivityChart({ weeklyDays = [] }) {
           </h4>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
             Total acumulado nos últimos 7 dias:{' '}
-            <strong className="text-emerald-700 dark:text-emerald-400 font-semibold">{totalWeeklyXp} XP</strong>
+            <strong className="text-emerald-700 dark:text-emerald-400 font-semibold">{totalWeeklyXp} PE</strong>
           </p>
         </div>
 

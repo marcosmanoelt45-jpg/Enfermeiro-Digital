@@ -86,7 +86,7 @@ export default function WeeklyLeagueCard({ leaderboard = [] }) {
 
               <div className="text-right shrink-0">
                 <span className={`text-xs font-black block ${item.isMe ? 'text-emerald-700 dark:text-emerald-300' : 'text-slate-800 dark:text-slate-200'}`}>
-                  {item.xp} XP
+                  {item.xp} PE
                 </span>
                 <span className="text-[10px] text-slate-400 dark:text-slate-400 font-medium">
                   nesta semana

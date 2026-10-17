@@ -6,6 +6,7 @@
  */
 
 import { clinicalGamificationService } from './clinicalGamificationService';
+import { getProcedurePreview } from './procedurePreviews';
 
 const STORAGE_KEY = 'enfermeiro_digital_custom_procedures';
 
@@ -31,8 +32,10 @@ export const MASTER_PROCEDURES = [
     institutionalBadge: 'Hospital Israelita Albert Einstein',
     cofenNorm: 'Diretrizes de Ressuscitação Cardiopulmonar AHA / SBC e Atuação da Enfermagem',
     officialGuideUrl: 'https://cofen.gov.br',
+    sourceUrl: 'https://www.youtube.com/watch?v=LquiiQVKqKE',
     videoUrl: 'https://www.youtube.com/embed/LquiiQVKqKE', // Vídeo oficial Albert Einstein
     videoSource: 'Hospital Israelita Albert Einstein · Dr. Rafael Rafaini Lloret',
+    previewImage: getProcedurePreview('rcp-suporte-basico-vida'),
     description: 'Reconhecimento imediato de PCR (ausência de pulso central e respiração/gasping), chamada de socorro, compressões torácicas de alta qualidade (100 a 120/min) e uso precoce do DEA.',
     materials: [
       { id: 'm1', name: 'Desfibrilador Externo Automático (DEA) com pás adesivas adulto', checked: false },
@@ -66,8 +69,10 @@ export const MASTER_PROCEDURES = [
     institutionalBadge: 'LabEnf UFSM · Universidade Federal de Santa Maria',
     cofenNorm: 'Resolução COFEN nº 450/2013 & Parecer COFEN 03/2021 (Atividade Privativa do Enfermeiro)',
     officialGuideUrl: 'https://cofen.gov.br/resolucao-cofen-no-450-2013/',
+    sourceUrl: 'https://www.youtube.com/watch?v=YAZjFfpj0hU',
     videoUrl: 'https://www.youtube.com/embed/YAZjFfpj0hU', // Vídeo oficial LabEnf UFSM
     videoSource: 'Laboratório de Enfermagem da UFSM (LabEnf)',
+    previewImage: getProcedurePreview('sondagem-vesical-demora'),
     description: 'Inserção de sonda Foley com balão de retenção para drenagem contínua de urina em sistema fechado, com ênfase máxima em assepsia e prevenção de ITU associada a cateter (ITU-AC).',
     materials: [
       { id: 'm1', name: 'Sonda Foley de 2 ou 3 vias (calibre 12, 14 ou 16 Fr)', checked: false },
@@ -103,11 +108,13 @@ export const MASTER_PROCEDURES = [
     duration: '6 min',
     difficulty: 'Fundamental',
     levelBadge: 'Iniciante ao Avançado',
-    institutionalBadge: 'Protocolo de Terapia Infusional · COFEN & ANVISA',
+    institutionalBadge: 'Escola de Enfermagem UFRGS & Diretrizes COFEN',
     cofenNorm: 'Resolução COFEN nº 736/2024 e Diretrizes de Terapia Infusional INS Brasil',
-    officialGuideUrl: 'https://cofen.gov.br',
-    videoUrl: 'https://www.youtube.com/embed/6cxkjHMU__E', // Vídeo técnico em laboratório de enfermagem
-    videoSource: 'Venes Escola de Saúde & Simulação Prática',
+    officialGuideUrl: 'https://videos.ufrgs.br',
+    sourceUrl: 'https://www.youtube.com/watch?v=p80bpqyOyEc',
+    videoUrl: 'https://www.youtube.com/embed/p80bpqyOyEc', // Aula prática horizontal 16:9
+    videoSource: 'Escola de Enfermagem UFRGS (SEAD) · Prof. Emerson Marques',
+    previewImage: getProcedurePreview('puncao-venosa'),
     description: 'Técnica asséptica de cateterização venosa periférica para infusão de fármacos, hidratação venosa e hemocomponentes, com escolha correta de calibre e prevenção de flebite.',
     materials: [
       { id: 'm1', name: 'Cateter periférico de calibre adequado (18G, 20G ou 22G)', checked: false },
@@ -146,8 +153,10 @@ export const MASTER_PROCEDURES = [
     institutionalBadge: 'Protocolo de Nutrição Enteral · COFEN & ESPEN',
     cofenNorm: 'Resolução COFEN nº 627/2020 (SNE privativa do Enfermeiro; SNG com supervisão)',
     officialGuideUrl: 'https://cofen.gov.br/resolucao-cofen-no-627-2020/',
+    sourceUrl: 'https://www.youtube.com/watch?v=PtWrYZCVH0U',
     videoUrl: 'https://www.youtube.com/embed/PtWrYZCVH0U', // Aula técnica com manequim e mensuração anatômica
     videoSource: 'Descomplica Enfermagem · Simulação e POP Hospitalar',
+    previewImage: getProcedurePreview('sondagem-nasogastrica-nasoenteral'),
     description: 'Medição anatômica correta, lubrificação, inserção atraumática e métodos mandatórios de confirmação de posicionamento (Raio-X de controle e teste de pH gástrico).',
     materials: [
       { id: 'm1', name: 'Sonda nasogástrica (Levin 14-16 Fr) ou nasoenteral (Dobbhoff com fio-guia)', checked: false },
@@ -177,14 +186,16 @@ export const MASTER_PROCEDURES = [
     title: 'Administração de Medicamentos por Via Intramuscular (Técnica em Z)',
     category: 'medicamentos',
     categoryLabel: 'Terapia Medicamentosa',
-    duration: '5 min',
+    duration: '8 min',
     difficulty: 'Fundamental',
     levelBadge: 'Semiotécnica Prática',
     institutionalBadge: 'Farmacologia & Enfermagem Baseada em Evidências',
     cofenNorm: 'Pareceres COFEN sobre vias de administração, delimitação de sítios e volumes máximos',
     officialGuideUrl: 'https://cofen.gov.br',
-    videoUrl: 'https://www.youtube.com/embed/J0qNV8BtgeE', // Vídeo técnico de injeção intramuscular
-    videoSource: 'Papo de Enfermagem · Farmacologia Prática & Semiotécnica',
+    sourceUrl: 'https://www.youtube.com/watch?v=QdMri9FJktg',
+    videoUrl: 'https://www.youtube.com/embed/QdMri9FJktg', // Aula completa horizontal 16:9 (sem shorts)
+    videoSource: 'Laboratório de Semiotécnica & Farmacologia Prática',
+    previewImage: getProcedurePreview('injecao-intramuscular-z'),
     description: 'Escolha correta dos sítios de aplicação (ventroglúteo de Hochstetter, vasto lateral da coxa e deltoide), limites de volume e técnica em Z para vedação do trajeto medicamentoso.',
     materials: [
       { id: 'm1', name: 'Seringa de 3 mL ou 5 mL com graduação nítida', checked: false },
@@ -217,8 +228,10 @@ export const MASTER_PROCEDURES = [
     institutionalBadge: 'Protocolo de UTI Respiratória & Prevenção de PAV',
     cofenNorm: 'Resolução COFEN nº 557/2017 (Procedimento privativo de Enfermagem em pacientes críticos)',
     officialGuideUrl: 'https://cofen.gov.br/resolucao-cofen-no-0557-2017/',
+    sourceUrl: 'https://www.youtube.com/watch?v=KiLr6qCs8bk',
     videoUrl: 'https://www.youtube.com/embed/KiLr6qCs8bk', // Vídeo técnico em UTI
     videoSource: 'Prática Enfermagem · Cuidados Críticos em Terapia Intensiva',
+    previewImage: getProcedurePreview('aspiracao-vias-aereas'),
     description: 'Remoção segura de secreções traqueobrônquicas em pacientes intubados ou traqueostomizados com técnica estéril, controle rigoroso de vácuo e hiperoxigenação prévia.',
     materials: [
       { id: 'm1', name: 'Sonda de aspiração traqueal estéril com válvula de alívio (calibre 12 a 14 Fr)', checked: false },
@@ -251,8 +264,10 @@ export const MASTER_PROCEDURES = [
     institutionalBadge: 'Protocolo de Feridas & Estomaterapia · SOBEST',
     cofenNorm: 'Resolução COFEN nº 567/2018 (Atuação da equipe de enfermagem no cuidado a feridas)',
     officialGuideUrl: 'https://cofen.gov.br/resolucao-cofen-no-567-2018/',
+    sourceUrl: 'https://www.youtube.com/watch?v=12BeFVs5F2M',
     videoUrl: 'https://www.youtube.com/embed/12BeFVs5F2M', // Demonstração técnica de curativos para LPP
     videoSource: 'Descomplica Enfermagem · Estomaterapia & Cicatrização',
+    previewImage: getProcedurePreview('curativo-lesao-pressao'),
     description: 'Estadiamento de lesão por pressão, limpeza com jatos de soro fisiológico a 0,9% morno, avaliação tecidual (granulação vs esfacelo) e escolha da cobertura ideal (hidrogel, alginato de cálcio, espuma).',
     materials: [
       { id: 'm1', name: 'Pacote de curativo estéril (pinça anatômica, pinça dente de rato e pinça hemostática)', checked: false },

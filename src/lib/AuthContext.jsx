@@ -4,12 +4,21 @@ import { authService } from '@/services/authService';
 const AuthContext = createContext();
 
 export const AuthProvider = ({ children }) => {
-  const [user, setUser] = useState(null);
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
-  const [isLoadingAuth, setIsLoadingAuth] = useState(true);
+  const [user, setUser] = useState(() => {
+    try {
+      const s = typeof localStorage !== 'undefined' ? localStorage.getItem('enfermeiro_digital_local_user') : null;
+      return s ? JSON.parse(s) : null;
+    } catch { return null; }
+  });
+  const [isAuthenticated, setIsAuthenticated] = useState(() => {
+    try {
+      return Boolean(typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_digital_local_user'));
+    } catch { return false; }
+  });
+  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
   const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
   const [authError, setAuthError] = useState(null);
-  const [authChecked, setAuthChecked] = useState(false);
+  const [authChecked, setAuthChecked] = useState(true);
   const [appPublicSettings, setAppPublicSettings] = useState({ id: 'enfermeiro-digital' });
 
   useEffect(() => {

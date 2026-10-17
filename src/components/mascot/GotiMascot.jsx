@@ -12,12 +12,13 @@ import { Sparkles, Award } from 'lucide-react';
 export default function GotiMascot({
   state,
   mood,
-  size = 130, // tamanho em px ou 'sm' | 'md' | 'lg' | 'xl'
+  size = 150, // tamanho em px ou 'sm' | 'md' | 'lg' | 'xl' | 'hero'
   message = '', // balão socrático do Goti
   speechBubble = '', // alias retrocompatível para message
   subMessage = '', // texto menor complementar
   interactive = true, // reage ao toque/clique
   showGlow = true, // aura luminosa sutil
+  layout = 'vertical', // 'vertical' | 'horizontal'
   onClick,
   className = '',
 }) {
@@ -32,18 +33,20 @@ export default function GotiMascot({
   const isThinking = rawState === 'thinking' || rawState === 'think';
   const isAlert = rawState === 'alert';
 
-  // Normalização do tamanho
-  let pixelSize = 130;
+  // Normalização do tamanho (Agora generosos e nítidos)
+  let pixelSize = 150;
   if (typeof size === 'number') {
     pixelSize = size;
   } else if (size === 'sm') {
-    pixelSize = 72;
+    pixelSize = 96;
   } else if (size === 'md') {
-    pixelSize = 120;
+    pixelSize = 144;
   } else if (size === 'lg') {
-    pixelSize = 170;
+    pixelSize = 196;
   } else if (size === 'xl') {
-    pixelSize = 230;
+    pixelSize = 250;
+  } else if (size === 'hero') {
+    pixelSize = 290;
   }
 
   // Falas clínicas encorajadoras do Goti
@@ -69,8 +72,10 @@ export default function GotiMascot({
     setTimeout(() => setIsWaving(false), 2400);
   };
 
+  const isHorizontal = layout === 'horizontal';
+
   return (
-    <div className={`relative inline-flex flex-col items-center select-none ${className}`}>
+    <div className={`relative inline-flex ${isHorizontal ? 'flex-row items-center gap-3.5' : 'flex-col items-center'} select-none ${className}`}>
       {/* Estilos e Animações CSS Nativas 60 FPS com Curvas Naturais Bézier */}
       <style>{`
         @keyframes gotiBreathe {
@@ -78,7 +83,7 @@ export default function GotiMascot({
             transform: translateY(0px) scale(1, 1);
           }
           50% {
-            transform: translateY(-5px) scale(0.985, 1.015);
+            transform: translateY(-6px) scale(0.985, 1.015);
           }
         }
         @keyframes gotiBlink {
@@ -111,7 +116,7 @@ export default function GotiMascot({
             transform: translateY(0) scale(1);
           }
           25% {
-            transform: translateY(-14px) scale(1.04) rotate(-3deg);
+            transform: translateY(-16px) scale(1.04) rotate(-3deg);
           }
           50% {
             transform: translateY(0) scale(0.97, 1.03) rotate(2deg);
@@ -126,8 +131,8 @@ export default function GotiMascot({
             opacity: 0.32;
           }
           50% {
-            transform: scale(0.86);
-            opacity: 0.18;
+            transform: scale(0.84);
+            opacity: 0.16;
           }
         }
         @keyframes gotiEcgGlow {
@@ -142,7 +147,7 @@ export default function GotiMascot({
         }
 
         .goti-breathe-body {
-          animation: ${isCelebrating ? 'gotiCelebrateJump 0.9s ease-in-out infinite' : 'gotiBreathe 3.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite'};
+          animation: ${isCelebrating ? 'gotiCelebrateJump 0.9s ease-in-out infinite' : 'gotiBreathe 3.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite'};
           transform-origin: center bottom;
         }
         .goti-eye-anim {
@@ -154,7 +159,7 @@ export default function GotiMascot({
           transform-origin: 58px 125px;
         }
         .goti-shadow-anim {
-          animation: gotiShadowMove 3.4s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
+          animation: gotiShadowMove 3.6s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite;
           transform-origin: center;
         }
         .goti-ecg-pulse {
@@ -163,10 +168,10 @@ export default function GotiMascot({
       `}</style>
 
       {/* Balão de Fala Socrático estilo Duolingo */}
-      {currentMessage && (
-        <div className="mb-2.5 max-w-[270px] px-3.5 py-2 rounded-2xl bg-white dark:bg-slate-900 border-2 border-teal-500/80 dark:border-teal-400 shadow-xl text-slate-800 dark:text-slate-100 text-xs font-bold leading-snug text-center animate-in zoom-in-95 duration-200 relative z-30">
-          <div className="flex items-center justify-center gap-1.5 text-teal-700 dark:text-teal-400 text-[10px] uppercase tracking-wider mb-0.5">
-            <Sparkles className="w-3 h-3 text-amber-500" />
+      {currentMessage && !isHorizontal && (
+        <div className="mb-2 max-w-[280px] px-3.5 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-teal-500/80 dark:border-teal-400 shadow-xl text-slate-800 dark:text-slate-100 text-xs font-bold leading-snug text-center animate-in zoom-in-95 duration-200 relative z-30">
+          <div className="flex items-center justify-center gap-1.5 text-teal-700 dark:text-teal-400 text-[10px] uppercase tracking-wider mb-0.5 font-bold">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
             <span>Goti · Preceptor Digital</span>
           </div>
           <p className="text-[12px] font-semibold text-slate-800 dark:text-slate-200">
@@ -186,7 +191,7 @@ export default function GotiMascot({
       <div
         onClick={handleClick}
         style={{ width: `${pixelSize}px`, height: `${pixelSize}px` }}
-        className={`relative cursor-pointer transition-transform duration-200 ${
+        className={`relative cursor-pointer transition-transform duration-200 shrink-0 ${
           interactive ? 'hover:scale-105 active:scale-95' : ''
         }`}
         title="Goti, o mascote oficial do Enfere! Clique para interagir."
@@ -194,8 +199,8 @@ export default function GotiMascot({
         {/* Glow de Fundo Suave */}
         {showGlow && (
           <div
-            className="absolute inset-0 rounded-full bg-teal-400/20 dark:bg-teal-500/15 blur-2xl pointer-events-none transition-opacity"
-            style={{ transform: 'scale(0.85)' }}
+            className="absolute inset-0 rounded-full bg-teal-400/25 dark:bg-teal-500/20 blur-2xl pointer-events-none transition-opacity"
+            style={{ transform: 'scale(0.88)' }}
           />
         )}
 
@@ -289,20 +294,20 @@ export default function GotiMascot({
               />
             </g>
 
-            {/* 3. Corpo Principal da Gotinha (Forma Fluida Orgânica) */}
+            {/* 3. Corpo Principal da Gotinha (Forma Fluida Orgânica mais Suave e Fofa) */}
             <g id="goti-head-body">
               <path
-                d="M120 22 C135 48, 185 96, 185 142 C185 180, 156 200, 120 200 C84 200, 55 180, 55 142 C55 96, 105 48, 120 22 Z"
+                d="M120 16 C134 42, 188 92, 188 144 C188 186, 158 204, 120 204 C82 204, 52 186, 52 144 C52 92, 106 42, 120 16 Z"
                 fill="url(#gotiBodyGrad)"
                 stroke="#BAE6FD"
-                strokeWidth="1.5"
+                strokeWidth="1.8"
               />
 
               {/* Reflexo de Brilho Tridimensional na Superfície da Gota */}
               <path
-                d="M120 34 C128 54, 160 88, 166 120 C162 100, 140 64, 124 44 Z"
+                d="M120 26 C128 46, 164 84, 170 118 C166 98, 142 60, 124 36 Z"
                 fill="#FFFFFF"
-                fillOpacity="0.6"
+                fillOpacity="0.65"
               />
             </g>
 
@@ -310,7 +315,7 @@ export default function GotiMascot({
             <g id="goti-scrub">
               {/* Blusa Scrub cobrindo o tronco */}
               <path
-                d="M62 136 C64 120, 176 120, 178 136 C182 165, 175 190, 120 190 C65 190, 58 165, 62 136 Z"
+                d="M58 134 C60 118, 180 118, 182 134 C186 166, 178 194, 120 194 C62 194, 54 166, 58 134 Z"
                 fill="url(#gotiScrubGrad)"
               />
 
@@ -491,6 +496,26 @@ export default function GotiMascot({
           </g>
         </svg>
       </div>
+
+      {/* Balão Horizontal à Direita quando layout="horizontal" */}
+      {currentMessage && isHorizontal && (
+        <div className="max-w-[320px] px-4 py-2.5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-teal-500/80 dark:border-teal-400 shadow-xl text-slate-800 dark:text-slate-100 text-xs font-bold leading-snug animate-in fade-in duration-200 relative z-30">
+          <div className="flex items-center gap-1.5 text-teal-700 dark:text-teal-400 text-[10px] uppercase tracking-wider mb-0.5 font-bold">
+            <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+            <span>Goti · Preceptor Digital</span>
+          </div>
+          <p className="text-[12px] font-semibold text-slate-800 dark:text-slate-200">
+            {currentMessage}
+          </p>
+          {subMessage && (
+            <p className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5 font-normal">
+              {subMessage}
+            </p>
+          )}
+          {/* Ponta do Balão de Fala apontando para a esquerda (onde está o Goti) */}
+          <div className="absolute top-1/2 -left-2 -translate-y-1/2 w-3.5 h-3.5 bg-white dark:bg-slate-900 border-b-2 border-l-2 border-teal-500/80 dark:border-teal-400 rotate-45" />
+        </div>
+      )}
     </div>
   );
 }
