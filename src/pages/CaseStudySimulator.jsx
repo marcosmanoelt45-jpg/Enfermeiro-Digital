@@ -28,6 +28,7 @@ import { Input } from "@/components/ui/input";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
+import GotiMascot from "@/components/mascot/GotiMascot";
 import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
 import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
@@ -308,26 +309,46 @@ export default function CaseStudySimulator() {
           </div>
         )}
 
-        {/* Seletor de Casos Clínicos Disponíveis */}
-        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-6 gap-2">
-          {cases.slice(0, 6).map((c, idx) => (
-            <button
-              key={c.id || idx}
-              onClick={() => handleSelectCase(idx)}
-              className={`p-3 rounded-xl border text-left transition-all ${
-                selectedCaseIdx === idx
-                  ? "bg-white dark:bg-slate-900 border-emerald-600 ring-2 ring-emerald-600/20 shadow-xs"
-                  : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
-              }`}
-            >
-              <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase block line-clamp-1">
-                {c.category}
-              </span>
-              <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 line-clamp-1 mt-0.5">
-                {c.title}
+        {/* Apresentação Focada: 1 Caso por Vez + Sorteio Aleatório + Mascote Goti */}
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div className="flex items-center gap-4">
+            <GotiMascot
+              mood={tutorEvaluation ? "celebrate" : isEvaluating ? "think" : "idle"}
+              speechBubble={
+                tutorEvaluation
+                  ? "Excelente raciocínio! Confira seu debriefing clínico detalhado."
+                  : isEvaluating
+                  ? "Analisando seu julgamento clínico e intervenções de enfermagem..."
+                  : "Concentre-se neste caso clínico. Analise os sinais e conduza as 5 etapas com rigor!"
+              }
+              size="sm"
+            />
+            <div className="space-y-1">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wide">
+                  {currentCase.category}
+                </span>
+                <span className="text-xs text-slate-400 font-medium">
+                  Leito {currentCase.patient?.bed || "Enfermaria"} • Prontuário Clínico Ativo
+                </span>
+              </div>
+              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
+                {currentCase.title}
+              </h2>
+              <p className="text-xs text-slate-500 dark:text-slate-400">
+                Paciente: <strong className="text-slate-800 dark:text-slate-200">{currentCase.patient?.name}</strong> ({currentCase.patient?.age} anos, {currentCase.patient?.gender})
               </p>
-            </button>
-          ))}
+            </div>
+          </div>
+
+          <Button
+            onClick={handleGenerateRandom}
+            variant="outline"
+            className="rounded-xl border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-xs font-bold flex items-center gap-2 shadow-2xs self-start md:self-auto shrink-0 py-2.5 px-4"
+          >
+            <Shuffle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <span>🎲 Sortear Novo Caso Clínico</span>
+          </Button>
         </div>
 
         {/* BARRA DAS 5 ETAPAS DO PROCESSO DE ENFERMAGEM (COFEN 736/2024) + AÇÕES DE APOIO */}
@@ -433,7 +454,7 @@ export default function CaseStudySimulator() {
                       <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 uppercase tracking-wide">
                         Framework PEARLS • Debriefing Socrático
                       </span>
-                      <span className="text-xs text-slate-400">Tutor Florence</span>
+                      <span className="text-xs text-slate-400 font-semibold">Preceptor Goti AI</span>
                     </div>
                     <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                       Parecer Pedagógico & Desconstrução do Raciocínio
@@ -526,7 +547,7 @@ export default function CaseStudySimulator() {
                       variant="outline"
                       className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-none shadow-2xs h-10 px-4"
                     >
-                      <Shuffle className="h-4 w-4" /> Próximo Caso
+                      <Shuffle className="h-4 w-4" /> <span>🎲 Próximo Caso Aleatório</span>
                     </Button>
                   </div>
                 </div>

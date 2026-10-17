@@ -194,7 +194,7 @@ export default function Conta() {
     setGeminiKeyInput("");
     toast({
       title: "Chave removida",
-      description: "O Enfermeiro Digital voltará a utilizar o super motor taxonômico local.",
+      description: "O Enfere voltará a utilizar o super motor taxonômico local.",
     });
   }
 
@@ -348,7 +348,7 @@ export default function Conta() {
           {/* Indicador no Header */}
           <div className="flex items-center gap-2">
             <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
-              Enfermeiro Digital · Desempenho Clínico
+              Enfere · Desempenho Clínico
             </span>
           </div>
         </div>
@@ -483,7 +483,7 @@ export default function Conta() {
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3 shadow-xs">
               <div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Papel no Enfermeiro Digital
+                  <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Papel no Enfere
                 </p>
                 <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
                   Alterne seu modo de uso entre Estudante (responder tarefas e simulações) e Professor (gerenciar turmas e criar casos).
@@ -640,7 +640,7 @@ export default function Conta() {
                   >
                     Google AI Studio ↗
                   </a>
-                  . Se preferir não configurar, o Enfermeiro Digital usará o super motor clínico local.
+                  . Se preferir não configurar, o Enfere usará o super motor clínico local.
                 </p>
               </div>
             </div>
@@ -737,7 +737,7 @@ export default function Conta() {
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
         <p className="text-[11px] text-slate-400 dark:text-slate-400">
-          © 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfermeiro Digital
+          © 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfere
         </p>
       </footer>
 

@@ -18,7 +18,7 @@ export default function StudentFooter({ onOpenOptions }) {
             <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-700 dark:bg-emerald-600 text-white shadow-xs">
               <Activity className="h-3.5 w-3.5" />
             </div>
-            <span className="font-bold text-slate-800 dark:text-slate-200">Enfermeiro Digital</span>
+            <span className="font-bold text-slate-800 dark:text-slate-200">Enfere</span>
             <span className="text-slate-300 dark:text-slate-600">•</span>
             <span className="text-emerald-700 dark:text-emerald-400 font-medium">Raciocínio Clínico & Simulação de Enfermagem</span>
           </div>

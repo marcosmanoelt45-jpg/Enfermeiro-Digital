@@ -22,11 +22,11 @@ function getFormattedNow() {
 }
 
 /**
- * Exporta o Prontuário Clínico Oficial com Parecer de Preceptoria Florence em PDF.
+ * Exporta o Prontuário Clínico Oficial com Parecer de Preceptoria Goti em PDF.
  * @param {object} params
  * @param {object} params.caseData - Dados do paciente e do caso clínico
  * @param {object} [params.sbarData] - Relatório SBAR preenchido pelo aluno
- * @param {object} [params.tutorEvaluation] - Parecer pedagógico da Tutora Florence
+ * @param {object} [params.tutorEvaluation] - Parecer pedagógico do Preceptor Goti
  * @param {object} [params.studentInfo] - Informações do acadêmico (nome, faculdade, matrícula)
  */
 export function exportClinicalCaseToPdf({
@@ -66,7 +66,7 @@ export function exportClinicalCaseToPdf({
     doc.setFontSize(8);
     doc.setTextColor(148, 163, 184); // slate-400
     doc.text(
-      "Enfermeiro Digital • Simulação & Ensino em Enfermagem • Resolução COFEN nº 736/2024",
+      "Enfere • Simulação & Ensino em Enfermagem • Resolução COFEN nº 736/2024",
       pageWidth / 2,
       pageHeight - 8,
       { align: "center" }
@@ -82,7 +82,7 @@ export function exportClinicalCaseToPdf({
   doc.setFont("helvetica", "bold");
   doc.setFontSize(13);
   doc.setTextColor(255, 255, 255);
-  doc.text("ENFERMEIRO DIGITAL • HOSPITAL ESCOLA VIRTUAL", margin + 5, y + 7);
+  doc.text("ENFERE • HOSPITAL ESCOLA VIRTUAL", margin + 5, y + 7);
 
   doc.setFont("helvetica", "normal");
   doc.setFontSize(9);
@@ -269,7 +269,7 @@ export function exportClinicalCaseToPdf({
     y += 4;
   }
 
-  // 5. PARECER FORMATIVO DA TUTORA FLORENCE (AUDITORIA PEDAGÓGICA)
+  // 5. PARECER FORMATIVO DO PRECEPTOR GOTI (AUDITORIA PEDAGÓGICA)
   if (tutorEvaluation) {
     checkPageBreak(50);
     doc.setFillColor(240, 253, 250); // teal-50
@@ -279,7 +279,7 @@ export function exportClinicalCaseToPdf({
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);
     doc.setTextColor(15, 118, 110);
-    doc.text("5. PARECER PEDAGÓGICO DE PRECEPTORIA (FLORENCE)", margin + 4, y + 7);
+    doc.text("5. PARECER PEDAGÓGICO DE PRECEPTORIA (GOTI AI)", margin + 4, y + 7);
 
     // Badge de Pontuação
     const score = tutorEvaluation.safetyScore ?? tutorEvaluation.score ?? 85;
@@ -294,8 +294,8 @@ export function exportClinicalCaseToPdf({
     doc.setFontSize(8);
     doc.setTextColor(51, 65, 85);
 
-    const feedback = tutorEvaluation.summaryFeedback || tutorEvaluation.florenceComment || "Passagem de plantão estruturada com rigor técnico e foco na segurança do paciente.";
-    const wrappedFeedback = doc.splitTextToSize(`Feedback da Tutora: "${feedback}"`, contentWidth - 8);
+    const feedback = tutorEvaluation.summaryFeedback || tutorEvaluation.gotiMentorship || tutorEvaluation.florenceMentorship || tutorEvaluation.florenceComment || "Passagem de plantão estruturada com rigor técnico e foco na segurança do paciente.";
+    const wrappedFeedback = doc.splitTextToSize(`Feedback do Preceptor Goti: "${feedback}"`, contentWidth - 8);
     doc.text(wrappedFeedback.slice(0, 3), margin + 4, y + 15);
 
     const omissions = tutorEvaluation.criticalOmissions?.length > 0
@@ -305,11 +305,11 @@ export function exportClinicalCaseToPdf({
     doc.setTextColor(190, 24, 93); // rose-700
     doc.text(doc.splitTextToSize(omissions, contentWidth - 8), margin + 4, y + 25);
 
-    // Carimbo Virtual da Tutora
+    // Carimbo Virtual do Preceptor Goti
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     doc.setTextColor(15, 118, 110);
-    doc.text("Florence Preceptora Virtual • Enfermeiro Digital AI", margin + 4, y + 35);
+    doc.text("Preceptor Goti • Enfere AI", margin + 4, y + 35);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(100, 116, 139);
@@ -339,14 +339,14 @@ export function exportClinicalCaseToPdf({
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(15, 118, 110);
-  doc.text("Preceptoria Florence • Enfermeiro Digital", margin + signW + 10 + signW / 2, y + 18, { align: "center" });
+  doc.text("Preceptoria Goti • Enfere", margin + signW + 10 + signW / 2, y + 18, { align: "center" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);
   doc.text("Validação Formativa de Prática Clínica", margin + signW + 10 + signW / 2, y + 22, { align: "center" });
 
   // DOWNLOAD DO ARQUIVO PDF
-  const safeFilename = `Prontuario_Enfermeiro_Digital_${(caseData?.name || "Caso").replace(/\s+/g, "_")}.pdf`;
+  const safeFilename = `Prontuario_Enfere_${(caseData?.name || "Caso").replace(/\s+/g, "_")}.pdf`;
   doc.save(safeFilename);
 
   return safeFilename;

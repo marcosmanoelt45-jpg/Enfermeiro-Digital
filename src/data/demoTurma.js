@@ -1,6 +1,6 @@
 /**
  * demoTurma.js
- * Dados simulados de demonstração para o Módulo de Turmas do Enfermeiro Digital.
+ * Dados simulados de demonstração para o Módulo de Turmas do Enfere.
  * Permite que novos usuários, docentes e estudantes visualizem imediatamente
  * o fluxo pedagógico completo de turmas, alunos, estudos de caso atribuídos e avaliações.
  */
@@ -8,7 +8,7 @@
 export const DEMO_TURMA = {
   id: "demo-turma-enf-2026",
   name: "Enfermagem Clínica & Terapia Intensiva — Turma Modelo 2026",
-  description: "Turma de demonstração do Enfermeiro Digital. Explore estudos de caso clínicos atribuídos, acompanhamento de alunos matriculados e correção de planos de cuidado.",
+  description: "Turma de demonstração do Enfere. Explore estudos de caso clínicos atribuídos, acompanhamento de alunos matriculados e correção de planos de cuidado.",
   code: "ENF2026",
   teacher_id: "teacher-demo",
   teacher_name: "Coordenação de Preceptoria Clínica",

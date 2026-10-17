@@ -9,13 +9,16 @@ import {
   Calculator,
   Droplet,
   Beaker,
-  BookOpen
+  BookOpen,
+  Shuffle,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { guideMedicationCalculation } from "@/services/socraticTutorService";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
+import GotiMascot from "@/components/mascot/GotiMascot";
 
 const DOSAGE_PROBLEMS = [
   {
@@ -97,6 +100,47 @@ const DOSAGE_PROBLEMS = [
       "Montagem da proporção direta: 5.000.000 UI --- 10 mL | 2.000.000 UI --- X mL",
       "Cálculo: X = (2.000.000 × 10) ÷ 5.000.000 = 20 ÷ 5 = 4 mL."
     ]
+  },
+  {
+    id: "prob_5",
+    category: "Anticoagulação & Alta Vigilância",
+    title: "Heparina Sódica Contínua em UTI",
+    description: "Prescrição médica: Heparina sódica 800 UI/h em infusão intravenosa contínua. Solução preparada: Frasco de SF 0,9% 250 mL + 25.000 UI de Heparina (5 mL da apresentação 5.000 UI/mL). Volume total = 250 mL.",
+    solutionName: "Heparina 25.000 UI em 250 mL SF 0,9%",
+    volume: "250 mL (100 UI/mL)",
+    route: "Intravenosa Contínua (IV)",
+    time: "Contínuo",
+    device: "Bomba de Infusão Contínua (BIC)",
+    question: "Qual vazão em mL/h deve ser programada na Bomba de Infusão Contínua (BIC) para administrar exatamente 800 UI/hora?",
+    formulaHint: "Concentração: 25.000 UI ÷ 250 mL = 100 UI/mL. Vazão (mL/h) = Dose prescrita (UI/h) ÷ Concentração (UI/mL).",
+    correctResult: "8",
+    explanationSteps: [
+      "Determine a concentração da solução: 25.000 UI ÷ 250 mL = 100 UI por cada 1 mL.",
+      "A dose prescrita é de 800 UI/h.",
+      "Regra de três ou divisão direta: 100 UI --- 1 mL | 800 UI --- X mL.",
+      "Cálculo: X = 800 ÷ 100 = 8 mL/h.",
+      "Na Bomba de Infusão Contínua (BIC), programa-se a vazão de 8 mL/h."
+    ]
+  },
+  {
+    id: "prob_6",
+    category: "Corticoterapia & Emergência",
+    title: "Hidrocortisona em Crise Asmática",
+    description: "Prescrição médica: Hidrocortisona 150 mg EV em bólus lento. Na farmácia hospitalar há frasco-ampola com pó liofilizado de Hidrocortisona 500 mg e ampola de diluente de 5 mL.",
+    solutionName: "Hidrocortisona 500 mg (Frasco-Ampola)",
+    volume: "5 mL após reconstituição",
+    route: "Intravenosa (IV)",
+    time: "Dose Imediata (STAT)",
+    device: "Frasco-Ampola + Seringa de 5 mL",
+    question: "Após reconstituir o pó de 500 mg com 5 mL de diluente (AD), quantos mL devem ser aspirados para administrar exatamente 150 mg?",
+    formulaHint: "500 mg --- 5 mL | 150 mg --- X mL. X = (150 × 5) ÷ 500.",
+    correctResult: "1.5",
+    explanationSteps: [
+      "Volume e concentração: 500 mg reconstituídos em 5 mL resultam em 100 mg/mL.",
+      "Montagem da proporção: 500 mg = 5 mL | 150 mg = X mL",
+      "Cálculo: X = (150 × 5) ÷ 500 = 750 ÷ 500 = 1,5 mL.",
+      "Aspire exatamente 1,5 mL da seringa graduada para administrar a dose de 150 mg."
+    ]
   }
 ];
 
@@ -166,6 +210,15 @@ export default function MedicationDosageLab() {
 
   function handleSelectProblem(idx) {
     setSelectedIdx(idx);
+    handleReset();
+  }
+
+  function handleRandomProblem() {
+    let nextIdx = Math.floor(Math.random() * DOSAGE_PROBLEMS.length);
+    if (nextIdx === selectedIdx && DOSAGE_PROBLEMS.length > 1) {
+      nextIdx = (selectedIdx + 1) % DOSAGE_PROBLEMS.length;
+    }
+    setSelectedIdx(nextIdx);
     handleReset();
   }
 
@@ -279,26 +332,43 @@ export default function MedicationDosageLab() {
         {/* ========================================================================= */}
         {activeTab === "desafios" && (
           <div className="space-y-6 animate-in fade-in">
-            {/* Grade de Seleção de Problemas */}
-            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-              {DOSAGE_PROBLEMS.map((p, idx) => (
-                <button
-                  key={p.id}
-                  onClick={() => handleSelectProblem(idx)}
-                  className={`p-3 text-left rounded-xl border transition-all ${
-                    selectedIdx === idx
-                      ? "bg-white dark:bg-slate-900 border-emerald-600 ring-2 ring-emerald-600/20 shadow-xs"
-                      : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
-                  }`}
-                >
-                  <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider block">
-                    {p.category}
-                  </span>
-                  <p className="text-xs font-semibold text-slate-900 dark:text-slate-100 mt-0.5 line-clamp-1">
-                    {p.title}
-                  </p>
-                </button>
-              ))}
+            {/* Cabeçalho Limpo: 1 Caso por Vez + Botão de Sorteio Aleatório + Mascote Goti */}
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="flex items-center gap-4">
+                <GotiMascot
+                  mood={feedback?.isCorrect ? "celebrate" : evaluating ? "think" : "idle"}
+                  speechBubble={
+                    feedback?.isCorrect
+                      ? "Incrível! Dosagem perfeita e cálculo validado!"
+                      : evaluating
+                      ? "Deixe-me conferir as etapas do seu cálculo..."
+                      : "Resolva este desafio! A dosagem correta protege o paciente."
+                  }
+                  size="sm"
+                />
+                <div>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wide">
+                      {problem.category}
+                    </span>
+                    <span className="text-xs text-slate-400 font-medium">
+                      Desafio Clínico {selectedIdx + 1} de {DOSAGE_PROBLEMS.length}
+                    </span>
+                  </div>
+                  <h2 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
+                    {problem.title}
+                  </h2>
+                </div>
+              </div>
+
+              <Button
+                onClick={handleRandomProblem}
+                variant="outline"
+                className="rounded-xl border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-xs font-bold flex items-center gap-2 shadow-2xs self-start md:self-auto shrink-0 py-2.5 px-4"
+              >
+                <Shuffle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <span>🎲 Sortear Novo Desafio Clínico</span>
+              </Button>
             </div>
 
             {/* Bancada Principal Limpa de Cálculo Clínico (Sem ruído lateral - CLT / Sweller) */}
@@ -502,10 +572,11 @@ export default function MedicationDosageLab() {
                         <div className="pt-2 flex justify-end">
                           <Button
                             size="sm"
-                            onClick={() => handleSelectProblem((selectedIdx + 1) % DOSAGE_PROBLEMS.length)}
-                            className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold"
+                            onClick={handleRandomProblem}
+                            className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold flex items-center gap-1.5"
                           >
-                            Próximo Desafio <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                            <span>🎲 Próximo Desafio Aleatório</span>
+                            <ArrowRight className="h-3.5 w-3.5" />
                           </Button>
                         </div>
                       )}

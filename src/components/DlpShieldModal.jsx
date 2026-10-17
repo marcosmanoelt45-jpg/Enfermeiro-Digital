@@ -32,7 +32,7 @@ export default function DlpShieldModal({ open, onOpenChange, matches = [], onAno
               Identificamos dados sensíveis reais no seu texto
             </p>
             <p className="mt-1 text-xs text-amber-800 dark:text-amber-300 leading-relaxed">
-              O <strong>Enfermeiro Digital</strong> é um ambiente exclusivamente voltado à simulação e aprendizagem acadêmica. Por segurança e conformidade legal, nunca insira dados de pacientes reais de seus estágios ou hospitais.
+              O <strong>Enfere</strong> é um ambiente exclusivamente voltado à simulação e aprendizagem acadêmica. Por segurança e conformidade legal, nunca insira dados de pacientes reais de seus estágios ou hospitais.
             </p>
           </div>
 

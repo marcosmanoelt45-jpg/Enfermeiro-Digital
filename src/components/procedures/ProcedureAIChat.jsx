@@ -8,8 +8,8 @@ export default function ProcedureAIChat({ procedure }) {
   const [messages, setMessages] = useState([
     {
       id: 'm1',
-      sender: 'florence',
-      text: `Olá! Sou a Tutora Florence AI. Estou acompanhando seu estudo de "${procedure.title}". Tem alguma dúvida sobre variações anatômicas, complicações ou condutas deste procedimento?`,
+      sender: 'goti',
+      text: `Olá! Sou o Preceptor Goti AI. Estou acompanhando seu estudo de "${procedure.title}". Tem alguma dúvida sobre variações anatômicas, complicações ou condutas deste procedimento?`,
     },
   ]);
   const [input, setInput] = useState('');
@@ -36,17 +36,17 @@ export default function ProcedureAIChat({ procedure }) {
     setLoading(true);
 
     try {
-      const response = await procedureService.askFlorenceAI(procedure, textToSend);
+      const response = await procedureService.askGotiAI(procedure, textToSend);
       const aiMsg = {
         id: `ai-${Date.now()}`,
-        sender: 'florence',
+        sender: 'goti',
         text: response,
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch {
       const errMsg = {
         id: `err-${Date.now()}`,
-        sender: 'florence',
+        sender: 'goti',
         text: 'Desculpe, tive uma instabilidade momentânea. Verifique os passos técnicos do POP acima.',
       };
       setMessages((prev) => [...prev, errMsg]);
@@ -58,13 +58,14 @@ export default function ProcedureAIChat({ procedure }) {
   return (
     <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
       <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-        <div className="flex items-center gap-2">
-          <div className="flex h-8 w-8 items-center justify-center rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-600 text-white shadow-2xs">
-            <Sparkles className="h-4 w-4" />
+        <div className="flex items-center gap-2.5">
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-500 p-0.5 shadow-2xs overflow-hidden shrink-0">
+            <img src="/mascot/goti.png" alt="Goti" className="w-full h-full object-contain filter drop-shadow-xs" />
           </div>
           <div>
-            <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">
-              Tutora Florence AI · Dúvidas de Beira-Leito
+            <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
+              <span>Preceptor Goti AI · Dúvidas de Beira-Leito</span>
+              <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">Enfere</span>
             </h4>
             <p className="text-[10px] text-slate-500 dark:text-slate-400">
               Raciocínio clínico sobre variações e dilemas deste procedimento
@@ -80,9 +81,9 @@ export default function ProcedureAIChat({ procedure }) {
             key={m.id}
             className={`flex items-start gap-2 text-xs ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
-            {m.sender === 'florence' && (
-              <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 font-bold text-[10px]">
-                <Bot className="h-3.5 w-3.5" />
+            {m.sender === 'goti' && (
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 overflow-hidden p-0.5">
+                <img src="/mascot/goti.png" alt="Goti" className="w-full h-full object-contain" />
               </div>
             )}
 
@@ -107,7 +108,7 @@ export default function ProcedureAIChat({ procedure }) {
         {loading && (
           <div className="flex items-center gap-2 text-xs text-slate-400 py-1">
             <Loader2 className="h-3.5 w-3.5 animate-spin text-teal-600" />
-            <span>Florence AI está formulando a conduta clínica...</span>
+            <span>Goti AI está formulando a conduta clínica...</span>
           </div>
         )}
       </div>

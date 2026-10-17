@@ -40,17 +40,18 @@ export default function StudentHeader({ activeTab = "hub" }) {
     <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md transition-colors">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-4">
-          {/* Logo e Nome da Plataforma Enfermeiro Digital */}
+          {/* Logo e Nome da Plataforma Enfere */}
           <button
             onClick={() => navigate("/")}
             className="flex items-center gap-3 text-left group transition"
           >
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-700 dark:bg-emerald-600 text-white shadow-sm shadow-emerald-200 dark:shadow-none group-hover:bg-emerald-800 transition-colors">
-              <Activity className="h-5 w-5" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-700 dark:bg-emerald-600 text-white shadow-sm shadow-emerald-200 dark:shadow-none group-hover:bg-emerald-800 transition-colors overflow-hidden">
+              <img src="/mascot/goti.png" alt="Goti" className="w-8 h-8 object-contain filter drop-shadow-xs" />
             </div>
             <div>
-              <span className="font-bold text-base text-slate-900 dark:text-white tracking-tight block">
-                Enfermeiro Digital
+              <span className="font-bold text-base text-slate-900 dark:text-white tracking-tight block flex items-center gap-1.5">
+                Enfere
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">app</span>
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium">
                 Simulação & Prática Clínica

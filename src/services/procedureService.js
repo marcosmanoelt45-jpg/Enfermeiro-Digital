@@ -29,8 +29,8 @@ export const MASTER_PROCEDURES = [
     difficulty: 'Fundamental',
     levelBadge: 'Iniciante ao Avançado',
     cofenNorm: 'Resolução COFEN nº 736/2024 e Lei nº 7.498/86',
-    videoUrl: 'https://www.youtube.com/embed/5a2e5LrhZQI', // vídeo demonstrativo de punção venosa didática
-    videoSource: 'Laboratório de Enfermagem & Simulação Realística',
+    videoUrl: 'https://www.youtube.com/embed/6cxkjHMU__E', // Vídeo real: Procedimento de Punção Venosa (Venes Escola de Saúde)
+    videoSource: 'Venes - Escola de Saúde & Simulação Prática',
     description: 'Técnica asséptica de cateterização venosa periférica para infusão de fármacos, hidratação venosa e hemocomponentes, com escolha correta de calibre e prevenção de flebite.',
     materials: [
       { id: 'm1', name: 'Cateter periférico de calibre adequado (18G, 20G ou 22G)', checked: false },
@@ -75,8 +75,8 @@ export const MASTER_PROCEDURES = [
     difficulty: 'Avançado',
     levelBadge: 'Privativo do Enfermeiro',
     cofenNorm: 'Resolução COFEN nº 450/2013 & Parecer COFEN 03/2021 (Atividade Privativa)',
-    videoUrl: 'https://www.youtube.com/embed/aD9qB5WqY80',
-    videoSource: 'Escola de Enfermagem & Simulação Cirúrgica',
+    videoUrl: 'https://www.youtube.com/embed/O12BBzZ4ERQ', // Vídeo real: Aula Prática de Cateterismo Vesical (Descomplica Enfermagem)
+    videoSource: 'Descomplica Enfermagem & Simulação Prática',
     description: 'Inserção de sonda Foley com balão de retenção para drenagem contínua de urina em sistema fechado, com ênfase máxima em assepsia e prevenção de ITU associada a cateter (ITU-AC).',
     materials: [
       { id: 'm1', name: 'Sonda Foley de 2 ou 3 vias (calibre 12, 14 ou 16 Fr)', checked: false },
@@ -123,8 +123,8 @@ export const MASTER_PROCEDURES = [
     difficulty: 'Intermediário',
     levelBadge: 'Técnica & Confirmação',
     cofenNorm: 'Resolução COFEN nº 627/2020 (SNE privativa do Enfermeiro; SNG com supervisão)',
-    videoUrl: 'https://www.youtube.com/embed/ZqXW8e0WjYg',
-    videoSource: 'Centro de Simulação Clínica Avançada',
+    videoUrl: 'https://www.youtube.com/embed/PtWrYZCVH0U', // Vídeo real: Aula Prática de Sonda Nasogástrica (Descomplica Enfermagem)
+    videoSource: 'Descomplica Enfermagem & Simulação Prática',
     description: 'Medição anatômica correta, lubrificação, inserção atraumática e os métodos mandatórios de confirmação de posicionamento (Raio-X de controle e teste de pH gástrico).',
     materials: [
       { id: 'm1', name: 'Sonda nasogástrica (Levin 14-16 Fr) ou nasoenteral (Dobbhoff com fio-guia)', checked: false },
@@ -166,8 +166,8 @@ export const MASTER_PROCEDURES = [
     difficulty: 'Fundamental',
     levelBadge: 'Semiotécnica Prática',
     cofenNorm: 'Pareceres COFEN sobre vias de administração e volumes máximos',
-    videoUrl: 'https://www.youtube.com/embed/P6yL2Bw0xJ4',
-    videoSource: 'Laboratório de Semiotécnica & Farmacologia',
+    videoUrl: 'https://www.youtube.com/embed/J0qNV8BtgeE', // Vídeo real: Técnica em Z para injeção intramuscular (Papo de Enfermagem)
+    videoSource: 'Papo de Enfermagem & Farmacologia Prática',
     description: 'Escolha correta dos sítios de aplicação (ventroglúteo de Hochstetter, vasto lateral da coxa, dorsoglúteo e deltoide), limites de volume e a técnica em Z para vedação do trajeto.',
     materials: [
       { id: 'm1', name: 'Seringa de 3 mL ou 5 mL com graduação nítida', checked: false },
@@ -205,8 +205,8 @@ export const MASTER_PROCEDURES = [
     difficulty: 'Avançado',
     levelBadge: 'Terapia Intensiva',
     cofenNorm: 'Resolução COFEN nº 557/2017 (Procedimento privativo de Enfermagem em pacientes críticos)',
-    videoUrl: 'https://www.youtube.com/embed/ZqXW8e0WjYg',
-    videoSource: 'UTI Respiratória & Ventilação Mecânica',
+    videoUrl: 'https://www.youtube.com/embed/KiLr6qCs8bk', // Vídeo real: Aspiração Traqueal (Prática Enfermagem)
+    videoSource: 'Prática Enfermagem & UTI Respiratória',
     description: 'Remoção segura de secreções traqueobrônquicas em pacientes intubados ou traqueostomizados com técnica estéril, controle rigoroso de vácuo e hiperoxigenação prévia.',
     materials: [
       { id: 'm1', name: 'Sonda de aspiração traqueal estéril com válvula de alívio (calibre 12 a 14 Fr)', checked: false },
@@ -244,8 +244,8 @@ export const MASTER_PROCEDURES = [
     difficulty: 'Intermediário',
     levelBadge: 'Estomaterapia & Pele',
     cofenNorm: 'Resolução COFEN nº 567/2018 (Atuação da equipe de enfermagem no cuidado a feridas)',
-    videoUrl: 'https://www.youtube.com/embed/5a2e5LrhZQI',
-    videoSource: 'Comissão de Pele & Cuidados com Feridas',
+    videoUrl: 'https://www.youtube.com/embed/12BeFVs5F2M', // Vídeo real: QUAL O CURATIVO PERFEITO PARA TRATAR LPP (Descomplica Enfermagem)
+    videoSource: 'Descomplica Enfermagem & Estomaterapia',
     description: 'Estadiamento de lesão por pressão, limpeza com jatos de soro fisiológico a 0,9%, avaliação de tecido (granulação vs esfacelo/necrose) e escolha da cobertura ideal (hidrogel, alginato de cálcio, filme e espuma).',
     materials: [
       { id: 'm1', name: 'Pacote de curativo estéril (pinça anatômica, pinça dente de rato e hemostática)', checked: false },
@@ -282,8 +282,8 @@ export const MASTER_PROCEDURES = [
     difficulty: 'Essencial',
     levelBadge: 'Protocolo AHA / SBC',
     cofenNorm: 'Diretrizes de Ressuscitação Cardiopulmonar AHA / SBC e Atuação da Enfermagem',
-    videoUrl: 'https://www.youtube.com/embed/5a2e5LrhZQI',
-    videoSource: 'Centro de Treinamento em Emergências Cardiovasculares',
+    videoUrl: 'https://www.youtube.com/embed/LquiiQVKqKE', // Vídeo real: Massagem Cardíaca e RCP (Einstein Hospital Israelita)
+    videoSource: 'Hospital Israelita Albert Einstein & Simulação Realística',
     description: 'Reconhecimento imediato de PCR (ausência de pulso central e respiração/gasping), chamada de socorro, compressões torácicas de alta qualidade (100 a 120/min) e uso precoce do DEA.',
     materials: [
       { id: 'm1', name: 'Desfibrilador Externo Automático (DEA) com pás adesivas adulto', checked: false },
@@ -393,8 +393,8 @@ Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro
   "difficulty": "Fundamental" | "Intermediário" | "Avançado",
   "levelBadge": "Ex: Privativo do Enfermeiro ou Semiotécnica",
   "cofenNorm": "Legislação aplicável (COFEN/ANVISA)",
-  "videoUrl": "https://www.youtube.com/embed/5a2e5LrhZQI",
-  "videoSource": "Simulação Didática com Florence IA",
+  "videoUrl": "https://www.youtube.com/embed/6cxkjHMU__E",
+  "videoSource": "Simulação Didática com Goti AI",
   "description": "Indicação clínica, finalidade e justificativa científica",
   "materials": [
     { "id": "m1", "name": "Nome do material estéril ou de suporte", "checked": false }
@@ -449,24 +449,24 @@ Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro
   },
 
   /**
-   * Responde dúvidas clínicas pontuais sobre o procedimento em execução (Florence AI).
+   * Responde dúvidas clínicas pontuais sobre o procedimento em execução (Goti AI).
    */
-  async askFlorenceAI(procedure, userQuestion) {
+  async askGotiAI(procedure, userQuestion) {
     const apiKey = getGeminiApiKey();
     if (!apiKey) {
       // Resposta pré-computada offline caso não haja chave Gemini
-      return `Como tutora clínica de enfermagem, informo que durante o procedimento de ${procedure.title}, a prioridade é sempre manter a técnica asséptica estrita e observar as queixas do paciente. Se houver resistência anatômica ou dúvida, pause o procedimento e reavalie a anatomia do sítio antes de prosseguir.`;
+      return `Como preceptor clínico de enfermagem (Goti), informo que durante o procedimento de ${procedure.title}, a prioridade é sempre manter a técnica asséptica estrita e observar as queixas do paciente. Se houver resistência anatômica ou dúvida, pause o procedimento e reavalie a anatomia do sítio antes de prosseguir.`;
     }
 
     const activeModel = localStorage.getItem('enfermeiro_gemini_model') || 'gemini-2.0-flash';
 
-    const prompt = `Você é a Tutora Florence AI, especialista em procedimentos de enfermagem e simulação realística.
+    const prompt = `Você é o Preceptor Goti AI, a gota inteligente e tutor especialista em procedimentos de enfermagem da plataforma Enfere.
 O estudante está assistindo e treinando o procedimento: "${procedure.title}".
 Descrição do procedimento: ${procedure.description}.
 Normativa COFEN: ${procedure.cofenNorm}.
 Dúvida do estudante: "${userQuestion}".
 
-Responda em 1 a 2 parágrafos curtos, diretos e objetivos, com alto rigor científico, fundamentação anatômica e segurança do paciente. Enfatize condutas de beira-leito.`;
+Responda em 1 a 2 parágrafos curtos, diretos e objetivos, com alto rigor científico, fundamentação anatômica e foco na segurança do paciente. Enfatize condutas práticas de beira-leito com o tom encorajador do Goti.`;
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`,
@@ -480,10 +480,15 @@ Responda em 1 a 2 parágrafos curtos, diretos e objetivos, com alto rigor cient�
     );
 
     if (!res.ok) {
-      return 'Não foi possível conectar com a Tutora Florence no momento. Consulte o POP do procedimento acima.';
+      return 'Não foi possível conectar com o Preceptor Goti no momento. Consulte o POP do procedimento acima.';
     }
 
     const data = await res.json();
     return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta disponível.';
+  },
+
+  // Alias retrocompatível
+  async askFlorenceAI(procedure, userQuestion) {
+    return this.askGotiAI(procedure, userQuestion);
   },
 };

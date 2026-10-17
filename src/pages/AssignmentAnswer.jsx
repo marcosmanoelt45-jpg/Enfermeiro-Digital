@@ -205,7 +205,7 @@ export default function AssignmentAnswer() {
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
         <p className="text-[11px] text-slate-400 dark:text-slate-400">
-          © 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfermeiro Digital
+          © 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfere
         </p>
       </footer>
     </div>

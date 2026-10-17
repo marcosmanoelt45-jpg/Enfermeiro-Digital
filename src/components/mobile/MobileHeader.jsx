@@ -87,7 +87,7 @@ export default function MobileHeader({
           </div>
           <div>
             <span className="text-[10px] sm:text-xs font-bold text-emerald-600 dark:text-emerald-400 tracking-wide uppercase flex items-center gap-1">
-              <Sparkles className="w-3 h-3 text-emerald-500 dark:text-emerald-400 inline" /> Enfermeiro Digital
+              <Sparkles className="w-3 h-3 text-emerald-500 dark:text-emerald-400 inline" /> Enfere
             </span>
             <h1 className="text-base sm:text-lg font-bold text-slate-800 dark:text-slate-100 leading-tight">
               {(() => {

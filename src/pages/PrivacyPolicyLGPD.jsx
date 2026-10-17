@@ -16,8 +16,8 @@ export default function PrivacyPolicyLGPD() {
 
   const faqItems = [
     {
-      q: "O que é o Enfermeiro Digital e qual o seu objetivo?",
-      a: "O Enfermeiro Digital é um ambiente educacional e simulador clínico projetado para estudantes de enfermagem. O objetivo é desenvolver o raciocínio diagnóstico, a semiologia e a segurança na administração de medicamentos com base em cenários práticos e na Resolução COFEN nº 736/2024."
+      q: "O que é o Enfere e qual o seu objetivo?",
+      a: "O Enfere é um ambiente educacional e simulador clínico projetado para estudantes de enfermagem. O objetivo é desenvolver o raciocínio diagnóstico, a semiologia e a segurança na administração de medicamentos com base em cenários práticos e na Resolução COFEN nº 736/2024."
     },
     {
       q: "Os casos clínicos utilizam dados de pacientes reais?",
@@ -151,7 +151,7 @@ export default function PrivacyPolicyLGPD() {
                 Compromisso com a Segurança e Dados Sintéticos (Lei nº 13.709/2018)
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                O Enfermeiro Digital foi concebido sob a premissa de <em>Privacy by Design</em>. Por operar como um laboratório de simulação didática, todos os dados clínicos são exclusivamente sintéticos, garantindo que nenhum prontuário de paciente real seja trafegado ou persistido.
+                O Enfere foi concebido sob a premissa de <em>Privacy by Design</em>. Por operar como um laboratório de simulação didática, todos os dados clínicos são exclusivamente sintéticos, garantindo que nenhum prontuário de paciente real seja trafegado ou persistido.
               </p>
             </div>
 
@@ -250,7 +250,7 @@ export default function PrivacyPolicyLGPD() {
                 Criador e Detentor dos Direitos Autorais
               </h2>
               <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
-                Declaração formal de autoria, concepção e titularidade de propriedade intelectual e patrimonial sobre o ecossistema <strong>Enfermeiro Digital</strong>.
+                Declaração formal de autoria, concepção e titularidade de propriedade intelectual e patrimonial sobre o ecossistema <strong>Enfere</strong>.
               </p>
             </div>
 
@@ -262,7 +262,7 @@ export default function PrivacyPolicyLGPD() {
                     Marcos Manoel Tavares Neumann
                   </h3>
                   <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
-                    Criador, idealizador, desenvolvedor e detentor exclusivo de todos os direitos autorais, patrimoniais e morais de autor da plataforma Enfermeiro Digital.
+                    Criador, idealizador, desenvolvedor e detentor exclusivo de todos os direitos autorais, patrimoniais e morais de autor da plataforma Enfere.
                   </p>
                 </div>
               </div>
@@ -276,7 +276,7 @@ export default function PrivacyPolicyLGPD() {
                     <strong>Código-Fonte e Arquitetura:</strong> Toda a base de código, estrutura de dados, interfaces e serviços são obras intelectuais protegidas de titularidade de Marcos Manoel Tavares Neumann.
                   </li>
                   <li>
-                    <strong>Algoritmos de Tutoria Clínica e SBAR:</strong> O sistema de inteligência formativa, debriefing socrático (Florence AI) e reconhecimento fonético são propriedades intelectuais exclusivas.
+                    <strong>Algoritmos de Tutoria Clínica e SBAR:</strong> O sistema de inteligência formativa, debriefing socrático (Goti AI) e reconhecimento fonético são propriedades intelectuais exclusivas.
                   </li>
                   <li>
                     <strong>Identidade e Design System:</strong> A identidade visual, organização de módulos, fluxos de simulação e montador de casos clínicos são de titularidade reservada.
@@ -285,7 +285,7 @@ export default function PrivacyPolicyLGPD() {
               </div>
 
               <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-                <span>Registro & Copyright © 2026 Enfermeiro Digital</span>
+                <span>Registro & Copyright © 2026 Enfere</span>
                 <span>Todos os direitos reservados</span>
               </div>
             </div>

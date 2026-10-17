@@ -80,7 +80,7 @@ export default function Patients() {
                   <Activity className="h-5 w-5" />
                 </div>
                 <div className="text-left">
-                  <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-none">Bem-vindo ao Enfermeiro Digital</h1>
+                  <h1 className="text-lg font-bold text-slate-800 dark:text-slate-100 leading-none">Bem-vindo ao Enfere</h1>
                   <p className="text-xs text-amber-600 dark:text-amber-400 font-medium">Versão experimental</p>
                 </div>
               </button>
@@ -134,7 +134,7 @@ export default function Patients() {
       </main>
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
-        <p className="text-[11px] text-slate-400 dark:text-slate-500">© 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfermeiro Digital</p>
+        <p className="text-[11px] text-slate-400 dark:text-slate-500">© 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfere</p>
       </footer>
 
       <Dialog open={open} onOpenChange={setOpen}>

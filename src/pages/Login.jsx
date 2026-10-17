@@ -72,7 +72,7 @@ export default function Login() {
     <AuthLayout
       icon={LogIn}
       title="Acessar Plataforma"
-      subtitle="Escolha seu perfil e acesse o Enfermeiro Digital"
+      subtitle="Escolha seu perfil e acesse o Enfere"
       footer={
         <>
           Não tem conta?{" "}

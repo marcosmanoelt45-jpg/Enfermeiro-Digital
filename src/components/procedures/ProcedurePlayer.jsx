@@ -1,5 +1,5 @@
 import React, { useRef, useState } from 'react';
-import { Play, Clock, Video } from 'lucide-react';
+import { Play, Clock, Video, ExternalLink } from 'lucide-react';
 
 export default function ProcedurePlayer({ procedure }) {
   const [currentSeconds, setCurrentSeconds] = useState(0);
@@ -28,6 +28,15 @@ export default function ProcedurePlayer({ procedure }) {
 
     const separator = url.includes('?') ? '&' : '?';
     return `${url}${separator}rel=0&modestbranding=1&start=${seconds}`;
+  };
+
+  const getDirectYoutubeUrl = () => {
+    if (!videoUrl) return '';
+    if (videoUrl.includes('/embed/')) {
+      const id = videoUrl.split('/embed/')[1]?.split('?')[0];
+      return `https://www.youtube.com/watch?v=${id}`;
+    }
+    return videoUrl;
   };
 
   const handleSeek = (seconds) => {
@@ -79,11 +88,24 @@ export default function ProcedurePlayer({ procedure }) {
             </p>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto">
+          <div className="flex items-center gap-2 self-start sm:self-auto flex-wrap">
             <span className="flex items-center gap-1 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 text-xs font-bold border border-slate-200/60 dark:border-slate-700/60">
               <Clock className="h-3.5 w-3.5 text-emerald-600" />
               <span>Duração: {duration}</span>
             </span>
+
+            {isEmbeddable && (
+              <a
+                href={getDirectYoutubeUrl()}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-rose-50 dark:bg-rose-950/40 text-rose-700 dark:text-rose-300 text-xs font-semibold hover:bg-rose-100 dark:hover:bg-rose-900/60 border border-rose-200 dark:border-rose-900/80 transition"
+                title="Abrir diretamente no YouTube em nova guia"
+              >
+                <ExternalLink className="h-3 w-3" />
+                <span>No YouTube</span>
+              </a>
+            )}
           </div>
         </div>
       </div>

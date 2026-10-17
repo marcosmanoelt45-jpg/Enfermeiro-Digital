@@ -25,13 +25,15 @@ import {
   Volume2,
   CheckSquare,
   Loader2,
-  ChevronDown
+  ChevronDown,
+  Shuffle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
+import GotiMascot from "@/components/mascot/GotiMascot";
 import { useAuth } from "@/lib/AuthContext";
 import { evaluateSbarHandoff } from "@/services/sbarTutorService";
 import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
@@ -106,6 +108,52 @@ const PRESET_HANDOFF_SCENARIOS = [
       background: "Alerte sobre a queda recente no domicílio para acionar o protocolo de quedas.",
       assessment: "Descreva a flutuação do CAM e a tentativa de evasão do leito.",
       recommendation: "Foque nas grades elevadas e na segurança física do paciente sem contenção abusiva."
+    }
+  },
+  {
+    id: "dpoc",
+    title: "Exacerbação de DPOC & Broncoespasmo",
+    sector: "Clínica Médica • Leito 08",
+    bed: "Leito 08",
+    age: 64,
+    name: "R.F.M.",
+    diagnosis: "Doença Pulmonar Obstrutiva Crônica agudizada por infecção traqueobrônquica",
+    vitals: { pa_sistolica: 138, pa_diastolica: 85, fc: 104, fr: 26, sat: 89, tax: 37.8 },
+    clinicalSummary: "Paciente tabagista de longa data admitido com dispneia progressiva, tosse produtiva com escarro amarelado espesso e sibilos expiratórios difusos.",
+    goldenSbar: {
+      situation: "Paciente R.F.M., 64 anos, no Leito 08 da Clínica Médica, internado há 12 horas por exacerbação de DPOC infecciosa.",
+      background: "DPOC estágio GOLD 3 com uso domiciliar de broncodilatadores. Alergia prévia a dipirona com urticária.",
+      assessment: "PA 138/85 mmHg, FC 104 bpm, FR 26 irpm com tiragem intercostal leve, SatO2 89% em ar ambiente que subiu para 92% com Venturi a 28%. Sibilos expiratórios bilaterais e roncos esparsos.",
+      recommendation: "Manter oxigenoterapia com alvo estrito de SatO2 entre 88-92% para evitar hipercapnia; realizar nebulização com broncodilatador prescrito às 22h e vigiar padrão ventilatório."
+    },
+    educationalPointers: {
+      situation: "Informe o estágio do DPOC e tempo de admissão.",
+      background: "Alerte categoricamente sobre a alergia à dipirona.",
+      assessment: "Ressalte o alvo específico de oxigênio de 88-92% no retentor de CO2.",
+      recommendation: "Prescreva a vigilância da frequência respiratória e horários da nebulização."
+    }
+  },
+  {
+    id: "sepse_urinaria",
+    title: "Sepse de Foco Urinário & Hipotensão",
+    sector: "Emergência / Sala Amarela • Leito 15",
+    bed: "Leito 15 - Emergência",
+    age: 71,
+    name: "D.M.S.",
+    diagnosis: "Sepse de foco urinário (ITU complicada) e resposta inflamatória sistêmica",
+    vitals: { pa_sistolica: 90, pa_diastolica: 55, fc: 112, fr: 24, sat: 94, tax: 38.7 },
+    clinicalSummary: "Idosa trazida pela família com rebaixamento do sensório, calafrios, febre e oligúria nas últimas 18 horas. Pele quente e ruborizada, tempo de enchimento capilar de 4 segundos.",
+    goldenSbar: {
+      situation: "Paciente D.M.S., 71 anos, Leito 15 da Sala Amarela da Emergência, admitida há 2 horas com sepse grave de provável foco urinário.",
+      background: "Diabética e com histórico de ITU de repetição. Sem alergias medicamentosas registradas.",
+      assessment: "Hipotensa (PA 90/55 mmHg, PAM 66 mmHg), taquicárdica (FC 112 bpm), taquipneica (FR 24 irpm) e febril (Tax 38,7 °C). Diurese concentrada e fétida de 40 mL nas últimas 2 horas.",
+      recommendation: "Concluir a ressuscitação volêmica com Ringer Lactato a 30 mL/kg nas próximas 2 horas; administrar ceftriaxona IV prescrita imediatamente após colheita de culturas."
+    },
+    educationalPointers: {
+      situation: "Enfatize a urgência da sepse nas primeiras horas do pacote de sobrevida.",
+      background: "Confirme a ausência de alergias a betalactâmicos.",
+      assessment: "Informe a PAM limítrofe (66 mmHg) e a oligúria crítica.",
+      recommendation: "Priorize o término rápido da hidratação venosa e início precoce do antibiótico."
     }
   }
 ];
@@ -528,6 +576,15 @@ export default function SbarHandoffLab() {
     setActiveGuidedStep(0);
   }
 
+  function handleGenerateRandomScenario() {
+    if (isListening) stopListening();
+    const availableIndices = PRESET_HANDOFF_SCENARIOS.map((_, i) => i).filter((i) => i !== activeScenarioIdx);
+    const nextIdx = availableIndices[Math.floor(Math.random() * availableIndices.length)];
+    handleSelectScenario(nextIdx);
+    setToastMessage(`🎲 Novo caso sorteado: ${PRESET_HANDOFF_SCENARIOS[nextIdx].name} (${PRESET_HANDOFF_SCENARIOS[nextIdx].bed})`);
+    setTimeout(() => setToastMessage(""), 3500);
+  }
+
   function handleInsertGoldenExample() {
     if (currentCase?.goldenSbar) {
       setSbarData(currentCase.goldenSbar);
@@ -556,7 +613,7 @@ export default function SbarHandoffLab() {
     if (isListening) stopListening();
     const isAnyFilled = sbarData.situation || sbarData.background || sbarData.assessment || sbarData.recommendation;
     if (!isAnyFilled) {
-      alert("Por favor, preencha ao menos uma etapa do SBAR antes de enviar para a auditoria de Florence.");
+      alert("Por favor, preencha ao menos uma etapa do SBAR antes de enviar para a auditoria do Preceptor Goti.");
       return;
     }
 
@@ -739,77 +796,55 @@ export default function SbarHandoffLab() {
           </div>
         )}
 
-        {/* Seletor de Cenários Clínicos */}
-        <div className="space-y-2">
-          <div className="flex items-center justify-between">
-            <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
-              1. Selecione o Caso Clínico:
-            </span>
-            <span className="text-xs text-slate-500 dark:text-slate-400">
-              {PRESET_HANDOFF_SCENARIOS.length} Cenários Disponíveis
-            </span>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-            {PRESET_HANDOFF_SCENARIOS.map((scenario, idx) => (
-              <div
-                key={scenario.id}
-                onClick={() => handleSelectScenario(idx)}
-                className={`p-4 rounded-xl border text-left cursor-pointer transition-all ${
-                  activeScenarioIdx === idx
-                    ? "bg-white dark:bg-slate-900 border-emerald-600 ring-2 ring-emerald-600/20 shadow-xs"
-                    : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
-                }`}
-              >
-                <div className="flex items-center justify-between mb-1.5">
-                  <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                    {scenario.sector}
-                  </span>
-                  <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400">
-                    {scenario.name} ({scenario.age}a)
-                  </span>
-                </div>
-                <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 line-clamp-1">
-                  {scenario.title}
-                </h3>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 line-clamp-2 mt-1 leading-relaxed">
-                  {scenario.clinicalSummary}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Card do Paciente no Leito */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="space-y-1">
+        {/* Painel do Caso Clínico Ativo: 1 Caso por Vez (Design Focado & Despoluído) */}
+        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase block">Prontuário à Beira-Leito</span>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                {currentCase.bed || "Leito de Internação"}
+              <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                Prontuário Ativo à Beira-Leito
+              </span>
+              <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
+                {currentCase.sector || currentCase.bed}
               </span>
             </div>
-            <h2 className="text-sm font-bold text-slate-900 dark:text-slate-100">
-              {currentCase.name} • {currentCase.diagnosis || currentCase.title}
-            </h2>
-            <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
-              {currentCase.clinicalSummary || currentCase.description}
-            </p>
+
+            <Button
+              type="button"
+              onClick={handleGenerateRandomScenario}
+              className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 flex items-center gap-2 shadow-xs transition-all active:scale-98 self-start sm:self-auto"
+              title="Sortear aleatoriamente outro caso clínico"
+            >
+              <Shuffle className="h-4 w-4" />
+              <span>Sortear Novo Caso Aleatório</span>
+            </Button>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shrink-0">
-            <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
-              <HeartPulse className="h-3.5 w-3.5 text-rose-500" />
-              PA: {currentCase.vitals?.pa_sistolica}/{currentCase.vitals?.pa_diastolica} mmHg
-            </span>
-            <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
-              <Activity className="h-3.5 w-3.5 text-emerald-500" />
-              SatO2: {currentCase.vitals?.sat}%
-            </span>
-            <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
-              <Clock className="h-3.5 w-3.5 text-sky-500" />
-              FC: {currentCase.vitals?.fc} bpm
-            </span>
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
+            <div className="space-y-1.5 flex-1">
+              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                <span>{currentCase.name} ({currentCase.age}a)</span>
+                <span className="text-slate-400 font-normal">•</span>
+                <span className="text-emerald-800 dark:text-emerald-400 font-semibold text-sm">{currentCase.diagnosis || currentCase.title}</span>
+              </h2>
+              <p className="text-xs text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
+                {currentCase.clinicalSummary || currentCase.description}
+              </p>
+            </div>
+
+            <div className="flex flex-wrap items-center gap-2.5 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shrink-0">
+              <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
+                <HeartPulse className="h-3.5 w-3.5 text-rose-500" />
+                PA: {currentCase.vitals?.pa_sistolica}/{currentCase.vitals?.pa_diastolica} mmHg
+              </span>
+              <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
+                <Activity className="h-3.5 w-3.5 text-emerald-500" />
+                SatO2: {currentCase.vitals?.sat}%
+              </span>
+              <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
+                <Clock className="h-3.5 w-3.5 text-sky-500" />
+                FC: {currentCase.vitals?.fc} bpm
+              </span>
+            </div>
           </div>
         </div>
 
@@ -849,7 +884,7 @@ export default function SbarHandoffLab() {
               }`}
             >
               <MessageSquareQuote className="h-4 w-4 text-teal-700 dark:text-teal-400" />
-              <span>3. Debriefing & Parecer Florence (Score: {tutorEvaluation.safetyScore}/100)</span>
+              <span>3. Debriefing & Parecer do Goti (Score: {tutorEvaluation.safetyScore}/100)</span>
             </button>
           )}
         </div>
@@ -1141,11 +1176,11 @@ export default function SbarHandoffLab() {
                   >
                     {isEvaluating ? (
                       <>
-                        <Sparkles className="h-3.5 w-3.5 animate-spin text-white" /> Florence analisando...
+                        <Sparkles className="h-3.5 w-3.5 animate-spin text-white" /> Goti analisando...
                       </>
                     ) : (
                       <>
-                        <Send className="h-3.5 w-3.5 text-white" /> Concluir e Transmitir para Florence
+                        <Send className="h-3.5 w-3.5 text-white" /> Concluir e Transmitir para o Preceptor Goti
                       </>
                     )}
                   </Button>
@@ -1271,12 +1306,12 @@ export default function SbarHandoffLab() {
                 {isEvaluating ? (
                   <>
                     <Sparkles className="h-4 w-4 animate-spin text-teal-200" />
-                    <span>Florence está auditando a passagem de plantão...</span>
+                    <span>Goti está auditando a passagem de plantão...</span>
                   </>
                 ) : (
                   <>
                     <Send className="h-4 w-4" />
-                    <span>Submeter Passagem de Plantão para Florence</span>
+                    <span>Submeter Passagem de Plantão para o Preceptor Goti</span>
                   </>
                 )}
               </Button>
@@ -1284,7 +1319,7 @@ export default function SbarHandoffLab() {
           </div>
         )}
 
-        {/* CONTEÚDO DA ABA 3: DEBRIEFING SOCRÁTICO DA PRECEPTORA FLORENCE */}
+        {/* CONTEÚDO DA ABA 3: DEBRIEFING SOCRÁTICO DO PRECEPTOR GOTI */}
         {tutorEvaluation && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-teal-200 dark:border-teal-900/60 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
             {/* Topo do Feedback com Score e Grade */}
@@ -1293,7 +1328,7 @@ export default function SbarHandoffLab() {
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-teal-700 dark:text-teal-400" />
                   <span className="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase tracking-wider block">
-                    Parecer de Preceptoria Clínica • Florence AI
+                    Parecer de Preceptoria Clínica • Goti AI
                   </span>
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -1405,11 +1440,11 @@ export default function SbarHandoffLab() {
                 <div className="flex items-center gap-2">
                   <MessageSquareQuote className="h-5 w-5 text-teal-700 dark:text-teal-400" />
                   <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                    Debriefing Socrático da Preceptora (Exercício de Raciocínio Clínico)
+                    Debriefing Socrático do Preceptor Goti (Exercício de Raciocínio Clínico)
                   </h4>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Responda às questões da tutora para consolidar a fixação das condutas de emergência:
+                  Responda às questões do preceptor Goti para consolidar a fixação das condutas de emergência:
                 </p>
 
                 <div className="space-y-3 pt-1">
@@ -1430,10 +1465,17 @@ export default function SbarHandoffLab() {
               </div>
             )}
 
-            {/* Mensagem de Mentoria & Exportação em PDF */}
+            {/* Mensagem de Mentoria & Exportação em PDF com Goti */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
-              <div className="text-xs text-slate-600 dark:text-slate-400 italic">
-                "{tutorEvaluation.florenceMentorship || 'A comunicação assertiva é a maior ferramenta de proteção da enfermagem.'}"
+              <div className="flex items-center gap-3">
+                <GotiMascot
+                  size="sm"
+                  state={tutorEvaluation.safetyScore >= 80 ? "celebrating" : "encouraging"}
+                  interactive={true}
+                />
+                <div className="text-xs text-slate-600 dark:text-slate-400 italic">
+                  "{tutorEvaluation.gotiMentorship || tutorEvaluation.florenceMentorship || 'A comunicação assertiva é a maior ferramenta de proteção da enfermagem.'}"
+                </div>
               </div>
 
               <Button
