@@ -5,11 +5,12 @@ import {
   Sparkles,
   Play,
   ArrowLeft,
-  Stethoscope,
+  ShieldCheck,
 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import StudentHeader from '@/components/StudentHeader';
 import StudentFooter from '@/components/StudentFooter';
+import GotiMascot from '@/components/mascot/GotiMascot';
 import { useTheme } from '@/lib/ThemeContext';
 import { procedureService } from '@/services/procedureService';
 
@@ -44,12 +45,12 @@ export default function ProcedimentosLab() {
 
   const categories = [
     { id: 'all', label: 'Todos os Procedimentos' },
-    { id: 'vasculares', label: 'Acessos Vasculares' },
+    { id: 'urgencia', label: 'Urgência & Emergência' },
     { id: 'eliminacoes', label: 'Cateterismos & Eliminações' },
+    { id: 'vasculares', label: 'Acessos Vasculares' },
     { id: 'medicamentos', label: 'Terapia Medicamentosa' },
     { id: 'respiratorio', label: 'Vias Aéreas & Ventilação' },
     { id: 'curativos', label: 'Curativos & Lesões' },
-    { id: 'urgencia', label: 'Urgência & Emergência' },
   ];
 
   const filtered = useMemo(() => {
@@ -73,33 +74,33 @@ export default function ProcedimentosLab() {
       <main className="flex-1 mx-auto max-w-6xl w-full px-4 py-6 space-y-6">
         {/* Se estiver visualizando um procedimento ativo (Modo Treinamento) */}
         {activeProcedure ? (
-          <div className="space-y-6 animate-in fade-in">
+          <div className="space-y-6 animate-in fade-in duration-200">
             {/* Barra superior de navegação de volta */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800">
               <button
                 type="button"
                 onClick={() => {
                   triggerHaptic(20);
                   setActiveProcedure(null);
                 }}
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 transition"
+                className="inline-flex items-center gap-2 text-xs font-bold text-slate-600 dark:text-slate-300 hover:text-teal-700 dark:hover:text-teal-400 transition tap-press"
               >
                 <ArrowLeft className="h-4 w-4" /> Voltar ao Catálogo de Procedimentos
               </button>
 
-              <div className="flex items-center gap-2">
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-teal-50 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
                   {activeProcedure.categoryLabel}
                 </span>
-                <span className="px-2.5 py-1 rounded-full text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/60 dark:border-slate-700/60">
+                <span className="px-3 py-1 rounded-full text-xs font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200/70 dark:border-slate-700">
                   {activeProcedure.difficulty}
                 </span>
               </div>
             </div>
 
-            {/* Layout em 2 Colunas no Desktop */}
+            {/* Layout em 2 Colunas Despoluído e Técnico */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Coluna da Esquerda (Vídeo + Alertas + Chat IA) */}
+              {/* Coluna da Esquerda (Vídeo de Referência + 'O Que NÃO Fazer' + Chat Goti IA) */}
               <div className="lg:col-span-7 space-y-6">
                 <ProcedurePlayer procedure={activeProcedure} />
                 <ProcedureSafetyAlerts
@@ -109,7 +110,7 @@ export default function ProcedimentosLab() {
                 <ProcedureAIChat procedure={activeProcedure} />
               </div>
 
-              {/* Coluna da Direita (Checklist Interativo de Materiais e Passos) */}
+              {/* Coluna da Direita ('O Que Fazer' - Passo a Passo Asséptico & Materiais) */}
               <div className="lg:col-span-5 space-y-6 sticky top-20">
                 <ProcedureChecklist
                   procedure={activeProcedure}
@@ -119,29 +120,31 @@ export default function ProcedimentosLab() {
             </div>
           </div>
         ) : (
-          /* Modo Catálogo & Grade de Vídeos */
+          /* Modo Catálogo & Grade de Procedimentos */
           <div className="space-y-6">
-            {/* Hero Banner da Videoteca */}
-            <div className="relative overflow-hidden rounded-3xl border border-emerald-200/80 dark:border-emerald-900/60 bg-gradient-to-br from-emerald-600 via-teal-700 to-emerald-900 text-white p-6 sm:p-8 shadow-sm">
-              <div className="relative z-10 max-w-2xl">
-                <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-emerald-100 text-xs font-bold mb-3 border border-white/20">
-                  <Video className="h-3.5 w-3.5" />
-                  <span>Laboratório de Habilidades Clínicas · Skills Lab</span>
+            {/* Hero Banner da Videoteca com o Novo Goti Vetorial */}
+            <div className="relative overflow-hidden rounded-3xl border border-teal-200/80 dark:border-teal-900/60 bg-gradient-to-br from-teal-700 via-emerald-800 to-slate-900 text-white p-6 sm:p-8 shadow-sm">
+              <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
+                <div className="max-w-xl text-center md:text-left">
+                  <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-white/15 backdrop-blur-sm text-teal-100 text-xs font-bold mb-3 border border-white/20">
+                    <Video className="h-3.5 w-3.5" />
+                    <span>Laboratório de Habilidades Práticas · Skills Lab</span>
+                  </div>
+                  <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
+                    Videoteca & Procedimentos Operacionais Padrão (POPs)
+                  </h1>
+                  <p className="mt-2 text-xs sm:text-sm text-teal-100/90 leading-relaxed">
+                    Vídeos com chancela de hospitais e universidades de excelência, guias de <strong>O Que Fazer</strong> e <strong>O Que NÃO Fazer</strong>, com técnica asséptica e suporte do Goti.
+                  </p>
                 </div>
-                <h1 className="text-2xl sm:text-3xl font-black tracking-tight leading-tight">
-                  Videoteca de Procedimentos & Técnicas de Enfermagem
-                </h1>
-                <p className="mt-2 text-xs sm:text-sm text-emerald-100/90 leading-relaxed">
-                  Vídeos didáticos passo a passo, checklists de técnica asséptica, pontos críticos onde o estudante mais erra e gerador de POPs com Inteligência Artificial.
-                </p>
-              </div>
 
-              <div className="absolute right-4 -bottom-6 opacity-10 pointer-events-none hidden sm:block">
-                <Stethoscope className="w-64 h-64 text-white" />
+                <div className="shrink-0 flex items-center justify-center">
+                  <GotiMascot size={120} state="happy" message="Foco na técnica asséptica e segurança do paciente!" interactive={true} />
+                </div>
               </div>
             </div>
 
-            {/* Barra de Filtros, Busca & Ação de Criação */}
+            {/* Barra de Filtros, Busca & Criação */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               {/* Input de Busca */}
               <div className="relative flex-1 max-w-md">
@@ -151,7 +154,7 @@ export default function ProcedimentosLab() {
                   placeholder="Buscar procedimento (ex: punção, vesical, SNG, aspiração)..."
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-2xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-emerald-500/20 focus:border-emerald-500 shadow-xs"
+                  className="w-full pl-9 pr-4 py-2.5 rounded-2xl text-xs bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 text-slate-800 dark:text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/20 focus:border-teal-500 shadow-2xs"
                 />
               </div>
 
@@ -162,9 +165,9 @@ export default function ProcedimentosLab() {
                   triggerHaptic(20);
                   setIsAddModalOpen(true);
                 }}
-                className="rounded-2xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs px-4 py-2 shadow-xs shrink-0 flex items-center gap-1.5"
+                className="rounded-2xl font-bold text-xs px-4 py-2.5 shadow-xs shrink-0 flex items-center gap-1.5"
               >
-                <Sparkles className="h-4 w-4" />
+                <Sparkles className="h-4 w-4 text-amber-300" />
                 <span>+ Adicionar / Gerar com IA</span>
               </Button>
             </div>
@@ -186,10 +189,10 @@ export default function ProcedimentosLab() {
                       triggerHaptic(15);
                       setSelectedCategory(cat.id);
                     }}
-                    className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all ${
+                    className={`shrink-0 px-3.5 py-1.5 rounded-full text-xs font-bold transition-all tap-press ${
                       isActive
-                        ? 'bg-emerald-700 dark:bg-emerald-600 text-white shadow-xs'
-                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-emerald-300'
+                        ? 'bg-teal-700 dark:bg-teal-600 text-white shadow-xs'
+                        : 'bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 border border-slate-200 dark:border-slate-800 hover:border-teal-300'
                     }`}
                   >
                     <span>{cat.label}</span>
@@ -199,9 +202,9 @@ export default function ProcedimentosLab() {
               })}
             </div>
 
-            {/* Grade de Cards Didáticos de Procedimentos */}
+            {/* Grade de Cards de Procedimentos */}
             {filtered.length === 0 ? (
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center">
+              <div className="rounded-3xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-12 text-center">
                 <Video className="h-10 w-10 text-slate-400 mx-auto mb-2" />
                 <p className="text-sm font-bold text-slate-700 dark:text-slate-300">
                   Nenhum procedimento encontrado
@@ -211,7 +214,7 @@ export default function ProcedimentosLab() {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filtered.map((proc) => {
                   return (
                     <div
@@ -220,13 +223,13 @@ export default function ProcedimentosLab() {
                         triggerHaptic(25);
                         setActiveProcedure(proc);
                       }}
-                      className="group rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs hover:border-emerald-400 dark:hover:border-emerald-600 hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+                      className="group rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs hover:border-teal-400 dark:hover:border-teal-500 hover-lift tap-press transition-all cursor-pointer flex flex-col justify-between"
                     >
                       <div>
                         {/* Thumbnail / Header do Card */}
-                        <div className="relative aspect-video w-full rounded-xl bg-slate-900 overflow-hidden mb-3.5 flex items-center justify-center group-hover:scale-[1.01] transition-transform">
-                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-60" />
-                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-emerald-600/90 text-white shadow-lg group-hover:scale-110 transition-transform">
+                        <div className="relative aspect-video w-full rounded-2xl bg-slate-950 overflow-hidden mb-3.5 flex items-center justify-center group-hover:scale-[1.01] transition-transform">
+                          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-transparent to-transparent opacity-70" />
+                          <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal-600/90 text-white shadow-lg group-hover:scale-110 transition-transform">
                             <Play className="h-5 w-5 fill-white ml-0.5" />
                           </div>
 
@@ -234,17 +237,20 @@ export default function ProcedimentosLab() {
                             <span className="px-2 py-0.5 rounded-md bg-slate-950/80 backdrop-blur-xs font-mono font-bold">
                               {proc.duration}
                             </span>
-                            <span className="px-2 py-0.5 rounded-md bg-emerald-950/80 backdrop-blur-xs font-semibold text-emerald-300">
+                            <span className="px-2 py-0.5 rounded-md bg-teal-950/80 backdrop-blur-xs font-semibold text-teal-300 border border-teal-800/60">
                               {proc.levelBadge}
                             </span>
                           </div>
                         </div>
 
-                        <span className="text-[10px] font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 block mb-1">
-                          {proc.categoryLabel}
-                        </span>
+                        {proc.institutionalBadge && (
+                          <div className="flex items-center gap-1 text-[10px] font-bold text-teal-700 dark:text-teal-400 uppercase tracking-wider mb-1">
+                            <ShieldCheck className="h-3 w-3" />
+                            <span className="truncate">{proc.institutionalBadge}</span>
+                          </div>
+                        )}
 
-                        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-emerald-800 dark:group-hover:text-emerald-300 transition-colors line-clamp-2">
+                        <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 group-hover:text-teal-800 dark:group-hover:text-teal-300 transition-colors line-clamp-2 leading-snug">
                           {proc.title}
                         </h3>
 
@@ -259,8 +265,8 @@ export default function ProcedimentosLab() {
                           {proc.steps?.length || 0} passos · {proc.materials?.length || 0} materiais
                         </span>
 
-                        <span className="font-bold text-emerald-700 dark:text-emerald-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                          Ver Vídeo & Checklist →
+                        <span className="font-bold text-teal-700 dark:text-teal-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
+                          Ver POP & Checklist →
                         </span>
                       </div>
                     </div>

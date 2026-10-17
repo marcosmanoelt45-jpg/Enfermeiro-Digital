@@ -1,7 +1,6 @@
 import React from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  Activity,
   BookOpen,
   Calculator,
   Stethoscope,
@@ -20,6 +19,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/ThemeContext";
 
+import GotiMascot from "@/components/mascot/GotiMascot";
+
 export default function StudentHeader({ activeTab = "hub" }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -37,21 +38,24 @@ export default function StudentHeader({ activeTab = "hub" }) {
   ];
 
   return (
-    <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-md transition-colors">
+    <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/90 dark:bg-slate-950/90 backdrop-blur-xl transition-colors">
       <div className="mx-auto max-w-7xl px-4 sm:px-6">
         <div className="flex h-16 items-center justify-between gap-4">
-          {/* Logo e Nome da Plataforma Enfere */}
+          {/* Logo e Nome da Plataforma Enfere com o Novo Goti Animado */}
           <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-3 text-left group transition"
+            onClick={() => {
+              triggerHaptic(15);
+              navigate("/");
+            }}
+            className="flex items-center gap-3 text-left group transition tap-press"
           >
-            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-emerald-700 dark:bg-emerald-600 text-white shadow-sm shadow-emerald-200 dark:shadow-none group-hover:bg-emerald-800 transition-colors overflow-hidden">
-              <img src="/mascot/goti.png" alt="Goti" className="w-8 h-8 object-contain filter drop-shadow-xs" />
+            <div className="relative flex h-10 w-10 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 shadow-2xs group-hover:scale-105 transition-transform overflow-visible">
+              <GotiMascot size={38} state="idle" interactive={false} showGlow={false} />
             </div>
             <div>
-              <span className="font-bold text-base text-slate-900 dark:text-white tracking-tight block flex items-center gap-1.5">
+              <span className="font-black text-base text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
                 Enfere
-                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300">app</span>
+                <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">app</span>
               </span>
               <span className="text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium">
                 Simulação & Prática Clínica
@@ -67,14 +71,17 @@ export default function StudentHeader({ activeTab = "hub" }) {
               return (
                 <button
                   key={link.id}
-                  onClick={() => navigate(link.path)}
-                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all ${
+                  onClick={() => {
+                    triggerHaptic(10);
+                    navigate(link.path);
+                  }}
+                  className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all tap-press ${
                     isActive
-                      ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 font-bold border border-emerald-100 dark:border-emerald-800"
-                      : "text-slate-600 dark:text-slate-300 hover:text-emerald-800 dark:hover:text-emerald-400 hover:bg-slate-50 dark:hover:bg-slate-900"
+                      ? "bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 font-bold border border-teal-200 dark:border-teal-800 shadow-2xs"
+                      : "text-slate-600 dark:text-slate-300 hover:text-teal-800 dark:hover:text-teal-400 hover:bg-slate-100/70 dark:hover:bg-slate-900"
                   }`}
                 >
-                  <Icon className={`h-4 w-4 ${isActive ? "text-emerald-700 dark:text-emerald-400" : "text-slate-400"}`} />
+                  <Icon className={`h-4 w-4 ${isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-400"}`} />
                   {link.label}
                 </button>
               );

@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Sparkles, Send, Loader2, Bot, User } from 'lucide-react';
+import { Send, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { procedureService } from '@/services/procedureService';
+import GotiMascot from '@/components/mascot/GotiMascot';
 
 export default function ProcedureAIChat({ procedure }) {
   const [messages, setMessages] = useState([
@@ -59,13 +60,13 @@ export default function ProcedureAIChat({ procedure }) {
     <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
       <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2.5">
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-teal-500 to-emerald-500 p-0.5 shadow-2xs overflow-hidden shrink-0">
-            <img src="/mascot/goti.png" alt="Goti" className="w-full h-full object-contain filter drop-shadow-xs" />
+          <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 shadow-2xs overflow-visible shrink-0">
+            <GotiMascot size={34} state="idle" interactive={false} showGlow={false} />
           </div>
           <div>
             <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
               <span>Preceptor Goti AI · Dúvidas de Beira-Leito</span>
-              <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">Enfere</span>
+              <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-teal-100 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300">Enfere</span>
             </h4>
             <p className="text-[10px] text-slate-500 dark:text-slate-400">
               Raciocínio clínico sobre variações e dilemas deste procedimento
@@ -82,8 +83,8 @@ export default function ProcedureAIChat({ procedure }) {
             className={`flex items-start gap-2 text-xs ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.sender === 'goti' && (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 overflow-hidden p-0.5">
-                <img src="/mascot/goti.png" alt="Goti" className="w-full h-full object-contain" />
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 overflow-visible p-0.5">
+                <GotiMascot size={26} state="idle" interactive={false} showGlow={false} />
               </div>
             )}
 

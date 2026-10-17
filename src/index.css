@@ -155,4 +155,55 @@ html.dark textarea {
   color-scheme: dark;
 }
 
+/* ========================================================================== */
+/* Micro-Interações & Estética Tátil Premium (Enfere Experience)              */
+/* ========================================================================== */
+
+/* Elevação suave e elegante no hover */
+.hover-lift {
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.hover-lift:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.15), 0 8px 10px -6px rgba(13, 148, 136, 0.08);
+}
+
+/* Feedback tátil orgânico ao toque e clique */
+.tap-press {
+  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
+}
+.tap-press:active {
+  transform: scale(0.965);
+}
+
+/* Botão clínico de destaque com gradiente suave */
+.btn-clinical {
+  background: linear-gradient(135deg, #0d9488 0%, #059669 100%);
+  color: #ffffff;
+  box-shadow: 0 4px 14px 0 rgba(13, 148, 136, 0.25);
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.btn-clinical:hover {
+  background: linear-gradient(135deg, #0f766e 0%, #047857 100%);
+  box-shadow: 0 6px 20px 0 rgba(13, 148, 136, 0.35);
+  transform: translateY(-1px);
+}
+.btn-clinical:active {
+  transform: scale(0.97);
+}
+
+/* Superfície vítrea de alto padrão (Glassmorphism sutil) */
+.glass-panel {
+  background-color: rgba(255, 255, 255, 0.85);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(226, 232, 240, 0.8);
+}
+.dark .glass-panel {
+  background-color: rgba(15, 23, 42, 0.85);
+  border: 1px solid rgba(30, 41, 59, 0.8);
+}
+
+
 
