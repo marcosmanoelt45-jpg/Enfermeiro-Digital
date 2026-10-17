@@ -243,15 +243,15 @@ export default function CaseBuilder() {
 
         {isQuestionStep && (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 bg-white p-4">
-              <p className="text-sm font-medium text-slate-700">Escolha os temas da pergunta</p>
-              <p className="mt-0.5 text-xs text-slate-400">Toque nos balões para montar a pergunta. Você pode editar o texto depois.</p>
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Escolha os temas da pergunta</p>
+              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">Toque nos balões para montar a pergunta. Você pode editar o texto depois.</p>
               <div className="mt-3 flex flex-wrap gap-2">
                 {QUESTION_CHIPS.map((chip) => {
                   const active = selectedChips.find((c) => c.id === chip.id);
                   return (
                     <button key={chip.id} type="button" onClick={() => toggleChip(chip)}
-                      className={`rounded-full border-2 px-4 py-2 text-sm font-medium transition ${active ? "border-teal-600 bg-teal-50 text-teal-700" : "border-slate-200 text-slate-500 hover:border-teal-300"}`}>
+                      className={`rounded-full border-2 px-4 py-2 text-sm font-semibold transition ${active ? "border-teal-600 dark:border-teal-500 bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-200" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-teal-300 dark:hover:border-teal-600"}`}>
                       {chip.label}
                     </button>
                   );
@@ -260,8 +260,8 @@ export default function CaseBuilder() {
             </div>
 
             <div>
-              <label className="text-sm font-medium text-slate-700">Pergunta para os alunos *</label>
-              <Textarea className="mt-1 min-h-[80px]" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Selecione um tema acima ou escreva a pergunta..." />
+              <label className="text-sm font-bold text-slate-800 dark:text-slate-100">Pergunta para os alunos *</label>
+              <Textarea className="mt-1 min-h-[80px] rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100" value={question} onChange={(e) => setQuestion(e.target.value)} placeholder="Selecione um tema acima ou escreva a pergunta..." />
             </div>
 
             <div>

@@ -119,7 +119,7 @@ export default function ClinicalGuideTabs({ onSelectSnippet: _onSelectSnippet = 
       </div>
 
       {/* TABS HEADER */}
-      <div className="mt-3 flex gap-1 overflow-x-auto pb-1 scrollbar-none">
+      <div className="mt-3 flex gap-1 overflow-x-auto pb-1 no-scrollbar">
         {TABS.map((tab) => {
           const Icon = tab.icon;
           const isActive = activeTab === tab.id;
@@ -128,10 +128,10 @@ export default function ClinicalGuideTabs({ onSelectSnippet: _onSelectSnippet = 
               key={tab.id}
               type="button"
               onClick={() => setActiveTab(tab.id)}
-              className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-xs font-medium transition-all ${
+              className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all ${
                 isActive
                   ? "bg-teal-600 text-white shadow-xs"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
               }`}
             >
               <Icon className="h-3.5 w-3.5" />
@@ -144,23 +144,23 @@ export default function ClinicalGuideTabs({ onSelectSnippet: _onSelectSnippet = 
       {/* TAB CONTENT */}
       <div className="mt-3 space-y-2.5">
         <div>
-          <h4 className="text-xs font-bold text-slate-800 dark:text-slate-100">{current.title}</h4>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">{current.description}</p>
+          <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100">{current.title}</h4>
+          <p className="text-[11px] text-slate-600 dark:text-slate-300 mt-0.5">{current.description}</p>
         </div>
 
         <div className="grid grid-cols-1 gap-1.5">
           {current.items.map((item, idx) => (
             <div
               key={idx}
-              className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/50 p-2.5 transition-colors"
+              className="rounded-lg border border-slate-100 dark:border-slate-800 bg-slate-50/70 dark:bg-slate-800/60 p-2.5 transition-colors"
             >
-              <p className="text-[11px] font-semibold text-slate-800 dark:text-slate-200">{item.label}</p>
-              <p className="text-[11px] text-teal-800/90 dark:text-teal-300 mt-0.5 leading-snug">{item.example}</p>
+              <p className="text-[11px] font-bold text-slate-800 dark:text-slate-100">{item.label}</p>
+              <p className="text-[11px] text-teal-800 dark:text-teal-300 font-medium mt-0.5 leading-snug">{item.example}</p>
             </div>
           ))}
         </div>
 
-        <div className="rounded-lg bg-teal-50/80 dark:bg-teal-950/40 p-2.5 text-[11px] text-teal-900 dark:text-teal-200 border border-teal-100 dark:border-teal-900/60 leading-relaxed">
+        <div className="rounded-lg bg-teal-50 dark:bg-teal-950/60 p-2.5 text-[11px] text-teal-950 dark:text-teal-200 border border-teal-200 dark:border-teal-900 leading-relaxed font-medium">
           {current.tip}
         </div>
       </div>

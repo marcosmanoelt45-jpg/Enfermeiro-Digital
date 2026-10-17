@@ -984,10 +984,10 @@ export default function CaseStudio() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="sm:col-span-2 space-y-1">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-700 flex items-center gap-1.5">
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
                           <span>Iniciais do Paciente (LGPD):</span>
-                          <span className="text-[10px] bg-emerald-50 text-emerald-800 px-1.5 py-0.5 rounded border border-emerald-200 font-semibold flex items-center gap-1">
-                            <ShieldCheck className="h-3 w-3 text-emerald-600" />
+                          <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 font-semibold flex items-center gap-1">
+                            <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
                             Anonimizado
                           </span>
                         </label>
@@ -1005,25 +1005,25 @@ export default function CaseStudio() {
                           setProf("name", sanitized);
                         }}
                         placeholder="Ex: J.S.F. (apenas iniciais)"
-                        className="rounded-xl border-slate-300 text-xs h-10 font-mono tracking-wider uppercase font-semibold"
+                        className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs h-10 font-mono tracking-wider uppercase font-semibold"
                       />
-                      <p className="text-[11px] text-slate-500">
+                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
                         Conforme a LGPD (Lei nº 13.709/2018), informe apenas as iniciais (ex: <strong>J.S.F.</strong>). Nomes completos são convertidos automaticamente.
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700">Idade:</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Idade:</label>
                         <Input
                           type="number"
                           value={profile.age}
                           onChange={(e) => setProf("age", e.target.value)}
                           placeholder="Ex: 68"
-                          className="rounded-xl border-slate-300 text-xs h-10"
+                          className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs h-10"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Sexo:</label>
+                        <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Sexo:</label>
                         <select
                           value={profile.gender}
                           onChange={(e) => setProf("gender", e.target.value)}
@@ -1037,43 +1037,43 @@ export default function CaseStudio() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-300">Histórico & Doenças Prévias:</label>
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Histórico & Doenças Prévias:</label>
                     <Input
                       value={profile.previous_diseases}
                       onChange={(e) => setProf("previous_diseases", e.target.value)}
                       placeholder="Ex: Hipertensão Arterial, Insuficiência Cardíaca CF II, DM..."
-                      className="rounded-xl border-slate-300 text-xs h-10"
+                      className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs h-10"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700">Medicações em Uso:</label>
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Medicações em Uso:</label>
                       <Input
                         value={profile.current_medications}
                         onChange={(e) => setProf("current_medications", e.target.value)}
                         placeholder="Ex: Enalapril 20mg, Furosemida 40mg..."
-                        className="rounded-xl border-slate-300 text-xs h-10"
+                        className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs h-10"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700">Alergias Conhecidas:</label>
+                      <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Alergias Conhecidas:</label>
                       <Input
                         value={profile.allergies}
                         onChange={(e) => setProf("allergies", e.target.value)}
                         placeholder="Ex: Nega alergias conhecidas ou alérgico a penicilina"
-                        className="rounded-xl border-slate-300 text-xs h-10"
+                        className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs h-10"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700">Anamnese / Motivo da Internação:</label>
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Anamnese / Motivo da Internação:</label>
                     <Textarea
                       value={profile.previous_anamnesis}
                       onChange={(e) => setProf("previous_anamnesis", e.target.value)}
                       placeholder="Descreva a queixa principal, evolução dos sintomas e achados da admissão..."
-                      className="rounded-xl border-slate-300 text-xs min-h-[90px]"
+                      className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs min-h-[90px]"
                     />
                   </div>
                 </div>
@@ -1082,12 +1082,12 @@ export default function CaseStudio() {
               {/* PASSO 1: SINAIS VITAIS */}
               {currentStep === 1 && (
                 <div className="space-y-5">
-                  <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900">
+                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                         Monitorização de Sinais Vitais
                       </h2>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         Ajuste os valores para calibrar o perfil hemodinâmico e ventilatório do paciente.
                       </p>
                     </div>
@@ -1162,18 +1162,18 @@ export default function CaseStudio() {
               {/* PASSO 2: ESCALA DE BRADEN */}
               {currentStep === 2 && (
                 <div className="space-y-5">
-                  <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900">
+                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                         Escala de Braden (Risco de Lesão por Pressão)
                       </h2>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         Classifique os 6 domínios fisiológicos para obter o escore preditivo de LPP.
                       </p>
                     </div>
                     <div className="text-right">
-                      <span className="text-[10px] text-slate-400 font-bold block uppercase">Escore Braden</span>
-                      <span className={`text-xl font-bold ${bradenTotal <= 12 ? "text-rose-600" : bradenTotal <= 14 ? "text-amber-600" : "text-teal-700"}`}>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-400 font-bold block uppercase">Escore Braden</span>
+                      <span className={`text-xl font-bold ${bradenTotal <= 12 ? "text-rose-600 dark:text-rose-400" : bradenTotal <= 14 ? "text-amber-600 dark:text-amber-400" : "text-teal-700 dark:text-teal-300"}`}>
                         {bradenTotal} pts ({bradenTotal <= 12 ? "Alto Risco" : bradenTotal <= 14 ? "Moderado Risco" : "Baixo Risco"})
                       </span>
                     </div>
@@ -1181,7 +1181,7 @@ export default function CaseStudio() {
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     {BRADEN_ITEMS.map((item) => (
-                      <div key={item.key} className="space-y-1 p-3 rounded-xl bg-slate-50 border border-slate-200">
+                      <div key={item.key} className="space-y-1 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
                         <VitalSlider
                           label={item.label}
                           value={data[item.key]}
@@ -1191,7 +1191,7 @@ export default function CaseStudio() {
                           onChange={(v) => setParam(item.key, v)}
                           accentColor="teal"
                         />
-                        <span className="text-[10px] text-slate-400 block pt-1">{item.desc}</span>
+                        <span className="text-[10px] text-slate-500 dark:text-slate-300 block pt-1 font-medium">{item.desc}</span>
                       </div>
                     ))}
                   </div>
@@ -1201,16 +1201,16 @@ export default function CaseStudio() {
               {/* PASSO 3: ESCALA CAM (DELIRIUM) */}
               {currentStep === 3 && (
                 <div className="space-y-4">
-                  <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900">
+                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                         Método de Avaliação de Confusão Mental (CAM)
                       </h2>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         Rastreio de Delirium no adulto hospitalizado.
                       </p>
                     </div>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${camPositive ? "bg-rose-50 text-rose-700 border-rose-200" : "bg-slate-100 text-slate-700 border-slate-200"}`}>
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${camPositive ? "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700"}`}>
                       CAM: {camPositive ? "Positivo (Delirium Provável)" : "Negativo"}
                     </span>
                   </div>
@@ -1352,12 +1352,12 @@ export default function CaseStudio() {
               {/* PASSO 6: NOTAS & VOZ AMBIENTAL */}
               {currentStep === 6 && (
                 <div className="space-y-4">
-                  <div className="border-b border-slate-100 pb-3 flex items-center justify-between">
+                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900">
+                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                         Notas da Avaliação & Captação Ambiental de Voz
                       </h2>
-                      <p className="text-xs text-slate-500">
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
                         Simulação do conceito "Caring out loud" (verbalização natural de achados à beira-leito).
                       </p>
                     </div>
@@ -1368,8 +1368,8 @@ export default function CaseStudio() {
                       onClick={toggleSpeechRecognition}
                       className={`rounded-xl text-xs gap-1.5 ${
                         isListening
-                          ? "bg-rose-50 text-rose-600 border-rose-300 animate-pulse"
-                          : "text-slate-700 border-slate-300 hover:bg-slate-50"
+                          ? "bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border-rose-300 dark:border-rose-700 animate-pulse"
+                          : "text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800"
                       }`}
                     >
                       {isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
@@ -1378,12 +1378,12 @@ export default function CaseStudio() {
                   </div>
 
                   {speechError && (
-                    <div className="p-3 rounded-xl bg-rose-50 border border-rose-200 text-xs text-rose-700 flex items-center justify-between">
+                    <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-center justify-between">
                       <span>{speechError}</span>
                       <button
                         type="button"
                         onClick={() => setSpeechError("")}
-                        className="text-rose-500 hover:text-rose-800 font-bold ml-2 text-xs"
+                        className="text-rose-500 hover:text-rose-800 dark:hover:text-rose-200 font-bold ml-2 text-xs"
                       >
                         Fechar
                       </button>
@@ -1391,13 +1391,13 @@ export default function CaseStudio() {
                   )}
 
                   {isListening && (
-                    <div className="p-3 rounded-xl bg-teal-50 border border-teal-200 text-xs text-teal-800 flex items-center gap-2 animate-pulse">
-                      <Mic className="h-4 w-4 text-teal-600 animate-bounce" />
+                    <div className="p-3 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-xs text-teal-800 dark:text-teal-200 flex items-center gap-2 animate-pulse">
+                      <Mic className="h-4 w-4 text-teal-600 dark:text-teal-400 animate-bounce" />
                       <div>
                         <span className="font-bold">Captação de voz ativa: </span>
                         <span>Fale naturalmente os achados à beira-leito...</span>
                         {interimTranscript && (
-                          <p className="mt-1 text-slate-700 italic bg-white/80 p-1.5 rounded-lg border border-teal-100">
+                          <p className="mt-1 text-slate-700 dark:text-slate-200 italic bg-white/80 dark:bg-slate-900/80 p-1.5 rounded-lg border border-teal-100 dark:border-teal-900/60">
                             "{interimTranscript}..."
                           </p>
                         )}
@@ -1406,14 +1406,14 @@ export default function CaseStudio() {
                   )}
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 block">
+                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">
                       Relato de Enfermagem & Observações da Avaliação:
                     </label>
                     <Textarea
                       value={data.notes}
                       onChange={(e) => setParam("notes", e.target.value)}
                       placeholder="Fale ou digite as observações clínicas observadas durante o atendimento..."
-                      className="rounded-xl text-xs border-slate-300 min-h-[120px]"
+                      className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-[120px]"
                     />
                   </div>
                 </div>

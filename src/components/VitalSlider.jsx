@@ -22,12 +22,12 @@ export default function VitalSlider({ label, unit, value, min, max, step = 1, on
     <div className="space-y-3">
       <div className="flex items-end justify-between">
         <div>
-          <p className="text-sm font-medium text-slate-700">{label}</p>
-          {unit && <p className="text-xs text-slate-400">{unit}</p>}
+          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{label}</p>
+          {unit && <p className="text-xs text-slate-500 dark:text-slate-300">{unit}</p>}
         </div>
         <div className="text-right">
-          <span className="text-3xl font-semibold tabular-nums text-slate-800">{safe}</span>
-          {unit && <span className="ml-1 text-sm text-slate-400">{unit}</span>}
+          <span className="text-3xl font-bold tabular-nums text-slate-900 dark:text-slate-50">{safe}</span>
+          {unit && <span className="ml-1 text-sm font-medium text-slate-500 dark:text-slate-300">{unit}</span>}
         </div>
       </div>
       <div className="flex items-center gap-3">
@@ -36,7 +36,7 @@ export default function VitalSlider({ label, unit, value, min, max, step = 1, on
           variant="outline"
           size="icon"
           onClick={dec}
-          className="h-12 w-12 shrink-0 rounded-xl border-slate-200 active:scale-95 transition"
+          className="h-12 w-12 shrink-0 rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition shadow-xs"
         >
           <Minus className="h-5 w-5" />
         </Button>
@@ -53,7 +53,7 @@ export default function VitalSlider({ label, unit, value, min, max, step = 1, on
           variant="outline"
           size="icon"
           onClick={inc}
-          className="h-12 w-12 shrink-0 rounded-xl border-slate-200 active:scale-95 transition"
+          className="h-12 w-12 shrink-0 rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-800 active:scale-95 transition shadow-xs"
         >
           <Plus className="h-5 w-5" />
         </Button>

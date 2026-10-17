@@ -192,7 +192,7 @@ export function getAssessmentTotals(data) {
 
 export function AssessmentStepNav({ step, setStep, steps = ASSESSMENT_STEPS }) {
   return (
-    <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-1">
+    <div className="mt-3 flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar">
       {steps.map((s, i) => {
         const Icon = s.icon;
         const active = i === step;
@@ -201,12 +201,12 @@ export function AssessmentStepNav({ step, setStep, steps = ASSESSMENT_STEPS }) {
           <button
             key={s.key}
             onClick={() => setStep(i)}
-            className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-medium transition ${
+            className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-1.5 text-xs font-semibold transition ${
               active
                 ? "bg-teal-600 text-white shadow-sm"
                 : done
-                ? "bg-teal-50 text-teal-700"
-                : "bg-white text-slate-500 hover:bg-slate-100"
+                ? "bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300"
+                : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 border border-slate-200 dark:border-slate-800"
             }`}
           >
             <Icon className="h-3.5 w-3.5" />
@@ -252,14 +252,14 @@ export function AssessmentStepContent({ data, set, step }) {
   if (step === 1) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-slate-500">Escala de Braden — risco de lesão por pressão.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">Escala de Braden — risco de lesão por pressão.</p>
         {BRADEN_ITEMS.map((it) => (
           <VitalSlider key={it.key} label={it.label} value={data[it.key]} min={it.min} max={it.max} step={1} onChange={(v) => set(it.key, v)} accentColor={it.color} />
         ))}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Escore Total BRADEN</p>
-          <p className="text-4xl font-semibold tabular-nums text-slate-800">{bradenTotal}</p>
-          <p className="mt-1 text-xs text-slate-400">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-center shadow-xs">
+          <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 font-bold">Escore Total BRADEN</p>
+          <p className="text-4xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{bradenTotal}</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300 font-medium">
             {bradenTotal <= 9 ? "Risco muito alto" : bradenTotal <= 12 ? "Risco alto" : bradenTotal <= 14 ? "Risco moderado" : bradenTotal <= 18 ? "Risco brando" : "Sem risco"}
           </p>
           <div className="mt-2"><SourceLink srcKey="braden" /></div>
@@ -271,7 +271,7 @@ export function AssessmentStepContent({ data, set, step }) {
   if (step === 2) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-slate-500">Confusion Assessment Method — marque os itens observados.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">Confusion Assessment Method — marque os itens observados.</p>
         {[
           { key: "cam_acute", label: "1. Início agudo ou flutuação" },
           { key: "cam_inattention", label: "2. Desatenção" },
@@ -279,16 +279,16 @@ export function AssessmentStepContent({ data, set, step }) {
           { key: "cam_altered_loc", label: "4. Nível de consciência alterado" },
         ].map((it) => (
           <button key={it.key} onClick={() => set(it.key, !data[it.key])}
-            className={`flex w-full items-center gap-3 rounded-2xl border-2 p-4 transition ${data[it.key] ? "border-teal-500 bg-teal-50" : "border-slate-200 bg-white"}`}>
-            <div className={`flex h-6 w-6 items-center justify-center rounded-md border-2 ${data[it.key] ? "border-teal-600 bg-teal-600 text-white" : "border-slate-300"}`}>
+            className={`flex w-full items-center gap-3 rounded-2xl border-2 p-4 transition ${data[it.key] ? "border-teal-500 dark:border-teal-600 bg-teal-50 dark:bg-teal-950/60" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"}`}>
+            <div className={`flex h-6 w-6 items-center justify-center rounded-md border-2 ${data[it.key] ? "border-teal-600 bg-teal-600 text-white" : "border-slate-300 dark:border-slate-700"}`}>
               {data[it.key] && <Check className="h-4 w-4" />}
             </div>
-            <span className="text-sm font-medium text-slate-700">{it.label}</span>
+            <span className="text-sm font-semibold text-slate-800 dark:text-slate-100">{it.label}</span>
           </button>
         ))}
-        <div className={`rounded-2xl border p-4 text-center ${camPositive ? "border-amber-300 bg-amber-50" : "border-emerald-200 bg-emerald-50"}`}>
-          <p className="text-xs uppercase tracking-wide text-slate-500">CAM</p>
-          <p className="text-2xl font-semibold text-slate-800">{camPositive ? "Positivo (Confusão)" : "Negativo"}</p>
+        <div className={`rounded-2xl border p-4 text-center ${camPositive ? "border-amber-300 dark:border-amber-800 bg-amber-50 dark:bg-amber-950/60" : "border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/60"}`}>
+          <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 font-bold">CAM</p>
+          <p className="text-2xl font-bold text-slate-900 dark:text-slate-100">{camPositive ? "Positivo (Confusão)" : "Negativo"}</p>
           <div className="mt-2"><SourceLink srcKey="cam" /></div>
         </div>
       </div>
@@ -298,14 +298,14 @@ export function AssessmentStepContent({ data, set, step }) {
   if (step === 3) {
     return (
       <div className="space-y-4">
-        <p className="text-sm text-slate-500">AUDIT (OMS) — cada item de 0 a 4.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">AUDIT (OMS) — cada item de 0 a 4.</p>
         {AUDIT_ITEMS.map((it) => (
           <VitalSlider key={it.key} label={it.label} value={data[it.key]} min={0} max={4} step={1} onChange={(v) => set(it.key, v)} accentColor="violet" />
         ))}
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Escore Total AUDIT</p>
-          <p className="text-4xl font-semibold tabular-nums text-slate-800">{auditTotal}</p>
-          <p className="mt-1 text-xs text-slate-400">{auditTotal >= 20 ? "Provável dependência" : auditTotal >= 8 ? "Consumo de risco" : "Baixo risco"}</p>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-center shadow-xs">
+          <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 font-bold">Escore Total AUDIT</p>
+          <p className="text-4xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{auditTotal}</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300 font-medium">{auditTotal >= 20 ? "Provável dependência" : auditTotal >= 8 ? "Consumo de risco" : "Baixo risco"}</p>
           <div className="mt-2"><SourceLink srcKey="audit" /></div>
         </div>
       </div>
@@ -315,22 +315,22 @@ export function AssessmentStepContent({ data, set, step }) {
   if (step === 4) {
     return (
       <div className="space-y-3">
-        <p className="text-sm text-slate-500">Escala SAK (Severo-Almeida-Kuchenbecker) — marque os fatores presentes.</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">Escala SAK (Severo-Almeida-Kuchenbecker) — marque os fatores presentes.</p>
         {SAK_ITEMS.map((it) => (
           <button key={it.key} onClick={() => set(it.key, !data[it.key])}
-            className={`flex w-full items-center gap-3 rounded-2xl border-2 p-4 transition ${data[it.key] ? "border-amber-500 bg-amber-50" : "border-slate-200 bg-white"}`}>
-            <div className={`flex h-6 w-6 items-center justify-center rounded-md border-2 ${data[it.key] ? "border-amber-600 bg-amber-600 text-white" : "border-slate-300"}`}>
+            className={`flex w-full items-center gap-3 rounded-2xl border-2 p-4 transition ${data[it.key] ? "border-amber-500 dark:border-amber-600 bg-amber-50 dark:bg-amber-950/60" : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900"}`}>
+            <div className={`flex h-6 w-6 items-center justify-center rounded-md border-2 ${data[it.key] ? "border-amber-600 bg-amber-600 text-white" : "border-slate-300 dark:border-slate-700"}`}>
               {data[it.key] && <Check className="h-4 w-4" />}
             </div>
-            <span className="flex-1 text-sm font-medium text-slate-700">{it.label}</span>
-            <span className="shrink-0 rounded-full bg-slate-100 px-2 py-0.5 text-xs font-semibold text-slate-500">{it.points} pts</span>
+            <span className="flex-1 text-sm font-semibold text-slate-800 dark:text-slate-100 text-left">{it.label}</span>
+            <span className="shrink-0 rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-xs font-semibold text-slate-600 dark:text-slate-300">{it.points} pts</span>
           </button>
         ))}
         <VitalSlider label="Nº de medicamentos administrados (últimas 24h)" value={data.sak_meds} min={0} max={15} step={1} onChange={(v) => set("sak_meds", v)} accentColor="amber" />
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Escore de Risco SAK</p>
-          <p className="text-4xl font-semibold tabular-nums text-slate-800">{sakTotal}</p>
-          <p className="mt-1 text-xs text-slate-400">{sakTotal >= 10.5 ? "Alto risco" : sakTotal >= 6.5 ? "Risco moderado" : "Baixo risco"}</p>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-center shadow-xs">
+          <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 font-bold">Escore de Risco SAK</p>
+          <p className="text-4xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{sakTotal}</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300 font-medium">{sakTotal >= 10.5 ? "Alto risco" : sakTotal >= 6.5 ? "Risco moderado" : "Baixo risco"}</p>
           <div className="mt-2"><SourceLink srcKey="sak" /></div>
         </div>
       </div>
@@ -340,17 +340,17 @@ export function AssessmentStepContent({ data, set, step }) {
   if (step === 5) {
     return (
       <div className="space-y-5">
-        <p className="text-sm text-slate-500">CALOI — escala de dor (intensidade, localização e características).</p>
+        <p className="text-sm text-slate-600 dark:text-slate-300 font-medium">CALOI — escala de dor (intensidade, localização e características).</p>
         <VitalSlider label="Intensidade da Dor" unit="/10" value={data.caloi_pain_intensity} min={0} max={10} step={1} onChange={(v) => set("caloi_pain_intensity", v)} accentColor="rose" />
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-sm font-medium text-slate-700">Localização da Dor</p>
-          <p className="mt-0.5 text-xs text-slate-400">Selecione todos os locais aplicáveis</p>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
+          <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Localização da Dor</p>
+          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">Selecione todos os locais aplicáveis</p>
           <div className="mt-2">
             <PainLocationPicker value={data.caloi_pain_location || []} onChange={(locs) => set("caloi_pain_location", locs)} />
           </div>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4">
-          <p className="text-sm font-medium text-slate-700">Características da Dor</p>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
+          <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Características da Dor</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {CALOI_PAIN_CHARS.map((c) => {
               const active = (data.caloi_pain_characteristics || []).includes(c);
@@ -359,17 +359,17 @@ export function AssessmentStepContent({ data, set, step }) {
                   const cur = data.caloi_pain_characteristics || [];
                   set("caloi_pain_characteristics", active ? cur.filter((x) => x !== c) : [...cur, c]);
                 }}
-                  className={`rounded-full border-2 px-3 py-1.5 text-xs font-medium transition ${active ? "border-rose-500 bg-rose-50 text-rose-700" : "border-slate-200 text-slate-500"}`}>
+                  className={`rounded-full border-2 px-3 py-1.5 text-xs font-semibold transition ${active ? "border-rose-500 dark:border-rose-600 bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-200" : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600"}`}>
                   {c}
                 </button>
               );
             })}
           </div>
         </div>
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 text-center">
-          <p className="text-xs uppercase tracking-wide text-slate-500">Escore de Dor CALOI</p>
-          <p className="text-4xl font-semibold tabular-nums text-slate-800">{caloiTotal}/10</p>
-          <p className="mt-1 text-xs text-slate-400">{caloiTotal >= 7 ? "Dor severa" : caloiTotal >= 4 ? "Dor moderada" : caloiTotal > 0 ? "Dor leve" : "Sem dor"}</p>
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-center shadow-xs">
+          <p className="text-xs uppercase tracking-wide text-slate-500 dark:text-slate-400 font-bold">Escore de Dor CALOI</p>
+          <p className="text-4xl font-bold tabular-nums text-slate-900 dark:text-slate-100">{caloiTotal}/10</p>
+          <p className="mt-1 text-xs text-slate-500 dark:text-slate-300 font-medium">{caloiTotal >= 7 ? "Dor severa" : caloiTotal >= 4 ? "Dor moderada" : caloiTotal > 0 ? "Dor leve" : "Sem dor"}</p>
         </div>
       </div>
     );
@@ -379,16 +379,16 @@ export function AssessmentStepContent({ data, set, step }) {
     return (
       <div className="space-y-4">
         <div>
-          <h3 className="text-sm font-semibold text-slate-800">Relato Clínico, Ferimentos e Observações</h3>
-          <p className="mt-1 text-xs text-slate-500 leading-relaxed">
+          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100">Relato Clínico, Ferimentos e Observações</h3>
+          <p className="mt-1 text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
             Descreva aqui detalhes cruciais como mecanismo de lesão (ex: PAF/tiro nas costas, arma branca, trauma), uso de substâncias químicas/drogas, queixas álgicas, curativos ou histórico cirúrgico. A IA usará todo esse relato para formular diagnósticos completos.
           </p>
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-white p-4 space-y-3 shadow-sm">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold uppercase tracking-wide text-slate-500 flex items-center gap-1.5">
-              <FileText className="h-3.5 w-3.5 text-teal-600" />
+            <label className="text-xs font-semibold uppercase tracking-wide text-slate-600 dark:text-slate-300 flex items-center gap-1.5">
+              <FileText className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
               Observações Clínicas à Beira-Leito
             </label>
             <VoiceNotesButton onText={(t) => set("notes", (data.notes ? data.notes + " " : "") + t)} />
@@ -398,39 +398,39 @@ export function AssessmentStepContent({ data, set, step }) {
             value={data.notes || ""}
             onChange={(e) => set("notes", e.target.value)}
             rows={5}
-            className="w-full text-sm rounded-xl border border-slate-200 p-3.5 focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-slate-800 leading-relaxed"
+            className="w-full text-sm rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-950 p-3.5 focus:outline-none focus:ring-2 focus:ring-teal-500/20 text-slate-800 dark:text-slate-100 leading-relaxed"
             placeholder="Ex: Paciente vítima de ferimento por arma de fogo (tiro na região dorsal/lombar), sangramento contido com curativo compressivo. Histórico de dependência química (usuário de drogas). Refere dor intensa ao movimento..."
           />
         </div>
 
-        <div className="rounded-2xl border border-slate-200 bg-slate-50/80 p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-slate-600 mb-2.5">
+        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50/80 dark:bg-slate-900/60 p-4">
+          <p className="text-xs font-semibold uppercase tracking-wide text-slate-700 dark:text-slate-200 mb-2.5">
             Resumo Consolidado dos Parâmetros das Escalas
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">
-            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-slate-400 block text-[11px]">Sinais Vitais</span>
-              <span className="font-semibold text-slate-700">PA {data.pa_sistolica}/{data.pa_diastolica} · FC {data.fc}</span>
+            <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+              <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-medium">Sinais Vitais</span>
+              <span className="font-bold text-slate-800 dark:text-slate-100">PA {data.pa_sistolica}/{data.pa_diastolica} · FC {data.fc}</span>
             </div>
-            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-slate-400 block text-[11px]">BRADEN</span>
-              <span className="font-semibold text-slate-700">{bradenTotal} pts</span>
+            <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+              <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-medium">BRADEN</span>
+              <span className="font-bold text-slate-800 dark:text-slate-100">{bradenTotal} pts</span>
             </div>
-            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-slate-400 block text-[11px]">SAK (Quedas)</span>
-              <span className="font-semibold text-slate-700">{sakTotal} pts</span>
+            <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+              <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-medium">SAK (Quedas)</span>
+              <span className="font-bold text-slate-800 dark:text-slate-100">{sakTotal} pts</span>
             </div>
-            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-slate-400 block text-[11px]">CAM (Delirium)</span>
-              <span className="font-semibold text-slate-700">{camPositive ? "Positivo" : "Negativo"}</span>
+            <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+              <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-medium">CAM (Delirium)</span>
+              <span className="font-bold text-slate-800 dark:text-slate-100">{camPositive ? "Positivo" : "Negativo"}</span>
             </div>
-            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-slate-400 block text-[11px]">AUDIT (Álcool)</span>
-              <span className="font-semibold text-slate-700">{auditTotal} pts</span>
+            <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+              <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-medium">AUDIT (Álcool)</span>
+              <span className="font-bold text-slate-800 dark:text-slate-100">{auditTotal} pts</span>
             </div>
-            <div className="bg-white p-2.5 rounded-xl border border-slate-200 shadow-2xs">
-              <span className="text-slate-400 block text-[11px]">CALOI (Dor)</span>
-              <span className="font-semibold text-slate-700">{caloiTotal}/10</span>
+            <div className="bg-white dark:bg-slate-900 p-2.5 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
+              <span className="text-slate-500 dark:text-slate-400 block text-[11px] font-medium">CALOI (Dor)</span>
+              <span className="font-bold text-slate-800 dark:text-slate-100">{caloiTotal}/10</span>
             </div>
           </div>
         </div>
