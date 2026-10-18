@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+      <defs>
+        <linearGradient id="bgAsp" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#0f172a"/>
+          <stop offset="100%" stop-color="#1e293b"/>
+        </linearGradient>
+      </defs>
+      <rect width="640" height="360" fill="url(#bgAsp)"/>
+      <circle cx="320" cy="180" r="130" fill="#38bdf8" fill-opacity="0.14"/>
+      <path d="M140 180 Q 320 110, 500 180" stroke="#38bdf8" stroke-width="10" stroke-dasharray="14 10" fill="none"/>
+      <rect x="30" y="30" width="220" height="34" rx="17" fill="#0284c7" fill-opacity="0.6" stroke="#38bdf8" stroke-width="1.5"/>
+      <text x="50" y="52" fill="#bae6fd" font-family="sans-serif" font-size="13" font-weight="bold">VIAS AÉREAS • UTI &amp; EMERGÊNCIA</text>
+      <text x="30" y="315" fill="#f8fafc" font-family="sans-serif" font-size="22" font-weight="900">Aspiração de Vias Aéreas (TOT/TQT)</text>
+      <text x="30" y="340" fill="#94a3b8" font-family="sans-serif" font-size="14" font-weight="500">Técnica asséptica de aspiração endotraqueal segura</text>
+    </svg>

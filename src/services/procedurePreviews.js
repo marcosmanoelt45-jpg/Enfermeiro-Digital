@@ -248,7 +248,21 @@ export const PROCEDURE_PREVIEWS = {
 
 /**
  * Retorna a miniatura visual padrão de um procedimento por id.
+ * Prioriza arquivos SVG servidos estaticamente de /previews/ para renderização instantânea
+ * sem problemas de escape de caracteres em data URI.
  */
 export function getProcedurePreview(procedureId) {
+  if (procedureId && [
+    'rcp-suporte-basico-vida',
+    'sondagem-vesical-demora',
+    'puncao-venosa',
+    'sondagem-nasogastrica-nasoenteral',
+    'injecao-intramuscular-z',
+    'aspiracao-vias-aereas',
+    'curativo-lesao-pressao'
+  ].includes(procedureId)) {
+    return `/previews/${procedureId}.svg`;
+  }
   return PROCEDURE_PREVIEWS[procedureId] || null;
 }
+

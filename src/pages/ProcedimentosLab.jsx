@@ -13,6 +13,7 @@ import StudentFooter from '@/components/StudentFooter';
 import GotiMascot from '@/components/mascot/GotiMascot';
 import { useTheme } from '@/lib/ThemeContext';
 import { procedureService } from '@/services/procedureService';
+import { getProcedurePreview } from '@/services/procedurePreviews';
 
 // Componentes modulares
 import EnfereClinicalPlayer from '@/components/procedures/EnfereClinicalPlayer';
@@ -148,7 +149,7 @@ export default function ProcedimentosLab() {
                 </div>
 
                 <div className="shrink-0 flex items-center justify-center">
-                  <GotiMascot size={130} state="happy" message="Foco na técnica asséptica e segurança do paciente!" interactive={true} />
+                  <GotiMascot size={165} state="speaking" message="Foco na técnica asséptica e segurança do paciente!" interactive={true} />
                 </div>
               </div>
             </div>
@@ -216,6 +217,7 @@ export default function ProcedimentosLab() {
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filtered.map((proc) => {
+                  const previewSrc = getProcedurePreview(proc.id) || proc.previewImage || `/previews/${proc.id}.svg`;
                   return (
                     <div
                       key={proc.id}
@@ -226,18 +228,21 @@ export default function ProcedimentosLab() {
                       className="group rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs hover:border-teal-400 dark:hover:border-teal-500 hover-lift tap-press transition-all cursor-pointer flex flex-col justify-between"
                     >
                       <div>
-                        {/* Thumbnail Exclusiva do Procedimento (Ilustração Médica Vetorial) */}
+                        {/* Thumbnail Exclusiva do Procedimento (Ilustração Médica Vetorial em Alta Resolução) */}
                         <div className="relative aspect-video w-full rounded-2xl bg-slate-950 overflow-hidden mb-3.5 flex items-center justify-center group-hover:scale-[1.01] transition-transform">
-                          {proc.previewImage ? (
-                            <img
-                              src={proc.previewImage}
-                              alt={proc.title}
-                              className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
-                            />
-                          ) : (
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-teal-950/40 to-transparent" />
-                          )}
-                          <div className="absolute inset-0 bg-slate-950/30 group-hover:bg-slate-950/10 transition-colors" />
+                          <img
+                            src={previewSrc}
+                            alt={proc.title}
+                            loading="lazy"
+                            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-300"
+                            onError={(e) => {
+                              if (!e.currentTarget.dataset.retried) {
+                                e.currentTarget.dataset.retried = 'true';
+                                e.currentTarget.src = `/previews/${proc.id}.svg`;
+                              }
+                            }}
+                          />
+                          <div className="absolute inset-0 bg-slate-950/25 group-hover:bg-slate-950/10 transition-colors pointer-events-none" />
 
                           <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/90 text-slate-950 shadow-lg group-hover:scale-110 transition-transform">
                             <Play className="h-5 w-5 fill-slate-950 ml-0.5" />

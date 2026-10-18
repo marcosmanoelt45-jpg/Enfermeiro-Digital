@@ -25,6 +25,7 @@ import HeroCourseCard from "@/components/mobile/HeroCourseCard";
 import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
 import ClinicalModuleCard from "@/components/mobile/ClinicalModuleCard";
 import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
+import GotiMascot from "@/components/mascot/GotiMascot";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -214,44 +215,57 @@ export default function StudentDashboard() {
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 py-4 sm:py-8 space-y-5">
 
-        {/* Banner Hero no Desktop (md:block) */}
-        <div className="hidden md:block rounded-3xl border border-emerald-100 dark:border-slate-800 bg-gradient-to-r from-emerald-800 via-emerald-700 to-teal-800 dark:from-emerald-950 dark:via-emerald-900 dark:to-slate-900 p-8 shadow-sm text-white">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div className="space-y-2 max-w-2xl">
-              <span className="text-xs font-bold text-emerald-200 uppercase tracking-wider block">
+        {/* Banner Hero no Desktop (md:block) com Preceptor Goti 3D */}
+        <div className="hidden md:block rounded-3xl border border-emerald-100/40 dark:border-slate-800 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-8 shadow-xl text-white relative overflow-hidden">
+          {/* Luz difusa de fundo */}
+          <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
+            <div className="space-y-3 max-w-xl">
+              <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">
                 {heroCardConfig.desktopSub}
               </span>
-              <h1 className="text-3xl font-bold tracking-tight text-white">
+              <h1 className="text-3xl font-black tracking-tight text-white leading-tight">
                 {isProfessor
                   ? (greetingName ? `Olá professor, ${greetingName}. Pronto para gerenciar suas turmas hoje?` : "Olá professor. Pronto para gerenciar suas turmas hoje?")
                   : (greetingName ? `Olá aluno, ${greetingName}. Pronto para a prática clínica hoje?` : "Olá aluno. Pronto para a prática clínica hoje?")}
               </h1>
-              <p className="text-sm text-emerald-100/90 leading-relaxed">
+              <p className="text-sm text-teal-100/90 leading-relaxed">
                 {heroCardConfig.desktopDesc}
               </p>
+
+              <div className="flex flex-wrap gap-2.5 pt-2">
+                <Button
+                  onClick={() => navigate("/montar-caso")}
+                  className="rounded-full bg-white text-emerald-900 hover:bg-emerald-50 font-black text-sm px-5 h-11 shadow-md flex items-center gap-2 tap-press"
+                >
+                  <PlusCircle className="h-4 w-4 text-emerald-700" /> Montar Meu Caso
+                </Button>
+                <Button
+                  onClick={() => navigate("/montar-caso?mode=audio")}
+                  variant="outline"
+                  className="rounded-full border-teal-400/50 bg-teal-950/40 text-white hover:bg-teal-900/60 font-semibold text-sm px-4 h-11 flex items-center gap-2 tap-press"
+                >
+                  <Mic className="h-4 w-4 text-teal-300" /> Áudio
+                </Button>
+                <Button
+                  onClick={() => navigate(heroCardConfig.actionTo)}
+                  variant="outline"
+                  className="rounded-full border-white/20 text-white hover:bg-white/10 font-semibold text-sm px-4 h-11 flex items-center gap-2 tap-press"
+                >
+                  <BookOpen className="h-4 w-4" /> {heroCardConfig.actionText}
+                </Button>
+              </div>
             </div>
 
-            <div className="flex flex-wrap sm:flex-nowrap gap-2.5 shrink-0">
-              <Button
-                onClick={() => navigate("/montar-caso")}
-                className="rounded-full bg-white text-emerald-800 hover:bg-emerald-50 font-bold text-sm px-5 h-11 shadow-md flex items-center gap-2"
-              >
-                <PlusCircle className="h-4 w-4 text-emerald-700" /> Montar Meu Caso
-              </Button>
-              <Button
-                onClick={() => navigate("/montar-caso?mode=audio")}
-                variant="outline"
-                className="rounded-full border-emerald-400/60 bg-emerald-900/30 text-white hover:bg-emerald-900/50 font-semibold text-sm px-4 h-11 flex items-center gap-2"
-              >
-                <Mic className="h-4 w-4 text-emerald-300" /> Áudio
-              </Button>
-              <Button
-                onClick={() => navigate(heroCardConfig.actionTo)}
-                variant="outline"
-                className="rounded-full border-white/30 text-white hover:bg-white/10 font-semibold text-sm px-4 h-11 flex items-center gap-2"
-              >
-                <BookOpen className="h-4 w-4" /> {heroCardConfig.actionText}
-              </Button>
+            {/* Goti 3D Preceptor Clínico */}
+            <div className="shrink-0 flex items-center justify-center">
+              <GotiMascot
+                size={160}
+                state="speaking"
+                message="Segurança do paciente em 1º lugar! Qual habilidade vamos praticar hoje?"
+                interactive={true}
+              />
             </div>
           </div>
         </div>

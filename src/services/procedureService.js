@@ -109,11 +109,11 @@ export const MASTER_PROCEDURES = [
     difficulty: 'Fundamental',
     levelBadge: 'Iniciante ao Avançado',
     institutionalBadge: 'Escola de Enfermagem UFRGS & Diretrizes COFEN',
-    cofenNorm: 'Resolução COFEN nº 736/2024 e Diretrizes de Terapia Infusional INS Brasil',
-    officialGuideUrl: 'https://videos.ufrgs.br',
-    sourceUrl: 'https://www.youtube.com/watch?v=p80bpqyOyEc',
-    videoUrl: 'https://www.youtube.com/embed/p80bpqyOyEc', // Aula prática horizontal 16:9
-    videoSource: 'Escola de Enfermagem UFRGS (SEAD) · Prof. Emerson Marques',
+    officialGuideUrl: 'https://videos.ufrgs.br/sead/napead/puncao-venosa-periferica-com-cateter/view',
+    sourceUrl: 'https://videos.ufrgs.br/sead/napead/puncao-venosa-periferica-com-cateter/view',
+    videoUrl: 'http://videos-transcoder.ufrgs.br:8888/transcoded/https/videos.ufrgs.br/sead/napead/puncao-venosa-periferica-com-cateter/video_file/mp4-high/puncao-venosa-periferica-com-cateter-mp4.mp4', // Vídeo Oficial MP4 UFRGS em alta definição
+    videoSource: 'Escola de Enfermagem UFRGS (SEAD / NAPEAD) · Demonstração Oficial em Manequim',
+    mediaType: 'mp4',
     previewImage: getProcedurePreview('puncao-venosa'),
     description: 'Técnica asséptica de cateterização venosa periférica para infusão de fármacos, hidratação venosa e hemocomponentes, com escolha correta de calibre e prevenção de flebite.',
     materials: [
@@ -192,9 +192,9 @@ export const MASTER_PROCEDURES = [
     institutionalBadge: 'Farmacologia & Enfermagem Baseada em Evidências',
     cofenNorm: 'Pareceres COFEN sobre vias de administração, delimitação de sítios e volumes máximos',
     officialGuideUrl: 'https://cofen.gov.br',
-    sourceUrl: 'https://www.youtube.com/watch?v=QdMri9FJktg',
-    videoUrl: 'https://www.youtube.com/embed/QdMri9FJktg', // Aula completa horizontal 16:9 (sem shorts)
-    videoSource: 'Laboratório de Semiotécnica & Farmacologia Prática',
+    sourceUrl: 'https://www.youtube.com/watch?v=M3c-itxeI3M',
+    videoUrl: 'https://www.youtube.com/embed/M3c-itxeI3M', // Aula prática horizontal 16:9 de Técnica em Z
+    videoSource: 'Professor Emerson Marques · Aula Prática e Demonstração da Técnica em Z',
     previewImage: getProcedurePreview('injecao-intramuscular-z'),
     description: 'Escolha correta dos sítios de aplicação (ventroglúteo de Hochstetter, vasto lateral da coxa e deltoide), limites de volume e técnica em Z para vedação do trajeto medicamentoso.',
     materials: [

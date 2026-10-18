@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+      <defs>
+        <linearGradient id="bgIm" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#451a03"/>
+          <stop offset="100%" stop-color="#0f172a"/>
+        </linearGradient>
+      </defs>
+      <rect width="640" height="360" fill="url(#bgIm)"/>
+      <circle cx="320" cy="180" r="130" fill="#f97316" fill-opacity="0.14"/>
+      <path d="M220 130 L420 130 L220 230 L420 230" stroke="#fb923c" stroke-width="12" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
+      <line x1="320" y1="60" x2="320" y2="150" stroke="#f8fafc" stroke-width="5" stroke-linecap="round"/>
+      <rect x="30" y="30" width="230" height="34" rx="17" fill="#9a3412" fill-opacity="0.6" stroke="#fb923c" stroke-width="1.5"/>
+      <text x="50" y="52" fill="#fdba74" font-family="sans-serif" font-size="13" font-weight="bold">TÉCNICA EM Z • INTRAMUSCULAR</text>
+      <text x="30" y="315" fill="#f8fafc" font-family="sans-serif" font-size="22" font-weight="900">Injeção Intramuscular (Técnica em Z)</text>
+      <text x="30" y="340" fill="#94a3b8" font-family="sans-serif" font-size="14" font-weight="500">Tração cutânea em Z, angulação a 90° e vedação da droga</text>
+    </svg>

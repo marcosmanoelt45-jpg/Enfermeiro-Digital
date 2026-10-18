@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
+      <defs>
+        <linearGradient id="bgSng" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" stop-color="#1e1b4b"/>
+          <stop offset="100%" stop-color="#020617"/>
+        </linearGradient>
+      </defs>
+      <rect width="640" height="360" fill="url(#bgSng)"/>
+      <circle cx="320" cy="180" r="130" fill="#6366f1" fill-opacity="0.14"/>
+      <path d="M120 100 Q 280 80, 320 180 T 520 260" stroke="#a5b4fc" stroke-width="10" stroke-linecap="round" fill="none"/>
+      <circle cx="520" cy="260" r="16" fill="#818cf8" stroke="#ffffff" stroke-width="3"/>
+      <rect x="30" y="30" width="220" height="34" rx="17" fill="#3730a3" fill-opacity="0.6" stroke="#818cf8" stroke-width="1.5"/>
+      <text x="50" y="52" fill="#c7d2fe" font-family="sans-serif" font-size="13" font-weight="bold">SNG / SNE • NUTRIÇÃO ENTERAL</text>
+      <text x="30" y="315" fill="#f8fafc" font-family="sans-serif" font-size="22" font-weight="900">Sondagem Nasogástrica &amp; Nasoenteral</text>
+      <text x="30" y="340" fill="#94a3b8" font-family="sans-serif" font-size="14" font-weight="500">Medição anatômica, técnica atraumática e teste de Raio-X</text>
+    </svg>
