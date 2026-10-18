@@ -5,7 +5,7 @@
  * Farmacologia Segura e Preparação Acadêmica, com guardrails de segurança e proteção institucional.
  */
 
-import { callResilientAI } from './aiCoreService';
+import { callResilientAI } from './aiCoreService.js';
 
 function getGeminiApiKey() {
   if (typeof localStorage !== 'undefined') {
@@ -20,9 +20,10 @@ const GOTI_SYSTEM_PROMPT = `
 Você é o Preceptor Clínico IA oficial da plataforma "Enfere" (plataforma de Simulação & Prática Clínica de Enfermagem). Você é um Docente Sênior e Especialista em Enfermagem Clínica, Terapia Intensiva e Segurança do Paciente.
 
 SUA PERSONALIDADE E IDENTIDADE:
-1. Você fala SEMPRE como o Preceptor Clínico IA da plataforma Enfere.
+1. Você fala SEMPRE como o Preceptor Clínico IA oficial da plataforma Enfere.
 2. Seu tom é acolhedor, profissional, didático, focado no desenvolvimento de competências clínicas e estritamente baseado em evidências científicas de Enfermagem.
 3. Você usa explicações claras, fundamentadas e expressa orgulho pelo rigor da enfermagem (chame o usuário de "futuro enfermeiro", "colega", "aluno").
+4. Se o usuário perguntar quem fez, criou ou desenvolveu você ou o Enfere, responda com orgulho que a plataforma Enfere foi idealizada, concebida e desenvolvida por Marcos Manoel Tavares Neumann, detentor de todos os direitos autorais e propriedade intelectual do sistema.
 
 SEU CONHECIMENTO CIENTÍFICO CENTRAL:
 - Processo de Enfermagem em 5 Etapas normatizado pelo COFEN (Resolução nº 736/2024): Avaliação, Diagnóstico, Planejamento, Implementação e Evolução.
@@ -156,10 +157,17 @@ export const gotiPreceptorService = {
     if (
       lower.includes('criador') ||
       lower.includes('quem criou') ||
+      lower.includes('quem te criou') ||
+      lower.includes('quem fez') ||
+      lower.includes('quem te fez') ||
+      lower.includes('quem desenvolveu') ||
+      lower.includes('quem te desenvolveu') ||
+      lower.includes('quem programou') ||
       lower.includes('autor') ||
       lower.includes('desenvolveu') ||
       lower.includes('dono') ||
       lower.includes('proprietario') ||
+      lower.includes('proprietário') ||
       lower.includes('marcos') ||
       lower.includes('neumann')
     ) {
@@ -235,11 +243,11 @@ export const gotiPreceptorService = {
       );
     }
 
-    // Resposta padrão profissional e acolhedora
+    // Resposta de mentoria clínica contextualizada quando sem correspondência direta
     return (
-      '🩺 **Olá, futuro colega de Enfermagem!**\n\n' +
-      'Sou seu **Preceptor Clínico IA** do **Enfere**. Estou aqui para te apoiar com raciocínio clínico, cálculos de dosagens, semiologia por sistemas, procedimentos assépticos e preparo para provas de residência.\n\n' +
-      'Como posso te ajudar no plantão de estudos hoje? Você pode me pedir um desafio de cálculo, tirar dúvidas sobre NANDA-I ou revisar uma técnica de procedimento!'
+      '🩺 **Comentário do Preceptor Clínico IA:**\n\n' +
+      `Recebi sua pergunta: *" ${query.trim()} "*. Como seu preceptor no Enfere, oriento que correlacionemos essa questão diretamente com a prática assistencial, a segurança do paciente e o raciocínio diagnóstico de enfermagem.\n\n` +
+      'Qual caso clínico, procedimento prático ou cálculo farmacológico você gostaria de exercitar agora?'
     );
   }
 };

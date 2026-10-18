@@ -24,7 +24,10 @@ import {
   ListChecks,
   AudioLines,
   Download,
-  ArrowRightLeft
+  ArrowRightLeft,
+  History,
+  Clock,
+  BookmarkPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -49,6 +52,8 @@ import {
 } from "@/lib/riskEngine";
 import { generateRandomInitials, generateRandomAge, formatToInitials } from "@/lib/sampleNames";
 import { generateCaseDiagnosticChallenge } from "@/services/diagnosticChallengeService";
+import CaseHistoryModal from "@/components/history/CaseHistoryModal";
+import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 
 const WIZARD_STEPS = [
   { key: "profile", label: "1. Perfil & Anamnese", icon: UserRound },
@@ -57,7 +62,8 @@ const WIZARD_STEPS = [
   { key: "cam", label: "4. Escala CAM", icon: BrainCircuit },
   { key: "sak_audit", label: "5. Quedas & Álcool", icon: Footprints },
   { key: "caloi", label: "6. Dor & Localização", icon: Activity },
-  { key: "notes", label: "7. Notas & Voz (Ambiental)", icon: FileText },
+  { key: "notes", label: "7. Notas & Voz", icon: FileText },
+  { key: "confirm", label: "8. Confirmar Envio", icon: CheckCircle2 },
 ];
 
 const BRADEN_ITEMS = [
@@ -261,15 +267,15 @@ export default function CaseStudio() {
 
   // Estado do Perfil e Anamnese (LGPD: Anonimizado estritamente com iniciais)
   const [profile, setProfile] = useState({
-    initials: "J.S.F.",
-    name: "J.S.F.",
-    age: "68",
+    initials: "",
+    name: "",
+    age: "",
     gender: "M",
-    previous_diseases: "Hipertensão Arterial Sistêmica, Insuficiência Cardíaca congestiva CF II.",
-    medical_history: "Internação anterior por descompensação volêmica há 6 meses. Tabagista prévio cessado há 10 anos.",
-    current_medications: "Enalapril 20mg 12/12h, Furosemida 40mg/dia, Carvedilol 12.5mg 12/12h.",
-    allergies: "Nega alergias medicamentosas ou alimentares.",
-    previous_anamnesis: "Admitido na enfermaria com queixa de dispneia progressiva aos médios esforços há 4 dias, associada a tosse seca e edema progressivo de membros inferiores. Refere ortopneia.",
+    previous_diseases: "",
+    medical_history: "",
+    current_medications: "",
+    allergies: "",
+    previous_anamnesis: "",
     notes: ""
   });
 
@@ -302,7 +308,7 @@ export default function CaseStudio() {
     caloi_pain_intensity: 4,
     caloi_pain_location: ["Tórax"],
     caloi_pain_characteristics: ["Em peso", "Pressão"],
-    notes: "Paciente lúcido, comunicativo, adotando posição de ortopneia no leito."
+    notes: ""
   });
 
   // Estados da Bateria de Desafios Clínicos de Alta Complexidade
@@ -312,6 +318,97 @@ export default function CaseStudio() {
   const [userAnswers, setUserAnswers] = useState({}); // { [questionIdx]: optionId }
   const [submittedQuestions, setSubmittedQuestions] = useState({}); // { [questionIdx]: boolean }
   const [revealedTips, setRevealedTips] = useState({}); // { [questionIdx]: boolean }
+
+  // Estados de Histórico & Cronômetro de Atividade
+  const [currentActivityId, setCurrentActivityId] = useState(null);
+  const [activitySeconds, setActivitySeconds] = useState(0);
+  const [isHistoryModalOpen, setIsHistoryModalOpen] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+
+  React.useEffect(() => {
+    let interval = null;
+    if (viewMode === "builder" || viewMode === "audio") {
+      interval = setInterval(() => {
+        setActivitySeconds((s) => s + 1);
+      }, 1000);
+    }
+    return () => {
+      if (interval) clearInterval(interval);
+    };
+  }, [viewMode]);
+
+  function handleSaveDraft() {
+    const patientDisplay = profile.initials ? `${profile.initials} (${profile.age ? profile.age + "a" : "?"})` : "Paciente em Anamnese";
+    const progress = Math.round(((currentStep + 1) / WIZARD_STEPS.length) * 100);
+    const draft = clinicalHistoryService.saveDraft({
+      id: currentActivityId,
+      moduleType: MODULE_TYPES.CASE_BUILDER,
+      title: `Caso Clínico: ${profile.initials || "Sem Iniciais"}`,
+      patientInfo: `${patientDisplay} • ${(profile.previous_anamnesis || profile.notes || "Em elaboração").substring(0, 45)}...`,
+      progress,
+      durationSeconds: activitySeconds,
+      step: currentStep,
+      formData: { profile, data, viewMode }
+    });
+    setCurrentActivityId(draft.id);
+    alert("Rascunho salvo com sucesso! Você pode retomar este caso a qualquer momento no menu de Histórico.");
+  }
+
+  function handleConfirmSubmission() {
+    const patientDisplay = profile.initials ? `${profile.initials} (${profile.age ? profile.age + "a" : "?"})` : "Paciente Cadastrado";
+    const bradenScore = computeBradenTotal({
+      perception: data.braden_perception,
+      moisture: data.braden_moisture,
+      activity: data.braden_activity,
+      mobility: data.braden_mobility,
+      nutrition: data.braden_nutrition,
+      friction: data.braden_friction,
+    });
+    const bradenRisk = computeGlobalRisk(data).bradenRisk;
+    const sakScore = computeSakTotal(data);
+    const camPos = computeCamPositive({
+      acute: data.cam_acute,
+      inattention: data.cam_inattention,
+      disorganized: data.cam_disorganized,
+      altered_loc: data.cam_altered_loc,
+    });
+
+    const evaluation = {
+      bradenScore,
+      bradenRisk: bradenRisk?.label || "Avaliado",
+      sakScore,
+      camPositive: camPos,
+      painScore: data.caloi_pain_intensity,
+      summary: `Avaliação do paciente ${patientDisplay} concluída e assinada. Braden: ${bradenScore} (${bradenRisk?.label || "Avaliado"}), Risco Quedas SAK: ${sakScore} pts, Dor: ${data.caloi_pain_intensity}/10.`
+    };
+
+    const item = clinicalHistoryService.submitActivity({
+      id: currentActivityId,
+      moduleType: MODULE_TYPES.CASE_BUILDER,
+      title: `Caso Clínico: ${profile.initials || "Anônimo"}`,
+      patientInfo: `${patientDisplay} • Sexo: ${profile.gender === "M" ? "Masculino" : "Feminino"}`,
+      durationSeconds: activitySeconds,
+      score: 100,
+      evaluation,
+      formData: { profile, data }
+    });
+
+    setCurrentActivityId(item.id);
+    setSubmissionSuccess(true);
+  }
+
+  function handleResumeActivity(item) {
+    if (item?.formData) {
+      if (item.formData.profile) setProfile(item.formData.profile);
+      if (item.formData.data) setData(item.formData.data);
+      if (item.step !== undefined) setCurrentStep(item.step);
+      if (item.durationSeconds) setActivitySeconds(item.durationSeconds);
+    }
+    setCurrentActivityId(item.id);
+    setSubmissionSuccess(item.status === "completed");
+    setIsHistoryModalOpen(false);
+    setViewMode("builder");
+  }
 
   // Estados de Voz ("Caring out loud")
   const [isListening, setIsListening] = useState(false);
@@ -571,6 +668,16 @@ export default function CaseStudio() {
           </div>
 
           <div className="flex items-center gap-2">
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsHistoryModalOpen(true)}
+              className="rounded-xl border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-xs flex items-center gap-1.5 shadow-2xs font-semibold"
+            >
+              <History className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Histórico de Casos</span>
+            </Button>
+
             {viewMode === "choose" && (
               <Button
                 variant="ghost"
@@ -732,6 +839,42 @@ export default function CaseStudio() {
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
+            </div>
+
+            {/* Acesso Rápido ao Histórico de Casos & Rascunhos */}
+            <div
+              onClick={() => setIsHistoryModalOpen(true)}
+              className="p-4 sm:p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform shadow-2xs">
+                  <History className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>Consultar Histórico de Casos & Rascunhos Anteriores</span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                      Retomar Atividades
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Veja os casos que você já montou, o tempo gasto em cada simulação e continue casos ainda não finalizados em 100%.
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsHistoryModalOpen(true);
+                }}
+                className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-white dark:hover:bg-slate-900 shrink-0"
+              >
+                <span>Abrir Histórico</span>
+                <ArrowRight className="h-3.5 w-3.5 ml-1 text-emerald-600" />
+              </Button>
             </div>
           </div>
         )}
@@ -1419,8 +1562,140 @@ export default function CaseStudio() {
                 </div>
               )}
 
-              {/* Navegação Entre Passos & Disparo do Desafio Lúdico */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+              {/* PASSO 7: CONFIRMAR ENVIO & RESUMO FINAL (100%) */}
+              {currentStep === 7 && (
+                <div className="space-y-6">
+                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+                          <CheckCircle2 className="h-4 w-4" />
+                        </span>
+                        <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                          8. Confirmação de Envio & Resumo Geral do Caso
+                        </h2>
+                      </div>
+                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                        Revise todos os parâmetros do paciente antes de formalizar a entrega e liberar o debriefing com a IA.
+                      </p>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                        <Clock className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                        <span>Tempo: {clinicalHistoryService.formatDuration(activitySeconds)}</span>
+                      </span>
+                    </div>
+                  </div>
+
+                  {submissionSuccess && (
+                    <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 flex items-start gap-3 animate-in fade-in">
+                      <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                      <div>
+                        <h4 className="font-bold text-xs uppercase tracking-wider">Atividade Oficialmente Concluída (100%)</h4>
+                        <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
+                          Este caso foi assinado e registrado com sucesso no seu Histórico de Prática Clínica. Você pode gerar o desafio com o preceptor abaixo ou consultar no histórico a qualquer momento.
+                        </p>
+                      </div>
+                    </div>
+                  )}
+
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    {/* Bloco 1: Identificação & Anamnese */}
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 space-y-2.5">
+                      <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700 pb-2">
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                          <UserRound className="h-4 w-4 text-emerald-600" />
+                          Perfil & Anamnese do Paciente
+                        </span>
+                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                          Anonimizado
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        <div>
+                          <span className="text-[10px] text-slate-500 block uppercase">Iniciais:</span>
+                          <strong className="text-slate-900 dark:text-slate-100 font-mono tracking-wider">{profile.initials || profile.name || "Não informado"}</strong>
+                        </div>
+                        <div>
+                          <span className="text-[10px] text-slate-500 block uppercase">Idade / Sexo:</span>
+                          <strong className="text-slate-900 dark:text-slate-100">{profile.age ? `${profile.age} anos` : "—"} • {profile.gender === "M" ? "Masculino" : "Feminino"}</strong>
+                        </div>
+                      </div>
+                      <div className="text-xs pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
+                        <span className="text-[10px] text-slate-500 block uppercase">Histórico / Doenças:</span>
+                        <p className="text-slate-700 dark:text-slate-300 text-xs italic">{profile.previous_diseases || "Nenhuma comorbidade prévia informada."}</p>
+                      </div>
+                      <div className="text-xs">
+                        <span className="text-[10px] text-slate-500 block uppercase">Alergias:</span>
+                        <p className="text-slate-700 dark:text-slate-300 text-xs font-semibold">{profile.allergies || "Nega alergias conhecidas."}</p>
+                      </div>
+                      <div className="text-xs">
+                        <span className="text-[10px] text-slate-500 block uppercase">Admissão / Queixa:</span>
+                        <p className="text-slate-700 dark:text-slate-300 text-xs">{profile.previous_anamnesis || profile.notes || "Não descrita."}</p>
+                      </div>
+                    </div>
+
+                    {/* Bloco 2: Sinais Vitais & Escores */}
+                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 space-y-2.5">
+                      <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700 pb-2">
+                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                          <HeartPulse className="h-4 w-4 text-rose-500" />
+                          Sinais Vitais & Escores
+                        </span>
+                        <span className="text-[10px] uppercase font-bold text-slate-500">
+                          COFEN 736/2024
+                        </span>
+                      </div>
+                      <div className="grid grid-cols-3 gap-2 text-xs">
+                        <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                          <span className="text-[10px] text-slate-500 block uppercase">PA</span>
+                          <strong className="text-slate-900 dark:text-slate-100">{data.pa_sistolica}/{data.pa_diastolica}</strong>
+                        </div>
+                        <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                          <span className="text-[10px] text-slate-500 block uppercase">FC</span>
+                          <strong className="text-slate-900 dark:text-slate-100">{data.fc} bpm</strong>
+                        </div>
+                        <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                          <span className="text-[10px] text-slate-500 block uppercase">SatO₂</span>
+                          <strong className="text-slate-900 dark:text-slate-100">{data.sat}%</strong>
+                        </div>
+                      </div>
+
+                      <div className="pt-1.5 space-y-1.5 text-xs">
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                          <span className="text-slate-600 dark:text-slate-300">Escala de Braden:</span>
+                          <strong className="text-slate-900 dark:text-slate-100">{bradenTotal} pts</strong>
+                        </div>
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                          <span className="text-slate-600 dark:text-slate-300">Escala CAM (Delirium):</span>
+                          <strong className={camPositive ? "text-rose-600 font-bold" : "text-emerald-600 font-semibold"}>
+                            {camPositive ? "Positivo (Delirium)" : "Negativo"}
+                          </strong>
+                        </div>
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                          <span className="text-slate-600 dark:text-slate-300">Quedas (SAK):</span>
+                          <strong className="text-slate-900 dark:text-slate-100">{sakTotal} pts</strong>
+                        </div>
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
+                          <span className="text-slate-600 dark:text-slate-300">Dor (Escala Caloi):</span>
+                          <strong className="text-slate-900 dark:text-slate-100">{data.caloi_pain_intensity}/10</strong>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {data.notes && (
+                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
+                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Observações Finais & Relato de Enfermagem:</span>
+                      <p className="text-slate-700 dark:text-slate-300 italic">{data.notes}</p>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              {/* Navegação Entre Passos & Ações Oficiais de Envio */}
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
@@ -1430,23 +1705,46 @@ export default function CaseStudio() {
                   <ArrowLeft className="h-4 w-4 mr-1.5" /> Passo Anterior
                 </Button>
 
-                {currentStep < WIZARD_STEPS.length - 1 ? (
+                <div className="flex items-center gap-2">
                   <Button
-                    onClick={() => setCurrentStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1))}
-                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-5 font-semibold shadow-xs"
+                    type="button"
+                    variant="outline"
+                    onClick={handleSaveDraft}
+                    className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5"
                   >
-                    Próximo Passo <ArrowRight className="h-4 w-4 ml-1.5" />
+                    <BookmarkPlus className="h-3.5 w-3.5 text-amber-500" />
+                    <span>Salvar Rascunho</span>
                   </Button>
-                ) : (
-                  <Button
-                    onClick={handleLaunchChallenge}
-                    disabled={isGeneratingChallenge}
-                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-6 h-11 font-semibold flex items-center gap-2 shadow-xs"
-                  >
-                    <Target className="h-4 w-4 text-emerald-200" />
-                    <span>{isGeneratingChallenge ? "Gerando Desafio..." : "Gerar Desafio Diagnóstico (IA)"}</span>
-                  </Button>
-                )}
+
+                  {currentStep < WIZARD_STEPS.length - 1 ? (
+                    <Button
+                      onClick={() => setCurrentStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1))}
+                      className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-5 font-semibold shadow-xs"
+                    >
+                      Próximo Passo <ArrowRight className="h-4 w-4 ml-1.5" />
+                    </Button>
+                  ) : (
+                    <div className="flex items-center gap-2">
+                      <Button
+                        type="button"
+                        onClick={handleConfirmSubmission}
+                        className="rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-5 h-10 font-bold flex items-center gap-1.5 shadow-sm"
+                      >
+                        <CheckCircle2 className="h-4 w-4 text-emerald-200" />
+                        <span>Confirmar Envio (100%)</span>
+                      </Button>
+
+                      <Button
+                        onClick={handleLaunchChallenge}
+                        disabled={isGeneratingChallenge}
+                        className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs px-5 h-10 font-semibold flex items-center gap-2 shadow-xs"
+                      >
+                        <Target className="h-4 w-4 text-emerald-300" />
+                        <span>{isGeneratingChallenge ? "Gerando Desafio..." : "Gerar Desafio Diagnóstico (IA)"}</span>
+                      </Button>
+                    </div>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -1833,6 +2131,13 @@ export default function CaseStudio() {
             )}
           </div>
         )}
+
+        {/* Modal Unificado de Histórico de Casos Clínicos */}
+        <CaseHistoryModal
+          isOpen={isHistoryModalOpen}
+          onClose={() => setIsHistoryModalOpen(false)}
+          onResumeActivity={handleResumeActivity}
+        />
       </main>
 
       <StudentFooter />

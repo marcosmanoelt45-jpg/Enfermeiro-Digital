@@ -27,7 +27,9 @@ import {
   Loader2,
   ChevronDown,
   Shuffle,
-  ArrowRightLeft
+  ArrowRightLeft,
+  History,
+  BookmarkPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -39,6 +41,8 @@ import { evaluateSbarHandoff } from "@/services/sbarTutorService";
 import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
 import { audioTranscriptionService } from "@/services/audioTranscriptionService";
 import { evaluateSbarChecklists } from "@/lib/sbarSpeechMatcher";
+import CaseHistoryModal from "@/components/history/CaseHistoryModal";
+import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 
 const PRESET_HANDOFF_SCENARIOS = [
   {
@@ -173,8 +177,54 @@ export default function SbarHandoffLab() {
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(location.search);
     return params.get("tab") || "guided";
-  }); // "guided" | "free_voice" | "debriefing"
+  }); // "guided" | "free_voice" | "confirm" | "debriefing"
   const [activeGuidedStep, setActiveGuidedStep] = useState(0); // 0: S, 1: B, 2: A, 3: R
+
+  // Histórico & Cronômetro de Atividade SBAR
+  const [currentActivityId, setCurrentActivityId] = useState(null);
+  const [activitySeconds, setActivitySeconds] = useState(0);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActivitySeconds((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  function handleSaveDraft() {
+    const filledCount = [sbarData.situation, sbarData.background, sbarData.assessment, sbarData.recommendation].filter(Boolean).length;
+    const progress = Math.round((filledCount / 4) * 100);
+    const draft = clinicalHistoryService.saveDraft({
+      id: currentActivityId,
+      moduleType: MODULE_TYPES.SBAR,
+      title: `Passagem SBAR: ${currentCase?.title || "Caso Clínico"}`,
+      patientInfo: `${currentCase?.name || "Paciente"} (${currentCase?.age || "?"}a) • ${currentCase?.sector || "Enfermaria"}`,
+      progress,
+      durationSeconds: activitySeconds,
+      step: activeGuidedStep,
+      formData: { sbarData, currentCase, activeTab }
+    });
+    setCurrentActivityId(draft.id);
+    setToastMessage("Rascunho SBAR salvo no Histórico com sucesso!");
+    setTimeout(() => setToastMessage(""), 3000);
+  }
+
+  function handleResumeActivity(item) {
+    if (item?.formData) {
+      if (item.formData.sbarData) setSbarData(item.formData.sbarData);
+      if (item.formData.currentCase) setCurrentCase(item.formData.currentCase);
+      if (item.formData.activeTab) setActiveTab(item.formData.activeTab);
+      if (item.durationSeconds) setActivitySeconds(item.durationSeconds);
+    }
+    if (item?.evaluation) {
+      setTutorEvaluation(item.evaluation);
+    }
+    setCurrentActivityId(item.id);
+    setSubmissionSuccess(item.status === "completed");
+    setIsHistoryOpen(false);
+  }
 
   const [activeScenarioIdx, setActiveScenarioIdx] = useState(0);
   const [currentCase, setCurrentCase] = useState(() => {
@@ -634,6 +684,25 @@ export default function SbarHandoffLab() {
       });
       setTutorEvaluation(evaluation);
       setActiveTab("debriefing");
+
+      // Registrar atividade concluída com tempo e score no histórico
+      try {
+        const submittedItem = clinicalHistoryService.submitActivity({
+          id: currentActivityId,
+          moduleType: MODULE_TYPES.SBAR,
+          title: `Passagem SBAR: ${currentCase?.title || "Caso Clínico"}`,
+          patientInfo: `${currentCase?.name || "Paciente"} (${currentCase?.age || "?"}a) • ${currentCase?.sector || "Enfermaria"}`,
+          durationSeconds: activitySeconds,
+          score: evaluation?.safetyScore || 100,
+          evaluation: evaluation,
+          formData: { sbarData, currentCase }
+        });
+        setCurrentActivityId(submittedItem.id);
+        setSubmissionSuccess(true);
+      } catch (histErr) {
+        console.warn("[SbarHandoffLab] Falha ao registrar histórico:", histErr);
+      }
+
       window.scrollTo({ top: 350, behavior: "smooth" });
     } catch (err) {
       console.error("[SbarHandoffLab] Erro ao avaliar:", err);
@@ -891,41 +960,38 @@ export default function SbarHandoffLab() {
                 </Button>
               </div>
 
-              {/* Opção 4: Exercícios Anteriores & Revisão */}
+              {/* Opção 4: Histórico & Exercícios Anteriores */}
               <div
-                onClick={() => {
-                  setActiveTab("debriefing");
-                  setViewMode("workspace");
-                }}
+                onClick={() => setIsHistoryOpen(true)}
                 className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-white dark:bg-slate-900 p-6 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
               >
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
                     <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 group-hover:scale-105 transition-transform">
-                      <RotateCcw className="h-6 w-6" />
+                      <History className="h-6 w-6" />
                     </div>
                     <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                      Histórico & Laudos
+                      Histórico Oficial
                     </span>
                   </div>
                   <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    Exercícios Anteriores & Debriefings
+                    Histórico de Casos & Debriefings
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Acesse o histórico das suas passagens de plantão, notas emitidas pelo Preceptor Clínico IA e gere relatórios de proficiência em PDF.
+                    Acesse o histórico das suas passagens de plantão, tempo gasto, pareceres pedagógicos e retome atividades não concluídas em 100%.
                   </p>
                 </div>
 
                 <Button
                   onClick={(e) => {
                     e.stopPropagation();
-                    setActiveTab("debriefing");
-                    setViewMode("workspace");
+                    setIsHistoryOpen(true);
                   }}
                   variant="outline"
                   className="w-full rounded-2xl border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-2xs"
                 >
-                  <span>Ver Histórico & Debriefings</span>
+                  <History className="h-4 w-4 mr-1 text-emerald-600" />
+                  <span>Abrir Histórico Completo</span>
                   <ArrowRight className="h-4 w-4" />
                 </Button>
               </div>
@@ -953,15 +1019,41 @@ export default function SbarHandoffLab() {
                 </span>
               </div>
 
-              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+              <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+                <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                  <Clock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                  <span>{clinicalHistoryService.formatDuration(activitySeconds)}</span>
+                </span>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setIsHistoryOpen(true)}
+                  className="rounded-xl border-teal-300 dark:border-teal-800 text-teal-800 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/60 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                >
+                  <History className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                  <span>Histórico SBAR</span>
+                </Button>
+
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleSaveDraft}
+                  className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                >
+                  <BookmarkPlus className="h-3.5 w-3.5 text-amber-500" />
+                  <span className="hidden sm:inline">Salvar Rascunho</span>
+                </Button>
+
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleInsertGoldenExample}
                   className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Exemplo Padrão Ouro
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Exemplo Ouro
                 </Button>
+
                 <Button
                   variant="ghost"
                   size="sm"
@@ -1078,6 +1170,18 @@ export default function SbarHandoffLab() {
             <span>2. Simulação Rápida à Beira-Leito (Voz & Timer)</span>
           </button>
 
+          <button
+            onClick={() => setActiveTab("confirm")}
+            className={`pb-3 px-1 border-b-2 whitespace-nowrap transition-all flex items-center gap-1.5 ${
+              activeTab === "confirm"
+                ? "border-teal-700 text-teal-900 dark:border-teal-400 dark:text-teal-300 font-extrabold"
+                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
+            }`}
+          >
+            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+            <span>3. Confirmar Envio & Resumo SBAR (100%)</span>
+          </button>
+
           {tutorEvaluation && (
             <button
               onClick={() => setActiveTab("debriefing")}
@@ -1088,7 +1192,7 @@ export default function SbarHandoffLab() {
               }`}
             >
               <MessageSquareQuote className="h-4 w-4 text-teal-700 dark:text-teal-400" />
-              <span>3. Debriefing & Parecer Clínico IA (Score: {tutorEvaluation.safetyScore}/100)</span>
+              <span>4. Debriefing & Parecer Clínico IA (Score: {tutorEvaluation.safetyScore}/100)</span>
             </button>
           )}
         </div>
@@ -1523,6 +1627,175 @@ export default function SbarHandoffLab() {
           </div>
         )}
 
+        {/* CONTEÚDO DA ABA 3: CONFIRMAR ENVIO & RESUMO COMPLETO DO SBAR (100%) */}
+        {activeTab === "confirm" && (
+          <div className="space-y-6 animate-in fade-in">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6">
+              {/* Topo da Confirmação */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="p-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+                      <CheckCircle2 className="h-4 w-4" />
+                    </span>
+                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                      Confirmação de Envio da Passagem de Plantão SBAR
+                    </h3>
+                  </div>
+                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                    Revise os 4 pilares do relatório clínico antes de confirmar a entrega final e receber o parecer do preceptor.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+                    <Clock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                    <span>Tempo de Prática: {clinicalHistoryService.formatDuration(activitySeconds)}</span>
+                  </span>
+                </div>
+              </div>
+
+              {submissionSuccess && (
+                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                  <div>
+                    <h4 className="font-bold text-xs uppercase tracking-wider">Passagem de Plantão 100% Concluída</h4>
+                    <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
+                      Esta atividade foi finalizada e registrada no seu histórico com sucesso. Você pode consultar debriefings e métricas a qualquer momento no menu de Histórico.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Dados do Paciente em Transição */}
+              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+                <div>
+                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Paciente em Passagem de Plantão</span>
+                  <strong className="text-slate-900 dark:text-slate-100 text-sm font-bold">
+                    {currentCase.name} ({currentCase.age}a) • {currentCase.bed}
+                  </strong>
+                  <span className="text-slate-500 dark:text-slate-400 block mt-0.5">{currentCase.diagnosis}</span>
+                </div>
+                <div className="flex items-center gap-2 text-xs">
+                  <span className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-semibold text-slate-700 dark:text-slate-200">
+                    PA: {currentCase.vitals?.pa_sistolica}/{currentCase.vitals?.pa_diastolica}
+                  </span>
+                  <span className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-semibold text-slate-700 dark:text-slate-200">
+                    SatO₂: {currentCase.vitals?.sat}%
+                  </span>
+                </div>
+              </div>
+
+              {/* Os 4 Pilares Estruturados do SBAR */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {/* Pilar S */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-indigo-200 dark:border-indigo-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/40 pb-2">
+                    <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-indigo-700 text-white flex items-center justify-center text-[11px] font-bold">S</span>
+                      Situação (Situation)
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.situation ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                      {sbarData.situation ? "Preenchido" : "Pendente"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.situation || "Nenhuma informação informada neste pilar ainda."}
+                  </p>
+                </div>
+
+                {/* Pilar B */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-amber-200 dark:border-amber-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-amber-100 dark:border-amber-900/40 pb-2">
+                    <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-amber-700 text-white flex items-center justify-center text-[11px] font-bold">B</span>
+                      Breve Histórico (Background)
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.background ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                      {sbarData.background ? "Preenchido" : "Pendente"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.background || "Nenhuma informação informada neste pilar ainda."}
+                  </p>
+                </div>
+
+                {/* Pilar A */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-emerald-200 dark:border-emerald-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-emerald-100 dark:border-emerald-900/40 pb-2">
+                    <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-emerald-700 text-white flex items-center justify-center text-[11px] font-bold">A</span>
+                      Avaliação Clínica (Assessment)
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.assessment ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                      {sbarData.assessment ? "Preenchido" : "Pendente"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.assessment || "Nenhuma informação informada neste pilar ainda."}
+                  </p>
+                </div>
+
+                {/* Pilar R */}
+                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-teal-200 dark:border-teal-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-teal-100 dark:border-teal-900/40 pb-2">
+                    <span className="text-xs font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-teal-700 text-white flex items-center justify-center text-[11px] font-bold">R</span>
+                      Recomendação (Recommendation)
+                    </span>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.recommendation ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                      {sbarData.recommendation ? "Preenchido" : "Pendente"}
+                    </span>
+                  </div>
+                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.recommendation || "Nenhuma informação informada neste pilar ainda."}
+                  </p>
+                </div>
+              </div>
+
+              {/* Botões Oficiais da Aba de Confirmação */}
+              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                <Button
+                  variant="outline"
+                  onClick={() => setActiveTab("guided")}
+                  className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold"
+                >
+                  <ArrowLeft className="h-4 w-4 mr-1.5" /> Voltar para Edição Guiada
+                </Button>
+
+                <div className="flex items-center gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={handleSaveDraft}
+                    className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5"
+                  >
+                    <BookmarkPlus className="h-3.5 w-3.5 text-amber-500" />
+                    <span>Salvar Rascunho</span>
+                  </Button>
+
+                  <Button
+                    onClick={handleEvaluateSbar}
+                    disabled={isEvaluating}
+                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-6 h-10 font-bold flex items-center gap-2 shadow-xs"
+                  >
+                    {isEvaluating ? (
+                      <>
+                        <Sparkles className="h-4 w-4 animate-spin text-teal-200" />
+                        <span>Auditando com IA...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+                        <span>Confirmar Envio Oficial (100%) & Avaliar</span>
+                      </>
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
+
         {/* CONTEÚDO DA ABA 3: DEBRIEFING SOCRÁTICO DO PRECEPTOR CLÍNICO IA */}
         {tutorEvaluation && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-teal-200 dark:border-teal-900/60 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
@@ -1692,6 +1965,13 @@ export default function SbarHandoffLab() {
         )}
         </>
         )}
+
+        {/* Modal Unificado de Histórico SBAR */}
+        <CaseHistoryModal
+          isOpen={isHistoryOpen}
+          onClose={() => setIsHistoryOpen(false)}
+          onResumeActivity={handleResumeActivity}
+        />
       </main>
 
       <StudentFooter />

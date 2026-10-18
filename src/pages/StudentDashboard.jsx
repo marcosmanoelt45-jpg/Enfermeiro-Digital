@@ -399,11 +399,11 @@ export default function StudentDashboard() {
                   badgeText={mod.badgeText}
                   onClick={() => {
                     triggerHaptic(15);
-                    if (mod.id !== "turmas") {
+                    if (mod.id === "procedimentos" || mod.id === "turmas") {
+                      navigate(mod.path);
+                    } else {
                       setBriefingModuleId(mod.id);
                       setIsBriefingOpen(true);
-                    } else {
-                      navigate(mod.path);
                     }
                   }}
                 />
