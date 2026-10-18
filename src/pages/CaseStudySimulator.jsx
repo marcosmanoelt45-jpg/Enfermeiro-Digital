@@ -35,7 +35,7 @@ import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
-import { searchNandaCatalog } from "@/lib/nandaCatalog";
+import { searchNandaCatalog, getNandaContextualSuggestions, COMMON_ETIOLOGIES, COMMON_EVIDENCES } from "@/lib/nandaCatalog";
 
 export default function CaseStudySimulator() {
   const navigate = useNavigate();
@@ -58,6 +58,27 @@ export default function CaseStudySimulator() {
     if (!studentHypothesis || studentHypothesis.trim().length < 2) return [];
     return searchNandaCatalog(studentHypothesis).slice(0, 6);
   }, [studentHypothesis]);
+
+  // Sugestões contextuais inteligentes de Fatores Relacionados e Evidências baseadas no diagnóstico ativo
+  const contextualData = useMemo(() => {
+    return getNandaContextualSuggestions(studentHypothesis);
+  }, [studentHypothesis]);
+
+  function handleSelectEtiology(term) {
+    if (!studentEtiology.trim()) {
+      setStudentEtiology(term);
+    } else if (!studentEtiology.includes(term)) {
+      setStudentEtiology(`${studentEtiology}, ${term}`);
+    }
+  }
+
+  function handleSelectEvidence(term) {
+    if (!studentEvidences.trim()) {
+      setStudentEvidences(term);
+    } else if (!studentEvidences.includes(term)) {
+      setStudentEvidences(`${studentEvidences}, ${term}`);
+    }
+  }
 
   // Estados de Tutoria e Feedback Clínico
   const [tutorEvaluation, setTutorEvaluation] = useState(null);
@@ -1074,28 +1095,133 @@ export default function CaseStudySimulator() {
                     </div>
                   </div>
 
-                  <div>
-                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block mb-1">
-                      2. Fatores Relacionados / Etiologia (Qual a causa provável?):
-                    </label>
+                  {/* 2. Fatores Relacionados / Etiologia com Ajuda Contextual Inteligente */}
+                  <div className="relative space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                        2. Fatores Relacionados / Etiologia (Qual a causa provável?):
+                      </label>
+                      <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" />
+                        {contextualData.etiologies.length > 0
+                          ? `Sugestões vinculadas a ${contextualData.matchedDiagnosis?.title || studentHypothesis}`
+                          : "Sugestões clínicas ativas"}
+                      </span>
+                    </div>
+
                     <Textarea
                       value={studentEtiology}
                       onChange={(e) => setStudentEtiology(e.target.value)}
                       placeholder="Ex: Fadiga da musculatura respiratória, hipervolemia e congestão pulmonar secundária..."
-                      className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[60px]"
+                      className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[64px] focus:ring-2 focus:ring-teal-500"
                     />
+
+                    {/* Chips de Atalhos de Fatores Relacionados / Risco */}
+                    {contextualData.etiologies.length > 0 ? (
+                      <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                        <span className="text-[11px] text-teal-800 dark:text-teal-400 font-semibold">
+                          Causas prováveis recomendadas (NANDA-I):
+                        </span>
+                        {contextualData.etiologies.map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleSelectEtiology(item)}
+                            className="text-[11px] font-medium px-2 py-0.5 rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50/70 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900 text-teal-900 dark:text-teal-200 transition active:scale-95 shadow-2xs"
+                          >
+                            + {item}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Exemplos rápidos:</span>
+                        {COMMON_ETIOLOGIES.slice(0, 4).map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleSelectEtiology(item)}
+                            className="text-[11px] font-medium px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-teal-400 text-slate-700 dark:text-slate-300 transition active:scale-95"
+                          >
+                            + {item}
+                          </button>
+                        ))}
+                      </div>
+                    )}
                   </div>
 
-                  <div>
-                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block mb-1">
-                      3. Características Definidoras / Evidências Clínicas (Quais dados comprovam?):
-                    </label>
+                  {/* 3. Características Definidoras / Evidências Clínicas com Ajuda Contextual Inteligente */}
+                  <div className="relative space-y-1.5">
+                    <div className="flex items-center justify-between">
+                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                        3. Características Definidoras / Evidências Clínicas (Quais dados comprovam?):
+                      </label>
+                      <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> Evidências observadas
+                      </span>
+                    </div>
+
+                    {/* Alerta Educativo NANDA-I quando o diagnóstico formulado for de Risco */}
+                    {contextualData.isRiskDiagnosis && (
+                      <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-[11px] text-amber-900 dark:text-amber-300 space-y-1 animate-in fade-in">
+                        <div className="flex items-center gap-1.5 font-bold">
+                          <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                          <span>Diretriz NANDA-I para Diagnósticos de Risco:</span>
+                        </div>
+                        <p className="leading-relaxed">
+                          Diagnósticos de risco (como <em>{studentHypothesis || "Risco"}</em>) não possuem características definidoras porque o agravo ainda não ocorreu. Indique dados de vulnerabilidade monitorados ou clique no atalho:
+                        </p>
+                        <button
+                          type="button"
+                          onClick={() => setStudentEvidences("Não se aplica (Diagnóstico de Risco - vulnerabilidade monitorada)")}
+                          className="font-bold underline text-amber-800 dark:text-amber-200 hover:text-amber-950"
+                        >
+                          + Preencher "Não se aplica (Diagnóstico de Risco)"
+                        </button>
+                      </div>
+                    )}
+
                     <Textarea
                       value={studentEvidences}
                       onChange={(e) => setStudentEvidences(e.target.value)}
                       placeholder="Ex: Taquipneia (FR 26 irpm), SpO2 89% em ar ambiente e estertores bibasais..."
-                      className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[60px]"
+                      className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[64px] focus:ring-2 focus:ring-teal-500"
                     />
+
+                    {/* Chips de Atalhos de Características Definidoras */}
+                    {contextualData.evidences.length > 0 ? (
+                      <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                        <span className="text-[11px] text-emerald-800 dark:text-emerald-400 font-semibold">
+                          Evidências recomendadas (NANDA-I):
+                        </span>
+                        {contextualData.evidences.map((item, idx) => (
+                          <button
+                            key={idx}
+                            type="button"
+                            onClick={() => handleSelectEvidence(item)}
+                            className="text-[11px] font-medium px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-900 dark:text-emerald-200 transition active:scale-95 shadow-2xs"
+                          >
+                            + {item}
+                          </button>
+                        ))}
+                      </div>
+                    ) : (
+                      !contextualData.isRiskDiagnosis && (
+                        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Exemplos rápidos:</span>
+                          {COMMON_EVIDENCES.slice(0, 4).map((item, idx) => (
+                            <button
+                              key={idx}
+                              type="button"
+                              onClick={() => handleSelectEvidence(item)}
+                              className="text-[11px] font-medium px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-teal-400 text-slate-700 dark:text-slate-300 transition active:scale-95"
+                            >
+                              + {item}
+                            </button>
+                          ))}
+                        </div>
+                      )
+                    )}
                   </div>
                 </div>
 

@@ -751,3 +751,82 @@ export function searchNandaCatalog(query) {
   });
 }
 
+/**
+ * Obtém sugestões contextuais inteligentes de Fatores Relacionados / Risco e Características Definidoras
+ * a partir do título ou código do diagnóstico NANDA-I informado pelo estudante.
+ */
+export function getNandaContextualSuggestions(diagnosisNameOrCode) {
+  if (!diagnosisNameOrCode || typeof diagnosisNameOrCode !== 'string') {
+    return {
+      matchedDiagnosis: null,
+      isRiskDiagnosis: false,
+      etiologies: [],
+      evidences: []
+    };
+  }
+
+  const query = diagnosisNameOrCode.toLowerCase().trim();
+
+  // Tentar encontrar no catálogo curado oficial
+  const matched = NANDA_CATALOG.find((d) => {
+    const t = d.title.toLowerCase();
+    const c = d.code;
+    return query.includes(t) || t.includes(query) || (c && query.includes(c));
+  }) || null;
+
+  if (matched) {
+    const isRisk = matched.title.toLowerCase().startsWith('risco de') || Boolean(matched.risk_factors?.length);
+    const etiologies = isRisk
+      ? (matched.risk_factors || [])
+      : (matched.related_factors || []);
+    const evidences = matched.defining_characteristics || [];
+
+    return {
+      matchedDiagnosis: matched,
+      isRiskDiagnosis: isRisk,
+      etiologies,
+      evidences
+    };
+  }
+
+  // Se não encontrar exato, verificar se a hipótese é um diagnóstico de risco
+  const isRisk = query.startsWith('risco de') || query.includes('risco');
+  return {
+    matchedDiagnosis: null,
+    isRiskDiagnosis: isRisk,
+    etiologies: [],
+    evidences: []
+  };
+}
+
+// Banco Canônico de Etiologias e Fatores Relacionados Frequentes (NANDA-I 2024-2026)
+export const COMMON_ETIOLOGIES = [
+  "Fadiga da musculatura respiratória",
+  "Hipervolemia e congestão pulmonar secundária",
+  "Mobilidade física prejudicada",
+  "Idade avançada (senescência e fragilidade fisiológica)",
+  "Mecanismos reguladores hemodinâmicos comprometidos",
+  "Fraqueza muscular generalizada e instabilidade motora",
+  "Efeitos adversos de sedativos, diuréticos ou hipotensores",
+  "Trauma mecânico penetrante ou cirúrgico recente",
+  "Fricção e forças de cisalhamento sobre a pele",
+  "Imobilidade prolongada no leito hospitalar",
+  "Exposição contínua da pele à umidade e efluentes",
+  "Processo inflamatório ou infeccioso sistêmico"
+];
+
+// Banco Canônico de Características Definidoras e Evidências Clínicas (NANDA-I 2024-2026)
+export const COMMON_EVIDENCES = [
+  "Taquipneia (FR > 24 irpm) com respiração superficial",
+  "SpO2 < 90% em ar ambiente com dessaturação ao repouso",
+  "Uso de musculatura acessória (tiragem intercostal/supraclavicular)",
+  "Estertores crepitantes bibasais à ausculta pulmonar",
+  "Edema periférico de membros inferiores (+2/+3/4+)",
+  "Turgência jugular patológica a 45 graus",
+  "Dor aguda de forte intensidade relatada à avaliação",
+  "Tempo de enchimento capilar periférico lentificado (> 3 segundos)",
+  "Pele pálida, fria, diaforética ou com má perfusão",
+  "Instabilidade postural, marcha claudicante ou tremores"
+];
+
+

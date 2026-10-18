@@ -695,7 +695,7 @@ export default function MedicationDosageLab() {
                       type="text"
                       value={studentInput}
                       onChange={(e) => setStudentInput(e.target.value)}
-                      placeholder="Ex: 42 (insira o valor numérico ou raciocínio)"
+                      placeholder="Digite o resultado do seu cálculo (valor numérico ou raciocínio)..."
                       className="rounded-xl border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-sm h-10"
                       onKeyDown={(e) => e.key === "Enter" && handleEvaluate()}
                     />
