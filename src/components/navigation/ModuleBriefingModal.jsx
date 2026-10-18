@@ -54,7 +54,7 @@ const MODULE_DATA = {
     actions: [
       { id: "start", label: "Começar Novo Caso Clínico", desc: "Sortear paciente simulado e iniciar investigação", icon: Play, primary: true, query: "?action=new" },
       { id: "continue", label: "Continuar Caso em Andamento", desc: "Retomar sua última simulação com o Preceptor Clínico IA", icon: ArrowRight, primary: false, query: "?action=continue" },
-      { id: "review", label: "Revisão de Casos Concluídos", desc: "Consultar prontuários anteriores e notas formativas", icon: RotateCcw, primary: false, query: "?action=review" }
+      { id: "review", label: "Revisão de Casos Concluídos", desc: "Consultar histórico de simulações e notas formativas", icon: RotateCcw, primary: false, query: "?action=review" }
     ]
   },
   sbar: {
@@ -69,7 +69,7 @@ const MODULE_DATA = {
       { id: "sbar_voice", label: "Passagem por Áudio (Voz)", desc: "Treine falando ao microfone com transcrição e checagem de itens", icon: Mic, primary: true, query: "?tab=free_voice" },
       { id: "sbar_manual", label: "Passagem Estruturada (Texto)", desc: "Preencha os 4 pilares guiados passo a passo no teclado", icon: FileText, primary: false, query: "?tab=guided" },
       { id: "sbar_quick", label: "Simulação Rápida Beira-Leito", desc: "Caso crítico com contagem regressiva de 2 minutos para priorização", icon: Clock, primary: false, query: "?mode=rapid" },
-      { id: "sbar_review", label: "Exercícios Anteriores & Revisão", desc: "Consultar histórico de passagens, debriefings e PDFs", icon: RotateCcw, primary: false, query: "?tab=debriefing" }
+      { id: "sbar_review", label: "Exercícios Anteriores & Revisão", desc: "Consultar histórico de passagens de plantão e debriefings", icon: RotateCcw, primary: false, query: "?action=review" }
     ]
   },
   calculos: {
@@ -82,7 +82,7 @@ const MODULE_DATA = {
     actions: [
       { id: "start", label: "Começar Novo Desafio de Dose", desc: "Sorteia prescrição médica e calcula gotejamento", icon: Play, primary: true, query: "?action=new" },
       { id: "continue", label: "Continuar Modo Prática", desc: "Voltar para o laboratório de infusão ativa", icon: ArrowRight, primary: false, query: "?action=continue" },
-      { id: "review", label: "Revisão de Fórmulas e Regras", desc: "Consultar macetes clínicos e histórico de acertos", icon: RotateCcw, primary: false, query: "?action=review" }
+      { id: "review", label: "Revisão de Fórmulas e Histórico", desc: "Consultar histórico de cálculos, acertos e macetes", icon: RotateCcw, primary: false, query: "?action=review" }
     ]
   },
   sistemas: {
@@ -95,7 +95,7 @@ const MODULE_DATA = {
     actions: [
       { id: "start", label: "Começar Novo Exame Clínico", desc: "Selecionar sistema orgânico e avaliar achados", icon: Play, primary: true, query: "?action=new" },
       { id: "continue", label: "Continuar Avaliação", desc: "Retomar a escala ou sistema que estava analisando", icon: ArrowRight, primary: false, query: "?action=continue" },
-      { id: "review", label: "Revisão de Escalas e Manobras", desc: "Consultar critérios de normalidade e sinais de alarme", icon: RotateCcw, primary: false, query: "?action=review" }
+      { id: "review", label: "Revisão de Avaliações e Histórico", desc: "Consultar histórico de exames semiológicos e critérios", icon: RotateCcw, primary: false, query: "?action=review" }
     ]
   }
 };

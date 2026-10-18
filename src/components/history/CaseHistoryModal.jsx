@@ -8,31 +8,55 @@ import {
   FileText,
   Trash2,
   Award,
-  Filter,
-  Activity,
-  AlertCircle,
   Calendar,
   Hourglass
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { clinicalHistoryService, MODULE_LABELS } from "@/services/clinicalHistoryService";
 
-export default function CaseHistoryModal({ isOpen, onClose, onResumeActivity, onViewEvaluation }) {
+export default function CaseHistoryModal({
+  isOpen,
+  onClose,
+  onResumeActivity,
+  onViewEvaluation,
+  defaultModuleFilter = "all",
+  lockModuleFilter = false,
+  title = null
+}) {
   const [activities, setActivities] = useState([]);
-  const [activeFilter, setActiveFilter] = useState("all");
+  const [activeFilter, setActiveFilter] = useState(defaultModuleFilter);
   const [stats, setStats] = useState({ total: 0, completedCount: 0, inProgressCount: 0 });
 
+  // Sincronizar filtro quando abrir com módulo padrão
+  useEffect(() => {
+    if (isOpen) {
+      setActiveFilter(defaultModuleFilter);
+    }
+  }, [isOpen, defaultModuleFilter]);
+
   function loadActivities() {
-    const list = clinicalHistoryService.getAllActivities(activeFilter);
+    const filterToUse = lockModuleFilter ? defaultModuleFilter : activeFilter;
+    const list = clinicalHistoryService.getAllActivities(filterToUse);
     setActivities(list);
-    setStats(clinicalHistoryService.getSummaryStats());
+
+    if (lockModuleFilter && defaultModuleFilter !== "all") {
+      const completed = list.filter((it) => it.status === "concluido");
+      const inProgress = list.filter((it) => it.status === "em_andamento");
+      setStats({
+        total: list.length,
+        completedCount: completed.length,
+        inProgressCount: inProgress.length,
+      });
+    } else {
+      setStats(clinicalHistoryService.getSummaryStats());
+    }
   }
 
   useEffect(() => {
     if (isOpen) {
       loadActivities();
     }
-  }, [isOpen, activeFilter]);
+  }, [isOpen, activeFilter, defaultModuleFilter, lockModuleFilter]);
 
   function handleDelete(id, e) {
     e.stopPropagation();
@@ -44,6 +68,10 @@ export default function CaseHistoryModal({ isOpen, onClose, onResumeActivity, on
 
   if (!isOpen) return null;
 
+  const displayTitle = title || (lockModuleFilter && defaultModuleFilter !== "all" && MODULE_LABELS[defaultModuleFilter]
+    ? `Histórico: ${MODULE_LABELS[defaultModuleFilter]}`
+    : "Histórico de Casos & Prática Clínica");
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
       <div
@@ -53,25 +81,27 @@ export default function CaseHistoryModal({ isOpen, onClose, onResumeActivity, on
         {/* Cabeçalho do Modal */}
         <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-emerald-50/50 via-white to-teal-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950/20">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20">
+            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20 shrink-0">
               <History className="w-5 h-5" />
             </div>
             <div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Histórico de Casos & Prática Clínica</span>
+                <span>{displayTitle}</span>
                 <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                  {stats.total} {stats.total === 1 ? "caso" : "casos"}
+                  {stats.total} {stats.total === 1 ? "registro" : "registros"}
                 </span>
               </h2>
               <p className="text-xs text-slate-500 dark:text-slate-400">
-                Acompanhe o tempo de resolução, status de envio e retome atividades a qualquer momento.
+                {lockModuleFilter
+                  ? "Atividades e rascunhos exclusivos deste módulo. Retome seu progresso ou veja o resultado."
+                  : "Acompanhe o tempo de resolução, status de envio e retome atividades a qualquer momento."}
               </p>
             </div>
           </div>
 
           <button
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition shrink-0"
           >
             <X className="w-5 h-5" />
           </button>
@@ -80,7 +110,7 @@ export default function CaseHistoryModal({ isOpen, onClose, onResumeActivity, on
         {/* Resumo Rápido de Métricas */}
         <div className="px-4 sm:px-6 py-3 bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2 text-center text-xs">
           <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold">Total Registrado</span>
+            <span className="text-slate-400 block text-[10px] uppercase font-bold">Total do Módulo</span>
             <strong className="text-slate-900 dark:text-slate-100 text-sm font-black">{stats.total}</strong>
           </div>
           <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
@@ -93,27 +123,31 @@ export default function CaseHistoryModal({ isOpen, onClose, onResumeActivity, on
           </div>
         </div>
 
-        {/* Barra de Filtros */}
-        <div className="px-4 sm:px-6 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
-          {[
-            { id: "all", label: "Todos os Casos" },
-            { id: "sbar", label: "Passagem SBAR" },
-            { id: "case_builder", label: "Montador de Casos" },
-            { id: "case_simulator", label: "Simulador de Casos" },
-          ].map((flt) => (
-            <button
-              key={flt.id}
-              onClick={() => setActiveFilter(flt.id)}
-              className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                activeFilter === flt.id
-                  ? "bg-emerald-600 text-white shadow-xs"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-              }`}
-            >
-              {flt.label}
-            </button>
-          ))}
-        </div>
+        {/* Barra de Filtros (Aparece somente quando lockModuleFilter não estiver travado) */}
+        {!lockModuleFilter && (
+          <div className="px-4 sm:px-6 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
+            {[
+              { id: "all", label: "Todas as Atividades" },
+              { id: "sbar", label: "Passagem SBAR" },
+              { id: "case_builder", label: "Montador de Casos" },
+              { id: "case_simulator", label: "Simulador de Casos" },
+              { id: "dosage", label: "Cálculo de Doses" },
+              { id: "systems_assessment", label: "Semiologia" },
+            ].map((flt) => (
+              <button
+                key={flt.id}
+                onClick={() => setActiveFilter(flt.id)}
+                className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
+                  activeFilter === flt.id
+                    ? "bg-emerald-600 text-white shadow-xs"
+                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
+                }`}
+              >
+                {flt.label}
+              </button>
+            ))}
+          </div>
+        )}
 
         {/* Lista de Atividades com Rolagem */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">

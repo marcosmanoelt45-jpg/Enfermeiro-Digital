@@ -59,7 +59,7 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
     setMessages(updatedHistory);
 
     try {
-      const response = await gotiPreceptorService.sendMessage(text);
+      await gotiPreceptorService.sendMessage(text);
       setMessages(gotiPreceptorService.getHistory());
       setGotiState("speaking");
       setTimeout(() => setGotiState("idle"), 2500);
@@ -90,7 +90,7 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
         <div className="relative p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800/80 bg-gradient-to-r from-teal-50 via-white to-emerald-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-teal-950/20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative flex-shrink-0">
-              <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white p-1 flex items-center justify-center shadow-xs">
+              <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white p-1 flex items-center justify-center shadow-xs transition-transform duration-300 ${gotiState === "thinking" ? "animate-pulse scale-105" : ""}`}>
                 <Stethoscope className="w-6 h-6 text-white" />
               </div>
               <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
@@ -105,7 +105,7 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
                   Preceptor Clínico IA
                 </h3>
                 <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                  Enfere IA
+                  {gotiState === "thinking" ? "Pensando..." : gotiState === "speaking" ? "Respondendo..." : "Enfere IA"}
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">

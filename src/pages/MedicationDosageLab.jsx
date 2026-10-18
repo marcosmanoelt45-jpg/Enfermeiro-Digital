@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   CheckCircle2,
   AlertTriangle,
@@ -11,13 +12,18 @@ import {
   Beaker,
   BookOpen,
   Shuffle,
-  Sparkles
+  Sparkles,
+  History,
+  Clock,
+  BookmarkPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { guideMedicationCalculation } from "@/services/socraticTutorService";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
+import CaseHistoryModal from "@/components/history/CaseHistoryModal";
+import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 
 const DOSAGE_PROBLEMS = [
   {
@@ -187,6 +193,58 @@ export default function MedicationDosageLab() {
   });
   const [calcResult, setCalcResult] = useState(null);
 
+  // Histórico & Cronômetro de Atividade de Dosagem
+  const [searchParams] = useSearchParams();
+  const [currentActivityId, setCurrentActivityId] = useState(null);
+  const [activitySeconds, setActivitySeconds] = useState(0);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (action === "review" || action === "continue" || action === "history") {
+      setIsHistoryOpen(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActivitySeconds((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const [toastMessage, setToastMessage] = useState("");
+
+  function handleSaveDraft() {
+    const draft = clinicalHistoryService.saveDraft({
+      id: currentActivityId,
+      moduleType: MODULE_TYPES.DOSAGE,
+      title: `Cálculo: ${problem.title}`,
+      patientInfo: `${problem.category} • Solução: ${problem.solutionName}`,
+      progress: studentInput.trim() ? 50 : 25,
+      durationSeconds: activitySeconds,
+      formData: { selectedIdx, studentInput, calcForm, activeTab }
+    });
+    setCurrentActivityId(draft.id);
+    setToastMessage("Rascunho de cálculo salvo no Histórico!");
+    setTimeout(() => setToastMessage(""), 3000);
+  }
+
+  function handleResumeActivity(item) {
+    if (item?.formData) {
+      if (typeof item.formData.selectedIdx === "number") setSelectedIdx(item.formData.selectedIdx);
+      if (item.formData.studentInput) setStudentInput(item.formData.studentInput);
+      if (item.formData.calcForm) setCalcForm(item.formData.calcForm);
+      if (item.formData.activeTab) setActiveTab(item.formData.activeTab);
+      if (item.durationSeconds) setActivitySeconds(item.durationSeconds);
+    }
+    if (item?.evaluation) {
+      setFeedback({ explanation: typeof item.evaluation === "string" ? item.evaluation : (item.evaluation.explanation || "Resultado anterior resgatado."), isCorrect: (item.score || 0) >= 100 });
+    }
+    setCurrentActivityId(item.id);
+    setIsHistoryOpen(false);
+  }
+
   const problem = DOSAGE_PROBLEMS[selectedIdx];
 
   async function handleEvaluate() {
@@ -195,6 +253,19 @@ export default function MedicationDosageLab() {
     try {
       const res = await guideMedicationCalculation(problem, studentInput);
       setFeedback(res);
+
+      if (res) {
+        clinicalHistoryService.submitActivity({
+          id: currentActivityId,
+          moduleType: MODULE_TYPES.DOSAGE,
+          title: `Cálculo: ${problem.title}`,
+          patientInfo: `${problem.category} • Solução: ${problem.solutionName}`,
+          durationSeconds: activitySeconds,
+          score: res.isCorrect ? 100 : 70,
+          evaluation: res.explanation || (res.isCorrect ? "Cálculo exato sem risco de iatrogenia." : "Ajuste de dosagem requerido."),
+          formData: { selectedIdx, studentInput, res }
+        });
+      }
     } finally {
       setEvaluating(false);
     }
@@ -287,7 +358,7 @@ export default function MedicationDosageLab() {
       <StudentHeader activeTab="calculos" />
 
       <main className="flex-1 mx-auto max-w-5xl w-full px-4 sm:px-6 py-6 space-y-6">
-        {/* Barra Superior Limpa e Funcional */}
+        {/* Barra Superior Limpa e Funcional com Histórico */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
           <div className="flex items-center gap-2.5 flex-wrap">
             <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
@@ -298,39 +369,113 @@ export default function MedicationDosageLab() {
             </span>
           </div>
 
-          {/* Seletor de Modo Principal */}
-          <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700 self-start sm:self-auto">
-            <button
-              onClick={() => setActiveTab("desafios")}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                activeTab === "desafios"
-                  ? "bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-400 shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-              }`}
+          <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
+            {/* Cronômetro */}
+            <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+              <Clock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+              <span>{clinicalHistoryService.formatDuration(activitySeconds)}</span>
+            </span>
+
+            {/* Botão de Salvar Rascunho */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveDraft}
+              className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              title="Salvar rascunho do cálculo no Histórico"
             >
-              Desafios & Tutoria
-            </button>
-            <button
-              onClick={() => {
-                setActiveTab("calculadora");
-                runFreeCalculate();
-              }}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                activeTab === "calculadora"
-                  ? "bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-400 shadow-xs"
-                  : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-              }`}
+              <BookmarkPlus className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+              <span>Salvar Rascunho</span>
+            </Button>
+
+            {/* Botão de Histórico Exclusivo de Cálculos */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsHistoryOpen(true)}
+              className="rounded-xl border-teal-300 dark:border-teal-800 text-teal-800 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/60 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
             >
-              Calculadora Livre
-            </button>
+              <History className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+              <span>Histórico de Cálculos</span>
+            </Button>
+
+            {/* Seletor de Modo Principal */}
+            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
+              <button
+                onClick={() => setActiveTab("desafios")}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  activeTab === "desafios"
+                    ? "bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-400 shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                }`}
+              >
+                Desafios & Tutoria
+              </button>
+              <button
+                onClick={() => {
+                  setActiveTab("calculadora");
+                  runFreeCalculate();
+                }}
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
+                  activeTab === "calculadora"
+                    ? "bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-400 shadow-xs"
+                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
+                }`}
+              >
+                Calculadora Livre
+              </button>
+            </div>
           </div>
         </div>
+
+        {/* Notificação Toast */}
+        {toastMessage && (
+          <div className="p-3.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs flex items-center gap-2 animate-in fade-in shadow-sm">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+            <span className="font-medium">{toastMessage}</span>
+          </div>
+        )}
 
         {/* ========================================================================= */}
         {/* ABA 1: DESAFIOS CLÍNICOS & TUTORIA SOCRÁTICA                              */}
         {/* ========================================================================= */}
         {activeTab === "desafios" && (
           <div className="space-y-6 animate-in fade-in">
+            {/* Banner de Acesso Rápido ao Histórico de Cálculos & Doses */}
+            <div
+              onClick={() => setIsHistoryOpen(true)}
+              className="p-4 sm:p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
+            >
+              <div className="flex items-center gap-3.5">
+                <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-teal-600 dark:text-teal-400 group-hover:scale-105 transition-transform shadow-2xs">
+                  <History className="h-5 w-5" />
+                </div>
+                <div>
+                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                    <span>Consultar Histórico de Cálculos & Doses</span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                      Retomar Atividades
+                    </span>
+                  </h4>
+                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                    Veja os cálculos que você já resolveu, notas de acurácia matemática e continue desafios em andamento.
+                  </p>
+                </div>
+              </div>
+
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setIsHistoryOpen(true);
+                }}
+                className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-white dark:hover:bg-slate-900 shrink-0"
+              >
+                <span>Abrir Histórico</span>
+                <ArrowRight className="h-3.5 w-3.5 ml-1 text-teal-600" />
+              </Button>
+            </div>
             {/* Cabeçalho Limpo: Identificação e Ação de Sorteio */}
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
               <div>
@@ -345,6 +490,20 @@ export default function MedicationDosageLab() {
                 <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 mt-1 tracking-tight">
                   {problem.title}
                 </h2>
+                <div className="flex items-center gap-2 pt-1 flex-wrap">
+                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Selecionar desafio:</span>
+                  <select
+                    value={selectedIdx}
+                    onChange={(e) => handleSelectProblem(Number(e.target.value))}
+                    className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 font-medium cursor-pointer"
+                  >
+                    {DOSAGE_PROBLEMS.map((p, i) => (
+                      <option key={p.id || i} value={i}>
+                        #{i + 1} - {p.category}: {p.title}
+                      </option>
+                    ))}
+                  </select>
+                </div>
               </div>
 
               <Button
@@ -861,6 +1020,16 @@ export default function MedicationDosageLab() {
             </div>
           </div>
         )}
+
+        {/* Modal Unificado de Histórico de Cálculos (Isolado exclusivamente para Dosagem) */}
+        <CaseHistoryModal
+          isOpen={isHistoryOpen}
+          onClose={() => setIsHistoryOpen(false)}
+          onResumeActivity={handleResumeActivity}
+          defaultModuleFilter="dosage"
+          lockModuleFilter={true}
+          title="Histórico de Cálculos & Doses"
+        />
       </main>
 
       <StudentFooter />

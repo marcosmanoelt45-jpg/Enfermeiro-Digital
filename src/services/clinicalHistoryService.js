@@ -10,6 +10,7 @@ export const MODULE_TYPES = {
   SBAR: 'sbar',
   CASE_BUILDER: 'case_builder',
   CASE_SIMULATOR: 'case_simulator',
+  DOSAGE: 'dosage',
   PROCEDURES: 'procedures',
   SYSTEMS_ASSESSMENT: 'systems_assessment',
 };
@@ -17,7 +18,8 @@ export const MODULE_TYPES = {
 export const MODULE_LABELS = {
   sbar: 'Passagem de Plantão SBAR',
   case_builder: 'Montador de Casos Clínicos',
-  case_simulator: 'Simulador de Casos Clínicos',
+  case_simulator: 'Simulador de Casos Clínicos (PE)',
+  dosage: 'Cálculo de Medicamentos & Doses',
   procedures: 'Videoteca de Procedimentos',
   systems_assessment: 'Semiologia por Sistemas',
 };

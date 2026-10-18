@@ -9,7 +9,6 @@ import {
   AlertTriangle,
   AlertOctagon,
   CheckCircle2,
-  Download,
   HeartPulse,
   Activity,
   Clock,
@@ -38,7 +37,6 @@ import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import { useAuth } from "@/lib/AuthContext";
 import { evaluateSbarHandoff } from "@/services/sbarTutorService";
-import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
 import { audioTranscriptionService } from "@/services/audioTranscriptionService";
 import { evaluateSbarChecklists } from "@/lib/sbarSpeechMatcher";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
@@ -187,6 +185,15 @@ export default function SbarHandoffLab() {
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
 
   useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const action = params.get("action");
+    const tab = params.get("tab");
+    if (action === "review" || action === "continue" || action === "history" || tab === "debriefing") {
+      setIsHistoryOpen(true);
+    }
+  }, [location.search]);
+
+  useEffect(() => {
     const timer = setInterval(() => {
       setActivitySeconds((s) => s + 1);
     }, 1000);
@@ -220,9 +227,11 @@ export default function SbarHandoffLab() {
     }
     if (item?.evaluation) {
       setTutorEvaluation(item.evaluation);
+      setActiveTab("debriefing");
     }
     setCurrentActivityId(item.id);
-    setSubmissionSuccess(item.status === "completed");
+    setSubmissionSuccess(item.status === "concluido" || item.status === "completed");
+    setViewMode("workspace");
     setIsHistoryOpen(false);
   }
 
@@ -711,22 +720,6 @@ export default function SbarHandoffLab() {
     }
   }
 
-  function handleDownloadPdf() {
-    exportClinicalCaseToPdf({
-      caseData: currentCase,
-      sbarData: sbarData,
-      tutorEvaluation: tutorEvaluation,
-      studentInfo: {
-        name: user?.name || "Acadêmico de Enfermagem",
-        institution: "Faculdade de Enfermagem • Simulação Clínica",
-        id: "PORTFOLIO-SBAR-2026"
-      }
-    });
-
-    setToastMessage("Prontuário Oficial e Parecer Pedagógico em PDF gerados com sucesso!");
-    setTimeout(() => setToastMessage(""), 3500);
-  }
-
   // Metadados pedagógicos estruturados por pilar SBAR
   const guidedStepsMeta = [
     {
@@ -1092,12 +1085,48 @@ export default function SbarHandoffLab() {
           </div>
         )}
 
+        {/* Banner de Acesso Rápido ao Histórico SBAR */}
+        <div
+          onClick={() => setIsHistoryOpen(true)}
+          className="p-4 sm:p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-teal-600 dark:text-teal-400 group-hover:scale-105 transition-transform shadow-2xs">
+              <History className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Consultar Histórico de Passagens de Plantão & Rascunhos</span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                  Retomar Atividades
+                </span>
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Veja as passagens de plantão que você já realizou, o feedback da preceptoria e continue treinos em andamento.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsHistoryOpen(true);
+            }}
+            className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-white dark:hover:bg-slate-900 shrink-0"
+          >
+            <span>Abrir Histórico</span>
+            <ArrowRight className="h-3.5 w-3.5 ml-1 text-teal-600" />
+          </Button>
+        </div>
+
         {/* Painel do Caso Clínico Ativo: 1 Caso por Vez (Design Focado & Despoluído) */}
         <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
             <div className="flex items-center gap-2">
               <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                Prontuário Ativo à Beira-Leito
+                Caso Simulado à Beira-Leito
               </span>
               <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
                 {currentCase.sector || currentCase.bed}
@@ -1952,25 +1981,20 @@ export default function SbarHandoffLab() {
                   "{tutorEvaluation.gotiMentorship || tutorEvaluation.florenceMentorship || 'A comunicação assertiva é a maior ferramenta de proteção da enfermagem.'}"
                 </div>
               </div>
-
-              <Button
-                onClick={handleDownloadPdf}
-                className="rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-semibold text-xs px-5 h-10 shadow-xs flex items-center gap-2 shrink-0"
-              >
-                <Download className="h-4 w-4" />
-                <span>Exportar Prontuário & Parecer em PDF</span>
-              </Button>
             </div>
           </div>
         )}
         </>
         )}
 
-        {/* Modal Unificado de Histórico SBAR */}
+        {/* Modal Unificado de Histórico SBAR (Isolado exclusivamente para o módulo SBAR) */}
         <CaseHistoryModal
           isOpen={isHistoryOpen}
           onClose={() => setIsHistoryOpen(false)}
           onResumeActivity={handleResumeActivity}
+          defaultModuleFilter="sbar"
+          lockModuleFilter={true}
+          title="Histórico de Passagem de Plantão SBAR"
         />
       </main>
 

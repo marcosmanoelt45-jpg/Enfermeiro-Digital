@@ -1,4 +1,5 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useSearchParams } from "react-router-dom";
 import {
   Brain,
   Wind,
@@ -6,12 +7,19 @@ import {
   Layers,
   ChevronRight,
   Lightbulb,
-  ChevronDown
+  ChevronDown,
+  History,
+  Clock,
+  BookmarkPlus,
+  ArrowRight,
+  CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
+import CaseHistoryModal from "@/components/history/CaseHistoryModal";
+import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 
 const SYSTEMS_MODULES = [
   {
@@ -113,8 +121,54 @@ export default function SystemsAssessmentLab() {
   const [addedFindingsBySys, setAddedFindingsBySys] = useState({});
   const [showPearls, setShowPearls] = useState(false);
 
+  // Histórico & Cronômetro de Atividade Semiológica
+  const [searchParams] = useSearchParams();
+  const [currentActivityId, setCurrentActivityId] = useState(null);
+  const [activitySeconds, setActivitySeconds] = useState(0);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActivitySeconds((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (action === "review" || action === "continue" || action === "history") {
+      setIsHistoryOpen(true);
+    }
+  }, [searchParams]);
+
   const activeSystem = SYSTEMS_MODULES.find((s) => s.id === selectedSysId) || SYSTEMS_MODULES[0];
   const currentAdded = addedFindingsBySys[selectedSysId] || [];
+
+  function handleSaveDraft() {
+    const draft = clinicalHistoryService.saveDraft({
+      id: currentActivityId,
+      moduleType: MODULE_TYPES.SYSTEMS_ASSESSMENT,
+      title: `Semiologia: ${activeSystem.title.split("&")[0]}`,
+      patientInfo: `${activeSystem.caseScenario.patient}`,
+      progress: completeness || 25,
+      durationSeconds: activitySeconds,
+      formData: { selectedSysId, addedFindingsBySys }
+    });
+    setCurrentActivityId(draft.id);
+    setToastMessage("Rascunho de semiologia salvo no Histórico!");
+    setTimeout(() => setToastMessage(""), 3000);
+  }
+
+  function handleResumeActivity(item) {
+    if (item?.formData) {
+      if (item.formData.selectedSysId) setSelectedSysId(item.formData.selectedSysId);
+      if (item.formData.addedFindingsBySys) setAddedFindingsBySys(item.formData.addedFindingsBySys);
+      if (item.durationSeconds) setActivitySeconds(item.durationSeconds);
+    }
+    setCurrentActivityId(item.id);
+    setIsHistoryOpen(false);
+  }
 
   function handleAddGap(gap, resultingItem) {
     if (!currentAdded.some((item) => item.key === gap.key)) {
@@ -170,7 +224,36 @@ export default function SystemsAssessmentLab() {
             </span>
           </div>
 
-          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+          <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
+            {/* Cronômetro */}
+            <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+              <Clock className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span>{clinicalHistoryService.formatDuration(activitySeconds)}</span>
+            </span>
+
+            {/* Salvar Rascunho */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveDraft}
+              className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              title="Salvar rascunho da semiologia no Histórico"
+            >
+              <BookmarkPlus className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span>Salvar Rascunho</span>
+            </Button>
+
+            {/* Botão de Histórico de Semiologia */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsHistoryOpen(true)}
+              className="rounded-xl border-indigo-300 dark:border-indigo-800 text-indigo-800 dark:text-indigo-300 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+            >
+              <History className="h-3.5 w-3.5 text-indigo-600 dark:text-indigo-400" />
+              <span>Histórico de Semiologia</span>
+            </Button>
+
             <Button
               variant="outline"
               size="sm"
@@ -182,6 +265,50 @@ export default function SystemsAssessmentLab() {
               <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showPearls ? "rotate-180" : ""}`} />
             </Button>
           </div>
+        </div>
+
+        {/* Notificação Toast */}
+        {toastMessage && (
+          <div className="p-3.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs flex items-center gap-2 animate-in fade-in shadow-sm">
+            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+            <span className="font-medium">{toastMessage}</span>
+          </div>
+        )}
+
+        {/* Banner de Acesso Rápido ao Histórico de Semiologia */}
+        <div
+          onClick={() => setIsHistoryOpen(true)}
+          className="p-4 sm:p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 hover:border-indigo-500 dark:hover:border-indigo-500 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-indigo-600 dark:text-indigo-400 group-hover:scale-105 transition-transform shadow-2xs">
+              <History className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Consultar Histórico de Avaliações Semiológicas</span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-indigo-100 dark:bg-indigo-950 text-indigo-800 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800">
+                  Retomar Atividades
+                </span>
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Veja as investigações céfalo-caudais que você já realizou, escores de completude e continue achados em andamento.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsHistoryOpen(true);
+            }}
+            className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-white dark:hover:bg-slate-900 shrink-0"
+          >
+            <span>Abrir Histórico</span>
+            <ArrowRight className="h-3.5 w-3.5 ml-1 text-indigo-600" />
+          </Button>
         </div>
 
         {/* Pérolas Clínicas Sob Demanda (Divulgação Progressiva) */}
@@ -265,6 +392,16 @@ export default function SystemsAssessmentLab() {
             />
           </div>
         </div>
+
+        {/* Modal Unificado de Histórico de Semiologia */}
+        <CaseHistoryModal
+          isOpen={isHistoryOpen}
+          onClose={() => setIsHistoryOpen(false)}
+          onResumeActivity={handleResumeActivity}
+          defaultModuleFilter={MODULE_TYPES.SYSTEMS_ASSESSMENT}
+          lockModuleFilter={true}
+          title="Histórico de Semiologia por Sistemas"
+        />
       </main>
 
       <StudentFooter />

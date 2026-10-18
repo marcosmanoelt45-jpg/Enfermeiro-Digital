@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   CheckCircle2,
   Lightbulb,
@@ -16,11 +16,13 @@ import {
   ClipboardList,
   Eye,
   Check,
-  Download,
   ArrowRightLeft,
   Scale,
   Award,
-  MessageSquareQuote
+  MessageSquareQuote,
+  History,
+  Clock,
+  BookmarkPlus
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -30,7 +32,8 @@ import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
 import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
-import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
+import CaseHistoryModal from "@/components/history/CaseHistoryModal";
+import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 
 export default function CaseStudySimulator() {
   const navigate = useNavigate();
@@ -241,6 +244,74 @@ export default function CaseStudySimulator() {
     }
   }
 
+  // Histórico & Cronômetro de Atividade do Simulador
+  const [searchParams] = useSearchParams();
+  const [currentActivityId, setCurrentActivityId] = useState(null);
+  const [activitySeconds, setActivitySeconds] = useState(0);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+
+  useEffect(() => {
+    const action = searchParams.get("action");
+    if (action === "review" || action === "continue" || action === "history") {
+      setIsHistoryOpen(true);
+    }
+  }, [searchParams]);
+
+  useEffect(() => {
+    const timer = setInterval(() => {
+      setActivitySeconds((s) => s + 1);
+    }, 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  function handleSaveDraft() {
+    const progress = Math.min(Math.round((activeStep / 5) * 100), 99);
+    const draft = clinicalHistoryService.saveDraft({
+      id: currentActivityId,
+      moduleType: MODULE_TYPES.CASE_SIMULATOR,
+      title: `Caso Clínico: ${currentCase.title}`,
+      patientInfo: `${currentCase.patient?.name || "Paciente"} • ${currentCase.category || "Enfermaria"}`,
+      progress,
+      durationSeconds: activitySeconds,
+      step: activeStep,
+      formData: {
+        selectedCaseIdx,
+        activeStep,
+        studentAssessmentNotes,
+        studentHypothesis,
+        studentEtiology,
+        studentEvidences,
+        studentGoals,
+        studentInterventions,
+        studentEvolutionNotes,
+      }
+    });
+    setCurrentActivityId(draft.id);
+    setToastMessage("Rascunho do caso salvo no Histórico!");
+    setTimeout(() => setToastMessage(""), 3000);
+  }
+
+  function handleResumeActivity(item) {
+    if (item?.formData) {
+      if (typeof item.formData.selectedCaseIdx === "number") setSelectedCaseIdx(item.formData.selectedCaseIdx);
+      if (typeof item.formData.activeStep === "number") setActiveStep(item.formData.activeStep);
+      if (item.formData.studentAssessmentNotes) setStudentAssessmentNotes(item.formData.studentAssessmentNotes);
+      if (item.formData.studentHypothesis) setStudentHypothesis(item.formData.studentHypothesis);
+      if (item.formData.studentEtiology) setStudentEtiology(item.formData.studentEtiology);
+      if (item.formData.studentEvidences) setStudentEvidences(item.formData.studentEvidences);
+      if (item.formData.studentGoals) setStudentGoals(item.formData.studentGoals);
+      if (item.formData.studentInterventions) setStudentInterventions(item.formData.studentInterventions);
+      if (item.formData.studentEvolutionNotes) setStudentEvolutionNotes(item.formData.studentEvolutionNotes);
+      if (item.durationSeconds) setActivitySeconds(item.durationSeconds);
+    }
+    if (item?.evaluation) {
+      setTutorEvaluation(item.evaluation);
+      setViewingDebriefing(true);
+    }
+    setCurrentActivityId(item.id);
+    setIsHistoryOpen(false);
+  }
+
   async function handleSubmitEvaluation() {
     setIsEvaluating(true);
     try {
@@ -253,6 +324,30 @@ export default function CaseStudySimulator() {
       setTutorEvaluation(res);
       setViewingDebriefing(true);
       window.scrollTo({ top: 320, behavior: "smooth" });
+
+      try {
+        const submitted = clinicalHistoryService.submitActivity({
+          id: currentActivityId,
+          moduleType: MODULE_TYPES.CASE_SIMULATOR,
+          title: `Caso Clínico: ${currentCase.title}`,
+          patientInfo: `${currentCase.patient?.name || "Paciente"} • ${currentCase.category || "Enfermaria"}`,
+          durationSeconds: activitySeconds,
+          score: res?.overallScore || 90,
+          evaluation: res,
+          formData: {
+            selectedCaseIdx,
+            studentHypothesis,
+            studentEtiology,
+            studentEvidences,
+            studentGoals,
+            studentInterventions,
+            studentEvolutionNotes
+          }
+        });
+        setCurrentActivityId(submitted.id);
+      } catch (err) {
+        console.warn("[CaseStudySimulator] Erro ao gravar histórico:", err);
+      }
     } finally {
       setIsEvaluating(false);
     }
@@ -280,6 +375,35 @@ export default function CaseStudySimulator() {
           </div>
 
           <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap">
+            {/* Cronômetro */}
+            <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
+              <Clock className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>{clinicalHistoryService.formatDuration(activitySeconds)}</span>
+            </span>
+
+            {/* Salvar Rascunho */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleSaveDraft}
+              className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              title="Salvar rascunho do caso clínico no Histórico"
+            >
+              <BookmarkPlus className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Salvar Rascunho</span>
+            </Button>
+
+            {/* Histórico do Módulo */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setIsHistoryOpen(true)}
+              className="rounded-xl border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+            >
+              <History className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <span>Histórico de Casos</span>
+            </Button>
+
             <Button
               onClick={() => navigate('/passagem-plantao', { state: { caseData: currentCase } })}
               variant="outline"
@@ -308,6 +432,42 @@ export default function CaseStudySimulator() {
           </div>
         )}
 
+        {/* Banner de Acesso Rápido ao Histórico de Casos & Rascunhos */}
+        <div
+          onClick={() => setIsHistoryOpen(true)}
+          className="p-4 sm:p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
+        >
+          <div className="flex items-center gap-3.5">
+            <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform shadow-2xs">
+              <History className="h-5 w-5" />
+            </div>
+            <div>
+              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+                <span>Consultar Histórico de Casos & Rascunhos Anteriores</span>
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  Retomar Atividades
+                </span>
+              </h4>
+              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+                Veja as simulações que você já realizou, o tempo gasto em cada etapa do PE e continue simulações em andamento.
+              </p>
+            </div>
+          </div>
+
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={(e) => {
+              e.stopPropagation();
+              setIsHistoryOpen(true);
+            }}
+            className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-white dark:hover:bg-slate-900 shrink-0"
+          >
+            <span>Abrir Histórico</span>
+            <ArrowRight className="h-3.5 w-3.5 ml-1 text-emerald-600" />
+          </Button>
+        </div>
+
         {/* Apresentação Focada: 1 Caso por Vez + Sorteio Aleatório */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-4">
@@ -320,7 +480,7 @@ export default function CaseStudySimulator() {
                   {currentCase.category}
                 </span>
                 <span className="text-xs text-slate-400 font-medium">
-                  Leito {currentCase.patient?.bed || "Enfermaria"} • Prontuário Clínico Ativo
+                  Leito {currentCase.patient?.bed || "Enfermaria"} • Caso Clínico Simulado
                 </span>
               </div>
               <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
@@ -329,6 +489,20 @@ export default function CaseStudySimulator() {
               <p className="text-xs text-slate-500 dark:text-slate-400">
                 Paciente: <strong className="text-slate-800 dark:text-slate-200">{currentCase.patient?.name}</strong> ({currentCase.patient?.age} anos, {currentCase.patient?.gender})
               </p>
+              <div className="flex items-center gap-2 pt-1 flex-wrap">
+                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Selecionar caso:</span>
+                <select
+                  value={selectedCaseIdx}
+                  onChange={(e) => handleSelectCase(Number(e.target.value))}
+                  className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 font-medium cursor-pointer"
+                >
+                  {cases.map((c, i) => (
+                    <option key={c.id || i} value={i}>
+                      Caso {i + 1}: {c.title}
+                    </option>
+                  ))}
+                </select>
+              </div>
             </div>
           </div>
 
@@ -515,28 +689,13 @@ export default function CaseStudySimulator() {
                     onClick={() => setViewingDebriefing(false)}
                     className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 w-full sm:w-auto shadow-2xs"
                   >
-                    <ArrowLeft className="h-4 w-4" /> Revisar Etapas do Prontuário
+                    <ArrowLeft className="h-4 w-4" /> Revisar Etapas do Caso
                   </Button>
 
                   <div className="flex items-center gap-2 w-full sm:w-auto">
                     <Button
-                      onClick={() => {
-                        exportClinicalCaseToPdf({
-                          caseData: currentCase,
-                          tutorEvaluation: tutorEvaluation
-                        });
-                        setToastMessage("Prontuário gerado em PDF com sucesso!");
-                        setTimeout(() => setToastMessage(""), 3500);
-                      }}
-                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-none shadow-xs h-10 px-4"
-                    >
-                      <Download className="h-4 w-4" /> Baixar Prontuário em PDF
-                    </Button>
-
-                    <Button
                       onClick={handleGenerateRandom}
-                      variant="outline"
-                      className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-none shadow-2xs h-10 px-4"
+                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-none shadow-xs h-10 px-4"
                     >
                       <Shuffle className="h-4 w-4" /> <span>🎲 Próximo Caso Aleatório</span>
                     </Button>
@@ -1039,6 +1198,16 @@ export default function CaseStudySimulator() {
             </div>
           )}
         </div>
+
+        {/* Modal Unificado de Histórico de Casos Clínicos */}
+        <CaseHistoryModal
+          isOpen={isHistoryOpen}
+          onClose={() => setIsHistoryOpen(false)}
+          onResumeActivity={handleResumeActivity}
+          defaultModuleFilter={MODULE_TYPES.CASE_SIMULATOR}
+          lockModuleFilter={true}
+          title="Histórico de Simulações de Casos Clínicos"
+        />
       </main>
 
       <StudentFooter />

@@ -23,7 +23,6 @@ import {
   MicOff,
   ListChecks,
   AudioLines,
-  Download,
   ArrowRightLeft,
   History,
   Clock,
@@ -37,7 +36,6 @@ import StudentFooter from "@/components/StudentFooter";
 import VitalSlider from "@/components/VitalSlider";
 import RiskBadge from "@/components/RiskBadge";
 import useAudioRecorder from "@/hooks/useAudioRecorder";
-import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
 import ClinicalGuideTabs from "@/components/audio/ClinicalGuideTabs";
 import RecorderPanel from "@/components/audio/RecorderPanel";
 import { parseVitalsFromTranscript } from "@/lib/vitalsParser";
@@ -915,6 +913,14 @@ export default function CaseStudio() {
                     setAudioError("");
                   }}
                 />
+
+                {/* Status Dinâmico de Transcrição por IA */}
+                {isAudioTranscribing && (
+                  <div className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/80 dark:bg-teal-950/60 p-3.5 text-xs text-teal-800 dark:text-teal-300 flex items-center gap-2.5 animate-pulse shadow-2xs">
+                    <AudioLines className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                    <span className="font-semibold">{audioStage || "Processando e transcrevendo áudio com inteligência artificial..."}</span>
+                  </div>
+                )}
 
                 {/* Botão de Ditado ao Vivo Direto no Navegador */}
                 <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
@@ -2082,31 +2088,6 @@ export default function CaseStudio() {
                     size="sm"
                     variant="outline"
                     onClick={() => {
-                      exportClinicalCaseToPdf({
-                        caseData: {
-                          name: profile?.name || "Paciente Simulado",
-                          age: profile?.age || 50,
-                          bed: profile?.bed || "Leito de Internação",
-                          title: challenge?.patientSummary || "Caso Montado no Estúdio",
-                          diagnosis: challenge?.correctDiagnosis || "Diagnóstico de Enfermagem",
-                          vitals: data,
-                          interventions: challenge?.recommendedInterventions
-                        },
-                        tutorEvaluation: {
-                          safetyScore: totalScore,
-                          summaryFeedback: `Bateria de julgamento clínico concluída com pontuação de ${totalScore} pontos. Prescrição de cuidados COFEN nº 736/2024 formulada.`
-                        }
-                      });
-                    }}
-                    className="rounded-xl border-slate-300 text-slate-700 hover:bg-slate-50 text-xs font-semibold flex items-center justify-center gap-1.5 w-full sm:w-auto"
-                  >
-                    <Download className="h-3.5 w-3.5" /> Baixar Prontuário em PDF
-                  </Button>
-
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
                       navigate("/passagem-plantao", {
                         state: {
                           caseData: {
@@ -2132,11 +2113,14 @@ export default function CaseStudio() {
           </div>
         )}
 
-        {/* Modal Unificado de Histórico de Casos Clínicos */}
+        {/* Modal Unificado de Histórico de Casos Clínicos (Exclusivo para Montador de Casos) */}
         <CaseHistoryModal
           isOpen={isHistoryModalOpen}
           onClose={() => setIsHistoryModalOpen(false)}
           onResumeActivity={handleResumeActivity}
+          defaultModuleFilter="case_builder"
+          lockModuleFilter={true}
+          title="Histórico de Casos Montados"
         />
       </main>
 
