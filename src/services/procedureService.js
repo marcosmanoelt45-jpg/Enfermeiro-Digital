@@ -7,6 +7,7 @@
 
 import { clinicalGamificationService } from './clinicalGamificationService';
 import { getProcedurePreview } from './procedurePreviews';
+import { callResilientAI } from './aiCoreService';
 
 const STORAGE_KEY = 'enfermeiro_digital_custom_procedures';
 
@@ -422,40 +423,151 @@ Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro
 
   /**
    * Responde dúvidas clínicas pontuais sobre o procedimento em execução (Preceptor Clínico IA).
+   * Cascata: Gemini Direto -> OpenRouter -> Motor Pedagógico & Institucional Local.
    */
   async askPreceptorAI(procedure, userQuestion) {
-    const apiKey = getGeminiApiKey();
-    if (!apiKey) {
-      return `Como preceptor clínico de enfermagem, informo que durante o procedimento de ${procedure.title}, a prioridade é sempre manter a técnica asséptica estrita e observar as queixas do paciente. Se houver resistência anatômica ou dúvida, pause o procedimento e reavalie a anatomia do sítio antes de prosseguir.`;
-    }
+    const systemPrompt = `Você é o Preceptor Clínico IA, tutor especialista em procedimentos e práticas de enfermagem da plataforma Enfere.
+A plataforma Enfere foi criada e desenvolvida por Marcos Manoel Tavares Neumann, detentor exclusivo de todos os direitos autorais.
+O estudante está assistindo e treinando o procedimento: "${procedure?.title || 'Procedimento Clínico'}".
+Categoria: ${procedure?.categoryLabel || procedure?.category || 'Geral'}.
+Descrição: ${procedure?.description || ''}.
+Normativa COFEN: ${procedure?.cofenNorm || 'Diretrizes COFEN e Segurança do Paciente'}.
 
-    const activeModel = localStorage.getItem('enfermeiro_gemini_model') || 'gemini-2.0-flash';
+DIRETRIZES DE RESPOSTA:
+1. Se o aluno perguntar sobre os criadores/autores da plataforma, informe expressamente que a plataforma Enfere foi criada e desenvolvida por Marcos Manoel Tavares Neumann, detentor de todos os direitos autorais.
+2. Se o aluno perguntar sobre como a IA funciona, quais modelos usa ou de onde vêm os créditos, explique que o Enfere utiliza uma arquitetura híbrida de alto desempenho que combina Google Gemini 2.5 Flash, OpenRouter e motor local SAE/COFEN, com cotas gerenciadas pela plataforma e opção de conectar chave própria gratuita do Google AI Studio em Minha Conta.
+3. Se a pergunta for sobre procedimentos clínicos, variações anatômicas, complicações ou condutas, responda com alto rigor técnico, linguagem acolhedora, fundamentação anatômica e ênfase na técnica asséptica e segurança do paciente.
+4. Mantenha respostas concisas, diretas e práticas em 1 a 2 parágrafos.`;
 
-    const prompt = `Você é o Preceptor Clínico IA, tutor especialista em procedimentos e práticas de enfermagem da plataforma Enfere.
-O estudante está assistindo e treinando o procedimento: "${procedure.title}".
-Descrição do procedimento: ${procedure.description}.
-Normativa COFEN: ${procedure.cofenNorm}.
-Dúvida do estudante: "${userQuestion}".
+    const userPrompt = `Dúvida do estudante de enfermagem: "${userQuestion}"`;
 
-Responda em 1 a 2 parágrafos curtos, diretos e objetivos, com alto rigor científico, fundamentação anatômica e foco na segurança do paciente. Enfatize condutas práticas de beira-leito.`;
-
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [{ parts: [{ text: prompt }] }],
-        }),
+    try {
+      const result = await callResilientAI(systemPrompt, userPrompt, { maxTokens: 800, temperature: 0.3 });
+      if (result && result.text) {
+        return result.text;
       }
-    );
-
-    if (!res.ok) {
-      return 'Não foi possível conectar com o Preceptor Clínico IA no momento. Consulte o POP do procedimento acima.';
+    } catch (e) {
+      console.warn('[procedureService] Conexão externa à IA falhou, ativando motor local:', e);
     }
 
-    const data = await res.json();
-    return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta disponível.';
+    // Fallback inteligente garantido (NUNCA retorna mensagem de erro)
+    return this.generateProcedureFallback(procedure, userQuestion);
+  },
+
+  /**
+   * Resposta clínica e institucional estruturada de fallback quando as APIs externas estiverem indisponíveis.
+   */
+  generateProcedureFallback(procedure, userQuestion) {
+    const q = (userQuestion || '').toLowerCase();
+    const title = procedure?.title || 'Procedimento de Enfermagem';
+
+    // 1. Perguntas sobre quem criou, autores, direitos autorais
+    if (
+      q.includes('criador') ||
+      q.includes('quem criou') ||
+      q.includes('autor') ||
+      q.includes('desenvolveu') ||
+      q.includes('dono') ||
+      q.includes('proprietario') ||
+      q.includes('marcos') ||
+      q.includes('neumann')
+    ) {
+      return (
+        'A plataforma **Enfere** (Enfermeiro Digital) foi idealizada, concebida e desenvolvida por **Marcos Manoel Tavares Neumann**, ' +
+        'detentor exclusivo de todos os direitos autorais e da propriedade intelectual do sistema.\n\n' +
+        'O Enfere foi construído para revolucionar o aprendizado prático e a simulação clínica em enfermagem, unindo a ' +
+        'Resolução COFEN nº 736/2024, as 5 etapas do Processo de Enfermagem (NANDA-I, NIC e NOC), escores validados de beira-leito ' +
+        'e preceptoria com Inteligência Artificial.'
+      );
+    }
+
+    // 2. Perguntas sobre como a IA funciona, modelos utilizados e créditos
+    if (
+      q.includes('como vc funciona') ||
+      q.includes('como você funciona') ||
+      q.includes('como funciona') ||
+      q.includes('qual ia') ||
+      q.includes('qual modelo') ||
+      q.includes('credito') ||
+      q.includes('crédito') ||
+      q.includes('de onde vai') ||
+      q.includes('cota') ||
+      q.includes('api') ||
+      q.includes('tokens')
+    ) {
+      return (
+        'Sou o seu **Preceptor Clínico IA** do Enfere! Atuo como seu tutor virtual de beira-leito para esclarecer dúvidas técnicas, ' +
+        'variações anatômicas, prevenção de iatrogenias e fundamentação científica dos procedimentos.\n\n' +
+        '• **Qual IA usamos:** Opero por meio de uma arquitetura híbrida de alto desempenho com o **Google Gemini 2.5 Flash** e o roteador ' +
+        '**OpenRouter**, integrados a um motor determinístico local de Sistematização da Assistência de Enfermagem (SAE).\n' +
+        '• **De onde vêm os créditos:** A plataforma gerencia cotas ativas integradas para você treinar à vontade. Além disso, na aba **Minha Conta**, ' +
+        'você pode conectar sua própria chave de API gratuita do Google AI Studio para acesso direto e ilimitado. ' +
+        'Mesmo se houver oscilação de conexão, o motor clínico local garante respostas formativas para todos os procedimentos!'
+      );
+    }
+
+    // 3. Procedimento específico: Parada Cardiorrespiratória & Suporte Básico de Vida (BLS/RCP)
+    if (
+      procedure?.id === 'rcp-suporte-basico-vida' ||
+      q.includes('rcp') ||
+      q.includes('bls') ||
+      q.includes('pcr') ||
+      q.includes('parada') ||
+      q.includes('compress') ||
+      q.includes('massagem') ||
+      q.includes('dea') ||
+      q.includes('desfibrilador')
+    ) {
+      if (q.includes('erro') || q.includes('falha') || q.includes('comum')) {
+        return (
+          '⚕️ **Erros Críticos na PCR/BLS que Você Deve Evitar a Todo Custo:**\n\n' +
+          '1. **Compressões Inadequadas:** Frequência fora da faixa de 100 a 120/min ou profundidade inferior a 5 cm (máximo 6 cm no adulto).\n' +
+          '2. **Apoiar-se no Tórax (*Leaning*):** Não permitir o retorno elástico completo da caixa torácica, reduzindo o enchimento ventricular e o débito cardíaco.\n' +
+          '3. **Interrupções Excessivas:** Pausas superiores a 10 segundos para ventilar ou trocar socorrista diminuem drasticamente a pressão de perfusão coronariana.\n' +
+          '4. **Atraso no Choque:** Se o DEA indicar ritmo chocável (FV/TV sem pulso), o choque deve ser aplicado imediatamente, retomando as compressões sem pausa para checar pulso.'
+        );
+      }
+      return (
+        '⚕️ **Diretrizes Clínicas de Ouro para PCR & BLS (AHA / SBC / COFEN):**\n\n' +
+        '• **Relação Compressão-Ventilação:** 30 compressões para 2 ventilações (30:2) com via aérea não invasiva. Frequência de **100 a 120/min** e profundidade de **5 a 6 cm**.\n' +
+        '• **Uso do DEA:** Instale o Desfibrilador Externo Automático imediatamente. Ritmos chocáveis: **Fibrilação Ventricular (FV)** e **Taquicardia Ventricular sem Pulso (TVSP)**. Ritmos não chocáveis: **Assistolia** e **Atividade Elétrica sem Pulso (AESP)**.\n' +
+        '• **Troca de Socorristas:** Revezar o massagista a cada 2 minutos (5 ciclos de 30:2) para evitar fadiga mecânica e perda de profundidade.'
+      );
+    }
+
+    // 4. Dúvidas sobre resistência mecânica
+    if (q.includes('resistencia') || q.includes('resistência') || q.includes('travou') || q.includes('nao entra') || q.includes('não entra')) {
+      return (
+        `⚕️ **Conduta Imediata de Preceptoria:** Se houver resistência mecânica durante ${title}, **nunca force**. ` +
+        'A resistência é indicativo de obstáculo anatômico (ex.: estenose, hiperplasia prostática em sondagens, válvula venosa colapsada em punções ou flexão articular). ' +
+        'Interrompa a progressão imediatamente, reavalie a angulação e o posicionamento do paciente, e se a dúvida persistir, comunique o enfermeiro assistencial ou equipe médica.'
+      );
+    }
+
+    // 5. Dúvidas sobre paciente ansioso, dor ou medo
+    if (q.includes('ansioso') || q.includes('medo') || q.includes('dor') || q.includes('nervoso') || q.includes('choro')) {
+      return (
+        '⚕️ **Comunicação Terapêutica & Acolhimento:** Antes de iniciar, estabeleça contato visual, chame o paciente pelo nome preferido e explique sucintamente o objetivo e cada etapa do procedimento em vocabulário simples. ' +
+        'Oriente respirações profundas e lentas. Essa abordagem diminui o tônus adrenérgico, relaxa a musculatura esquelética e reduz significativamente a percepção de dor e intercorrências vagais.'
+      );
+    }
+
+    // 6. Dúvidas sobre erros comuns em procedimentos em geral
+    if (q.includes('erro') || q.includes('falha') || q.includes('comum')) {
+      return (
+        `⚕️ **Principais Alvos de Segurança em ${title}:**\n\n` +
+        '1. **Quebra de Técnica Asséptica:** Contaminação inadvertida da ponta de cateteres, agulhas ou campos estéreis.\n' +
+        '2. **Falha na Identificação:** Não conferir os dois identificadores do paciente (Nome completo e Data de Nascimento) antes de manipular ou medicar.\n' +
+        '3. **Omissão de Registro:** Deixar de checar imediatamente no prontuário o horário, calibre do dispositivo, aspecto das drenagens ou reações adversas.'
+      );
+    }
+
+    // 7. Fallback geral contextualizado no procedimento ativo
+    return (
+      `Como seu Preceptor Clínico IA para o procedimento **${title}**, informo que a prioridade técnica absoluta é assegurar a integridade asséptica, ` +
+      'a correta identificação dos marcos anatômicos e a monitorização atenta de qualquer sinal de alarme. ' +
+      'Consulte a aba do POP interativo e o checklist de técnica asséptica acima para conferir o roteiro técnico normatizado pelo COFEN.'
+    );
   },
 
   async askGotiAI(procedure, userQuestion) {
@@ -466,3 +578,4 @@ Responda em 1 a 2 parágrafos curtos, diretos e objetivos, com alto rigor cient�
     return this.askPreceptorAI(procedure, userQuestion);
   },
 };
+

@@ -5,6 +5,8 @@
  * Farmacologia Segura e Preparação Acadêmica, com guardrails de segurança e proteção institucional.
  */
 
+import { callResilientAI } from './aiCoreService';
+
 function getGeminiApiKey() {
   if (typeof localStorage !== 'undefined') {
     const key = localStorage.getItem('enfermeiro_gemini_api_key');
@@ -103,79 +105,18 @@ export const gotiPreceptorService = {
       history = this.getHistory();
     }
 
-    const apiKey = getGeminiApiKey();
     let assistantReply = '';
 
-    // Se houver chave, chama a API oficial do Google Gemini Flash
-    if (apiKey) {
-      const activeModel =
-        (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_gemini_model')) ||
-        'gemini-2.0-flash';
+    try {
+      const recentHistory = history.slice(-6).map((item) => `${item.sender === 'user' ? 'Aluno' : 'Preceptor'}: ${item.text}`).join('\n');
+      const prompt = recentHistory ? `HISTÓRICO RECENTE DA CONVERSA:\n${recentHistory}\n\nPERGUNTA ATUAL DO ALUNO:\n${userMessage}` : userMessage;
 
-      const candidateModels = [
-        activeModel,
-        'gemini-2.0-flash',
-        'gemini-1.5-flash-latest',
-        'gemini-1.5-flash'
-      ];
-
-      // Formatar histórico de mensagens para a API Gemini
-      const contents = [
-        {
-          role: 'user',
-          parts: [{ text: GOTI_SYSTEM_PROMPT }]
-        },
-        {
-          role: 'model',
-          parts: [{ text: 'Entendido! Sou o Preceptor Clínico IA do Enfere, pronto para guiar os estudantes com ética, ciência e segurança do paciente!' }]
-        }
-      ];
-
-      // Adiciona últimas 6 mensagens de histórico para manter contexto
-      const recentHistory = history.slice(-6);
-      recentHistory.forEach((item) => {
-        contents.push({
-          role: item.sender === 'user' ? 'user' : 'model',
-          parts: [{ text: item.text }]
-        });
-      });
-
-      // Adiciona a pergunta atual do aluno
-      contents.push({
-        role: 'user',
-        parts: [{ text: userMessage }]
-      });
-
-      for (const model of candidateModels) {
-        try {
-          const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
-          const response = await fetch(endpoint, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              contents,
-              generationConfig: {
-                temperature: 0.4,
-                topK: 40,
-                topP: 0.95,
-                maxOutputTokens: 850
-              }
-            })
-          });
-
-          if (response.ok) {
-            const data = await response.json();
-            const textResponse = data?.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (textResponse && textResponse.trim()) {
-              assistantReply = textResponse.trim();
-              break;
-            }
-          }
-        } catch {
-          // Fallback para o próximo modelo candidato
-          continue;
-        }
+      const result = await callResilientAI(GOTI_SYSTEM_PROMPT, prompt, { maxTokens: 850, temperature: 0.4 });
+      if (result && result.text) {
+        assistantReply = result.text;
       }
+    } catch (err) {
+      console.warn('[gotiPreceptorService] Falha na chamada da IA externa, ativando motor local:', err);
     }
 
     if (!assistantReply) {
@@ -208,6 +149,51 @@ export const gotiPreceptorService = {
         '⚕️ **Aviso Importante do Preceptor Clínico:**\n\n' +
         'Como preceptor acadêmico do Enfere, meu papel é educacional e voltado à formação profissional em Enfermagem. **Eu não posso fornecer diagnósticos ou prescrições para tratamento pessoal.**\n\n' +
         'Se você ou alguém próximo estiver com dores ou sintomas, procure imediatamente atendimento médico em uma Unidade Básica de Saúde, UPA ou ligue para o **SAMU 192** em caso de emergência! 🏥'
+      );
+    }
+
+    // Perguntas sobre quem criou, autores, direitos autorais
+    if (
+      lower.includes('criador') ||
+      lower.includes('quem criou') ||
+      lower.includes('autor') ||
+      lower.includes('desenvolveu') ||
+      lower.includes('dono') ||
+      lower.includes('proprietario') ||
+      lower.includes('marcos') ||
+      lower.includes('neumann')
+    ) {
+      return (
+        'A plataforma **Enfere** (Enfermeiro Digital) foi idealizada, concebida e desenvolvida por **Marcos Manoel Tavares Neumann**, ' +
+        'detentor exclusivo de todos os direitos autorais e da propriedade intelectual do sistema.\n\n' +
+        'O Enfere foi construído para revolucionar o aprendizado prático e a simulação clínica em enfermagem, unindo a ' +
+        'Resolução COFEN nº 736/2024, as 5 etapas do Processo de Enfermagem (NANDA-I, NIC e NOC), escores validados de beira-leito ' +
+        'e preceptoria com Inteligência Artificial.'
+      );
+    }
+
+    // Perguntas sobre como a IA funciona, modelos utilizados e créditos
+    if (
+      lower.includes('como vc funciona') ||
+      lower.includes('como você funciona') ||
+      lower.includes('como funciona') ||
+      lower.includes('qual ia') ||
+      lower.includes('qual modelo') ||
+      lower.includes('credito') ||
+      lower.includes('crédito') ||
+      lower.includes('de onde vai') ||
+      lower.includes('cota') ||
+      lower.includes('api') ||
+      lower.includes('tokens')
+    ) {
+      return (
+        'Sou o seu **Preceptor Clínico IA** do Enfere! Atuo como seu tutor virtual de beira-leito para esclarecer dúvidas técnicas, ' +
+        'variações anatômicas, prevenção de iatrogenias e fundamentação científica dos procedimentos.\n\n' +
+        '• **Qual IA usamos:** Opero por meio de uma arquitetura híbrida de alto desempenho com o **Google Gemini 2.5 Flash** e o roteador ' +
+        '**OpenRouter**, integrados a um motor determinístico local de Sistematização da Assistência de Enfermagem (SAE).\n' +
+        '• **De onde vêm os créditos:** A plataforma gerencia cotas ativas integradas para você treinar à vontade. Além disso, na aba **Minha Conta**, ' +
+        'você pode conectar sua própria chave de API gratuita do Google AI Studio para acesso direto e ilimitado. ' +
+        'Mesmo se houver oscilação de conexão, o motor clínico local garante respostas formativas para todos os procedimentos!'
       );
     }
 
