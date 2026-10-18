@@ -1,3 +1,4 @@
+
 /**
  * GotiMascot.jsx
  * Componente neutralizado após a remoção do mascote Goti.

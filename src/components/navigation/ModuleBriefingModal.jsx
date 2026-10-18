@@ -8,7 +8,6 @@ import {
   Mic,
   FileText,
   Clock,
-  Sparkles,
   Video,
   Calculator,
   Stethoscope,
@@ -16,7 +15,6 @@ import {
   ArrowRightLeft,
   ShieldCheck
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { useTheme } from "@/lib/ThemeContext";
 
 const MODULE_DATA = {
@@ -159,7 +157,7 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
         <div className="p-4 sm:p-5 bg-teal-50/50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800 flex items-start gap-3.5">
           <div className="shrink-0 -mt-0.5">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shadow-xs">
-              <IconComponent className="w-5 h-5 text-white" />
+              <IconComp className="w-5 h-5 text-white" />
             </div>
           </div>
           <div className="flex-1 space-y-1">

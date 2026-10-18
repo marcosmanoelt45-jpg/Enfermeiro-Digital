@@ -5,7 +5,6 @@ import {
   Calculator,
   Stethoscope,
   Users,
-  HelpCircle,
   UserCircle,
   LogOut,
   PlusCircle,
@@ -15,9 +14,7 @@ import {
   Moon,
   Video,
   Sparkles,
-  Coins,
-  MessageCircleQuestion,
-  MessageSquare
+  Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";

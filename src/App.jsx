@@ -8,6 +8,7 @@ import { ThemeProvider } from '@/lib/ThemeContext';
 import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 // Páginas Principais da Plataforma do Estudante de Enfermagem
 import StudentDashboard from '@/pages/StudentDashboard';
@@ -109,17 +110,19 @@ const AuthenticatedApp = () => {
 
 function App() {
   return (
-    <ThemeProvider>
-      <AuthProvider>
-        <QueryClientProvider client={queryClientInstance}>
-          <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
-            <ScrollToTop />
-            <AuthenticatedApp />
-          </Router>
-          <Toaster />
-        </QueryClientProvider>
-      </AuthProvider>
-    </ThemeProvider>
+    <ErrorBoundary>
+      <ThemeProvider>
+        <AuthProvider>
+          <QueryClientProvider client={queryClientInstance}>
+            <Router future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+              <ScrollToTop />
+              <AuthenticatedApp />
+            </Router>
+            <Toaster />
+          </QueryClientProvider>
+        </AuthProvider>
+      </ThemeProvider>
+    </ErrorBoundary>
   );
 }
 

@@ -2,12 +2,10 @@ import React, { useState, useMemo, useEffect } from 'react';
 import {
   Video,
   Search,
-  Sparkles,
   Play,
   ArrowLeft,
   ShieldCheck,
 } from 'lucide-react';
-import { Button } from '@/components/ui/button';
 import StudentHeader from '@/components/StudentHeader';
 import StudentFooter from '@/components/StudentFooter';
 import { useTheme } from '@/lib/ThemeContext';

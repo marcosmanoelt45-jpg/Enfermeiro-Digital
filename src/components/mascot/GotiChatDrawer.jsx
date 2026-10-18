@@ -8,6 +8,7 @@ import {
   Stethoscope,
   Lightbulb
 } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { gotiPreceptorService } from "@/services/gotiPreceptorService";
 import { useTheme } from "@/lib/ThemeContext";
 
@@ -23,6 +24,7 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
   const [messages, setMessages] = useState(() => gotiPreceptorService.getHistory());
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [gotiState, setGotiState] = useState("idle"); // "idle" | "speaking" | "celebrating" | "thinking"
   const messagesEndRef = useRef(null);
   const inputRef = useRef(null);
 
@@ -50,16 +52,20 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
     triggerHaptic(20);
     setInputText("");
     setIsLoading(true);
+    setGotiState("thinking");
 
     // Adiciona temporariamente a mensagem do usuário na tela
     const updatedHistory = [...messages, { role: "user", text, timestamp: new Date().toISOString() }];
     setMessages(updatedHistory);
 
     try {
-      await gotiPreceptorService.sendMessage(text);
+      const response = await gotiPreceptorService.sendMessage(text);
       setMessages(gotiPreceptorService.getHistory());
+      setGotiState("speaking");
+      setTimeout(() => setGotiState("idle"), 2500);
     } catch (err) {
-      console.error("Erro no chat do Preceptor IA:", err);
+      console.error("Erro no chat do Goti:", err);
+      setGotiState("idle");
     } finally {
       setIsLoading(false);
     }
@@ -69,6 +75,7 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
     triggerHaptic(30);
     gotiPreceptorService.clearHistory();
     setMessages(gotiPreceptorService.getHistory());
+    setGotiState("idle");
   }
 
   if (!isOpen) return null;

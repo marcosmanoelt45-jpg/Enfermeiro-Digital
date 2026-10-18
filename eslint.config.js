@@ -9,7 +9,7 @@ export default [
     files: [
       "src/components/**/*.{js,mjs,cjs,jsx}",
       "src/pages/**/*.{js,mjs,cjs,jsx}",
-      "src/Layout.jsx",
+      "src/App.jsx",
     ],
     ignores: ["src/lib/**/*", "src/components/ui/**/*"],
     ...pluginJs.configs.recommended,
@@ -37,6 +37,7 @@ export default [
     rules: {
       "no-undef": "error",
       "no-unused-vars": "off",
+      "react/jsx-no-undef": "error",
       "react/jsx-uses-vars": "error",
       "react/jsx-uses-react": "error",
       "unused-imports/no-unused-imports": "error",
