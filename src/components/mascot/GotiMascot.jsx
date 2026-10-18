@@ -1,5 +1,3 @@
-import React from 'react';
-
 /**
  * GotiMascot.jsx
  * Componente neutralizado após a remoção do mascote Goti.
