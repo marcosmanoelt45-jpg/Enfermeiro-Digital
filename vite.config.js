@@ -14,11 +14,11 @@ export default defineConfig({
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB para suportar os módulos clínicos interativos
       },
       manifest: {
-        name: 'Lampi · Raciocínio Clínico & Enfermagem',
-        short_name: 'Lampi',
-        description: 'Plataforma educacional com o mascote Lampi para simulação clínica, processo de enfermagem COFEN 736/2024 e passagem de plantão SBAR.',
-        theme_color: '#047857',
-        background_color: '#ffffff',
+        name: 'Enfere · Simulação & Raciocínio Clínico de Enfermagem',
+        short_name: 'Enfere',
+        description: 'Plataforma de raciocínio clínico, Processo de Enfermagem COFEN nº 736/2024, simulações realísticas e videoteca de habilidades de enfermagem.',
+        theme_color: '#0284c7',
+        background_color: '#0b1329',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
