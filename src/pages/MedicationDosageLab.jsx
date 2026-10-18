@@ -18,7 +18,6 @@ import { Input } from "@/components/ui/input";
 import { guideMedicationCalculation } from "@/services/socraticTutorService";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
-import GotiMascot from "@/components/mascot/GotiMascot";
 
 const DOSAGE_PROBLEMS = [
   {
@@ -358,17 +357,15 @@ export default function MedicationDosageLab() {
               </Button>
             </div>
 
-            {/* Dica & Tutoria Socrática do Preceptor Goti */}
+            {/* Dica & Tutoria Socrática do Preceptor Clínico IA */}
             <div className="rounded-2xl border border-teal-200/80 dark:border-teal-800/80 bg-gradient-to-r from-teal-50/80 via-emerald-50/40 to-white dark:from-teal-950/40 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <GotiMascot
-                mood={feedback?.isCorrect ? "celebrate" : evaluating ? "think" : "idle"}
-                size={110}
-                interactive={true}
-              />
+              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shrink-0 shadow-sm">
+                <Calculator className="w-8 h-8 text-white" />
+              </div>
               <div className="flex-1 text-center sm:text-left space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 text-[11px] font-bold uppercase tracking-wider">
                   <Sparkles className="w-3 h-3 text-amber-500" />
-                  Preceptor Goti Digital
+                  Preceptor Clínico IA
                 </div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">
                   {feedback?.isCorrect
@@ -378,7 +375,7 @@ export default function MedicationDosageLab() {
                     : "Resolva este desafio! A dosagem correta protege o paciente contra iatrogenias."}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Clique no Goti para ver mais dicas de farmacologia aplicada ou ative o Preceptor IA.
+                  Dúvidas no cálculo? Consulte as fórmulas ou tire dúvidas com o Preceptor IA.
                 </p>
               </div>
             </div>

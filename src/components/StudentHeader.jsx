@@ -23,7 +23,6 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/ThemeContext";
 
-import GotiMascot from "@/components/mascot/GotiMascot";
 import GotiChatDrawer from "@/components/mascot/GotiChatDrawer";
 import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
@@ -82,7 +81,7 @@ export default function StudentHeader({ activeTab = "hub" }) {
       <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl transition-colors">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between gap-3">
-            {/* Logo e Nome da Plataforma Enfere com o Novo Goti Animado */}
+            {/* Logo e Nome da Plataforma Enfere com Estetoscópio Clínico */}
             <button
               onClick={() => {
                 triggerHaptic(15);
@@ -90,8 +89,8 @@ export default function StudentHeader({ activeTab = "hub" }) {
               }}
               className="flex items-center gap-3 text-left group transition tap-press shrink-0"
             >
-              <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 shadow-2xs group-hover:scale-105 transition-transform overflow-visible">
-                <GotiMascot size={40} state="idle" interactive={false} showGlow={false} />
+              <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white shadow-sm group-hover:scale-105 transition-transform">
+                <Stethoscope className="w-6 h-6 text-white" />
               </div>
               <div>
                 <span className="font-black text-base text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
@@ -126,9 +125,9 @@ export default function StudentHeader({ activeTab = "hub" }) {
               })}
             </nav>
 
-            {/* Ações do Usuário: Chat Goti IA, Pontos de Estudo (PE), Tema e Perfil */}
+            {/* Ações do Usuário: Chat Preceptor IA, Pontos de Estudo (PE), Tema e Perfil */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* Botão de Chat com o Preceptor Goti IA */}
+              {/* Botão de Chat com o Preceptor IA */}
               <button
                 type="button"
                 onClick={() => {
@@ -136,13 +135,13 @@ export default function StudentHeader({ activeTab = "hub" }) {
                   setIsGotiChatOpen(true);
                 }}
                 className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-200 hover:bg-teal-100/80 dark:hover:bg-teal-900/80 text-xs font-bold transition-all active:scale-95 shadow-2xs"
-                title="Conversar diretamente com o Preceptor Goti IA"
+                title="Conversar diretamente com o Preceptor Clínico IA"
               >
                 <div className="relative flex items-center justify-center">
                   <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
                   <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
-                <span className="hidden sm:inline">Goti IA</span>
+                <span className="hidden sm:inline">Preceptor IA</span>
                 <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-teal-200/60 dark:bg-teal-800/60 text-teal-900 dark:text-teal-200 font-extrabold">
                   Chat
                 </span>
@@ -227,21 +226,21 @@ export default function StudentHeader({ activeTab = "hub" }) {
         </div>
       </header>
 
-      {/* Botão Flutuante do Goti (Canto Inferior Direito) */}
+      {/* Botão Flutuante do Preceptor IA (Canto Inferior Direito) */}
       <button
         onClick={() => {
           triggerHaptic(20);
           setIsGotiChatOpen(true);
         }}
         className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2 p-2.5 sm:px-4 sm:py-2.5 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
-        title="Dúvidas clínicas? Pergunte ao Preceptor Goti"
+        title="Dúvidas clínicas? Pergunte ao Preceptor IA"
       >
-        <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center overflow-visible">
-          <GotiMascot size={32} state="idle" showSpeech={false} interactive={false} />
+        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+          <Sparkles className="w-4 h-4 text-emerald-200" />
         </div>
         <div className="hidden sm:block text-left">
-          <span className="text-xs font-black block leading-none">Preceptor Goti</span>
-          <span className="text-[10px] text-teal-100 block font-medium">Tirar Dúvida IA</span>
+          <span className="text-xs font-black block leading-none">Preceptor IA</span>
+          <span className="text-[10px] text-teal-100 block font-medium">Tirar Dúvida Clínica</span>
         </div>
         <span className="flex h-2.5 w-2.5 relative">
           <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
@@ -249,7 +248,7 @@ export default function StudentHeader({ activeTab = "hub" }) {
         </span>
       </button>
 
-      {/* Modal Intersticial de Briefing com o Goti nas 6 Abas */}
+      {/* Modal Intersticial de Briefing Pedagógico nas 6 Abas */}
       <ModuleBriefingModal
         isOpen={isBriefingOpen}
         moduleId={briefingModuleId}
@@ -257,7 +256,7 @@ export default function StudentHeader({ activeTab = "hub" }) {
         onSelectAction={handleBriefingAction}
       />
 
-      {/* Gaveta / Modal de Chat com o Preceptor Goti */}
+      {/* Gaveta / Modal de Chat com o Preceptor IA */}
       <GotiChatDrawer
         isOpen={isGotiChatOpen}
         onClose={() => setIsGotiChatOpen(false)}

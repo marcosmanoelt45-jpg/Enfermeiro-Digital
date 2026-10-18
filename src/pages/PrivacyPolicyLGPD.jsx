@@ -276,7 +276,7 @@ export default function PrivacyPolicyLGPD() {
                     <strong>Código-Fonte e Arquitetura:</strong> Toda a base de código, estrutura de dados, interfaces e serviços são obras intelectuais protegidas de titularidade de Marcos Manoel Tavares Neumann.
                   </li>
                   <li>
-                    <strong>Algoritmos de Tutoria Clínica e SBAR:</strong> O sistema de inteligência formativa, debriefing socrático (Goti AI) e reconhecimento fonético são propriedades intelectuais exclusivas.
+                    <strong>Algoritmos de Tutoria Clínica e SBAR:</strong> O sistema de inteligência formativa, debriefing socrático (Preceptor Clínico IA) e reconhecimento fonético são propriedades intelectuais exclusivas.
                   </li>
                   <li>
                     <strong>Identidade e Design System:</strong> A identidade visual, organização de módulos, fluxos de simulação e montador de casos clínicos são de titularidade reservada.

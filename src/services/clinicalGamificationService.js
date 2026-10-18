@@ -254,7 +254,7 @@ function getPast7Days() {
 export const STUDY_POINTS_STORE_ITEMS = [
   {
     id: 'goti_hint',
-    title: 'Dica Socrática do Goti',
+    title: 'Dica Socrática do Preceptor IA',
     cost: 15,
     icon: 'Lightbulb',
     category: 'Suporte Clínico',
@@ -281,7 +281,7 @@ export const STUDY_POINTS_STORE_ITEMS = [
   },
   {
     id: 'ai_deep_audit',
-    title: 'Auditoria de Conduta com o Goti',
+    title: 'Auditoria de Conduta com Preceptor IA',
     cost: 20,
     icon: 'Sparkles',
     category: 'Debriefing IA',
@@ -294,7 +294,7 @@ export const STUDY_POINTS_STORE_ITEMS = [
     cost: 75,
     icon: 'Award',
     category: 'Certificação',
-    description: 'Gera laudo formativo com chancela do Preceptor Goti e memorial descritivo em PDF.',
+    description: 'Gera laudo formativo com chancela do Preceptor Clínico IA e memorial descritivo em PDF.',
     benefit: 'Exportação de atestado de competência simulada.',
   },
 ];

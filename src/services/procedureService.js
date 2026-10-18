@@ -2,7 +2,7 @@
  * procedureService.js
  * Serviço de Videoteca Didática & Laboratório de Habilidades Clínicas de Enfermagem (Skills Lab).
  * Reúne procedimentos fundamentais e avançados com vídeos institucionais de alta definição,
- * diretrizes 'O Que Fazer' e 'O Que NÃO Fazer', checklists assépticos e tutoria com IA (Goti AI).
+ * diretrizes 'O Que Fazer' e 'O Que NÃO Fazer', checklists assépticos e tutoria com IA (Preceptor Clínico IA).
  */
 
 import { clinicalGamificationService } from './clinicalGamificationService';
@@ -369,7 +369,7 @@ Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro
   "institutionalBadge": "Fonte Acadêmica ou Hospitalar de Referência",
   "cofenNorm": "Legislação aplicável (COFEN/ANVISA)",
   "videoUrl": "https://www.youtube.com/embed/6cxkjHMU__E",
-  "videoSource": "Simulação Didática com Goti AI",
+  "videoSource": "Simulação Didática com Preceptor Clínico IA",
   "description": "Indicação clínica, finalidade e justificativa científica",
   "materials": [
     { "id": "m1", "name": "Nome do material estéril ou de suporte", "checked": false }
@@ -421,23 +421,23 @@ Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro
   },
 
   /**
-   * Responde dúvidas clínicas pontuais sobre o procedimento em execução (Goti AI).
+   * Responde dúvidas clínicas pontuais sobre o procedimento em execução (Preceptor Clínico IA).
    */
-  async askGotiAI(procedure, userQuestion) {
+  async askPreceptorAI(procedure, userQuestion) {
     const apiKey = getGeminiApiKey();
     if (!apiKey) {
-      return `Como preceptor clínico de enfermagem (Goti), informo que durante o procedimento de ${procedure.title}, a prioridade é sempre manter a técnica asséptica estrita e observar as queixas do paciente. Se houver resistência anatômica ou dúvida, pause o procedimento e reavalie a anatomia do sítio antes de prosseguir.`;
+      return `Como preceptor clínico de enfermagem, informo que durante o procedimento de ${procedure.title}, a prioridade é sempre manter a técnica asséptica estrita e observar as queixas do paciente. Se houver resistência anatômica ou dúvida, pause o procedimento e reavalie a anatomia do sítio antes de prosseguir.`;
     }
 
     const activeModel = localStorage.getItem('enfermeiro_gemini_model') || 'gemini-2.0-flash';
 
-    const prompt = `Você é o Preceptor Goti AI, a gota inteligente e tutor especialista em procedimentos de enfermagem da plataforma Enfere.
+    const prompt = `Você é o Preceptor Clínico IA, tutor especialista em procedimentos e práticas de enfermagem da plataforma Enfere.
 O estudante está assistindo e treinando o procedimento: "${procedure.title}".
 Descrição do procedimento: ${procedure.description}.
 Normativa COFEN: ${procedure.cofenNorm}.
 Dúvida do estudante: "${userQuestion}".
 
-Responda em 1 a 2 parágrafos curtos, diretos e objetivos, com alto rigor científico, fundamentação anatômica e foco na segurança do paciente. Enfatize condutas práticas de beira-leito com o tom encorajador do Goti.`;
+Responda em 1 a 2 parágrafos curtos, diretos e objetivos, com alto rigor científico, fundamentação anatômica e foco na segurança do paciente. Enfatize condutas práticas de beira-leito.`;
 
     const res = await fetch(
       `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`,
@@ -451,14 +451,18 @@ Responda em 1 a 2 parágrafos curtos, diretos e objetivos, com alto rigor cient�
     );
 
     if (!res.ok) {
-      return 'Não foi possível conectar com o Preceptor Goti no momento. Consulte o POP do procedimento acima.';
+      return 'Não foi possível conectar com o Preceptor Clínico IA no momento. Consulte o POP do procedimento acima.';
     }
 
     const data = await res.json();
     return data?.candidates?.[0]?.content?.parts?.[0]?.text || 'Sem resposta disponível.';
   },
 
+  async askGotiAI(procedure, userQuestion) {
+    return this.askPreceptorAI(procedure, userQuestion);
+  },
+
   async askFlorenceAI(procedure, userQuestion) {
-    return this.askGotiAI(procedure, userQuestion);
+    return this.askPreceptorAI(procedure, userQuestion);
   },
 };

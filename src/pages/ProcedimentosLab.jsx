@@ -10,7 +10,6 @@ import {
 import { Button } from '@/components/ui/button';
 import StudentHeader from '@/components/StudentHeader';
 import StudentFooter from '@/components/StudentFooter';
-import GotiMascot from '@/components/mascot/GotiMascot';
 import { useTheme } from '@/lib/ThemeContext';
 import { procedureService } from '@/services/procedureService';
 import { getProcedurePreview } from '@/services/procedurePreviews';
@@ -99,7 +98,7 @@ export default function ProcedimentosLab() {
 
             {/* Layout em 2 Colunas Despoluído e Técnico com o Player Próprio do Enfere */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Coluna da Esquerda (Player Próprio Enfere + 'O Que NÃO Fazer' + Chat Goti IA) */}
+              {/* Coluna da Esquerda (Player Próprio Enfere + 'O Que NÃO Fazer' + Chat Preceptor IA) */}
               <div className="lg:col-span-7 space-y-6">
                 <EnfereClinicalPlayer
                   videoUrl={activeProcedure.videoUrl}
@@ -132,7 +131,7 @@ export default function ProcedimentosLab() {
         ) : (
           /* Modo Catálogo & Grade de Procedimentos */
           <div className="space-y-6">
-            {/* Hero Banner da Videoteca com o Novo Goti Vetorial */}
+            {/* Hero Banner da Videoteca com Procedimento Seguro */}
             <div className="relative overflow-hidden rounded-3xl border border-teal-200/80 dark:border-teal-900/60 bg-gradient-to-br from-teal-700 via-emerald-800 to-slate-900 text-white p-6 sm:p-8 shadow-sm">
               <div className="relative z-10 flex flex-col md:flex-row items-center justify-between gap-6">
                 <div className="max-w-xl text-center md:text-left">
@@ -144,12 +143,18 @@ export default function ProcedimentosLab() {
                     Videoteca & Procedimentos Operacionais Padrão (POPs)
                   </h1>
                   <p className="mt-2 text-xs sm:text-sm text-teal-100/90 leading-relaxed">
-                    Vídeos com chancela de hospitais e universidades de excelência (UFRGS, UFSM, Einstein), guias de <strong>O Que Fazer</strong> e <strong>O Que NÃO Fazer</strong>, com técnica asséptica e suporte do Goti.
+                    Vídeos com chancela de hospitais e universidades de excelência (UFRGS, UFSM, Einstein), guias de <strong>O Que Fazer</strong> e <strong>O Que NÃO Fazer</strong>, com técnica asséptica e suporte do Preceptor Clínico IA.
                   </p>
                 </div>
 
                 <div className="shrink-0 flex items-center justify-center">
-                  <GotiMascot size={165} state="speaking" message="Foco na técnica asséptica e segurança do paciente!" interactive={true} />
+                  <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-4 text-left space-y-2 min-w-[200px]">
+                    <div className="flex items-center gap-2 text-xs font-bold text-teal-300">
+                      <ShieldCheck className="h-4 w-4 text-emerald-400" />
+                      <span>Procedimento Seguro</span>
+                    </div>
+                    <p className="text-xs text-teal-100/80">Técnica asséptica estrita e biossegurança hospitalar</p>
+                  </div>
                 </div>
               </div>
             </div>

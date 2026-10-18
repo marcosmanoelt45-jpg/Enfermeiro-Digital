@@ -6,7 +6,7 @@
  * - Meta Internacional de Segurança do Paciente nº 2 (Comunicação Efetiva).
  * - Resolução COFEN nº 736/2024.
  * - Simulação de Consequências de Evento Sentinela (O que aconteceria na vida real se um dado for omitido).
- * - Debriefing Socrático Interativo do Preceptor Goti.
+ * - Debriefing Socrático Interativo do Preceptor Clínico IA.
  */
 
 import { sanitizeTextForLGPD } from "../lib/dlpSanitizer.js";
@@ -192,11 +192,11 @@ export function buildOfflineSbarEvaluation(caseData, sbar) {
 }
 
 /**
- * Avalia a Passagem de Plantão SBAR do estudante com o Preceptor Goti AI.
+ * Avalia a Passagem de Plantão SBAR do estudante com o Preceptor Clínico IA.
  * @param {object} params
  * @param {object} params.caseData - Dados do paciente e do caso
  * @param {object} params.sbar - Objeto com { situation, background, assessment, recommendation }
- * @returns {Promise<object>} Avaliação formativa socrática do Preceptor Goti
+ * @returns {Promise<object>} Avaliação formativa socrática do Preceptor Clínico IA
  */
 export async function evaluateSbarHandoff({ caseData, sbar }) {
   const sanitizedSituation = sanitizeTextForLGPD(sbar?.situation || "");
@@ -204,7 +204,7 @@ export async function evaluateSbarHandoff({ caseData, sbar }) {
   const sanitizedAssessment = sanitizeTextForLGPD(sbar?.assessment || "");
   const sanitizedRecommendation = sanitizeTextForLGPD(sbar?.recommendation || "");
 
-  const systemPrompt = `Você é o "Preceptor Goti AI", mascote e tutor especialista em Preceptoria Clínica, Terapia Intensiva e Segurança do Paciente da plataforma Enfere.
+  const systemPrompt = `Você é o "Preceptor Clínico IA", tutor especialista em Preceptoria Clínica, Terapia Intensiva e Segurança do Paciente da plataforma Enfere.
 Sua missão é realizar uma tutoria socrática formativa avaliando a passagem de plantão (metodologia SBAR) feita por um estudante de enfermagem.
 Diretrizes: Meta Internacional de Segurança do Paciente nº 2 (Comunicação Efetiva) e Resolução COFEN nº 736/2024.
 
@@ -212,7 +212,7 @@ Retorne ESTRITAMENTE um JSON no seguinte formato:
 {
   "safetyScore": number (0 a 100),
   "grade": string ("Excelente (Padrão Ouro)" | "Adequado (Seguro)" | "Requer Atenção (Risco)"),
-  "summaryFeedback": string (síntese acolhedora, encorajadora e construtiva do preceptor Goti),
+  "summaryFeedback": string (síntese acolhedora, encorajadora e construtiva do preceptor clínico),
   "pillarScores": {
     "situation": { "score": number, "feedback": string },
     "background": { "score": number, "feedback": string },
@@ -223,8 +223,8 @@ Retorne ESTRITAMENTE um JSON no seguinte formato:
   "criticalOmissions": string[] (lista de dados ou riscos omitidos),
   "strengths": string[] (aspectos positivos identificados),
   "socraticQuestions": string[] (2 perguntas clínicas socráticas que estimulam o raciocínio fisiopatológico),
-  "florenceMentorship": string (mensagem de mentoria profissional do Goti para o estudante),
-  "gotiMentorship": string (mensagem de mentoria profissional do Goti para o estudante)
+  "florenceMentorship": string (mensagem de mentoria profissional do preceptor para o estudante),
+  "gotiMentorship": string (mensagem de mentoria profissional do preceptor para o estudante)
 }`;
 
   const userPrompt = `DADOS DO CASO CLÍNICO:

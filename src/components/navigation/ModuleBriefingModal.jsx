@@ -17,7 +17,6 @@ import {
   ShieldCheck
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import GotiMascot from "@/components/mascot/GotiMascot";
 import { useTheme } from "@/lib/ThemeContext";
 
 const MODULE_DATA = {
@@ -56,7 +55,7 @@ const MODULE_DATA = {
     targetPath: "/simulador-casos",
     actions: [
       { id: "start", label: "Começar Novo Caso Clínico", desc: "Sortear paciente simulado e iniciar investigação", icon: Play, primary: true, query: "?action=new" },
-      { id: "continue", label: "Continuar Caso em Andamento", desc: "Retomar sua última simulação com o Preceptor Goti", icon: ArrowRight, primary: false, query: "?action=continue" },
+      { id: "continue", label: "Continuar Caso em Andamento", desc: "Retomar sua última simulação com o Preceptor Clínico IA", icon: ArrowRight, primary: false, query: "?action=continue" },
       { id: "review", label: "Revisão de Casos Concluídos", desc: "Consultar prontuários anteriores e notas formativas", icon: RotateCcw, primary: false, query: "?action=review" }
     ]
   },
@@ -80,7 +79,7 @@ const MODULE_DATA = {
     category: "Farmacologia Clínica & Segurança",
     badge: "Gotejamento • Diluições",
     icon: Calculator,
-    speech: "Erros de dosagem são preveníveis! Aqui você treina macrogotas, microgotas, infusões em minutos e diluição de antibióticos com suporte socrático do Goti.",
+    speech: "Erros de dosagem são preveníveis! Aqui você treina macrogotas, microgotas, infusões em minutos e diluição de antibióticos com suporte socrático do Preceptor IA.",
     targetPath: "/laboratorio-calculos",
     actions: [
       { id: "start", label: "Começar Novo Desafio de Dose", desc: "Sorteia prescrição médica e calcula gotejamento", icon: Play, primary: true, query: "?action=new" },
@@ -156,15 +155,17 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
           </button>
         </div>
 
-        {/* Card do Preceptor Goti com Fala Explicativa da Aba */}
+        {/* Card do Preceptor Clínico IA com Fala Explicativa da Aba */}
         <div className="p-4 sm:p-5 bg-teal-50/50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800 flex items-start gap-3.5">
-          <div className="shrink-0 -mt-1">
-            <GotiMascot size={56} state="speaking" showSpeech={false} interactive={false} />
+          <div className="shrink-0 -mt-0.5">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shadow-xs">
+              <IconComponent className="w-5 h-5 text-white" />
+            </div>
           </div>
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-teal-800 dark:text-teal-300">
               <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-              <span>Orientações do Preceptor Goti</span>
+              <span>Diretrizes do Preceptor Clínico IA</span>
             </div>
             <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
               "{data.speech}"

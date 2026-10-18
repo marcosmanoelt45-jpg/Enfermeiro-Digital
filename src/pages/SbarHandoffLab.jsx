@@ -33,7 +33,6 @@ import { Textarea } from "@/components/ui/textarea";
 import { Input } from "@/components/ui/input";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
-import GotiMascot from "@/components/mascot/GotiMascot";
 import { useAuth } from "@/lib/AuthContext";
 import { evaluateSbarHandoff } from "@/services/sbarTutorService";
 import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
@@ -622,7 +621,7 @@ export default function SbarHandoffLab() {
     if (isListening) stopListening();
     const isAnyFilled = sbarData.situation || sbarData.background || sbarData.assessment || sbarData.recommendation;
     if (!isAnyFilled) {
-      alert("Por favor, preencha ao menos uma etapa do SBAR antes de enviar para a auditoria do Preceptor Goti.");
+      alert("Por favor, preencha ao menos uma etapa do SBAR antes de enviar para a auditoria do Preceptor Clínico IA.");
       return;
     }
 
@@ -752,17 +751,11 @@ export default function SbarHandoffLab() {
         {/* ======================================================== */}
         {viewMode === "choose" ? (
           <div className="space-y-6 animate-in fade-in max-w-4xl mx-auto pt-2 pb-8">
-            {/* Header da Escolha com o Goti */}
+            {/* Header da Escolha do SBAR */}
             <div className="text-center space-y-3">
               <div className="flex justify-center">
-                <div className="p-3 rounded-3xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 shadow-sm">
-                  <GotiMascot
-                    size={68}
-                    state="speaking"
-                    showSpeech={true}
-                    speechText="Escolha como deseja praticar a passagem de plantão SBAR hoje!"
-                    interactive={false}
-                  />
+                <div className="w-16 h-16 rounded-3xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 shadow-sm flex items-center justify-center">
+                  <ArrowRightLeft className="w-8 h-8 text-teal-600 dark:text-teal-400" />
                 </div>
               </div>
 
@@ -918,7 +911,7 @@ export default function SbarHandoffLab() {
                     Exercícios Anteriores & Debriefings
                   </h3>
                   <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Acesse o histórico das suas passagens de plantão, notas emitidas pelo Preceptor Goti e gere relatórios de proficiência em PDF.
+                    Acesse o histórico das suas passagens de plantão, notas emitidas pelo Preceptor Clínico IA e gere relatórios de proficiência em PDF.
                   </p>
                 </div>
 
@@ -1094,7 +1087,7 @@ export default function SbarHandoffLab() {
               }`}
             >
               <MessageSquareQuote className="h-4 w-4 text-teal-700 dark:text-teal-400" />
-              <span>3. Debriefing & Parecer do Goti (Score: {tutorEvaluation.safetyScore}/100)</span>
+              <span>3. Debriefing & Parecer Clínico IA (Score: {tutorEvaluation.safetyScore}/100)</span>
             </button>
           )}
         </div>
@@ -1386,11 +1379,11 @@ export default function SbarHandoffLab() {
                   >
                     {isEvaluating ? (
                       <>
-                        <Sparkles className="h-3.5 w-3.5 animate-spin text-white" /> Goti analisando...
+                        <Sparkles className="h-3.5 w-3.5 animate-spin text-white" /> Preceptor IA analisando...
                       </>
                     ) : (
                       <>
-                        <Send className="h-3.5 w-3.5 text-white" /> Concluir e Transmitir para o Preceptor Goti
+                        <Send className="h-3.5 w-3.5 text-white" /> Concluir e Transmitir para o Preceptor Clínico IA
                       </>
                     )}
                   </Button>
@@ -1516,12 +1509,12 @@ export default function SbarHandoffLab() {
                 {isEvaluating ? (
                   <>
                     <Sparkles className="h-4 w-4 animate-spin text-teal-200" />
-                    <span>Goti está auditando a passagem de plantão...</span>
+                    <span>Preceptor IA está auditando a passagem de plantão...</span>
                   </>
                 ) : (
                   <>
                     <Send className="h-4 w-4" />
-                    <span>Submeter Passagem de Plantão para o Preceptor Goti</span>
+                    <span>Submeter Passagem de Plantão para o Preceptor Clínico IA</span>
                   </>
                 )}
               </Button>
@@ -1529,7 +1522,7 @@ export default function SbarHandoffLab() {
           </div>
         )}
 
-        {/* CONTEÚDO DA ABA 3: DEBRIEFING SOCRÁTICO DO PRECEPTOR GOTI */}
+        {/* CONTEÚDO DA ABA 3: DEBRIEFING SOCRÁTICO DO PRECEPTOR CLÍNICO IA */}
         {tutorEvaluation && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-teal-200 dark:border-teal-900/60 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
             {/* Topo do Feedback com Score e Grade */}
@@ -1538,7 +1531,7 @@ export default function SbarHandoffLab() {
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-teal-700 dark:text-teal-400" />
                   <span className="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase tracking-wider block">
-                    Parecer de Preceptoria Clínica • Goti AI
+                    Parecer de Preceptoria Clínica • Enfere IA
                   </span>
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -1650,11 +1643,11 @@ export default function SbarHandoffLab() {
                 <div className="flex items-center gap-2">
                   <MessageSquareQuote className="h-5 w-5 text-teal-700 dark:text-teal-400" />
                   <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                    Debriefing Socrático do Preceptor Goti (Exercício de Raciocínio Clínico)
+                    Debriefing Socrático do Preceptor Clínico IA (Exercício de Raciocínio Clínico)
                   </h4>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Responda às questões do preceptor Goti para consolidar a fixação das condutas de emergência:
+                  Responda às questões reflexivas para consolidar a fixação das condutas de emergência:
                 </p>
 
                 <div className="space-y-3 pt-1">
@@ -1675,14 +1668,12 @@ export default function SbarHandoffLab() {
               </div>
             )}
 
-            {/* Mensagem de Mentoria & Exportação em PDF com Goti */}
+            {/* Mensagem de Mentoria & Exportação em PDF com Preceptor Clínico */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
-                <GotiMascot
-                  size="sm"
-                  state={tutorEvaluation.safetyScore >= 80 ? "celebrating" : "encouraging"}
-                  interactive={true}
-                />
+                <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                </div>
                 <div className="text-xs text-slate-600 dark:text-slate-400 italic">
                   "{tutorEvaluation.gotiMentorship || tutorEvaluation.florenceMentorship || 'A comunicação assertiva é a maior ferramenta de proteção da enfermagem.'}"
                 </div>

@@ -28,7 +28,6 @@ import { Input } from "@/components/ui/input";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
-import GotiMascot from "@/components/mascot/GotiMascot";
 import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
 import { exportClinicalCaseToPdf } from "@/services/pdfExportService";
@@ -309,20 +308,12 @@ export default function CaseStudySimulator() {
           </div>
         )}
 
-        {/* Apresentação Focada: 1 Caso por Vez + Sorteio Aleatório + Mascote Goti */}
+        {/* Apresentação Focada: 1 Caso por Vez + Sorteio Aleatório */}
         <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="flex items-center gap-4">
-            <GotiMascot
-              mood={tutorEvaluation ? "celebrate" : isEvaluating ? "think" : "idle"}
-              speechBubble={
-                tutorEvaluation
-                  ? "Excelente raciocínio! Confira seu debriefing clínico detalhado."
-                  : isEvaluating
-                  ? "Analisando seu julgamento clínico e intervenções de enfermagem..."
-                  : "Concentre-se neste caso clínico. Analise os sinais e conduza as 5 etapas com rigor!"
-              }
-              size="sm"
-            />
+          <div className="flex items-start sm:items-center gap-4">
+            <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 flex items-center justify-center shrink-0">
+              <Stethoscope className="w-6 h-6 text-teal-600 dark:text-teal-400" />
+            </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
                 <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wide">
@@ -454,7 +445,7 @@ export default function CaseStudySimulator() {
                       <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 uppercase tracking-wide">
                         Framework PEARLS • Debriefing Socrático
                       </span>
-                      <span className="text-xs text-slate-400 font-semibold">Preceptor Goti AI</span>
+                      <span className="text-xs text-slate-400 font-semibold">Preceptor Clínico IA</span>
                     </div>
                     <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                       Parecer Pedagógico & Desconstrução do Raciocínio

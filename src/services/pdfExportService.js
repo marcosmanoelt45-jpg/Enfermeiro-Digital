@@ -22,11 +22,11 @@ function getFormattedNow() {
 }
 
 /**
- * Exporta o Prontuário Clínico Oficial com Parecer de Preceptoria Goti em PDF.
+ * Exporta o Prontuário Clínico Oficial com Parecer de Preceptoria Clínica em PDF.
  * @param {object} params
  * @param {object} params.caseData - Dados do paciente e do caso clínico
  * @param {object} [params.sbarData] - Relatório SBAR preenchido pelo aluno
- * @param {object} [params.tutorEvaluation] - Parecer pedagógico do Preceptor Goti
+ * @param {object} [params.tutorEvaluation] - Parecer pedagógico do Preceptor Clínico IA
  * @param {object} [params.studentInfo] - Informações do acadêmico (nome, faculdade, matrícula)
  */
 export function exportClinicalCaseToPdf({
@@ -269,7 +269,7 @@ export function exportClinicalCaseToPdf({
     y += 4;
   }
 
-  // 5. PARECER FORMATIVO DO PRECEPTOR GOTI (AUDITORIA PEDAGÓGICA)
+  // 5. PARECER FORMATIVO DO PRECEPTOR CLÍNICO IA (AUDITORIA PEDAGÓGICA)
   if (tutorEvaluation) {
     checkPageBreak(50);
     doc.setFillColor(240, 253, 250); // teal-50
@@ -279,7 +279,7 @@ export function exportClinicalCaseToPdf({
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);
     doc.setTextColor(15, 118, 110);
-    doc.text("5. PARECER PEDAGÓGICO DE PRECEPTORIA (GOTI AI)", margin + 4, y + 7);
+    doc.text("5. PARECER PEDAGÓGICO DE PRECEPTORIA CLÍNICA (IA)", margin + 4, y + 7);
 
     // Badge de Pontuação
     const score = tutorEvaluation.safetyScore ?? tutorEvaluation.score ?? 85;
@@ -295,7 +295,7 @@ export function exportClinicalCaseToPdf({
     doc.setTextColor(51, 65, 85);
 
     const feedback = tutorEvaluation.summaryFeedback || tutorEvaluation.gotiMentorship || tutorEvaluation.florenceMentorship || tutorEvaluation.florenceComment || "Passagem de plantão estruturada com rigor técnico e foco na segurança do paciente.";
-    const wrappedFeedback = doc.splitTextToSize(`Feedback do Preceptor Goti: "${feedback}"`, contentWidth - 8);
+    const wrappedFeedback = doc.splitTextToSize(`Feedback do Preceptor Clínico IA: "${feedback}"`, contentWidth - 8);
     doc.text(wrappedFeedback.slice(0, 3), margin + 4, y + 15);
 
     const omissions = tutorEvaluation.criticalOmissions?.length > 0
@@ -305,11 +305,11 @@ export function exportClinicalCaseToPdf({
     doc.setTextColor(190, 24, 93); // rose-700
     doc.text(doc.splitTextToSize(omissions, contentWidth - 8), margin + 4, y + 25);
 
-    // Carimbo Virtual do Preceptor Goti
+    // Carimbo Virtual do Preceptor Clínico IA
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     doc.setTextColor(15, 118, 110);
-    doc.text("Preceptor Goti • Enfere AI", margin + 4, y + 35);
+    doc.text("Preceptor Clínico • Enfere IA", margin + 4, y + 35);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(100, 116, 139);
@@ -339,7 +339,7 @@ export function exportClinicalCaseToPdf({
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(15, 118, 110);
-  doc.text("Preceptoria Goti • Enfere", margin + signW + 10 + signW / 2, y + 18, { align: "center" });
+  doc.text("Preceptoria Clínica • Enfere", margin + signW + 10 + signW / 2, y + 18, { align: "center" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);

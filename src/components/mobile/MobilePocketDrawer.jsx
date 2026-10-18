@@ -63,8 +63,8 @@ export default function MobilePocketDrawer({
     },
     {
       id: 'ai-dashboard',
-      title: 'Analytics & Goti AI',
-      subtitle: 'Métricas de proficiência clínica e preceptoria do Goti',
+      title: 'Analytics & Preceptor IA',
+      subtitle: 'Métricas de proficiência clínica e tutoria com IA',
       icon: Sparkles,
       path: '/ai-dashboard',
       tag: 'Desempenho'

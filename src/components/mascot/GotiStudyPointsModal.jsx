@@ -11,7 +11,6 @@ import {
   AlertCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import GotiMascot from "@/components/mascot/GotiMascot";
 import {
   clinicalGamificationService,
   STUDY_POINTS_STORE_ITEMS
@@ -63,11 +62,11 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
         className="w-full sm:max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-[32px] sm:rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden text-slate-800 dark:text-slate-100 transition-all"
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Cabeçalho com o Goti e Saldo de PE */}
+        {/* Cabeçalho com Saldo de PE */}
         <div className="p-5 border-b border-slate-100 dark:border-slate-800/80 bg-gradient-to-r from-amber-500/10 via-teal-500/10 to-transparent flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="w-12 h-12 rounded-2xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center">
-              <GotiMascot size={42} state="celebrating" showSpeech={false} interactive={false} />
+              <Award className="w-6 h-6 text-amber-600 dark:text-amber-400" />
             </div>
             <div>
               <div className="flex items-center gap-2">

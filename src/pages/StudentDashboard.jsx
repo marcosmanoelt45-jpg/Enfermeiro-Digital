@@ -25,7 +25,6 @@ import HeroCourseCard from "@/components/mobile/HeroCourseCard";
 import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
 import ClinicalModuleCard from "@/components/mobile/ClinicalModuleCard";
 import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
-import GotiMascot from "@/components/mascot/GotiMascot";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -81,13 +80,13 @@ export default function StudentDashboard() {
       id: "sbar",
       category: "sbar",
       title: "Passagem de Plantão SBAR",
-      subtitle: "Comunicação Segura & Preceptor Goti",
-      description: "Treine a técnica SBAR (Situação, Breve Histórico, Avaliação, Recomendação) por voz ou texto, com debriefing socrático do Preceptor Goti.",
+      subtitle: "Comunicação Segura & Preceptoria IA",
+      description: "Treine a técnica SBAR (Situação, Breve Histórico, Avaliação, Recomendação) por voz ou texto, com debriefing socrático do Preceptor Clínico IA.",
       icon: ArrowRightLeft,
       path: "/passagem-plantao",
       tag: "Meta 2 OMS • SBAR Áudio",
       time: "8 min",
-      badgeText: "Preceptoria Goti AI",
+      badgeText: "Preceptoria IA",
       stats: "Áudio • Debriefing • PDF",
       featured: true
     },
@@ -215,7 +214,7 @@ export default function StudentDashboard() {
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 py-4 sm:py-8 space-y-5">
 
-        {/* Banner Hero no Desktop (md:block) com Preceptor Goti 3D */}
+        {/* Banner Hero no Desktop (md:block) com Plantão de Simulação */}
         <div className="hidden md:block rounded-3xl border border-emerald-100/40 dark:border-slate-800 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-8 shadow-xl text-white relative overflow-hidden">
           {/* Luz difusa de fundo */}
           <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
@@ -258,14 +257,22 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            {/* Goti 3D Preceptor Clínico */}
+            {/* Painel Rápido de Plantão Clínico */}
             <div className="shrink-0 flex items-center justify-center">
-              <GotiMascot
-                size={160}
-                state="speaking"
-                message="Segurança do paciente em 1º lugar! Qual habilidade vamos praticar hoje?"
-                interactive={true}
-              />
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 text-left space-y-3 min-w-[240px]">
+                <div className="flex items-center gap-2 text-xs font-bold text-teal-300">
+                  <Stethoscope className="h-4 w-4 text-emerald-400" />
+                  <span>Plantão de Simulação</span>
+                </div>
+                <div className="space-y-1">
+                  <p className="text-xl font-black text-white">Prática Segura</p>
+                  <p className="text-xs text-teal-100/80">Resolução COFEN 736/2024</p>
+                </div>
+                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-teal-200">
+                  <span>Metas da OMS</span>
+                  <span className="font-bold text-emerald-300">Ativas</span>
+                </div>
+              </div>
             </div>
           </div>
         </div>
@@ -420,7 +427,7 @@ export default function StudentDashboard() {
         onClose={() => setIsOptionsModalOpen(false)}
       />
 
-      {/* Modal de Briefing do Goti */}
+      {/* Modal de Briefing Pedagógico do Módulo */}
       <ModuleBriefingModal
         isOpen={isBriefingOpen}
         moduleId={briefingModuleId}

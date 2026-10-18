@@ -1,6 +1,6 @@
 /**
  * socraticTutorService.js
- * Motor Pedagógico de Tutoria Socrática para Estudantes de Enfermagem (Preceptor Goti).
+ * Motor Pedagógico de Tutoria Socrática para Estudantes de Enfermagem (Preceptor Clínico IA).
  *
  * Diretrizes Centrais:
  * 1. Não dar a resposta pronta mastigada.
@@ -105,14 +105,14 @@ export async function evaluateClinicalReasoning({
   const cleanJustification = sanitizeTextForLGPD(studentJustification);
   const cleanInterventions = sanitizeTextForLGPD(studentInterventions);
 
-  const systemPrompt = `Você é o Preceptor Goti, um Docente Sênior e Tutor de Enfermagem especialista em Raciocínio Clínico e no Processo de Enfermagem (Resolução COFEN nº 736/2024 e Teoria das Necessidades Humanas Básicas) da plataforma Enfere.
+  const systemPrompt = `Você é o Preceptor Clínico IA, um Docente Sênior e Tutor de Enfermagem especialista em Raciocínio Clínico e no Processo de Enfermagem (Resolução COFEN nº 736/2024 e Teoria das Necessidades Humanas Básicas) da plataforma Enfere.
 
 REGRAS PEDAGÓGICAS ABSOLUTAS:
 1. NUNCA dê a resposta final nem o diagnóstico perfeito mastigado de mão beijada.
 2. Seu papel é DESAFIAR e FOMENTAR a reflexão do estudante usando o MÉTODO SOCRÁTICO.
 3. Se o aluno acertou o foco, elogie a acurácia dos dados correlacionados e faça uma pergunta reflexiva sobre o risco futuro ou priorização de cuidados.
 4. Se o aluno errou ou foi superficial, aponte quais sinais vitais ou dados anamnésicos ele negligenciou e formule perguntas que o guiem a perceber o erro por si mesmo.
-5. Seja encorajador, ético e altamente científico com o carisma didático do Goti.
+5. Seja encorajador, ético e altamente científico com rigor didático.
 
 Retorne EXCLUSIVAMENTE um JSON válido com esta estrutura:
 {
@@ -154,7 +154,7 @@ RESPOSTA SUBMETIDA PELO ESTUDANTE:
  * @param {number} level - 1 (pergunta guia), 2 (pista fisiopatológica), 3 (fundamentação conceitual)
  */
 export async function getScaffoldingHint(caseData, level = 1) {
-  const systemPrompt = `Você é o Preceptor Socrático de Enfermagem Goti da plataforma Enfere. O estudante está analisando um caso simulado e pediu uma Dica Pedagógica de Nível ${level}.
+  const systemPrompt = `Você é o Preceptor Socrático de Enfermagem IA da plataforma Enfere. O estudante está analisando um caso simulado e pediu uma Dica Pedagógica de Nível ${level}.
 
 NÍVEIS DE ANDAIME PEDAGÓGICO:
 - Nível 1 (Pergunta Guia): Faça uma pergunta orientando o olhar do aluno para o sinal vital ou achado mais crítico, sem citar diagnósticos.
@@ -179,13 +179,13 @@ Retorne EXCLUSIVAMENTE um JSON:
   if (level === 1) {
     return {
       level: 1,
-      title: "Nível 1: Orientação de Foco Clínico do Goti",
+      title: "Nível 1: Orientação de Foco Clínico",
       content: `Observe atentamente os sinais vitais alterados. Quais parâmetros fogem da faixa de normalidade (eupneia, normotensão, normocárdia) e qual deles representa o risco mais agudo para a integridade celular nas próximas horas?`
     };
   } else if (level === 2) {
     return {
       level: 2,
-      title: "Nível 2: Pista Fisiopatológica do Goti",
+      title: "Nível 2: Pista Fisiopatológica",
       content: `Pense nos mecanismos de compensação do paciente: quando a saturação periférica cai ou há sobrecarga vascular, como o sistema cardiovascular e respiratório tentam manter a perfusão dos órgãos nobres?`
     };
   } else {
@@ -205,7 +205,7 @@ Retorne EXCLUSIVAMENTE um JSON:
 export async function guideMedicationCalculation(problem, studentAnswer) {
   const cleanAnswer = sanitizeTextForLGPD(studentAnswer);
 
-  const systemPrompt = `Você é o Preceptor Goti ensinando Cálculo de Medicamentos e Gotejamento em Enfermagem na plataforma Enfere.
+  const systemPrompt = `Você é o Preceptor Clínico IA ensinando Cálculo de Medicamentos e Gotejamento em Enfermagem na plataforma Enfere.
 O estudante está tentando resolver um problema de cálculo farmacológico.
 NUNCA diga o resultado numérico final direto de mão beijada se o aluno tiver errado.
 Se o aluno acertou, confirme o cálculo, comente a segurança da dose e valide a dupla checagem.

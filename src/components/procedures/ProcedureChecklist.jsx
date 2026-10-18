@@ -33,7 +33,7 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
     setCompleted(true);
     toast({
       title: '🎉 Treinamento Prático Concluído!',
-      description: 'O Preceptor Goti creditou +30 XP na sua carreira e manteve seu plantão em dia!',
+      description: 'O Preceptor Clínico IA creditou +30 XP na sua carreira e manteve seu plantão em dia!',
     });
     if (onComplete) onComplete(res);
   };
@@ -161,7 +161,7 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
       <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
         <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
           <Sparkles className="h-4 w-4 text-amber-500" />
-          <span>Recompensa: <strong className="text-amber-700 dark:text-amber-400 font-bold">+30 XP</strong> com o Goti</span>
+          <span>Recompensa: <strong className="text-amber-700 dark:text-amber-400 font-bold">+30 XP</strong> com o Preceptor IA</span>
         </div>
 
         <Button
