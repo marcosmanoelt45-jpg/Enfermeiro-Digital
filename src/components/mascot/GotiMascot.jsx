@@ -1,12 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useTheme } from '@/lib/ThemeContext';
-import { Sparkles, Award, MessageCircle } from 'lucide-react';
+import { Sparkles, Award } from 'lucide-react';
 
 /**
  * GotiMascot.jsx
  * Mascote Oficial do Enfere: GOTI (O Preceptor Clínico de Enfermagem).
- * Design 3D Cinematográfico (Estilo Apple / Pixar 3D) com física suave,
- * iluminação volumétrica médica, oclusão ambiental de piso e animações refinadas.
+ * Design 2D Vetorial Flat (Estilo Duolingo / Stripe / Modern Tech Mascot),
+ * com traços limpos, cores hospitalares autênticas, crachá clínico e física orgânica suave.
  */
 export default function GotiMascot({
   state,
@@ -16,7 +16,7 @@ export default function GotiMascot({
   speechBubble = '', // Alias para retrocompatibilidade
   subMessage = '', // Texto secundário
   interactive = true, // Reage ao toque / hover
-  showGlow = true, // Aura de iluminação difusa
+  showGlow = true, // Aura luminosa difusa
   layout = 'vertical', // 'vertical' | 'horizontal'
   onClick,
   className = '',
@@ -32,14 +32,14 @@ export default function GotiMascot({
   const isThinking = rawState === 'thinking' || rawState === 'think';
   const isAlert = rawState === 'alert';
 
-  // Seleção dinâmica do render 3D em alta fidelidade
-  let imageSrc = '/mascot/goti_3d_idle.jpg';
+  // Seleção dinâmica do mascote 2D Flat Vector
+  let imageSrc = '/mascot/goti_2d_idle.jpg';
   if (isCelebrating) {
-    imageSrc = '/mascot/goti_3d_celebrating.jpg';
+    imageSrc = '/mascot/goti_2d_celebrating.jpg';
   } else if (isSpeaking) {
-    imageSrc = '/mascot/goti_3d_speaking.jpg';
+    imageSrc = '/mascot/goti_2d_speaking.jpg';
   } else if (isThinking || isAlert) {
-    imageSrc = '/mascot/goti_3d_thinking.jpg';
+    imageSrc = '/mascot/goti_2d_thinking.jpg';
   }
 
   // Normalização de tamanho em pixels
@@ -69,22 +69,21 @@ export default function GotiMascot({
     if (onClick) onClick(e);
   };
 
-  // Se for avatar compacto (ex: no Header ou chat mini), renderiza sem floating excessivo
+  // Se for avatar compacto (ex: no Header ou chat mini), renderiza sem animações pesadas
   if (isCompact) {
     return (
       <div
-        className={`relative inline-flex items-center justify-center shrink-0 rounded-full overflow-hidden border border-teal-500/30 bg-slate-900 shadow-sm ${className}`}
+        className={`relative inline-flex items-center justify-center shrink-0 rounded-full overflow-hidden border-2 border-teal-500/40 bg-white shadow-xs ${className}`}
         style={{ width: `${pixelSize}px`, height: `${pixelSize}px` }}
-        title="Goti - Preceptor Clínico"
+        title="Goti - Preceptor Clínico 2D"
         onClick={handleClick}
       >
         <img
           src={imageSrc}
-          alt="Goti 3D"
+          alt="Goti 2D"
           className="w-full h-full object-cover object-center"
           loading="eager"
         />
-        <div className="absolute inset-0 bg-radial from-transparent to-black/20 pointer-events-none" />
       </div>
     );
   }
@@ -99,45 +98,45 @@ export default function GotiMascot({
       tabIndex={interactive ? 0 : undefined}
     >
       <style>{`
-        @keyframes gotiCinematicFloat {
+        @keyframes goti2DBreathing {
           0%, 100% {
-            transform: translateY(0px) rotate(0deg);
+            transform: translateY(0px) scale(1, 1);
           }
           50% {
-            transform: translateY(-9px) rotate(0.4deg);
+            transform: translateY(-7px) scale(1.02, 0.98);
           }
         }
-        @keyframes gotiAmbientAura {
+        @keyframes goti2DAura {
           0%, 100% {
-            opacity: 0.35;
+            opacity: 0.25;
             transform: scale(0.96);
           }
           50% {
-            opacity: 0.65;
+            opacity: 0.55;
             transform: scale(1.06);
           }
         }
-        @keyframes gotiFloorShadow {
+        @keyframes goti2DShadow {
           0%, 100% {
             transform: scale(1);
-            opacity: 0.4;
+            opacity: 0.28;
           }
           50% {
-            transform: scale(0.82);
-            opacity: 0.18;
+            transform: scale(0.85);
+            opacity: 0.12;
           }
         }
-        .goti-cinematic-body {
-          animation: gotiCinematicFloat 4.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        .goti-2d-body {
+          animation: goti2DBreathing 4.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
           transform-origin: center bottom;
           will-change: transform;
         }
-        .goti-cinematic-aura {
-          animation: gotiAmbientAura 3.8s ease-in-out infinite;
+        .goti-2d-aura {
+          animation: goti2DAura 3.6s ease-in-out infinite;
           will-change: transform, opacity;
         }
-        .goti-cinematic-shadow {
-          animation: gotiFloorShadow 4.8s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
+        .goti-2d-shadow {
+          animation: goti2DShadow 4.4s cubic-bezier(0.25, 0.46, 0.45, 0.94) infinite;
           will-change: transform, opacity;
         }
       `}</style>
@@ -162,56 +161,53 @@ export default function GotiMascot({
         </div>
       )}
 
-      {/* Container Principal do Mascote 3D */}
+      {/* Container Principal do Mascote 2D */}
       <div
         className="relative flex items-center justify-center"
         style={{ width: `${pixelSize}px`, height: `${pixelSize}px` }}
       >
-        {/* Aura Difusa de Iluminação Volumétrica */}
+        {/* Aura Difusa Suave */}
         {showGlow && (
           <div
-            className="absolute goti-cinematic-aura rounded-full pointer-events-none"
+            className="absolute goti-2d-aura rounded-full pointer-events-none"
             style={{
-              width: `${pixelSize * 1.18}px`,
-              height: `${pixelSize * 1.18}px`,
-              background: 'radial-gradient(circle, rgba(45,212,191,0.35) 0%, rgba(20,184,166,0.12) 55%, transparent 75%)',
-              filter: 'blur(20px)',
+              width: `${pixelSize * 1.15}px`,
+              height: `${pixelSize * 1.15}px`,
+              background: 'radial-gradient(circle, rgba(45,212,191,0.3) 0%, rgba(20,184,166,0.1) 50%, transparent 70%)',
+              filter: 'blur(16px)',
             }}
           />
         )}
 
-        {/* Modelo 3D com Contorno Suave e Sombra Oclusal */}
+        {/* Personagem 2D com Moldura Nítida */}
         <div
-          className={`goti-cinematic-body relative w-full h-full rounded-[2.5rem] overflow-hidden shadow-2xl transition-all duration-300 ${
-            interactive ? 'cursor-pointer hover:scale-[1.04] active:scale-[0.96]' : ''
+          className={`goti-2d-body relative w-full h-full rounded-[2.2rem] overflow-hidden bg-white shadow-xl transition-all duration-300 border-2 border-teal-500/30 dark:border-teal-400/40 ${
+            interactive ? 'cursor-pointer hover:scale-[1.04] hover:-rotate-1 active:scale-[0.96]' : ''
           }`}
           style={{
-            boxShadow: '0 24px 48px -12px rgba(13, 148, 136, 0.32), 0 0 0 1.5px rgba(45, 212, 191, 0.3) inset',
+            boxShadow: '0 16px 36px -10px rgba(13, 148, 136, 0.25)',
           }}
         >
           <img
             src={imageSrc}
-            alt="Goti - Preceptor Clínico 3D"
+            alt="Goti - Preceptor Clínico 2D"
             className="w-full h-full object-cover object-center pointer-events-none"
             loading="eager"
           />
-
-          {/* Efeito de Reflexo de Estúdio e Vidro Curvo */}
-          <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/5 to-teal-300/10 pointer-events-none" />
         </div>
 
-        {/* Sombra de Oclusão no Chão */}
+        {/* Sombra 2D de Piso Suave */}
         <div
-          className="absolute -bottom-3 goti-cinematic-shadow rounded-full pointer-events-none"
+          className="absolute -bottom-2.5 goti-2d-shadow rounded-full pointer-events-none"
           style={{
-            width: `${pixelSize * 0.74}px`,
-            height: `${pixelSize * 0.16}px`,
-            background: 'radial-gradient(ellipse at center, rgba(15, 23, 42, 0.8) 0%, rgba(13, 148, 136, 0.2) 60%, transparent 80%)',
-            filter: 'blur(4px)',
+            width: `${pixelSize * 0.7}px`,
+            height: `${pixelSize * 0.14}px`,
+            background: 'radial-gradient(ellipse at center, rgba(15, 23, 42, 0.45) 0%, rgba(13, 148, 136, 0.15) 60%, transparent 80%)',
+            filter: 'blur(3px)',
           }}
         />
 
-        {/* Badge de Conquista quando em comemoração */}
+        {/* Badge de Conquista quando em celebração */}
         {isCelebrating && (
           <div className="absolute -top-3 -right-2 px-3 py-1 rounded-full bg-gradient-to-r from-amber-400 to-amber-500 text-slate-950 font-black text-[11px] shadow-lg flex items-center gap-1.5 animate-bounce z-20">
             <Award className="w-3.5 h-3.5 text-slate-950 fill-current" />
