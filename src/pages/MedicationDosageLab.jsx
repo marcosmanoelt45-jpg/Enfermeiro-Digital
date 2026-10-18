@@ -15,7 +15,8 @@ import {
   Sparkles,
   History,
   Clock,
-  BookmarkPlus
+  BookmarkPlus,
+  RotateCcw
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -176,6 +177,7 @@ export default function MedicationDosageLab() {
   const [evaluating, setEvaluating] = useState(false);
   const [showFormula, setShowFormula] = useState(false);
   const [showConversions, setShowConversions] = useState(false);
+  const [showFullSolution, setShowFullSolution] = useState(false);
 
   // Estado da Calculadora Interativa Livre (Resgatada do Backup)
   const [calcType, setCalcType] = useState("drip");
@@ -276,6 +278,7 @@ export default function MedicationDosageLab() {
     setFeedback(null);
     setShowFormula(false);
     setShowConversions(false);
+    setShowFullSolution(false);
   }
 
   function handleSelectProblem(idx) {
@@ -736,7 +739,7 @@ export default function MedicationDosageLab() {
                         </div>
                       )}
 
-                      {feedback.isCorrect && (
+                      {feedback.isCorrect ? (
                         <div className="pt-2 flex justify-end">
                           <Button
                             size="sm"
@@ -747,31 +750,57 @@ export default function MedicationDosageLab() {
                             <ArrowRight className="h-3.5 w-3.5" />
                           </Button>
                         </div>
+                      ) : (
+                        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-amber-200/60 dark:border-amber-900/40">
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              setFeedback(null);
+                              setStudentInput("");
+                            }}
+                            className="rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold flex items-center gap-1.5"
+                          >
+                            <RotateCcw className="h-3.5 w-3.5" />
+                            <span>Tentar Novamente (Sem Spoiler)</span>
+                          </Button>
+
+                          {!showFullSolution && (
+                            <button
+                              type="button"
+                              onClick={() => setShowFullSolution(true)}
+                              className="text-[11px] font-semibold text-amber-800 dark:text-amber-400 hover:underline"
+                            >
+                              Desistir e ver resolução completa →
+                            </button>
+                          )}
+                        </div>
                       )}
                     </div>
 
-                    {/* Resolução Passo a Passo Revelada Apenas no Debriefing */}
-                    <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide flex items-center gap-1.5">
-                          <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                          Etapas de Resolução & Dupla Checagem (Debriefing)
-                        </span>
-                        <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                          Resposta Esperada: {problem.correctResult}
-                        </span>
+                    {/* Resolução Passo a Passo Revelada Apenas Quando Correto ou Por Desistência Explícita */}
+                    {(feedback.isCorrect || showFullSolution) && (
+                      <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3 animate-in fade-in">
+                        <div className="flex items-center justify-between">
+                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide flex items-center gap-1.5">
+                            <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                            Etapas de Resolução & Dupla Checagem (Debriefing)
+                          </span>
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                            Resposta Esperada: {problem.correctResult}
+                          </span>
+                        </div>
+                        <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
+                          {problem.explanationSteps.map((step, idx) => (
+                            <li key={idx} className="flex items-start gap-2">
+                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-bold shrink-0 mt-0.5">
+                                {idx + 1}
+                              </span>
+                              <span className="leading-relaxed">{step}</span>
+                            </li>
+                          ))}
+                        </ul>
                       </div>
-                      <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
-                        {problem.explanationSteps.map((step, idx) => (
-                          <li key={idx} className="flex items-start gap-2">
-                            <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-bold shrink-0 mt-0.5">
-                              {idx + 1}
-                            </span>
-                            <span className="leading-relaxed">{step}</span>
-                          </li>
-                        ))}
-                      </ul>
-                    </div>
+                    )}
                   </div>
                 )}
               </div>

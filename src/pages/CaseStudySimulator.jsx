@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   CheckCircle2,
@@ -22,7 +22,8 @@ import {
   MessageSquareQuote,
   History,
   Clock,
-  BookmarkPlus
+  BookmarkPlus,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -34,6 +35,7 @@ import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
+import { searchNandaCatalog } from "@/lib/nandaCatalog";
 
 export default function CaseStudySimulator() {
   const navigate = useNavigate();
@@ -49,6 +51,13 @@ export default function CaseStudySimulator() {
   const [studentGoals, setStudentGoals] = useState("");
   const [studentInterventions, setStudentInterventions] = useState("");
   const [studentEvolutionNotes, setStudentEvolutionNotes] = useState("");
+
+  // Sugestões de Diagnósticos NANDA-I / CIPE em Tempo Real
+  const [showDiagnosisSuggestions, setShowDiagnosisSuggestions] = useState(false);
+  const diagnosisSuggestions = useMemo(() => {
+    if (!studentHypothesis || studentHypothesis.trim().length < 2) return [];
+    return searchNandaCatalog(studentHypothesis).slice(0, 6);
+  }, [studentHypothesis]);
 
   // Estados de Tutoria e Feedback Clínico
   const [tutorEvaluation, setTutorEvaluation] = useState(null);
@@ -313,14 +322,23 @@ export default function CaseStudySimulator() {
   }
 
   async function handleSubmitEvaluation() {
+    if (!studentHypothesis.trim()) {
+      setToastMessage("Por favor, formule o Título do Diagnóstico de Enfermagem na Etapa 2 antes de concluir.");
+      setTimeout(() => setToastMessage(""), 4000);
+      setActiveStep(2);
+      return;
+    }
+
     setIsEvaluating(true);
     try {
       const res = await evaluateClinicalReasoning({
         caseData: currentCase,
-        hypothesis: studentHypothesis,
-        justification: `${studentEtiology} | Evidências: ${studentEvidences} | Avaliação: ${studentAssessmentNotes}`,
-        interventions: `${studentInterventions} | Metas: ${studentGoals}`
+        studentHypothesis: studentHypothesis.trim(),
+        studentJustification: `${studentEtiology || "Não informada"} | Evidências Clínicas: ${studentEvidences || "Não informadas"} | Coleta de Dados: ${studentAssessmentNotes || "Não informada"}`,
+        studentInterventions: `${studentInterventions || "Não prescritas"} | Metas e Resultados Esperados: ${studentGoals || "Não informadas"}`,
+        studentEvolution: studentEvolutionNotes || "Evolução não registrada."
       });
+
       setTutorEvaluation(res);
       setViewingDebriefing(true);
       window.scrollTo({ top: 320, behavior: "smooth" });
@@ -332,7 +350,7 @@ export default function CaseStudySimulator() {
           title: `Caso Clínico: ${currentCase.title}`,
           patientInfo: `${currentCase.patient?.name || "Paciente"} • ${currentCase.category || "Enfermaria"}`,
           durationSeconds: activitySeconds,
-          score: res?.overallScore || 90,
+          score: typeof res?.score === "number" ? res.score : (res?.overallScore || 85),
           evaluation: res,
           formData: {
             selectedCaseIdx,
@@ -341,7 +359,8 @@ export default function CaseStudySimulator() {
             studentEvidences,
             studentGoals,
             studentInterventions,
-            studentEvolutionNotes
+            studentEvolutionNotes,
+            studentAssessmentNotes
           }
         });
         setCurrentActivityId(submitted.id);
@@ -638,6 +657,39 @@ export default function CaseStudySimulator() {
                   </div>
                 </div>
 
+                {/* Resumo Transparente das Respostas Submetidas pelo Estudante */}
+                <div className="p-4 rounded-xl bg-teal-50/60 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 space-y-2 text-xs">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1.5 uppercase tracking-wide text-[11px]">
+                      <ClipboardList className="h-3.5 w-3.5 text-teal-600" />
+                      Respostas Enviadas para Auditoria do Preceptor IA:
+                    </span>
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                      Registrado no Prontuário
+                    </span>
+                  </div>
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-700 dark:text-slate-300 pt-1">
+                    <div>
+                      <strong className="text-slate-900 dark:text-slate-100">Diagnóstico Prioritário:</strong>{" "}
+                      <span className="text-teal-800 dark:text-teal-300 font-semibold">{studentHypothesis || "Não preenchido"}</span>
+                    </div>
+                    <div>
+                      <strong className="text-slate-900 dark:text-slate-100">Etiologia / Causa:</strong>{" "}
+                      <span>{studentEtiology || "Não informada"}</span>
+                    </div>
+                    <div className="md:col-span-2">
+                      <strong className="text-slate-900 dark:text-slate-100">Evidências / Sinais Clínicos:</strong>{" "}
+                      <span>{studentEvidences || "Não informadas"}</span>
+                    </div>
+                    {studentInterventions && (
+                      <div className="md:col-span-2 pt-1 border-t border-teal-200/50 dark:border-teal-800/40">
+                        <strong className="text-slate-900 dark:text-slate-100">Prescrição de Cuidados:</strong>{" "}
+                        <span>{studentInterventions}</span>
+                      </div>
+                    )}
+                  </div>
+                </div>
+
                 {/* Fase 1: Análise da Decisão Clínica & Lacunas */}
                 <div className="space-y-2">
                   <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide flex items-center gap-1.5">
@@ -645,7 +697,7 @@ export default function CaseStudySimulator() {
                     1. Análise do Julgamento Clínico (Diagnosis & Evidence Gap)
                   </span>
                   <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed space-y-2">
-                    <p>{tutorEvaluation.reasoningAnalysis}</p>
+                    <p>{tutorEvaluation.reasoningAnalysis || tutorEvaluation.feedbackTitle || `Você formulou a hipótese de ${studentHypothesis}. O raciocínio clínico demonstrou correlação com os achados do paciente.`}</p>
                   </div>
                 </div>
 
@@ -921,16 +973,105 @@ export default function CaseStudySimulator() {
                 )}
 
                 <div className="space-y-4">
-                  <div>
-                    <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block mb-1">
-                      1. Título do Diagnóstico de Enfermagem Prioritário:
-                    </label>
-                    <Input
-                      value={studentHypothesis}
-                      onChange={(e) => setStudentHypothesis(e.target.value)}
-                      placeholder="Ex: Padrão respiratório ineficaz (ou termo CIPE® equivalente)"
-                      className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 h-10"
-                    />
+                  <div className="relative">
+                    <div className="flex items-center justify-between mb-1">
+                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                        1. Título do Diagnóstico de Enfermagem Prioritário (NANDA-I / CIPE):
+                      </label>
+                      <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold flex items-center gap-1">
+                        <Sparkles className="w-3 h-3" /> Sugestões automáticas ativas
+                      </span>
+                    </div>
+
+                    <div className="relative">
+                      <Input
+                        value={studentHypothesis}
+                        onChange={(e) => {
+                          setStudentHypothesis(e.target.value);
+                          setShowDiagnosisSuggestions(true);
+                        }}
+                        onFocus={() => setShowDiagnosisSuggestions(true)}
+                        placeholder="Comece a digitar... Ex: Risco de quedas, Padrão respiratório ineficaz..."
+                        className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 h-10 pr-9 focus:ring-2 focus:ring-teal-500"
+                      />
+                      {studentHypothesis && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setStudentHypothesis("");
+                            setShowDiagnosisSuggestions(false);
+                          }}
+                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs px-1"
+                        >
+                          ✕
+                        </button>
+                      )}
+                    </div>
+
+                    {/* Dropdown com Autocomplete Inteligente NANDA-I */}
+                    {showDiagnosisSuggestions && diagnosisSuggestions.length > 0 && (
+                      <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-white dark:bg-slate-900 border border-teal-200 dark:border-teal-800 rounded-2xl shadow-xl overflow-hidden animate-in fade-in max-h-64 overflow-y-auto">
+                        <div className="p-2 border-b border-slate-100 dark:border-slate-800 bg-teal-50/70 dark:bg-teal-950/50 flex items-center justify-between text-[11px] text-teal-900 dark:text-teal-300 font-bold">
+                          <span>Diagnósticos NANDA-I Encontrados ({diagnosisSuggestions.length}):</span>
+                          <button
+                            type="button"
+                            onClick={() => setShowDiagnosisSuggestions(false)}
+                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs"
+                          >
+                            Fechar
+                          </button>
+                        </div>
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
+                          {diagnosisSuggestions.map((diag) => (
+                            <button
+                              key={diag.code || diag.title}
+                              type="button"
+                              onClick={() => {
+                                setStudentHypothesis(diag.title);
+                                setShowDiagnosisSuggestions(false);
+                              }}
+                              className="w-full text-left p-3 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition flex items-start justify-between gap-3 group"
+                            >
+                              <div className="space-y-0.5">
+                                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-300 block">
+                                  {diag.title}
+                                </span>
+                                <span className="text-[10px] text-slate-500 dark:text-slate-400 block line-clamp-1">
+                                  {diag.domain || diag.class || "Taxonomia Oficial NANDA-I"}
+                                </span>
+                              </div>
+                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0">
+                                {diag.code ? `Cód: ${diag.code}` : "NANDA-I"}
+                              </span>
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Chips Rápidos de Atalhos Mais Frequentes */}
+                    <div className="flex items-center gap-1.5 flex-wrap mt-2">
+                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Exemplos rápidos:</span>
+                      {[
+                        "Risco de quedas",
+                        "Padrão respiratório ineficaz",
+                        "Troca de gases prejudicada",
+                        "Volume de líquidos excessivo",
+                        "Integridade da pele prejudicada"
+                      ].map((quickDiag) => (
+                        <button
+                          key={quickDiag}
+                          type="button"
+                          onClick={() => {
+                            setStudentHypothesis(quickDiag);
+                            setShowDiagnosisSuggestions(false);
+                          }}
+                          className="text-[11px] font-medium px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 text-slate-700 dark:text-slate-300 transition"
+                        >
+                          + {quickDiag}
+                        </button>
+                      ))}
+                    </div>
                   </div>
 
                   <div>

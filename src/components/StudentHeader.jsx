@@ -47,7 +47,7 @@ export default function StudentHeader({ activeTab = "hub" }) {
 
   const navLinks = [
     { id: "hub", label: "Início", path: "/", icon: LayoutGrid, hasBriefing: false },
-    { id: "procedimentos", label: "Procedimentos", path: "/procedimentos", icon: Video, hasBriefing: true },
+    { id: "procedimentos", label: "Procedimentos", path: "/procedimentos", icon: Video, hasBriefing: false },
     { id: "montar", label: "Montar Caso", path: "/montar-caso", icon: PlusCircle, hasBriefing: true },
     { id: "casos", label: "Casos Clínicos", path: "/simulador-casos", icon: BookOpen, hasBriefing: true },
     { id: "sbar", label: "Plantão SBAR", path: "/passagem-plantao", icon: ArrowRightLeft, hasBriefing: true },
@@ -152,7 +152,7 @@ export default function StudentHeader({ activeTab = "hub" }) {
                   setIsStudyPointsOpen(true);
                 }}
                 className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-xs font-black transition-all active:scale-95"
-                title="Ver saldo e gastar Pontos de Estudo (PE)"
+                title="Ver saldo de Pontos de Estudo (PE) e mérito clínico"
               >
                 <Coins className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />
                 <span>{studyPoints}</span>

@@ -99,11 +99,22 @@ export async function evaluateClinicalReasoning({
   caseData,
   studentHypothesis,
   studentJustification,
-  studentInterventions
+  studentInterventions,
+  studentEvolution,
+  hypothesis,
+  justification,
+  interventions,
+  evolution
 }) {
-  const cleanHypothesis = sanitizeTextForLGPD(studentHypothesis);
-  const cleanJustification = sanitizeTextForLGPD(studentJustification);
-  const cleanInterventions = sanitizeTextForLGPD(studentInterventions);
+  const actualHypothesis = studentHypothesis || hypothesis || "";
+  const actualJustification = studentJustification || justification || "";
+  const actualInterventions = studentInterventions || interventions || "";
+  const actualEvolution = studentEvolution || evolution || "";
+
+  const cleanHypothesis = sanitizeTextForLGPD(actualHypothesis);
+  const cleanJustification = sanitizeTextForLGPD(actualJustification);
+  const cleanInterventions = sanitizeTextForLGPD(actualInterventions);
+  const cleanEvolution = sanitizeTextForLGPD(actualEvolution);
 
   const systemPrompt = `Você é o Preceptor Clínico IA, um Docente Sênior e Tutor de Enfermagem especialista em Raciocínio Clínico e no Processo de Enfermagem (Resolução COFEN nº 736/2024 e Teoria das Necessidades Humanas Básicas) da plataforma Enfere.
 
@@ -118,6 +129,12 @@ Retorne EXCLUSIVAMENTE um JSON válido com esta estrutura:
 {
   "score": 0 a 100 (número inteiro da qualidade do raciocínio crítico),
   "feedbackTitle": "Título formativo acolhedor",
+  "reasoningAnalysis": "Análise detalhada do julgamento clínico do aluno, comentando a hipótese diagnóstica e a correlação com as evidências",
+  "reflectiveQuestion": "Pergunta socrática principal instigando a reflexão profunda do aluno",
+  "pointsToConsider": [
+    "Ponto prático 1 essencial para a assistência segura",
+    "Ponto prático 2 de monitorização ou intervenção prioritária"
+  ],
   "strengths": ["Ponto forte 1 identificado no raciocínio", "Ponto forte 2"],
   "gaps": ["Dado clínico ou sinal vital crítico que o aluno não mencionou"],
   "socraticQuestions": [
@@ -130,22 +147,39 @@ Retorne EXCLUSIVAMENTE um JSON válido com esta estrutura:
 
   const userPrompt = `DADOS DO CASO SIMULADO:
 Título: ${caseData.title}
-Histórico Sintético: ${caseData.patient?.medical_history || caseData.summary}
+Histórico Sintético: ${caseData.patient?.medical_history || caseData.patient?.previous_anamnesis || caseData.summary}
 Sinais Vitais: PA ${caseData.vitals?.pa_sistolica}/${caseData.vitals?.pa_diastolica} mmHg | FC ${caseData.vitals?.fc} bpm | FR ${caseData.vitals?.fr} irpm | Tax ${caseData.vitals?.tax} °C | SatO2 ${caseData.vitals?.sat}%
 Escalas: Braden ${caseData.braden ? 'calculado' : 'N/A'}, Dor ${caseData.caloi?.pain_intensity || 0}/10
 
 RESPOSTA SUBMETIDA PELO ESTUDANTE:
-- Hipótese Diagnóstica: ${cleanHypothesis}
-- Justificativa do Aluno: ${cleanJustification}
-- Cuidados Sugeridos: ${cleanInterventions}`;
+- Hipótese Diagnóstica NANDA-I/CIPE: ${cleanHypothesis || "(Não preenchido)"}
+- Justificativa, Etiologia e Evidências: ${cleanJustification || "(Não preenchido)"}
+- Cuidados e Metas Sugeridos: ${cleanInterventions || "(Não preenchido)"}
+- Evolução de Enfermagem: ${cleanEvolution || "(Não preenchido)"}`;
 
   const aiResult = await callGemini(systemPrompt, userPrompt);
-  if (aiResult && aiResult.score !== undefined) {
-    return aiResult;
+  if (aiResult && (aiResult.score !== undefined || aiResult.reasoningAnalysis)) {
+    const finalScore = typeof aiResult.score === 'number' ? aiResult.score : 75;
+    const reasoningAnalysis = aiResult.reasoningAnalysis ||
+      `Você formulou a hipótese diagnóstica "${cleanHypothesis}". ${aiResult.feedbackTitle || ''} ${aiResult.strengths?.join(' ') || ''} ${aiResult.gaps?.length ? 'Lacunas observadas: ' + aiResult.gaps.join(' ') : ''}`;
+
+    return {
+      score: finalScore,
+      overallScore: finalScore,
+      feedbackTitle: aiResult.feedbackTitle || "Análise do Julgamento Clínico",
+      reasoningAnalysis: reasoningAnalysis.trim(),
+      reflectiveQuestion: aiResult.reflectiveQuestion || aiResult.socraticQuestions?.[0] || "Como os sinais vitais alterados sustentam ou descartam essa hipótese?",
+      pointsToConsider: aiResult.pointsToConsider || aiResult.gaps || ["Priorizar a estabilização ventilatória e hemodinâmica", "Monitorizar a resposta terapêutica em intervalos regulares"],
+      strengths: aiResult.strengths || ["Iniciou o raciocínio diagnóstico baseado em dados do paciente."],
+      gaps: aiResult.gaps || ["Aprofundar a correlação fisiopatológica com os sinais vitais."],
+      socraticQuestions: aiResult.socraticQuestions || [aiResult.reflectiveQuestion || "Qual complicação aguda deve ser prevenida?"],
+      pedagogicalHint: aiResult.pedagogicalHint || "Consulte as taxonomias NANDA-I e NIC/NOC para refinar as intervenções.",
+      cofenStepFocus: aiResult.cofenStepFocus || "Etapa 2 - Diagnóstico de Enfermagem"
+    };
   }
 
   // Motor Pedagógico Heurístico de Fallback (offline / sem chave configurada)
-  return generateHeuristicFeedback(caseData, cleanHypothesis, cleanJustification);
+  return generateHeuristicFeedback(caseData, cleanHypothesis, cleanJustification, cleanInterventions);
 }
 
 /**
@@ -267,9 +301,22 @@ function generateHeuristicFeedback(caseData, hypothesis, justification) {
     gaps.push("Não citou especificamente os sinais vitais alterados que sustentam a sua hipótese.");
   }
 
+  const finalScore = Math.min(score, 95);
+  const reasoningAnalysis = `Você formulou a hipótese diagnóstica "${hypothesis || 'Prioritária'}". ${
+    strengths.join(' ')
+  } ${gaps.length ? 'Aspectos a aprimorar: ' + gaps.join(' ') : 'Demonstrou boa coerência na correlação entre dados coletados e hipótese.'}`;
+
   return {
-    score: Math.min(score, 95),
+    score: finalScore,
+    overallScore: finalScore,
     feedbackTitle: "Análise Formativa do Raciocínio Clínico",
+    reasoningAnalysis: reasoningAnalysis.trim(),
+    reflectiveQuestion: `Considerando o diagnóstico de "${hypothesis || 'enfermagem'}" e a fisiopatologia do paciente ${caseData.title}, qual intervenção imediata da equipe de enfermagem previne eventos adversos nas próximas horas?`,
+    pointsToConsider: [
+      "Verificar sinais vitais em intervalos rigorosos conforme o risco clínico",
+      "Garantir a implementação das metas com prazos bem definidos de reavaliação",
+      ...(gaps.length ? gaps : ["Reavaliar a resposta terapêutica do paciente após o cuidado"])
+    ],
     strengths: strengths.length > 0 ? strengths : ["Iniciou a formulação de hipótese diagnóstica para o caso."],
     gaps: gaps.length > 0 ? gaps : ["Continue refinando a priorização dos cuidados de acordo com a gravidade."],
     socraticQuestions: [

@@ -11,7 +11,8 @@ import {
   Search,
   FolderPlus,
   X,
-  Video
+  Video,
+  Sparkles
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
@@ -25,6 +26,7 @@ import HeroCourseCard from "@/components/mobile/HeroCourseCard";
 import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
 import ClinicalModuleCard from "@/components/mobile/ClinicalModuleCard";
 import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
+import GotiChatDrawer from "@/components/mascot/GotiChatDrawer";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -36,6 +38,7 @@ export default function StudentDashboard() {
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [briefingModuleId, setBriefingModuleId] = useState(null);
   const [isBriefingOpen, setIsBriefingOpen] = useState(false);
+  const [isGotiChatOpen, setIsGotiChatOpen] = useState(false);
 
   const cleanUserName = user?.name ? user.name.split(" ")[0] : (user?.full_name ? user.full_name.split(" ")[0] : "");
   const isGeneric = !cleanUserName || ['estudante', 'enfermeiro', 'aluno', 'professor'].includes(cleanUserName.toLowerCase());
@@ -209,6 +212,10 @@ export default function StudentDashboard() {
           }}
           categories={categories}
           onOpenOptions={() => setIsOptionsModalOpen(true)}
+          onOpenAIChat={() => {
+            triggerHaptic(20);
+            setIsGotiChatOpen(true);
+          }}
         />
       </div>
 
@@ -437,6 +444,37 @@ export default function StudentDashboard() {
           const destination = action.query ? `${targetPath}${action.query}` : targetPath;
           navigate(destination);
         }}
+      />
+
+      {/* Botão Flutuante do Preceptor IA no Mobile na Home */}
+      <div className="md:hidden">
+        <button
+          onClick={() => {
+            triggerHaptic(20);
+            setIsGotiChatOpen(true);
+          }}
+          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 p-2.5 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
+          title="Dúvidas clínicas? Pergunte ao Preceptor IA"
+          aria-label="Abrir Chat com Preceptor IA"
+        >
+          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
+            <Sparkles className="w-4 h-4 text-emerald-200" />
+          </div>
+          <div className="text-left">
+            <span className="text-xs font-black block leading-none">Preceptor IA</span>
+            <span className="text-[10px] text-teal-100 block font-medium">Tirar Dúvidas</span>
+          </div>
+          <span className="flex h-2.5 w-2.5 relative">
+            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
+          </span>
+        </button>
+      </div>
+
+      {/* Gaveta / Modal de Chat com o Preceptor IA no Mobile */}
+      <GotiChatDrawer
+        isOpen={isGotiChatOpen}
+        onClose={() => setIsGotiChatOpen(false)}
       />
     </div>
   );

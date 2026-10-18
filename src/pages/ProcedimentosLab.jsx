@@ -5,6 +5,9 @@ import {
   Play,
   ArrowLeft,
   ShieldCheck,
+  Check,
+  CheckCircle2,
+  Eye,
 } from 'lucide-react';
 import StudentHeader from '@/components/StudentHeader';
 import StudentFooter from '@/components/StudentFooter';
@@ -25,10 +28,12 @@ export default function ProcedimentosLab() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeProcedure, setActiveProcedure] = useState(null);
+  const [watchedIds, setWatchedIds] = useState(() => procedureService.getWatchedList());
 
   const refreshList = () => {
     const list = procedureService.list();
     setProcedures(list);
+    setWatchedIds(procedureService.getWatchedList());
     if (activeProcedure) {
       const fresh = list.find((p) => p.id === activeProcedure.id);
       if (fresh) setActiveProcedure(fresh);
@@ -41,6 +46,8 @@ export default function ProcedimentosLab() {
 
   const categories = [
     { id: 'all', label: 'Todos os Procedimentos' },
+    { id: 'watched', label: '✓ Já Assistidos' },
+    { id: 'unwatched', label: 'Pendentes' },
     { id: 'urgencia', label: 'Urgência & Emergência' },
     { id: 'eliminacoes', label: 'Cateterismos & Eliminações' },
     { id: 'vasculares', label: 'Acessos Vasculares' },
@@ -57,11 +64,32 @@ export default function ProcedimentosLab() {
         p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.categoryLabel.toLowerCase().includes(searchQuery.toLowerCase());
 
-      const matchesCategory = selectedCategory === 'all' || p.category === selectedCategory;
+      let matchesCategory = true;
+      if (selectedCategory === 'watched') {
+        matchesCategory = watchedIds.includes(p.id);
+      } else if (selectedCategory === 'unwatched') {
+        matchesCategory = !watchedIds.includes(p.id);
+      } else if (selectedCategory !== 'all') {
+        matchesCategory = p.category === selectedCategory;
+      }
 
       return matchesSearch && matchesCategory;
     });
-  }, [procedures, selectedCategory, searchQuery]);
+  }, [procedures, selectedCategory, searchQuery, watchedIds]);
+
+  const handleOpenProcedure = (proc) => {
+    triggerHaptic(25);
+    procedureService.markWatched(proc.id);
+    setWatchedIds(procedureService.getWatchedList());
+    setActiveProcedure(proc);
+  };
+
+  const handleToggleWatched = (e, procId) => {
+    e.stopPropagation();
+    triggerHaptic(20);
+    procedureService.toggleWatched(procId);
+    setWatchedIds(procedureService.getWatchedList());
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 flex flex-col transition-colors">
@@ -171,8 +199,15 @@ export default function ProcedimentosLab() {
                 />
               </div>
 
-              <div className="text-xs text-slate-400 font-medium">
-                Exibindo <strong className="text-slate-700 dark:text-slate-200">{filtered.length}</strong> procedimentos com protocolo institucional
+              {/* Contador de Assistidos */}
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 text-xs font-bold shadow-2xs">
+                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <span>{watchedIds.length} de {procedures.length} vídeos assistidos</span>
+                </span>
+                <span className="text-xs text-slate-400 font-medium hidden sm:inline">
+                  • Exibindo <strong className="text-slate-700 dark:text-slate-200">{filtered.length}</strong>
+                </span>
               </div>
             </div>
 
@@ -180,10 +215,14 @@ export default function ProcedimentosLab() {
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
               {categories.map((cat) => {
                 const isActive = selectedCategory === cat.id;
-                const count =
-                  cat.id === 'all'
-                    ? procedures.length
-                    : procedures.filter((p) => p.category === cat.id).length;
+                let count = procedures.length;
+                if (cat.id === 'watched') {
+                  count = watchedIds.length;
+                } else if (cat.id === 'unwatched') {
+                  count = Math.max(0, procedures.length - watchedIds.length);
+                } else if (cat.id !== 'all') {
+                  count = procedures.filter((p) => p.category === cat.id).length;
+                }
 
                 return (
                   <button
@@ -221,17 +260,20 @@ export default function ProcedimentosLab() {
               <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
                 {filtered.map((proc) => {
                   const previewSrc = getProcedurePreview(proc.id) || proc.previewImage || `/previews/${proc.id}.svg`;
+                  const isWatched = watchedIds.includes(proc.id);
+
                   return (
                     <div
                       key={proc.id}
-                      onClick={() => {
-                        triggerHaptic(25);
-                        setActiveProcedure(proc);
-                      }}
-                      className="group rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs hover:border-teal-400 dark:hover:border-teal-500 hover-lift tap-press transition-all cursor-pointer flex flex-col justify-between"
+                      onClick={() => handleOpenProcedure(proc)}
+                      className={`group rounded-3xl border bg-white dark:bg-slate-900 p-5 shadow-xs hover-lift tap-press transition-all cursor-pointer flex flex-col justify-between ${
+                        isWatched
+                          ? 'border-emerald-300/80 dark:border-emerald-900/60 ring-1 ring-emerald-500/20'
+                          : 'border-slate-200/90 dark:border-slate-800 hover:border-teal-400 dark:hover:border-teal-500'
+                      }`}
                     >
                       <div>
-                        {/* Thumbnail Exclusiva do Procedimento (Ilustração Médica Vetorial em Alta Resolução) */}
+                        {/* Thumbnail Exclusiva do Procedimento */}
                         <div className="relative aspect-video w-full rounded-2xl bg-slate-950 overflow-hidden mb-3.5 flex items-center justify-center group-hover:scale-[1.01] transition-transform">
                           <img
                             src={previewSrc}
@@ -246,6 +288,28 @@ export default function ProcedimentosLab() {
                             }}
                           />
                           <div className="absolute inset-0 bg-slate-950/25 group-hover:bg-slate-950/10 transition-colors pointer-events-none" />
+
+                          {/* Botão de Alternância Rápida de Assistido no Topo Esquerdo */}
+                          <button
+                            type="button"
+                            onClick={(e) => handleToggleWatched(e, proc.id)}
+                            className={`absolute top-2.5 left-2.5 z-20 p-1.5 rounded-xl backdrop-blur-md transition-all shadow-md ${
+                              isWatched
+                                ? 'bg-emerald-600 text-white hover:bg-emerald-700'
+                                : 'bg-slate-950/70 text-slate-300 hover:text-white hover:bg-slate-900'
+                            }`}
+                            title={isWatched ? 'Marcar como não assistido' : 'Marcar como já assistido'}
+                          >
+                            <Eye className="w-3.5 h-3.5" />
+                          </button>
+
+                          {/* Badge de 'Assistido' no Topo Direito */}
+                          {isWatched && (
+                            <div className="absolute top-2.5 right-2.5 z-20 flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-600/95 text-white text-[10px] font-black shadow-lg backdrop-blur-xs border border-emerald-400/30">
+                              <Check className="w-3 h-3 stroke-[3]" />
+                              <span>Assistido</span>
+                            </div>
+                          )}
 
                           <div className="relative z-10 flex h-12 w-12 items-center justify-center rounded-full bg-teal-500/90 text-slate-950 shadow-lg group-hover:scale-110 transition-transform">
                             <Play className="h-5 w-5 fill-slate-950 ml-0.5" />
@@ -279,12 +343,20 @@ export default function ProcedimentosLab() {
 
                       {/* Footer do Card */}
                       <div className="mt-4 pt-3 border-t border-slate-100 dark:border-slate-800/80 flex items-center justify-between text-xs">
-                        <span className="text-[11px] text-slate-400">
-                          {proc.steps?.length || 0} passos · {proc.materials?.length || 0} materiais
-                        </span>
+                        <div className="flex items-center gap-1.5">
+                          {isWatched ? (
+                            <span className="text-[11px] font-bold text-emerald-600 dark:text-emerald-400 flex items-center gap-1">
+                              <CheckCircle2 className="w-3.5 h-3.5" /> Concluído
+                            </span>
+                          ) : (
+                            <span className="text-[11px] text-slate-400">
+                              {proc.steps?.length || 0} passos · {proc.materials?.length || 0} materiais
+                            </span>
+                          )}
+                        </div>
 
                         <span className="font-bold text-teal-700 dark:text-teal-400 group-hover:translate-x-0.5 transition-transform flex items-center gap-1">
-                          Ver POP & Checklist →
+                          Ver POP & Vídeo →
                         </span>
                       </div>
                     </div>

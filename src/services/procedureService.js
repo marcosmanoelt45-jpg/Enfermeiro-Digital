@@ -10,6 +10,7 @@ import { getProcedurePreview } from './procedurePreviews';
 import { callResilientAI } from './aiCoreService';
 
 const STORAGE_KEY = 'enfermeiro_digital_custom_procedures';
+const WATCHED_STORAGE_KEY = 'enfermeiro_digital_watched_procedures';
 
 // Chave da API do Google Gemini
 function getGeminiApiKey() {
@@ -345,6 +346,68 @@ export const procedureService = {
       earnedXp: 30,
       state: res.state,
     };
+  },
+
+  /**
+   * Obtém a lista de IDs de procedimentos/vídeos já assistidos pelo usuário.
+   */
+  getWatchedList() {
+    try {
+      const raw = localStorage.getItem(WATCHED_STORAGE_KEY);
+      return raw ? JSON.parse(raw) : [];
+    } catch {
+      return [];
+    }
+  },
+
+  /**
+   * Verifica se um procedimento específico já foi assistido.
+   */
+  isWatched(id) {
+    if (!id) return false;
+    const list = this.getWatchedList();
+    return list.includes(id);
+  },
+
+  /**
+   * Marca um procedimento/vídeo como assistido no localStorage.
+   */
+  markWatched(id) {
+    if (!id) return false;
+    try {
+      const list = this.getWatchedList();
+      if (!list.includes(id)) {
+        list.push(id);
+        localStorage.setItem(WATCHED_STORAGE_KEY, JSON.stringify(list));
+        window.dispatchEvent(new Event('storage'));
+      }
+      return true;
+    } catch (e) {
+      console.warn('Erro ao marcar procedimento como visto:', e);
+      return false;
+    }
+  },
+
+  /**
+   * Alterna o status de assistido (marcar/desmarcar) de um procedimento/vídeo.
+   */
+  toggleWatched(id) {
+    if (!id) return false;
+    try {
+      let list = this.getWatchedList();
+      const alreadyWatched = list.includes(id);
+      if (alreadyWatched) {
+        list = list.filter((item) => item !== id);
+      } else {
+        list.push(id);
+      }
+      localStorage.setItem(WATCHED_STORAGE_KEY, JSON.stringify(list));
+      window.dispatchEvent(new Event('storage'));
+      return !alreadyWatched;
+    } catch (e) {
+      console.warn('Erro ao alternar status de assistido:', e);
+      return false;
+    }
   },
 
   /**

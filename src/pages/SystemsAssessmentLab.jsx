@@ -12,7 +12,10 @@ import {
   Clock,
   BookmarkPlus,
   ArrowRight,
-  CheckCircle2
+  CheckCircle2,
+  Sparkles,
+  Award,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
@@ -208,6 +211,50 @@ export default function SystemsAssessmentLab() {
   const totalParams = currentDetected.length + currentMissingGaps.length;
   const completeness = totalParams > 0 ? Math.round((currentDetected.length / totalParams) * 100) : 100;
 
+  const [completionModalData, setCompletionModalData] = useState(null);
+
+  function handleFinishStudy() {
+    const finalScore = 100;
+    const submitted = clinicalHistoryService.submitActivity({
+      id: currentActivityId,
+      moduleType: MODULE_TYPES.SYSTEMS_ASSESSMENT,
+      title: `Semiologia: ${activeSystem.title.split("&")[0]}`,
+      patientInfo: `${activeSystem.caseScenario.patient}`,
+      durationSeconds: activitySeconds,
+      score: finalScore,
+      evaluation: {
+        systemTitle: activeSystem.title,
+        patient: activeSystem.caseScenario.patient,
+        detectedFindings: currentDetected.map((d) => ({ label: d.label, value: d.value })),
+        completeness: 100,
+        feedback: `Investigação semiológica do ${activeSystem.title} concluída com 100% de completude. Todos os marcos do exame físico foram avaliados e consolidados para o Processo de Enfermagem.`
+      },
+      formData: {
+        selectedSysId,
+        addedFindingsBySys
+      }
+    });
+
+    setCurrentActivityId(submitted.id);
+    setCompletionModalData({
+      systemTitle: activeSystem.title,
+      patient: activeSystem.caseScenario.patient,
+      findings: currentDetected,
+      duration: `${String(Math.floor(activitySeconds / 60)).padStart(2, "0")}:${String(activitySeconds % 60).padStart(2, "0")} min`
+    });
+
+    setToastMessage("Avaliação Semiológica Concluída com Sucesso (100%)!");
+    setTimeout(() => setToastMessage(""), 3500);
+  }
+
+  function handleNextSystem() {
+    setCompletionModalData(null);
+    const currentIndex = SYSTEMS_MODULES.findIndex((s) => s.id === selectedSysId);
+    const nextIndex = (currentIndex + 1) % SYSTEMS_MODULES.length;
+    setSelectedSysId(SYSTEMS_MODULES[nextIndex].id);
+    window.scrollTo({ top: 300, behavior: "smooth" });
+  }
+
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100">
       <StudentHeader activeTab="sistemas" />
@@ -390,8 +437,117 @@ export default function SystemsAssessmentLab() {
               completenessPercentage={completeness}
               title={`Investigação do ${activeSystem.title.split("&")[0]}`}
             />
+
+            {/* Ação de Conclusão Oficial do Estudo Semiológico (100%) */}
+            <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 bg-slate-50/50 dark:bg-slate-800/40 p-4 rounded-xl">
+              <div className="text-xs text-slate-600 dark:text-slate-300">
+                <span>Completude da investigação: </span>
+                <strong className={completeness === 100 ? "text-emerald-600 dark:text-emerald-400 font-bold" : "text-amber-600 font-bold"}>
+                  {completeness}%
+                </strong>
+                <span className="text-slate-400 ml-2">
+                  ({currentDetected.length} parâmetros registrados)
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2 w-full sm:w-auto">
+                <Button
+                  onClick={handleFinishStudy}
+                  className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center justify-center gap-2 shadow-xs w-full sm:w-auto"
+                >
+                  <CheckCircle2 className="h-4 w-4 text-emerald-200" />
+                  <span>Concluir Avaliação Semiológica (100%)</span>
+                </Button>
+              </div>
+            </div>
           </div>
         </div>
+
+        {/* Modal de Síntese e Parecer de Conclusão Semiológica (100%) */}
+        {completionModalData && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
+            <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-800 rounded-3xl p-6 shadow-2xl space-y-5 text-slate-800 dark:text-slate-100">
+              <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center text-emerald-700 dark:text-emerald-300">
+                    <Award className="w-6 h-6" />
+                  </div>
+                  <div>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 uppercase">
+                      Estudo Concluído • 100%
+                    </span>
+                    <h3 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
+                      {completionModalData.systemTitle}
+                    </h3>
+                  </div>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setCompletionModalData(null)}
+                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              <div className="space-y-3 text-xs">
+                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
+                  <span className="font-bold text-slate-500 dark:text-slate-400 block text-[10px] uppercase">Paciente Simulado:</span>
+                  <p className="font-semibold text-slate-900 dark:text-slate-100">{completionModalData.patient}</p>
+                  <span className="text-[11px] text-slate-400 mt-1 block">Tempo dedicado: {completionModalData.duration}</span>
+                </div>
+
+                <div className="space-y-1.5">
+                  <span className="font-bold text-slate-800 dark:text-slate-200 block text-[11px] uppercase">
+                    Parâmetros Semiológicos Registrados ({completionModalData.findings.length}):
+                  </span>
+                  <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
+                    {completionModalData.findings.map((f, i) => (
+                      <div key={i} className="p-2 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 flex items-start gap-2">
+                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                        <div>
+                          <strong className="text-slate-900 dark:text-slate-100">{f.label}:</strong>{" "}
+                          <span className="text-slate-600 dark:text-slate-300">{f.value}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+
+                <div className="p-3.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-950 dark:text-teal-200 flex items-start gap-2.5">
+                  <Sparkles className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                  <p className="leading-relaxed">
+                    <strong>Parecer do Preceptor IA:</strong> Excelente raciocínio céfalo-caudal! Todos os dados essenciais deste sistema foram devidamente conferidos e salvos com <strong>100% de conclusão</strong> no seu histórico acadêmico.
+                  </p>
+                </div>
+              </div>
+
+              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    setCompletionModalData(null);
+                    setIsHistoryOpen(true);
+                  }}
+                  className="rounded-xl border-slate-300 dark:border-slate-700 text-xs font-semibold w-full sm:w-auto"
+                >
+                  <History className="h-3.5 w-3.5 mr-1 text-indigo-600" />
+                  <span>Ver no Histórico</span>
+                </Button>
+
+                <Button
+                  size="sm"
+                  onClick={handleNextSystem}
+                  className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 w-full sm:w-auto"
+                >
+                  <span>Próximo Sistema Orgânico</span>
+                  <ArrowRight className="h-3.5 w-3.5" />
+                </Button>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* Modal Unificado de Histórico de Semiologia */}
         <CaseHistoryModal
