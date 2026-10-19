@@ -223,20 +223,22 @@ export default function StudentHeader({ activeTab = "hub" }) {
         </div>
       </header>
 
-      {/* Botão Flutuante do Preceptor IA (Canto Inferior Direito) */}
+      {/* Botão Flutuante do Preceptor Goti (Canto Inferior Direito) */}
       <button
         onClick={() => {
           triggerHaptic(20);
           setIsGotiChatOpen(true);
         }}
-        className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2 p-2.5 sm:px-4 sm:py-2.5 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
-        title="Dúvidas clínicas? Pergunte ao Preceptor IA"
+        className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2.5 p-2 sm:px-4 sm:py-2.5 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
+        title="Dúvidas clínicas? Pergunte ao Preceptor Goti"
       >
-        <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-          <Sparkles className="w-4 h-4 text-emerald-200" />
-        </div>
+        <img
+          src="/goti/goti-avatar-app.png"
+          alt="Preceptor Goti"
+          className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-300/60 shadow-xs group-hover:scale-105 transition-transform"
+        />
         <div className="hidden sm:block text-left">
-          <span className="text-xs font-black block leading-none">Preceptor IA</span>
+          <span className="text-xs font-black block leading-none">Preceptor Goti</span>
           <span className="text-[10px] text-teal-100 block font-medium">Tirar Dúvida Clínica</span>
         </div>
         <span className="flex h-2.5 w-2.5 relative">

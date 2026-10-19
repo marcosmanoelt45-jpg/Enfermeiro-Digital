@@ -13,8 +13,6 @@ import {
   BookmarkPlus,
   ArrowRight,
   CheckCircle2,
-  Sparkles,
-  Award,
   X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -23,6 +21,7 @@ import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
+import GotiAnimated from "@/components/mascot/GotiAnimated";
 
 const SYSTEMS_MODULES = [
   {
@@ -469,9 +468,12 @@ export default function SystemsAssessmentLab() {
             <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-800 rounded-3xl p-6 shadow-2xl space-y-5 text-slate-800 dark:text-slate-100">
               <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-2xl bg-emerald-100 dark:bg-emerald-950/80 border border-emerald-300 dark:border-emerald-700 flex items-center justify-center text-emerald-700 dark:text-emerald-300">
-                    <Award className="w-6 h-6" />
-                  </div>
+                  <GotiAnimated
+                    animation="happy"
+                    size="sm"
+                    className="w-14 h-14 shrink-0"
+                    withSoundToggle={true}
+                  />
                   <div>
                     <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 uppercase">
                       Estudo Concluído • 100%
@@ -514,10 +516,14 @@ export default function SystemsAssessmentLab() {
                   </div>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-950 dark:text-teal-200 flex items-start gap-2.5">
-                  <Sparkles className="w-4 h-4 text-teal-600 shrink-0 mt-0.5" />
+                <div className="p-3.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-950 dark:text-teal-200 flex items-start gap-3">
+                  <img
+                    src="/goti/goti-avatar-app.png"
+                    alt="Preceptor Goti"
+                    className="w-9 h-9 rounded-xl object-contain shrink-0 mt-0.5 shadow-xs"
+                  />
                   <p className="leading-relaxed">
-                    <strong>Parecer do Preceptor IA:</strong> Excelente raciocínio céfalo-caudal! Todos os dados essenciais deste sistema foram devidamente conferidos e salvos com <strong>100% de conclusão</strong> no seu histórico acadêmico.
+                    <strong>Parecer do Preceptor Goti:</strong> Excelente raciocínio céfalo-caudal! Todos os dados essenciais deste sistema foram devidamente conferidos e salvos com <strong>100% de conclusão</strong> no seu histórico acadêmico.
                   </p>
                 </div>
               </div>

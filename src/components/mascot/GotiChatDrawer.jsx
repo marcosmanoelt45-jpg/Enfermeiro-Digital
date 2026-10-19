@@ -4,13 +4,12 @@ import {
   Send,
   Sparkles,
   RotateCcw,
-  ShieldCheck,
-  Stethoscope,
   Lightbulb
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { gotiPreceptorService } from "@/services/gotiPreceptorService";
 import { useTheme } from "@/lib/ThemeContext";
+import GotiAnimated from "./GotiAnimated";
 
 const CLINICAL_PROMPTS = [
   "Como calcular gotejamento em macrogotas/h?",
@@ -90,10 +89,13 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
         <div className="relative p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800/80 bg-gradient-to-r from-teal-50 via-white to-emerald-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-teal-950/20 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="relative flex-shrink-0">
-              <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white p-1 flex items-center justify-center shadow-xs transition-transform duration-300 ${gotiState === "thinking" ? "animate-pulse scale-105" : ""}`}>
-                <Stethoscope className="w-6 h-6 text-white" />
-              </div>
-              <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5">
+              <GotiAnimated
+                animation={gotiState === "thinking" ? "thinking" : gotiState === "speaking" ? "pointing" : "idle"}
+                size="sm"
+                withSoundToggle={true}
+                className="w-12 h-12"
+              />
+              <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 pointer-events-none">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900"></span>
               </span>
@@ -102,10 +104,10 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
             <div>
               <div className="flex items-center gap-2">
                 <h3 className="text-base font-black text-slate-900 dark:text-white leading-tight">
-                  Preceptor Clínico IA
+                  Preceptor Goti IA
                 </h3>
                 <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                  {gotiState === "thinking" ? "Pensando..." : gotiState === "speaking" ? "Respondendo..." : "Enfere IA"}
+                  {gotiState === "thinking" ? "Pensando..." : gotiState === "speaking" ? "Orientando..." : "Online"}
                 </span>
               </div>
               <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
@@ -138,11 +140,15 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
         {/* Área de Mensagens com Rolagem */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs sm:text-sm">
           {/* Card de Boas-Vindas & Diretriz Clínica */}
-          <div className="p-3.5 rounded-2xl bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200/80 dark:border-teal-800/60 flex items-start gap-2.5">
-            <ShieldCheck className="w-5 h-5 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
+          <div className="p-3.5 rounded-2xl bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200/80 dark:border-teal-800/60 flex items-start gap-3">
+            <img
+              src="/goti/goti-avatar-app.png"
+              alt="Goti"
+              className="w-10 h-10 rounded-2xl shrink-0 shadow-sm border border-teal-500/20"
+            />
             <div className="space-y-1">
               <p className="font-bold text-slate-800 dark:text-slate-200">
-                Espaço Seguro de Aprendizagem de Enfermagem
+                Espaço Seguro de Aprendizagem com o Goti
               </p>
               <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
                 Tire dúvidas sobre prescrição de enfermagem, técnicas assépticas, dosagens e raciocínio diagnóstico sem julgamentos.
@@ -159,9 +165,11 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
                 className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"} animate-in fade-in`}
               >
                 {!isUser && (
-                  <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shrink-0 self-end mb-1 shadow-xs">
-                    <Sparkles className="w-4 h-4 text-emerald-100" />
-                  </div>
+                  <img
+                    src="/goti/goti-avatar-app.png"
+                    alt="Preceptor Goti"
+                    className="w-8 h-8 rounded-full border border-teal-500/40 object-cover shrink-0 self-end mb-1 shadow-xs"
+                  />
                 )}
 
                 <div

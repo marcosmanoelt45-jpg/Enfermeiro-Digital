@@ -36,6 +36,7 @@ import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socrat
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import { searchNandaCatalog, getNandaContextualSuggestions, COMMON_ETIOLOGIES, COMMON_EVIDENCES } from "@/lib/nandaCatalog";
+import GotiAnimated from "@/components/mascot/GotiAnimated";
 
 export default function CaseStudySimulator() {
   const navigate = useNavigate();
@@ -669,12 +670,17 @@ export default function CaseStudySimulator() {
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/30 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800 shrink-0">
+                  <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 shrink-0">
+                    <GotiAnimated
+                      animation={tutorEvaluation.score >= 80 ? "jumping" : "happy"}
+                      size="sm"
+                      className="w-14 h-14"
+                      withSoundToggle={true}
+                    />
                     <div className="text-right">
                       <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase block">Acurácia Diagnóstica</span>
                       <span className="text-2xl font-black text-emerald-900 dark:text-emerald-200 leading-none">{tutorEvaluation.score}%</span>
                     </div>
-                    <Award className="h-8 w-8 text-emerald-600 dark:text-emerald-400" />
                   </div>
                 </div>
 
@@ -964,13 +970,16 @@ export default function CaseStudySimulator() {
             {activeStep === 2 && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5 animate-in fade-in">
                 <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <div>
-                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                      Etapa 2 do PE: Diagnóstico de Enfermagem
-                    </span>
-                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
-                      Julgamento Clínico e Resposta Humana Prioritária
-                    </h2>
+                  <div className="flex items-center gap-3">
+                    <GotiAnimated animation="thinking" size="xs" className="w-10 h-10 shrink-0" />
+                    <div>
+                      <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                        Etapa 2 do PE: Diagnóstico de Enfermagem
+                      </span>
+                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
+                        Julgamento Clínico e Resposta Humana Prioritária
+                      </h2>
+                    </div>
                   </div>
                   <Button
                     variant="ghost"
@@ -985,11 +994,14 @@ export default function CaseStudySimulator() {
                 </div>
 
                 {currentHint && (
-                  <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-950 dark:text-amber-200 space-y-1 animate-in fade-in">
-                    <span className="font-bold flex items-center gap-1 text-amber-800 dark:text-amber-300">
-                      <Lightbulb className="h-3.5 w-3.5" /> Dica Orientadora:
-                    </span>
-                    <p className="leading-relaxed">{currentHint.content}</p>
+                  <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-950 dark:text-amber-200 flex items-start gap-3 animate-in fade-in">
+                    <GotiAnimated animation="pointing" size="xs" className="w-9 h-9 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <span className="font-bold flex items-center gap-1 text-amber-800 dark:text-amber-300">
+                        <Lightbulb className="h-3.5 w-3.5" /> Dica Orientadora do Preceptor Goti:
+                      </span>
+                      <p className="leading-relaxed">{currentHint.content}</p>
+                    </div>
                   </div>
                 )}
 

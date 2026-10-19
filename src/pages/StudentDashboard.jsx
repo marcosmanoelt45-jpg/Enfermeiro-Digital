@@ -11,8 +11,7 @@ import {
   Search,
   FolderPlus,
   X,
-  Video,
-  Sparkles
+  Video
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
@@ -27,6 +26,7 @@ import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
 import ClinicalModuleCard from "@/components/mobile/ClinicalModuleCard";
 import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
 import GotiChatDrawer from "@/components/mascot/GotiChatDrawer";
+import GotiAnimated from "@/components/mascot/GotiAnimated";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -264,9 +264,23 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            {/* Painel Rápido de Plantão Clínico */}
-            <div className="shrink-0 flex items-center justify-center">
-              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 text-left space-y-3 min-w-[240px]">
+            {/* Mascote Goti & Painel Rápido de Plantão Clínico */}
+            <div className="shrink-0 flex items-center justify-center gap-6">
+              <div
+                onClick={() => {
+                  triggerHaptic(20);
+                  setIsGotiChatOpen(true);
+                }}
+                className="cursor-pointer group flex flex-col items-center justify-center p-2 rounded-2xl transition-transform hover:scale-105 active:scale-95"
+                title="Clique para conversar com o Preceptor Goti"
+              >
+                <GotiAnimated animation="idle" size="lg" withSoundToggle={true} />
+                <span className="text-[11px] font-bold text-teal-200 mt-1 flex items-center gap-1.5 group-hover:text-white transition-colors">
+                  Preceptor Goti <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+                </span>
+              </div>
+
+              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 text-left space-y-3 min-w-[220px]">
                 <div className="flex items-center gap-2 text-xs font-bold text-teal-300">
                   <Stethoscope className="h-4 w-4 text-emerald-400" />
                   <span>Plantão de Simulação</span>
@@ -446,22 +460,24 @@ export default function StudentDashboard() {
         }}
       />
 
-      {/* Botão Flutuante do Preceptor IA no Mobile na Home */}
+      {/* Botão Flutuante do Preceptor Goti no Mobile na Home */}
       <div className="md:hidden">
         <button
           onClick={() => {
             triggerHaptic(20);
             setIsGotiChatOpen(true);
           }}
-          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 p-2.5 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
-          title="Dúvidas clínicas? Pergunte ao Preceptor IA"
-          aria-label="Abrir Chat com Preceptor IA"
+          className="fixed bottom-20 right-4 z-40 flex items-center gap-2.5 p-2 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
+          title="Dúvidas clínicas? Pergunte ao Preceptor Goti"
+          aria-label="Abrir Chat com Preceptor Goti"
         >
-          <div className="w-8 h-8 rounded-full bg-white/20 flex items-center justify-center">
-            <Sparkles className="w-4 h-4 text-emerald-200" />
-          </div>
+          <img
+            src="/goti/goti-avatar-app.png"
+            alt="Preceptor Goti"
+            className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-300/60 shadow-xs group-hover:scale-105 transition-transform"
+          />
           <div className="text-left">
-            <span className="text-xs font-black block leading-none">Preceptor IA</span>
+            <span className="text-xs font-black block leading-none">Preceptor Goti</span>
             <span className="text-[10px] text-teal-100 block font-medium">Tirar Dúvidas</span>
           </div>
           <span className="flex h-2.5 w-2.5 relative">

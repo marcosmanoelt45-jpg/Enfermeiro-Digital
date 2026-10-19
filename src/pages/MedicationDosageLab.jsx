@@ -25,6 +25,7 @@ import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
+import GotiAnimated from "@/components/mascot/GotiAnimated";
 
 const DOSAGE_PROBLEMS = [
   {
@@ -519,25 +520,32 @@ export default function MedicationDosageLab() {
               </Button>
             </div>
 
-            {/* Dica & Tutoria Socrática do Preceptor Clínico IA */}
+            {/* Dica & Tutoria Socrática do Preceptor Goti */}
             <div className="rounded-2xl border border-teal-200/80 dark:border-teal-800/80 bg-gradient-to-r from-teal-50/80 via-emerald-50/40 to-white dark:from-teal-950/40 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shrink-0 shadow-sm">
-                <Calculator className="w-8 h-8 text-white" />
+              <div className="shrink-0 flex items-center justify-center">
+                <GotiAnimated
+                  animation={evaluating ? "thinking" : feedback?.isCorrect ? "happy" : feedback ? "angry" : "pointing"}
+                  size="sm"
+                  className="w-16 h-16"
+                  withSoundToggle={false}
+                />
               </div>
               <div className="flex-1 text-center sm:text-left space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 text-[11px] font-bold uppercase tracking-wider">
                   <Sparkles className="w-3 h-3 text-amber-500" />
-                  Preceptor Clínico IA
+                  Preceptor Goti
                 </div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">
                   {feedback?.isCorrect
                     ? "Incrível! Dosagem perfeita e cálculo validado com rigor de segurança!"
                     : evaluating
                     ? "Deixe-me conferir as etapas do seu cálculo clínico..."
+                    : feedback
+                    ? "Atenção à margem terapêutica! Vamos recalcular juntos?"
                     : "Resolva este desafio! A dosagem correta protege o paciente contra iatrogenias."}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Dúvidas no cálculo? Consulte as fórmulas ou tire dúvidas com o Preceptor IA.
+                  Dúvidas no cálculo? Consulte as fórmulas ou tire dúvidas com o Preceptor Goti.
                 </p>
               </div>
             </div>
@@ -719,18 +727,29 @@ export default function MedicationDosageLab() {
                           : "bg-amber-50/70 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-200"
                       }`}
                     >
-                      <div className="flex items-center gap-2">
-                        {feedback.isCorrect ? (
-                          <CheckCircle2 className="h-5 w-5 text-teal-700 dark:text-teal-400 shrink-0" />
-                        ) : (
-                          <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
-                        )}
-                        <h3 className="text-sm font-bold">
-                          {feedback.isCorrect ? "Cálculo Correto e Aprovado!" : "Atenção na Resolução:"}
-                        </h3>
-                      </div>
+                      <div className="flex flex-col sm:flex-row items-center gap-4">
+                        <div className="shrink-0 flex items-center justify-center p-1">
+                          <GotiAnimated
+                            animation={feedback.isCorrect ? "jumping" : "angry"}
+                            size="md"
+                            withSoundToggle={true}
+                          />
+                        </div>
+                        <div className="flex-1 space-y-1.5 text-center sm:text-left">
+                          <div className="flex items-center justify-center sm:justify-start gap-2">
+                            {feedback.isCorrect ? (
+                              <CheckCircle2 className="h-5 w-5 text-teal-700 dark:text-teal-400 shrink-0" />
+                            ) : (
+                              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
+                            )}
+                            <h3 className="text-sm font-bold">
+                              {feedback.isCorrect ? "Cálculo Correto e Aprovado pelo Goti! 🎉" : "Atenção na Resolução:"}
+                            </h3>
+                          </div>
 
-                      <p className="text-xs leading-relaxed">{feedback.feedback}</p>
+                          <p className="text-xs leading-relaxed">{feedback.feedback}</p>
+                        </div>
+                      </div>
 
                       {feedback.questionToThink && (
                         <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200">

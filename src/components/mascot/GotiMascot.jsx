@@ -1,10 +1,22 @@
+import React from "react";
+import GotiAnimated from "./GotiAnimated";
 
 /**
  * GotiMascot.jsx
- * Componente neutralizado após a remoção do mascote Goti.
- * Retorna null para garantir que nenhuma imagem de mascote seja carregada
- * e preserva retrocompatibilidade total com quaisquer referências residuais.
+ * Reexporta o componente oficial GotiAnimated com presets convenientes.
  */
-export default function GotiMascot() {
-  return null;
+export default function GotiMascot({
+  animation = "idle",
+  size = "md",
+  className = "",
+  ...props
+}) {
+  return (
+    <GotiAnimated
+      animation={animation}
+      size={size}
+      className={className}
+      {...props}
+    />
+  );
 }
