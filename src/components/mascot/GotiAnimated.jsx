@@ -75,6 +75,7 @@ const GOTI_POSES = {
 const SIZE_PRESETS = {
   xs: "w-8 h-8",
   sm: "w-12 h-12",
+  feedback: "w-20 h-20 sm:w-24 sm:h-24",
   md: "w-24 h-24",
   lg: "w-40 h-40",
   xl: "w-52 h-52",
@@ -108,14 +109,16 @@ export default function GotiAnimated({
       onClick={onClick}
       title={currentPose.label}
     >
-      {/* Halo de iluminação difusa hospitalar neon teal atrás do mascote */}
-      <div className="absolute inset-x-2 top-2 bottom-6 rounded-full bg-teal-400/20 dark:bg-teal-400/25 blur-2xl -z-10 pointer-events-none transform scale-110" />
+      {/* Sombra de apoio suave e discreta na base */}
+      {showShadow && (
+        <div className="absolute bottom-1 w-2/3 h-3 rounded-full bg-black/25 dark:bg-black/40 blur-sm -z-10 pointer-events-none" />
+      )}
 
-      {/* Ilustração recortada ultra-HD com animação orgânica fluida */}
+      {/* Ilustração recortada ultra-HD com contornos puros */}
       <img
         src={currentPose.src}
         alt={currentPose.label}
-        className={`w-full h-full object-contain filter drop-shadow-xl ${currentPose.animationClass} transition-transform duration-300`}
+        className={`w-full h-full object-contain ${currentPose.animationClass} transition-transform duration-300`}
         loading="eager"
       />
 

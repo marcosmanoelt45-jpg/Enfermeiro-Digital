@@ -22,6 +22,7 @@ import ClinicalGapRadar from "@/components/ClinicalGapRadar";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
+import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 
 const SYSTEMS_MODULES = [
   {
@@ -462,98 +463,19 @@ export default function SystemsAssessmentLab() {
           </div>
         </div>
 
-        {/* Modal de Síntese e Parecer de Conclusão Semiológica (100%) */}
-        {completionModalData && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in">
-            <div className="w-full max-w-lg bg-white dark:bg-slate-900 border border-emerald-300 dark:border-emerald-800 rounded-3xl p-6 shadow-2xl space-y-5 text-slate-800 dark:text-slate-100">
-              <div className="flex items-start justify-between border-b border-slate-100 dark:border-slate-800 pb-4">
-                <div className="flex items-center gap-3">
-                  <GotiAnimated
-                    animation="happy"
-                    size="sm"
-                    className="w-14 h-14 shrink-0"
-                    withSoundToggle={true}
-                  />
-                  <div>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-700 uppercase">
-                      Estudo Concluído • 100%
-                    </span>
-                    <h3 className="text-base font-bold text-slate-900 dark:text-white mt-0.5">
-                      {completionModalData.systemTitle}
-                    </h3>
-                  </div>
-                </div>
-                <button
-                  type="button"
-                  onClick={() => setCompletionModalData(null)}
-                  className="p-1 rounded-lg text-slate-400 hover:text-slate-600 dark:hover:text-slate-200"
-                >
-                  <X className="w-5 h-5" />
-                </button>
-              </div>
-
-              <div className="space-y-3 text-xs">
-                <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700">
-                  <span className="font-bold text-slate-500 dark:text-slate-400 block text-[10px] uppercase">Paciente Simulado:</span>
-                  <p className="font-semibold text-slate-900 dark:text-slate-100">{completionModalData.patient}</p>
-                  <span className="text-[11px] text-slate-400 mt-1 block">Tempo dedicado: {completionModalData.duration}</span>
-                </div>
-
-                <div className="space-y-1.5">
-                  <span className="font-bold text-slate-800 dark:text-slate-200 block text-[11px] uppercase">
-                    Parâmetros Semiológicos Registrados ({completionModalData.findings.length}):
-                  </span>
-                  <div className="max-h-40 overflow-y-auto space-y-1.5 pr-1">
-                    {completionModalData.findings.map((f, i) => (
-                      <div key={i} className="p-2 rounded-lg bg-emerald-50/60 dark:bg-emerald-950/30 border border-emerald-200 dark:border-emerald-900/40 flex items-start gap-2">
-                        <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                        <div>
-                          <strong className="text-slate-900 dark:text-slate-100">{f.label}:</strong>{" "}
-                          <span className="text-slate-600 dark:text-slate-300">{f.value}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="p-3.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-950 dark:text-teal-200 flex items-start gap-3">
-                  <img
-                    src="/goti/goti-avatar-app.png"
-                    alt="Preceptor Goti"
-                    className="w-9 h-9 rounded-xl object-contain shrink-0 mt-0.5 shadow-xs"
-                  />
-                  <p className="leading-relaxed">
-                    <strong>Parecer do Preceptor Goti:</strong> Excelente raciocínio céfalo-caudal! Todos os dados essenciais deste sistema foram devidamente conferidos e salvos com <strong>100% de conclusão</strong> no seu histórico acadêmico.
-                  </p>
-                </div>
-              </div>
-
-              <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800">
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    setCompletionModalData(null);
-                    setIsHistoryOpen(true);
-                  }}
-                  className="rounded-xl border-slate-300 dark:border-slate-700 text-xs font-semibold w-full sm:w-auto"
-                >
-                  <History className="h-3.5 w-3.5 mr-1 text-indigo-600" />
-                  <span>Ver no Histórico</span>
-                </Button>
-
-                <Button
-                  size="sm"
-                  onClick={handleNextSystem}
-                  className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-bold flex items-center justify-center gap-1.5 w-full sm:w-auto"
-                >
-                  <span>Próximo Sistema Orgânico</span>
-                  <ArrowRight className="h-3.5 w-3.5" />
-                </Button>
-              </div>
-            </div>
-          </div>
-        )}
+        {/* Modal Retangular de Conclusão e Parecer do Goti */}
+        <GotiEvaluationModal
+          isOpen={Boolean(completionModalData)}
+          onClose={() => setCompletionModalData(null)}
+          score={100}
+          scoreLabel="Conclusão Semiológica"
+          activityTitle={`Semiologia: ${completionModalData?.systemTitle || "Exame Físico"}`}
+          comment={`Excelente raciocínio céfalo-caudal! Todos os ${completionModalData?.findings?.length || 0} parâmetros essenciais deste sistema foram devidamente conferidos e salvos com 100% de conclusão no seu histórico acadêmico.`}
+          onContinue={() => {
+            setCompletionModalData(null);
+            setIsHistoryOpen(true);
+          }}
+        />
 
         {/* Modal Unificado de Histórico de Semiologia */}
         <CaseHistoryModal

@@ -122,9 +122,9 @@ export default function StudentHeader({ activeTab = "hub" }) {
               })}
             </nav>
 
-            {/* Ações do Usuário: Chat Preceptor IA, Pontos de Estudo (PE), Tema e Perfil */}
+            {/* Ações do Usuário: Chat do Goti, Pontos de Estudo (PE), Tema e Perfil */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* Botão de Chat com o Preceptor IA */}
+              {/* Botão de Chat com o Goti */}
               <button
                 type="button"
                 onClick={() => {
@@ -132,13 +132,17 @@ export default function StudentHeader({ activeTab = "hub" }) {
                   setIsGotiChatOpen(true);
                 }}
                 className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-200 hover:bg-teal-100/80 dark:hover:bg-teal-900/80 text-xs font-bold transition-all active:scale-95 shadow-2xs"
-                title="Conversar diretamente com o Preceptor Clínico IA"
+                title="Conversar diretamente com o Goti"
               >
                 <div className="relative flex items-center justify-center">
-                  <Sparkles className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+                  <img
+                    src="/goti/goti-avatar-app.png"
+                    alt="Goti"
+                    className="w-4 h-4 object-contain rounded-full"
+                  />
                   <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
-                <span className="hidden sm:inline">Preceptor IA</span>
+                <span className="hidden sm:inline">Goti</span>
                 <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-teal-200/60 dark:bg-teal-800/60 text-teal-900 dark:text-teal-200 font-extrabold">
                   Chat
                 </span>

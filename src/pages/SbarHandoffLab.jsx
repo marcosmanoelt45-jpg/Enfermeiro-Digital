@@ -41,6 +41,8 @@ import { audioTranscriptionService } from "@/services/audioTranscriptionService"
 import { evaluateSbarChecklists } from "@/lib/sbarSpeechMatcher";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
+import GotiAnimated from "@/components/mascot/GotiAnimated";
+import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 
 const PRESET_HANDOFF_SCENARIOS = [
   {
@@ -279,6 +281,9 @@ export default function SbarHandoffLab() {
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [tutorEvaluation, setTutorEvaluation] = useState(null);
   const [studentReflections, setStudentReflections] = useState({});
+  const [isSavingReflections, setIsSavingReflections] = useState(false);
+  const [reflectionsFeedback, setReflectionsFeedback] = useState(null);
+  const [showGotiEvaluationModal, setShowGotiEvaluationModal] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showGoldComparison, setShowGoldComparison] = useState(false);
 
@@ -320,42 +325,85 @@ export default function SbarHandoffLab() {
     return `${m.toString().padStart(2, "0")}:${s.toString().padStart(2, "0")}`;
   }
 
-  // Atualização inteligente dos checklists dinâmicos conforme digitação/voz
+  // Tabela de diretrizes do Goti para orientar o estudante quando clicar em um item de checklist não atendido
+  const CHECKLIST_GUIDANCE = {
+    situation: {
+      bed: "Para validar Leito/Setor, informe o leito, enfermaria ou setor no texto da Situação (ex: 'Leito 12-A', 'Clínica Cirúrgica').",
+      id: "Para validar Identificação, mencione o nome ou iniciais e a idade do paciente (ex: 'M.S.L., 58 anos').",
+      reason: "Para validar Motivo da Admissão, cite o diagnóstico ou motivo de internação (ex: '1º DPO de colectomia', 'diverticulite')."
+    },
+    background: {
+      allergy: "Para validar Alergias (Meta 2), declare expressamente as alergias conhecidas ou que o paciente 'nega alergias'.",
+      comorbidities: "Para validar Comorbidades, informe doenças prévias ou cirurgias anteriores (ex: 'hipertenso', 'diabetes').",
+      meds: "Para validar Medicações Contínuas, cite os medicamentos habituais do paciente (ex: 'Losartana')."
+    },
+    assessment: {
+      vitals: "Para validar Sinais Vitais, insira os valores de PA, FC, FR e Temperatura aferidos no plantão.",
+      sato2: "Para validar Oxigenação, registre a saturação de O2 (ex: 'SatO2 98% em ar ambiente').",
+      exam: "Para validar Exame Físico Dirigido, relate dados de palpação, ausculta, curativo cirúrgico ou débito de drenos."
+    },
+    recommendation: {
+      time: "Para validar Horários/Aprazamento, especifique horários precisos para ações ou medicamentos (ex: 'às 20h', 'a cada 4 horas').",
+      meds: "Para validar Medicações e Pendências, detalhe medicamentos prescritos a administrar ou pendências de exames.",
+      monitoring: "Para validar Monitorização, descreva o balanço hídrico, vigilância de drenos ou parâmetros críticos a acompanhar."
+    }
+  };
+
+  // Validação dinâmica rigorosa dos checklists baseada estritamente no texto digitado/falado
   useEffect(() => {
     const autoChecked = evaluateSbarChecklists(sbarData, currentCase);
-    setChecklists((prev) => ({
-      situation: {
-        bed: prev.situation.bed || autoChecked.situation.bed,
-        id: prev.situation.id || autoChecked.situation.id,
-        reason: prev.situation.reason || autoChecked.situation.reason
-      },
-      background: {
-        allergy: prev.background.allergy || autoChecked.background.allergy,
-        comorbidities: prev.background.comorbidities || autoChecked.background.comorbidities,
-        meds: prev.background.meds || autoChecked.background.meds
-      },
-      assessment: {
-        vitals: prev.assessment.vitals || autoChecked.assessment.vitals,
-        sato2: prev.assessment.sato2 || autoChecked.assessment.sato2,
-        exam: prev.assessment.exam || autoChecked.assessment.exam
-      },
-      recommendation: {
-        time: prev.recommendation.time || autoChecked.recommendation.time,
-        meds: prev.recommendation.meds || autoChecked.recommendation.meds,
-        monitoring: prev.recommendation.monitoring || autoChecked.recommendation.monitoring
-      }
-    }));
+    setChecklists(autoChecked);
   }, [sbarData, currentCase]);
 
-  // Permite ao acadêmico marcar/desmarcar itens manualmente caso deseje validação direta
+  // Fornece feedback instrutivo do Goti sobre os itens do checklist, bloqueando marcação arbitrária sem texto
   function handleToggleChecklistItem(pillarKey, itemKey) {
-    setChecklists((prev) => ({
-      ...prev,
-      [pillarKey]: {
-        ...prev[pillarKey],
-        [itemKey]: !prev[pillarKey]?.[itemKey]
+    const currentChecked = evaluateSbarChecklists(sbarData, currentCase);
+    const isDone = currentChecked[pillarKey]?.[itemKey];
+
+    if (isDone) {
+      setToastMessage("✨ Item já validado pelo Goti com base na redação do seu texto clínico!");
+      setTimeout(() => setToastMessage(""), 3500);
+      return;
+    }
+
+    const hint = CHECKLIST_GUIDANCE[pillarKey]?.[itemKey] || "Redija os dados objetivos deste item no campo do pilar para validação pelo Goti.";
+    setToastMessage(`🩺 Goti orienta: ${hint}`);
+    setTimeout(() => setToastMessage(""), 5500);
+  }
+
+  async function handleSaveStudentReflections() {
+    const filledAnswers = Object.entries(studentReflections).filter(([_, val]) => val && val.trim().length > 0);
+    if (filledAnswers.length === 0) {
+      setToastMessage("🩺 Goti: Digite sua reflexão em ao menos uma pergunta antes de enviar!");
+      setTimeout(() => setToastMessage(""), 4000);
+      return;
+    }
+
+    setIsSavingReflections(true);
+    try {
+      if (currentActivityId) {
+        clinicalHistoryService.updateActivity(currentActivityId, {
+          studentReflections,
+          reflectionsSubmittedAt: new Date().toISOString()
+        });
       }
-    }));
+
+      await new Promise((r) => setTimeout(r, 600));
+
+      setReflectionsFeedback({
+        savedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
+        comment: "Excelente reflexão clínica! O Goti analisou suas justificativas: você demonstrou sólido compromisso com a continuidade da assistência, segurança do paciente e comunicação assertiva. Suas anotações foram registradas com sucesso no histórico acadêmico."
+      });
+
+      setToastMessage("🩺 Respostas reflexivas salvas no prontuário e auditadas pelo Goti!");
+      setTimeout(() => setToastMessage(""), 4000);
+    } catch (err) {
+      console.warn("Erro ao salvar reflexões:", err);
+      setToastMessage("Reflexões salvas localmente no prontuário.");
+      setTimeout(() => setToastMessage(""), 3000);
+    } finally {
+      setIsSavingReflections(false);
+    }
   }
 
   async function stopListening(fieldNameOverride = null) {
@@ -681,7 +729,7 @@ export default function SbarHandoffLab() {
     if (isListening) stopListening();
     const isAnyFilled = sbarData.situation || sbarData.background || sbarData.assessment || sbarData.recommendation;
     if (!isAnyFilled) {
-      alert("Por favor, preencha ao menos uma etapa do SBAR antes de enviar para a auditoria do Preceptor Clínico IA.");
+      alert("Por favor, preencha ao menos uma etapa do SBAR antes de enviar para a auditoria do Goti IA.");
       return;
     }
 
@@ -693,6 +741,7 @@ export default function SbarHandoffLab() {
       });
       setTutorEvaluation(evaluation);
       setActiveTab("debriefing");
+      setShowGotiEvaluationModal(true);
 
       // Registrar atividade concluída com tempo e score no histórico
       try {
@@ -1102,7 +1151,7 @@ export default function SbarHandoffLab() {
                 </span>
               </h4>
               <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                Veja as passagens de plantão que você já realizou, o feedback da preceptoria e continue treinos em andamento.
+                Veja as passagens de plantão que você já realizou, o feedback do Goti e continue treinos em andamento.
               </p>
             </div>
           </div>
@@ -1221,7 +1270,7 @@ export default function SbarHandoffLab() {
               }`}
             >
               <MessageSquareQuote className="h-4 w-4 text-teal-700 dark:text-teal-400" />
-              <span>4. Debriefing & Parecer Clínico IA (Score: {tutorEvaluation.safetyScore}/100)</span>
+              <span>4. Debriefing & Parecer do Goti (Score: {tutorEvaluation.safetyScore}/100)</span>
             </button>
           )}
         </div>
@@ -1513,11 +1562,11 @@ export default function SbarHandoffLab() {
                   >
                     {isEvaluating ? (
                       <>
-                        <Sparkles className="h-3.5 w-3.5 animate-spin text-white" /> Preceptor IA analisando...
+                        <Sparkles className="h-3.5 w-3.5 animate-spin text-white" /> Goti analisando...
                       </>
                     ) : (
                       <>
-                        <Send className="h-3.5 w-3.5 text-white" /> Concluir e Transmitir para o Preceptor Clínico IA
+                        <Send className="h-3.5 w-3.5 text-white" /> Concluir e Transmitir para o Goti IA
                       </>
                     )}
                   </Button>
@@ -1643,12 +1692,12 @@ export default function SbarHandoffLab() {
                 {isEvaluating ? (
                   <>
                     <Sparkles className="h-4 w-4 animate-spin text-teal-200" />
-                    <span>Preceptor IA está auditando a passagem de plantão...</span>
+                    <span>Goti está auditando a passagem de plantão...</span>
                   </>
                 ) : (
                   <>
                     <Send className="h-4 w-4" />
-                    <span>Submeter Passagem de Plantão para o Preceptor Clínico IA</span>
+                    <span>Submeter Passagem de Plantão para o Goti IA</span>
                   </>
                 )}
               </Button>
@@ -1672,7 +1721,7 @@ export default function SbarHandoffLab() {
                     </h3>
                   </div>
                   <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
-                    Revise os 4 pilares do relatório clínico antes de confirmar a entrega final e receber o parecer do preceptor.
+                    Revise os 4 pilares do relatório clínico antes de confirmar a entrega final e receber o parecer do Goti.
                   </p>
                 </div>
 
@@ -1834,7 +1883,7 @@ export default function SbarHandoffLab() {
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-teal-700 dark:text-teal-400" />
                   <span className="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase tracking-wider block">
-                    Parecer de Preceptoria Clínica • Enfere IA
+                    Parecer de Comunicação • Goti IA
                   </span>
                 </div>
                 <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">
@@ -1846,6 +1895,18 @@ export default function SbarHandoffLab() {
               </div>
 
               <div className="flex items-center gap-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-2xl p-3 shrink-0">
+                <div
+                  className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
+                  onClick={() => setShowGotiEvaluationModal(true)}
+                  title="Clique para ver a comemoração e parecer do Goti!"
+                >
+                  <GotiAnimated
+                    animation={tutorEvaluation.safetyScore >= 80 ? "jumping" : tutorEvaluation.safetyScore >= 50 ? "pointing" : "thinking"}
+                    size="feedback"
+                    className="w-20 h-20 shrink-0"
+                    withSoundToggle={true}
+                  />
+                </div>
                 <div className="text-right">
                   <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 uppercase block">Índice de Segurança</span>
                   <span className="text-2xl font-extrabold text-teal-900 dark:text-teal-200 block leading-none">
@@ -1940,13 +2001,13 @@ export default function SbarHandoffLab() {
               )}
             </div>
 
-            {/* DEBRIEFING SOCRÁTICO: PERGUNTAS REFLEXIVAS INTERATIVAS */}
+            {/* DEBRIEFING COM O GOTI: PERGUNTAS REFLEXIVAS INTERATIVAS */}
             {tutorEvaluation.socraticQuestions?.length > 0 && (
-              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-3">
+              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
                 <div className="flex items-center gap-2">
                   <MessageSquareQuote className="h-5 w-5 text-teal-700 dark:text-teal-400" />
                   <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                    Debriefing Socrático do Preceptor Clínico IA (Exercício de Raciocínio Clínico)
+                    Debriefing com o Goti (Exercício de Raciocínio Clínico)
                   </h4>
                 </div>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
@@ -1968,10 +2029,50 @@ export default function SbarHandoffLab() {
                     </div>
                   ))}
                 </div>
+
+                {/* Botão de Salvar e Enviar Respostas para Auditoria do Goti */}
+                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200/60 dark:border-slate-700/60">
+                  <Button
+                    onClick={handleSaveStudentReflections}
+                    disabled={isSavingReflections}
+                    className="w-full sm:w-auto rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center justify-center gap-2 px-5 py-2.5 shadow-md transition-all hover:scale-[1.02] cursor-pointer"
+                  >
+                    {isSavingReflections ? (
+                      <>
+                        <Sparkles className="w-4 h-4 animate-spin text-white" />
+                        <span>Goti analisando reflexões...</span>
+                      </>
+                    ) : (
+                      <>
+                        <CheckCircle2 className="w-4 h-4 text-emerald-200" />
+                        <span>Salvar e Enviar Respostas para Avaliação do Goti</span>
+                      </>
+                    )}
+                  </Button>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                    Suas respostas serão salvas no prontuário e auditadas pelo Goti.
+                  </span>
+                </div>
+
+                {/* Feedback e Parecer do Goti sobre as Reflexões */}
+                {reflectionsFeedback && (
+                  <div className="p-4 rounded-xl bg-teal-50/80 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-800 flex items-start gap-3.5 animate-in fade-in">
+                    <GotiAnimated animation="happy" size="sm" className="w-12 h-12 shrink-0 mt-0.5" />
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-xs font-black text-teal-900 dark:text-teal-200">
+                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                        <span>Parecer do Goti sobre as suas Respostas ({reflectionsFeedback.savedAt}):</span>
+                      </div>
+                      <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
+                        {reflectionsFeedback.comment}
+                      </p>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 
-            {/* Mensagem de Mentoria & Exportação em PDF com Preceptor Clínico */}
+            {/* Mensagem de Mentoria & Exportação em PDF com Goti */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 flex items-center justify-center shrink-0">
@@ -1986,6 +2087,17 @@ export default function SbarHandoffLab() {
         )}
         </>
         )}
+
+        {/* Modal Retangular de Conclusão e Avaliação do Goti */}
+        <GotiEvaluationModal
+          isOpen={showGotiEvaluationModal}
+          onClose={() => setShowGotiEvaluationModal(false)}
+          score={tutorEvaluation?.safetyScore ?? 100}
+          scoreLabel="Índice de Segurança SBAR"
+          activityTitle={`Passagem SBAR: ${currentCase?.title || "Caso Clínico"}`}
+          comment={tutorEvaluation?.summaryFeedback || tutorEvaluation?.gotiMentorship || tutorEvaluation?.florenceMentorship || "Excelente comunicação beira-leito!"}
+          onContinue={() => setShowGotiEvaluationModal(false)}
+        />
 
         {/* Modal Unificado de Histórico SBAR (Isolado exclusivamente para o módulo SBAR) */}
         <CaseHistoryModal

@@ -285,8 +285,8 @@ export default function ClinicalGapRadar({
                 <div className="shrink-0 relative">
                   <GotiAnimated
                     animation={selectedOption.isCorrect ? "jumping" : "thinking"}
-                    size="sm"
-                    className="w-14 h-14"
+                    size="feedback"
+                    className="w-20 h-20 shrink-0"
                   />
                 </div>
                 <div className="space-y-0.5">

@@ -116,7 +116,7 @@ export async function evaluateClinicalReasoning({
   const cleanInterventions = sanitizeTextForLGPD(actualInterventions);
   const cleanEvolution = sanitizeTextForLGPD(actualEvolution);
 
-  const systemPrompt = `Você é o Preceptor Clínico IA, um Docente Sênior e Tutor de Enfermagem especialista em Raciocínio Clínico e no Processo de Enfermagem (Resolução COFEN nº 736/2024 e Teoria das Necessidades Humanas Básicas) da plataforma Enfere.
+  const systemPrompt = `Você é o Goti IA, o enfermeiro digital e tutor inteligente especialista em Raciocínio Clínico e no Processo de Enfermagem (Resolução COFEN nº 736/2024 e Teoria das Necessidades Humanas Básicas) da plataforma Enfere.
 
 REGRAS PEDAGÓGICAS ABSOLUTAS:
 1. NUNCA dê a resposta final nem o diagnóstico perfeito mastigado de mão beijada.
@@ -188,7 +188,7 @@ RESPOSTA SUBMETIDA PELO ESTUDANTE:
  * @param {number} level - 1 (pergunta guia), 2 (pista fisiopatológica), 3 (fundamentação conceitual)
  */
 export async function getScaffoldingHint(caseData, level = 1) {
-  const systemPrompt = `Você é o Preceptor Socrático de Enfermagem IA da plataforma Enfere. O estudante está analisando um caso simulado e pediu uma Dica Pedagógica de Nível ${level}.
+  const systemPrompt = `Você é o Goti IA, enfermeiro digital e tutor de Enfermagem da plataforma Enfere. O estudante está analisando um caso simulado e pediu uma Dica Pedagógica de Nível ${level}.
 
 NÍVEIS DE ANDAIME PEDAGÓGICO:
 - Nível 1 (Pergunta Guia): Faça uma pergunta orientando o olhar do aluno para o sinal vital ou achado mais crítico, sem citar diagnósticos.
@@ -239,7 +239,7 @@ Retorne EXCLUSIVAMENTE um JSON:
 export async function guideMedicationCalculation(problem, studentAnswer) {
   const cleanAnswer = sanitizeTextForLGPD(studentAnswer);
 
-  const systemPrompt = `Você é o Preceptor Clínico IA ensinando Cálculo de Medicamentos e Gotejamento em Enfermagem na plataforma Enfere.
+  const systemPrompt = `Você é o Goti IA ensinando Cálculo de Medicamentos e Gotejamento em Enfermagem na plataforma Enfere.
 O estudante está tentando resolver um problema de cálculo farmacológico.
 NUNCA diga o resultado numérico final direto de mão beijada se o aluno tiver errado.
 Se o aluno acertou, confirme o cálculo, comente a segurança da dose e valide a dupla checagem.

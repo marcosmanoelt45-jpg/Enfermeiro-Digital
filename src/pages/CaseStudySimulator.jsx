@@ -37,6 +37,7 @@ import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import { searchNandaCatalog, getNandaContextualSuggestions, COMMON_ETIOLOGIES, COMMON_EVIDENCES } from "@/lib/nandaCatalog";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
+import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 
 export default function CaseStudySimulator() {
   const navigate = useNavigate();
@@ -89,6 +90,7 @@ export default function CaseStudySimulator() {
   const [loadingHint, setLoadingHint] = useState(false);
   const [viewingDebriefing, setViewingDebriefing] = useState(false);
   const [showCofenGuideline, setShowCofenGuideline] = useState(false);
+  const [showGotiEvaluationModal, setShowGotiEvaluationModal] = useState(false);
 
   // Anotações Clínicas e Exame Físico Interativo
   const [showClinicalNotes, setShowClinicalNotes] = useState(false);
@@ -363,6 +365,7 @@ export default function CaseStudySimulator() {
 
       setTutorEvaluation(res);
       setViewingDebriefing(true);
+      setShowGotiEvaluationModal(true);
       window.scrollTo({ top: 320, behavior: "smooth" });
 
       try {
@@ -649,7 +652,7 @@ export default function CaseStudySimulator() {
         <div className="max-w-4xl mx-auto w-full">
           {viewingDebriefing && tutorEvaluation ? (
             /* ========================================================================= */
-            /* DEBRIEFING CLÍNICO SOCRÁTICO (FRAMEWORK PEARLS / DML - Miller Nível 3)    */
+            /* DEBRIEFING CLÍNICO COM O GOTI (FRAMEWORK PEARLS / DML - Miller Nível 3)  */
             /* ========================================================================= */
             <div className="space-y-6 animate-in fade-in">
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5">
@@ -658,9 +661,9 @@ export default function CaseStudySimulator() {
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 uppercase tracking-wide">
-                        Framework PEARLS • Debriefing Socrático
+                        Framework PEARLS • Debriefing com o Goti
                       </span>
-                      <span className="text-xs text-slate-400 font-semibold">Preceptor Clínico IA</span>
+                      <span className="text-xs text-slate-400 font-semibold">Goti IA</span>
                     </div>
                     <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
                       Parecer Pedagógico & Desconstrução do Raciocínio
@@ -671,12 +674,18 @@ export default function CaseStudySimulator() {
                   </div>
 
                   <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 shrink-0">
-                    <GotiAnimated
-                      animation={tutorEvaluation.score >= 80 ? "jumping" : "happy"}
-                      size="sm"
-                      className="w-14 h-14"
-                      withSoundToggle={true}
-                    />
+                    <div
+                      className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
+                      onClick={() => setShowGotiEvaluationModal(true)}
+                      title="Clique para ver a comemoração e parecer completo do Goti!"
+                    >
+                      <GotiAnimated
+                        animation={tutorEvaluation.score >= 80 ? "jumping" : "happy"}
+                        size="feedback"
+                        className="w-20 h-20 shrink-0"
+                        withSoundToggle={true}
+                      />
+                    </div>
                     <div className="text-right">
                       <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase block">Acurácia Diagnóstica</span>
                       <span className="text-2xl font-black text-emerald-900 dark:text-emerald-200 leading-none">{tutorEvaluation.score}%</span>
@@ -689,7 +698,7 @@ export default function CaseStudySimulator() {
                   <div className="flex items-center justify-between">
                     <span className="font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1.5 uppercase tracking-wide text-[11px]">
                       <ClipboardList className="h-3.5 w-3.5 text-teal-600" />
-                      Respostas Enviadas para Auditoria do Preceptor IA:
+                      Respostas Enviadas para Auditoria do Goti:
                     </span>
                     <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                       Registrado no Prontuário
@@ -733,7 +742,7 @@ export default function CaseStudySimulator() {
                   <div className="space-y-2">
                     <span className="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
                       <MessageSquareQuote className="h-4 w-4 text-amber-500" />
-                      2. Provocação Socrática de Investigação Reflexiva
+                      2. Pergunta do Goti para Investigação Reflexiva
                     </span>
                     <div className="p-4 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs sm:text-sm text-amber-950 dark:text-amber-200 leading-relaxed space-y-2">
                       <p className="font-semibold italic">"{tutorEvaluation.reflectiveQuestion}"</p>
@@ -998,7 +1007,7 @@ export default function CaseStudySimulator() {
                     <GotiAnimated animation="pointing" size="xs" className="w-9 h-9 shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <span className="font-bold flex items-center gap-1 text-amber-800 dark:text-amber-300">
-                        <Lightbulb className="h-3.5 w-3.5" /> Dica Orientadora do Preceptor Goti:
+                        <Lightbulb className="h-3.5 w-3.5" /> Dica do Goti:
                       </span>
                       <p className="leading-relaxed">{currentHint.content}</p>
                     </div>
@@ -1477,6 +1486,17 @@ export default function CaseStudySimulator() {
             </div>
           )}
         </div>
+
+        {/* Modal Retangular de Conclusão e Avaliação do Goti */}
+        <GotiEvaluationModal
+          isOpen={showGotiEvaluationModal}
+          onClose={() => setShowGotiEvaluationModal(false)}
+          score={tutorEvaluation?.score ?? 0}
+          scoreLabel="Acurácia Diagnóstica"
+          activityTitle={`Estudo de Caso: ${currentCase.title}`}
+          comment={tutorEvaluation?.gapAnalysis || tutorEvaluation?.feedback || tutorEvaluation?.summary || "Parabéns por concluir as etapas do Processo de Enfermagem!"}
+          onContinue={() => setShowGotiEvaluationModal(false)}
+        />
 
         {/* Modal Unificado de Histórico de Casos Clínicos */}
         <CaseHistoryModal

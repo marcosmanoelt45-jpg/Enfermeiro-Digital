@@ -26,6 +26,7 @@ import StudentFooter from "@/components/StudentFooter";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
+import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 
 const DOSAGE_PROBLEMS = [
   {
@@ -179,6 +180,7 @@ export default function MedicationDosageLab() {
   const [showFormula, setShowFormula] = useState(false);
   const [showConversions, setShowConversions] = useState(false);
   const [showFullSolution, setShowFullSolution] = useState(false);
+  const [showGotiEvaluationModal, setShowGotiEvaluationModal] = useState(false);
 
   // Estado da Calculadora Interativa Livre (Resgatada do Backup)
   const [calcType, setCalcType] = useState("drip");
@@ -256,6 +258,7 @@ export default function MedicationDosageLab() {
     try {
       const res = await guideMedicationCalculation(problem, studentInput);
       setFeedback(res);
+      setShowGotiEvaluationModal(true);
 
       if (res) {
         clinicalHistoryService.submitActivity({
@@ -520,20 +523,20 @@ export default function MedicationDosageLab() {
               </Button>
             </div>
 
-            {/* Dica & Tutoria Socrática do Preceptor Goti */}
+            {/* Dica do Goti */}
             <div className="rounded-2xl border border-teal-200/80 dark:border-teal-800/80 bg-gradient-to-r from-teal-50/80 via-emerald-50/40 to-white dark:from-teal-950/40 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <div className="shrink-0 flex items-center justify-center">
                 <GotiAnimated
                   animation={evaluating ? "thinking" : feedback?.isCorrect ? "happy" : feedback ? "angry" : "pointing"}
-                  size="sm"
-                  className="w-16 h-16"
+                  size="feedback"
+                  className="w-20 h-20 shrink-0"
                   withSoundToggle={false}
                 />
               </div>
               <div className="flex-1 text-center sm:text-left space-y-1">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 text-[11px] font-bold uppercase tracking-wider">
                   <Sparkles className="w-3 h-3 text-amber-500" />
-                  Preceptor Goti
+                  Goti
                 </div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">
                   {feedback?.isCorrect
@@ -545,7 +548,7 @@ export default function MedicationDosageLab() {
                     : "Resolva este desafio! A dosagem correta protege o paciente contra iatrogenias."}
                 </p>
                 <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Dúvidas no cálculo? Consulte as fórmulas ou tire dúvidas com o Preceptor Goti.
+                  Dúvidas no cálculo? Consulte as fórmulas ou tire dúvidas com o Goti.
                 </p>
               </div>
             </div>
@@ -728,10 +731,15 @@ export default function MedicationDosageLab() {
                       }`}
                     >
                       <div className="flex flex-col sm:flex-row items-center gap-4">
-                        <div className="shrink-0 flex items-center justify-center p-1">
+                        <div
+                          className="shrink-0 flex items-center justify-center p-1 cursor-pointer transition-transform hover:scale-105 active:scale-95"
+                          onClick={() => setShowGotiEvaluationModal(true)}
+                          title="Clique para ver a comemoração do Goti!"
+                        >
                           <GotiAnimated
                             animation={feedback.isCorrect ? "jumping" : "angry"}
-                            size="md"
+                            size="feedback"
+                            className="w-20 h-20 shrink-0"
                             withSoundToggle={true}
                           />
                         </div>
@@ -1068,6 +1076,17 @@ export default function MedicationDosageLab() {
             </div>
           </div>
         )}
+
+        {/* Modal Retangular de Conclusão e Avaliação do Goti */}
+        <GotiEvaluationModal
+          isOpen={showGotiEvaluationModal}
+          onClose={() => setShowGotiEvaluationModal(false)}
+          score={feedback?.isCorrect ? 100 : 40}
+          scoreLabel="Acurácia do Cálculo"
+          activityTitle={`Cálculo Clínico: ${problem.title}`}
+          comment={feedback?.feedback || (feedback?.isCorrect ? "Cálculo matemático exato e dupla checagem validada com sucesso pelo Goti!" : "Atenção à fórmula e arredondamento de gotas. Vamos recalcular juntos?")}
+          onContinue={() => setShowGotiEvaluationModal(false)}
+        />
 
         {/* Modal Unificado de Histórico de Cálculos (Isolado exclusivamente para Dosagem) */}
         <CaseHistoryModal

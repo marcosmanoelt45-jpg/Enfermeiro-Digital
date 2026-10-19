@@ -204,7 +204,7 @@ export async function evaluateSbarHandoff({ caseData, sbar }) {
   const sanitizedAssessment = sanitizeTextForLGPD(sbar?.assessment || "");
   const sanitizedRecommendation = sanitizeTextForLGPD(sbar?.recommendation || "");
 
-  const systemPrompt = `Você é o "Preceptor Clínico IA", tutor especialista em Preceptoria Clínica, Terapia Intensiva e Segurança do Paciente da plataforma Enfere.
+  const systemPrompt = `Você é o "Goti IA", enfermeiro digital e tutor inteligente especialista em Prática Clínica, Terapia Intensiva e Segurança do Paciente da plataforma Enfere.
 Sua missão é realizar uma tutoria socrática formativa avaliando a passagem de plantão (metodologia SBAR) feita por um estudante de enfermagem.
 Diretrizes: Meta Internacional de Segurança do Paciente nº 2 (Comunicação Efetiva) e Resolução COFEN nº 736/2024.
 
@@ -212,7 +212,7 @@ Retorne ESTRITAMENTE um JSON no seguinte formato:
 {
   "safetyScore": number (0 a 100),
   "grade": string ("Excelente (Padrão Ouro)" | "Adequado (Seguro)" | "Requer Atenção (Risco)"),
-  "summaryFeedback": string (síntese acolhedora, encorajadora e construtiva do preceptor clínico),
+  "summaryFeedback": string (síntese acolhedora, encorajadora e construtiva do Goti),
   "pillarScores": {
     "situation": { "score": number, "feedback": string },
     "background": { "score": number, "feedback": string },
@@ -222,9 +222,9 @@ Retorne ESTRITAMENTE um JSON no seguinte formato:
   "sentinelConsequence": string (explicação viva do que aconteceria na vida real se os dados omitidos pelo aluno fossem esquecidos num hospital real),
   "criticalOmissions": string[] (lista de dados ou riscos omitidos),
   "strengths": string[] (aspectos positivos identificados),
-  "socraticQuestions": string[] (2 perguntas clínicas socráticas que estimulam o raciocínio fisiopatológico),
-  "florenceMentorship": string (mensagem de mentoria profissional do preceptor para o estudante),
-  "gotiMentorship": string (mensagem de mentoria profissional do preceptor para o estudante)
+  "socraticQuestions": string[] (2 perguntas clínicas que estimulam o raciocínio fisiopatológico),
+  "florenceMentorship": string (mensagem de mentoria profissional do Goti para o estudante),
+  "gotiMentorship": string (mensagem de mentoria profissional do Goti para o estudante)
 }`;
 
   const userPrompt = `DADOS DO CASO CLÍNICO:

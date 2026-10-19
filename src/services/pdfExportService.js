@@ -279,7 +279,7 @@ export function exportClinicalCaseToPdf({
     doc.setFont("helvetica", "bold");
     doc.setFontSize(10.5);
     doc.setTextColor(15, 118, 110);
-    doc.text("5. PARECER PEDAGÓGICO DE PRECEPTORIA CLÍNICA (IA)", margin + 4, y + 7);
+    doc.text("5. PARECER PEDAGÓGICO DO GOTI (IA)", margin + 4, y + 7);
 
     // Badge de Pontuação
     const score = tutorEvaluation.safetyScore ?? tutorEvaluation.score ?? 85;
@@ -295,7 +295,7 @@ export function exportClinicalCaseToPdf({
     doc.setTextColor(51, 65, 85);
 
     const feedback = tutorEvaluation.summaryFeedback || tutorEvaluation.gotiMentorship || tutorEvaluation.florenceMentorship || tutorEvaluation.florenceComment || "Passagem de plantão estruturada com rigor técnico e foco na segurança do paciente.";
-    const wrappedFeedback = doc.splitTextToSize(`Feedback do Preceptor Clínico IA: "${feedback}"`, contentWidth - 8);
+    const wrappedFeedback = doc.splitTextToSize(`Feedback do Goti: "${feedback}"`, contentWidth - 8);
     doc.text(wrappedFeedback.slice(0, 3), margin + 4, y + 15);
 
     const omissions = tutorEvaluation.criticalOmissions?.length > 0
@@ -305,11 +305,11 @@ export function exportClinicalCaseToPdf({
     doc.setTextColor(190, 24, 93); // rose-700
     doc.text(doc.splitTextToSize(omissions, contentWidth - 8), margin + 4, y + 25);
 
-    // Carimbo Virtual do Preceptor Clínico IA
+    // Carimbo Virtual do Goti IA
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     doc.setTextColor(15, 118, 110);
-    doc.text("Preceptor Clínico • Enfere IA", margin + 4, y + 35);
+    doc.text("Goti • Tutor de Enfermagem Digital", margin + 4, y + 35);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(100, 116, 139);
@@ -334,12 +334,12 @@ export function exportClinicalCaseToPdf({
   doc.setTextColor(100, 116, 139);
   doc.text("Acadêmico(a) de Enfermagem", margin + signW / 2, y + 22, { align: "center" });
 
-  // Assinatura Preceptoria
+  // Assinatura Goti IA
   doc.line(margin + signW + 10, y + 14, margin + contentWidth, y + 14);
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(15, 118, 110);
-  doc.text("Preceptoria Clínica • Enfere", margin + signW + 10 + signW / 2, y + 18, { align: "center" });
+  doc.text("Goti IA • Tutoria Enfere", margin + signW + 10 + signW / 2, y + 18, { align: "center" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);

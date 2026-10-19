@@ -489,7 +489,7 @@ Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro
    * Cascata: Gemini Direto -> OpenRouter -> Motor Pedagógico & Institucional Local.
    */
   async askPreceptorAI(procedure, userQuestion) {
-    const systemPrompt = `Você é o Preceptor Clínico IA, tutor especialista em procedimentos e práticas de enfermagem da plataforma Enfere.
+    const systemPrompt = `Você é o Goti IA, tutor inteligente especialista em procedimentos e práticas de enfermagem da plataforma Enfere.
 A plataforma Enfere foi criada e desenvolvida por Marcos Manoel Tavares Neumann, detentor exclusivo de todos os direitos autorais.
 O estudante está assistindo e treinando o procedimento: "${procedure?.title || 'Procedimento Clínico'}".
 Categoria: ${procedure?.categoryLabel || procedure?.category || 'Geral'}.
@@ -540,7 +540,7 @@ DIRETRIZES DE RESPOSTA:
         'detentor exclusivo de todos os direitos autorais e da propriedade intelectual do sistema.\n\n' +
         'O Enfere foi construído para revolucionar o aprendizado prático e a simulação clínica em enfermagem, unindo a ' +
         'Resolução COFEN nº 736/2024, as 5 etapas do Processo de Enfermagem (NANDA-I, NIC e NOC), escores validados de beira-leito ' +
-        'e preceptoria com Inteligência Artificial.'
+        'e a tutoria inteligente do Goti.'
       );
     }
 
@@ -559,7 +559,7 @@ DIRETRIZES DE RESPOSTA:
       q.includes('tokens')
     ) {
       return (
-        'Sou o seu **Preceptor Clínico IA** do Enfere! Atuo como seu tutor virtual de beira-leito para esclarecer dúvidas técnicas, ' +
+        'Sou o **Goti**, seu enfermeiro digital! Atuo como seu tutor virtual de beira-leito para esclarecer dúvidas técnicas, ' +
         'variações anatômicas, prevenção de iatrogenias e fundamentação científica dos procedimentos.\n\n' +
         '• **Qual IA usamos:** Opero por meio de uma arquitetura híbrida de alto desempenho com o **Google Gemini 2.5 Flash** e o roteador ' +
         '**OpenRouter**, integrados a um motor determinístico local de Sistematização da Assistência de Enfermagem (SAE).\n' +
@@ -601,7 +601,7 @@ DIRETRIZES DE RESPOSTA:
     // 4. Dúvidas sobre resistência mecânica
     if (q.includes('resistencia') || q.includes('resistência') || q.includes('travou') || q.includes('nao entra') || q.includes('não entra')) {
       return (
-        `⚕️ **Conduta Imediata de Preceptoria:** Se houver resistência mecânica durante ${title}, **nunca force**. ` +
+        `⚕️ **Conduta Imediata orientada pelo Goti:** Se houver resistência mecânica durante ${title}, **nunca force**. ` +
         'A resistência é indicativo de obstáculo anatômico (ex.: estenose, hiperplasia prostática em sondagens, válvula venosa colapsada em punções ou flexão articular). ' +
         'Interrompa a progressão imediatamente, reavalie a angulação e o posicionamento do paciente, e se a dúvida persistir, comunique o enfermeiro assistencial ou equipe médica.'
       );
@@ -627,7 +627,7 @@ DIRETRIZES DE RESPOSTA:
 
     // 7. Fallback geral contextualizado no procedimento ativo
     return (
-      `Como seu Preceptor Clínico IA para o procedimento **${title}**, informo que a prioridade técnica absoluta é assegurar a integridade asséptica, ` +
+      `Como **Goti**, seu enfermeiro digital para o procedimento **${title}**, informo que a prioridade técnica absoluta é assegurar a integridade asséptica, ` +
       'a correta identificação dos marcos anatômicos e a monitorização atenta de qualquer sinal de alarme. ' +
       'Consulte a aba do POP interativo e o checklist de técnica asséptica acima para conferir o roteiro técnico normatizado pelo COFEN.'
     );

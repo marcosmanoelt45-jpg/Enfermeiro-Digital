@@ -53,7 +53,7 @@ const MODULE_DATA = {
     targetPath: "/simulador-casos",
     actions: [
       { id: "start", label: "Começar Novo Caso Clínico", desc: "Sortear paciente simulado e iniciar investigação", icon: Play, primary: true, query: "?action=new" },
-      { id: "continue", label: "Continuar Caso em Andamento", desc: "Retomar sua última simulação com o Preceptor Clínico IA", icon: ArrowRight, primary: false, query: "?action=continue" },
+      { id: "continue", label: "Continuar Caso em Andamento", desc: "Retomar sua última simulação com o Goti", icon: ArrowRight, primary: false, query: "?action=continue" },
       { id: "review", label: "Revisão de Casos Concluídos", desc: "Consultar histórico de simulações e notas formativas", icon: RotateCcw, primary: false, query: "?action=review" }
     ]
   },
@@ -77,7 +77,7 @@ const MODULE_DATA = {
     category: "Farmacologia Clínica & Segurança",
     badge: "Gotejamento • Diluições",
     icon: Calculator,
-    speech: "Erros de dosagem são preveníveis! Aqui você treina macrogotas, microgotas, infusões em minutos e diluição de antibióticos com suporte socrático do Preceptor IA.",
+    speech: "Erros de dosagem são preveníveis! Aqui você treina macrogotas, microgotas, infusões em minutos e diluição de antibióticos com suporte do Goti.",
     targetPath: "/laboratorio-calculos",
     actions: [
       { id: "start", label: "Começar Novo Desafio de Dose", desc: "Sorteia prescrição médica e calcula gotejamento", icon: Play, primary: true, query: "?action=new" },
@@ -163,7 +163,7 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
           <div className="flex-1 space-y-1">
             <div className="flex items-center gap-1.5 text-xs font-bold text-teal-800 dark:text-teal-300">
               <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
-              <span>Diretrizes do Preceptor Clínico IA</span>
+              <span>Diretrizes do Goti</span>
             </div>
             <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
               "{data.speech}"
