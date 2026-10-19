@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { SEMIOLOGY_KNOWLEDGE_BASE } from "@/data/semiologyFindings";
+import GotiAnimated from "@/components/mascot/GotiAnimated";
 
 /**
  * ClinicalGapRadar.jsx
@@ -27,6 +28,7 @@ export default function ClinicalGapRadar({
 }) {
   const [activeGap, setActiveGap] = useState(null);
   const [selectedOptionId, setSelectedOptionId] = useState(null);
+  const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
   const [customValue, setCustomValue] = useState("");
 
@@ -36,9 +38,11 @@ export default function ClinicalGapRadar({
     if (existingItem) {
       setCustomValue(existingItem.value || "");
       setSelectedOptionId(null);
+      setSelectedOption(null);
       setIsAnswered(true);
     } else {
       setSelectedOptionId(null);
+      setSelectedOption(null);
       setIsAnswered(false);
       setCustomValue(finding?.resultingItem?.value || gap.hint || "");
     }
@@ -47,6 +51,7 @@ export default function ClinicalGapRadar({
   function handleCloseModal() {
     setActiveGap(null);
     setSelectedOptionId(null);
+    setSelectedOption(null);
     setIsAnswered(false);
     setCustomValue("");
   }
@@ -55,6 +60,7 @@ export default function ClinicalGapRadar({
 
   function handleSelectOption(opt) {
     setSelectedOptionId(opt.id);
+    setSelectedOption(opt);
     setIsAnswered(true);
     if (findingData?.resultingItem?.value) {
       setCustomValue(findingData.resultingItem.value);
@@ -266,6 +272,41 @@ export default function ClinicalGapRadar({
                 <p>
                   Parâmetro: <strong>{activeGap?.label}</strong>. {activeGap?.hint || "Confirme a realização da técnica de semiologia e o registro no prontuário."}
                 </p>
+              </div>
+            )}
+
+            {/* Feedback Visual com o Mascote Goti quando o aluno responde */}
+            {isAnswered && selectedOption && (
+              <div className={`p-3.5 rounded-2xl flex items-center gap-3.5 border transition-all animate-in fade-in slide-in-from-bottom-2 ${
+                selectedOption.isCorrect 
+                  ? "bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200" 
+                  : "bg-amber-50/90 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200"
+              }`}>
+                <div className="shrink-0 relative">
+                  <GotiAnimated
+                    animation={selectedOption.isCorrect ? "jumping" : "thinking"}
+                    size="sm"
+                    className="w-14 h-14"
+                  />
+                </div>
+                <div className="space-y-0.5">
+                  <p className="text-xs font-black flex items-center gap-1.5">
+                    {selectedOption.isCorrect ? (
+                      <>
+                        <span>Excelente raciocínio semiológico!</span>
+                        <span className="text-sm">🌟</span>
+                      </>
+                    ) : (
+                      <>
+                        <span>Atenção no exame físico!</span>
+                        <span className="text-sm">💡</span>
+                      </>
+                    )}
+                  </p>
+                  <p className="text-[11px] leading-relaxed opacity-90">
+                    {selectedOption.feedback}
+                  </p>
+                </div>
               </div>
             )}
 

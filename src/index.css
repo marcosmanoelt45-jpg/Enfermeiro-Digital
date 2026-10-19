@@ -205,5 +205,75 @@ html.dark textarea {
   border: 1px solid rgba(30, 41, 59, 0.8);
 }
 
+/* Animação fluida e orgânica do Mascote Preceptor Goti (Sem fundo, levitação carismática) */
+@keyframes gotiFloat {
+  0%, 100% {
+    transform: translateY(0px) scale(1);
+  }
+  50% {
+    transform: translateY(-8px) scale(1.02);
+  }
+}
+
+@keyframes gotiBreathe {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.03);
+  }
+}
+
+@keyframes gotiBounceJoy {
+  0%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  40% {
+    transform: translateY(-12px) scale(1.05);
+  }
+  60% {
+    transform: translateY(-3px) scale(0.98);
+  }
+}
+
+.animate-goti-float {
+  animation: gotiFloat 4s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-goti-breathe {
+  animation: gotiBreathe 3s ease-in-out infinite;
+  will-change: transform;
+}
+
+.animate-goti-joy {
+  animation: gotiBounceJoy 2s cubic-bezier(0.34, 1.56, 0.64, 1) infinite;
+  will-change: transform;
+}
+
+@keyframes gotiWave {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  20% {
+    transform: translateY(-5px) rotate(-4deg);
+  }
+  40% {
+    transform: translateY(-8px) rotate(4deg);
+  }
+  60% {
+    transform: translateY(-5px) rotate(-3deg);
+  }
+  80% {
+    transform: translateY(-2px) rotate(2deg);
+  }
+}
+
+.animate-goti-wave {
+  animation: gotiWave 3s ease-in-out infinite;
+  transform-origin: bottom center;
+  will-change: transform;
+}
+
 
 

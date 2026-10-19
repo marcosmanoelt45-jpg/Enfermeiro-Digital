@@ -227,71 +227,83 @@ export default function StudentDashboard() {
           <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-            <div className="space-y-3 max-w-xl">
-              <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">
+            <div className="space-y-3.5 max-w-xl">
+              <span className="text-[11px] font-black text-emerald-300 uppercase tracking-widest block drop-shadow-xs">
                 {heroCardConfig.desktopSub}
               </span>
-              <h1 className="text-3xl font-black tracking-tight text-white leading-tight">
+              <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight drop-shadow-sm">
                 {isProfessor
                   ? (greetingName ? `Olá professor, ${greetingName}. Pronto para gerenciar suas turmas hoje?` : "Olá professor. Pronto para gerenciar suas turmas hoje?")
                   : (greetingName ? `Olá aluno, ${greetingName}. Pronto para a prática clínica hoje?` : "Olá aluno. Pronto para a prática clínica hoje?")}
               </h1>
-              <p className="text-sm text-teal-100/90 leading-relaxed">
+              <p className="text-sm font-medium text-emerald-50/95 leading-relaxed drop-shadow-xs">
                 {heroCardConfig.desktopDesc}
               </p>
 
               <div className="flex flex-wrap gap-2.5 pt-2">
                 <Button
                   onClick={() => navigate("/montar-caso")}
-                  className="rounded-full bg-white text-emerald-900 hover:bg-emerald-50 font-black text-sm px-5 h-11 shadow-md flex items-center gap-2 tap-press"
+                  className="rounded-full bg-white text-emerald-950 hover:bg-emerald-50 font-black text-sm px-5 h-11 shadow-lg shadow-emerald-950/20 flex items-center gap-2 tap-press"
                 >
                   <PlusCircle className="h-4 w-4 text-emerald-700" /> Montar Meu Caso
                 </Button>
                 <Button
                   onClick={() => navigate("/montar-caso?mode=audio")}
                   variant="outline"
-                  className="rounded-full border-teal-400/50 bg-teal-950/40 text-white hover:bg-teal-900/60 font-semibold text-sm px-4 h-11 flex items-center gap-2 tap-press"
+                  className="rounded-full border-teal-300/60 bg-teal-950/60 text-white hover:bg-teal-900/80 font-bold text-sm px-4 h-11 flex items-center gap-2 tap-press shadow-sm"
                 >
                   <Mic className="h-4 w-4 text-teal-300" /> Áudio
                 </Button>
                 <Button
                   onClick={() => navigate(heroCardConfig.actionTo)}
                   variant="outline"
-                  className="rounded-full border-white/20 text-white hover:bg-white/10 font-semibold text-sm px-4 h-11 flex items-center gap-2 tap-press"
+                  className="rounded-full border-white/30 bg-white/10 text-white hover:bg-white/20 font-bold text-sm px-4 h-11 flex items-center gap-2 tap-press"
                 >
-                  <BookOpen className="h-4 w-4" /> {heroCardConfig.actionText}
+                  <BookOpen className="h-4 w-4 text-emerald-300" /> {heroCardConfig.actionText}
                 </Button>
               </div>
             </div>
 
             {/* Mascote Goti & Painel Rápido de Plantão Clínico */}
             <div className="shrink-0 flex items-center justify-center gap-6">
+              {/* Mascote Goti dando oi & Balão de fala Flat 2D Branco Fofo */}
               <div
                 onClick={() => {
                   triggerHaptic(20);
                   setIsGotiChatOpen(true);
                 }}
-                className="cursor-pointer group flex flex-col items-center justify-center p-2 rounded-2xl transition-transform hover:scale-105 active:scale-95"
+                className="cursor-pointer group flex flex-col items-center justify-center p-1 transition-transform hover:scale-105 active:scale-95 select-none"
                 title="Clique para conversar com o Preceptor Goti"
               >
-                <GotiAnimated animation="idle" size="lg" withSoundToggle={true} />
-                <span className="text-[11px] font-bold text-teal-200 mt-1 flex items-center gap-1.5 group-hover:text-white transition-colors">
-                  Preceptor Goti <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-                </span>
+                {/* Goti em pose acenando e dando oi (100% sem fundo e sem chão) */}
+                <GotiAnimated animation="wave" size="hero" />
+
+                {/* Balão de fala Flat 2D Branco Fofo com texto contrastado e marcante */}
+                <div className="relative mt-2">
+                  {/* Rabicho/Ponta do balão apontando para o Goti */}
+                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-b-8 border-b-white filter drop-shadow-[0_-1px_1px_rgba(0,0,0,0.06)]" />
+
+                  <div className="bg-white text-slate-900 px-4 py-2 rounded-2xl shadow-2xl shadow-teal-950/40 border-2 border-emerald-400/40 flex items-center gap-2 transition-transform group-hover:scale-105">
+                    <span className="text-xs sm:text-sm font-black tracking-tight whitespace-nowrap text-slate-950">
+                      Fale com o Goti!
+                    </span>
+                    <span className="text-base select-none">👋</span>
+                  </div>
+                </div>
               </div>
 
-              <div className="rounded-2xl border border-white/10 bg-white/5 backdrop-blur-md p-5 text-left space-y-3 min-w-[220px]">
-                <div className="flex items-center gap-2 text-xs font-bold text-teal-300">
+              <div className="rounded-2xl border border-white/20 bg-slate-950/40 backdrop-blur-md p-5 text-left space-y-3 min-w-[220px] shadow-lg">
+                <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
                   <Stethoscope className="h-4 w-4 text-emerald-400" />
                   <span>Plantão de Simulação</span>
                 </div>
                 <div className="space-y-1">
-                  <p className="text-xl font-black text-white">Prática Segura</p>
-                  <p className="text-xs text-teal-100/80">Resolução COFEN 736/2024</p>
+                  <p className="text-xl font-black text-white drop-shadow-xs">Prática Segura</p>
+                  <p className="text-xs font-semibold text-emerald-100/90">Resolução COFEN 736/2024</p>
                 </div>
-                <div className="pt-2 border-t border-white/10 flex items-center justify-between text-[11px] text-teal-200">
+                <div className="pt-2 border-t border-white/15 flex items-center justify-between text-[11px] text-teal-100">
                   <span>Metas da OMS</span>
-                  <span className="font-bold text-emerald-300">Ativas</span>
+                  <span className="font-extrabold text-emerald-300">Ativas</span>
                 </div>
               </div>
             </div>
@@ -474,7 +486,7 @@ export default function StudentDashboard() {
           <img
             src="/goti/goti-avatar-app.png"
             alt="Preceptor Goti"
-            className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-300/60 shadow-xs group-hover:scale-105 transition-transform"
+            className="w-8 h-8 object-contain filter drop-shadow-xs group-hover:scale-110 transition-transform"
           />
           <div className="text-left">
             <span className="text-xs font-black block leading-none">Preceptor Goti</span>

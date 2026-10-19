@@ -111,8 +111,8 @@ export default function MobileHeader({
             title="Dúvidas clínicas? Conversar com o Goti"
           >
             <div className="relative flex items-center justify-center">
-              <img src="/goti/goti-avatar-app.png" alt="Goti" className="w-5 h-5 rounded-md object-contain" />
-              <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900 animate-pulse" />
+              <img src="/goti/goti-avatar-app.png" alt="Goti" className="w-6 h-6 rounded-full object-cover ring-1 ring-teal-400/50 shadow-xs" />
+              <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900 animate-pulse" />
             </div>
             <span className="text-[11px] font-black">Goti IA</span>
           </button>

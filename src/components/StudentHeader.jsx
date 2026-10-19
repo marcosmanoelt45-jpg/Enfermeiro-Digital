@@ -235,7 +235,7 @@ export default function StudentHeader({ activeTab = "hub" }) {
         <img
           src="/goti/goti-avatar-app.png"
           alt="Preceptor Goti"
-          className="w-8 h-8 rounded-full object-cover ring-2 ring-emerald-300/60 shadow-xs group-hover:scale-105 transition-transform"
+          className="w-8 h-8 object-contain filter drop-shadow-xs group-hover:scale-110 transition-transform"
         />
         <div className="hidden sm:block text-left">
           <span className="text-xs font-black block leading-none">Preceptor Goti</span>

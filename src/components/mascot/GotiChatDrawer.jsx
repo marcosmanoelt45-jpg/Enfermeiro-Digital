@@ -87,30 +87,30 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
       >
         {/* Cabeçalho do Chat com o Preceptor Clínico IA */}
         <div className="relative p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800/80 bg-gradient-to-r from-teal-50 via-white to-emerald-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-teal-950/20 flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-3.5">
             <div className="relative flex-shrink-0">
-              <GotiAnimated
-                animation={gotiState === "thinking" ? "thinking" : gotiState === "speaking" ? "pointing" : "idle"}
-                size="sm"
-                withSoundToggle={true}
-                className="w-12 h-12"
+              {/* Rosto do Goti bem grande em alta definição, sem corpo */}
+              <img
+                src="/goti/goti-avatar-app.png"
+                alt="Preceptor Goti"
+                className="w-14 h-14 object-contain filter drop-shadow-md transition-transform hover:scale-105"
               />
-              <span className="absolute -bottom-1 -right-1 flex h-3.5 w-3.5 pointer-events-none">
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 pointer-events-none">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 border-2 border-white dark:border-slate-900"></span>
+                <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 ring-2 ring-white dark:ring-slate-900"></span>
               </span>
             </div>
 
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-black text-slate-900 dark:text-white leading-tight">
+                <h3 className="text-base sm:text-lg font-black text-slate-950 dark:text-white leading-tight">
                   Preceptor Goti IA
                 </h3>
-                <span className="text-[9px] font-bold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
                   {gotiState === "thinking" ? "Pensando..." : gotiState === "speaking" ? "Orientando..." : "Online"}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <p className="text-xs text-slate-600 dark:text-slate-300 font-medium">
                 Resoluções COFEN 736/2024 • NANDA-I • Farmacologia
               </p>
             </div>
@@ -140,17 +140,17 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
         {/* Área de Mensagens com Rolagem */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs sm:text-sm">
           {/* Card de Boas-Vindas & Diretriz Clínica */}
-          <div className="p-3.5 rounded-2xl bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200/80 dark:border-teal-800/60 flex items-start gap-3">
+          <div className="p-3.5 rounded-2xl bg-teal-50/80 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800/80 flex items-start gap-3.5 shadow-2xs">
             <img
               src="/goti/goti-avatar-app.png"
               alt="Goti"
-              className="w-10 h-10 rounded-2xl shrink-0 shadow-sm border border-teal-500/20"
+              className="w-12 h-12 object-contain shrink-0 filter drop-shadow-xs"
             />
             <div className="space-y-1">
-              <p className="font-bold text-slate-800 dark:text-slate-200">
+              <p className="font-extrabold text-slate-900 dark:text-slate-100 text-sm">
                 Espaço Seguro de Aprendizagem com o Goti
               </p>
-              <p className="text-[11px] text-slate-600 dark:text-slate-400 leading-relaxed">
+              <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
                 Tire dúvidas sobre prescrição de enfermagem, técnicas assépticas, dosagens e raciocínio diagnóstico sem julgamentos.
               </p>
             </div>
@@ -168,7 +168,7 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
                   <img
                     src="/goti/goti-avatar-app.png"
                     alt="Preceptor Goti"
-                    className="w-8 h-8 rounded-full border border-teal-500/40 object-cover shrink-0 self-end mb-1 shadow-xs"
+                    className="w-9 h-9 object-contain shrink-0 self-end mb-1 filter drop-shadow-xs"
                   />
                 )}
 
