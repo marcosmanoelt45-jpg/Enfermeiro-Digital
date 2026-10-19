@@ -1901,7 +1901,7 @@ export default function SbarHandoffLab() {
                   title="Clique para ver a comemoração e parecer do Goti!"
                 >
                   <GotiAnimated
-                    animation={tutorEvaluation.safetyScore >= 80 ? "jumping" : tutorEvaluation.safetyScore >= 50 ? "pointing" : "thinking"}
+                    animation={tutorEvaluation.safetyScore >= 80 ? "love" : tutorEvaluation.safetyScore >= 50 ? "pointing" : "angry"}
                     size="feedback"
                     className="w-20 h-20 shrink-0"
                     withSoundToggle={true}
@@ -2057,7 +2057,7 @@ export default function SbarHandoffLab() {
                 {/* Feedback e Parecer do Goti sobre as Reflexões */}
                 {reflectionsFeedback && (
                   <div className="p-4 rounded-xl bg-teal-50/80 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-800 flex items-start gap-3.5 animate-in fade-in">
-                    <GotiAnimated animation="happy" size="sm" className="w-12 h-12 shrink-0 mt-0.5" />
+                    <GotiAnimated animation="love" size="sm" className="w-12 h-12 shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-xs font-black text-teal-900 dark:text-teal-200">
                         <Sparkles className="w-3.5 h-3.5 text-amber-500" />

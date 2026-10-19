@@ -680,7 +680,7 @@ export default function CaseStudySimulator() {
                       title="Clique para ver a comemoração e parecer completo do Goti!"
                     >
                       <GotiAnimated
-                        animation={tutorEvaluation.score >= 80 ? "jumping" : "happy"}
+                        animation={tutorEvaluation.score >= 80 ? "love" : tutorEvaluation.score >= 50 ? "pointing" : "angry"}
                         size="feedback"
                         className="w-20 h-20 shrink-0"
                         withSoundToggle={true}

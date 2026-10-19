@@ -8,19 +8,19 @@ import React from "react";
 const GOTI_POSES = {
   // Padrão de repouso / Espera clínica
   idle: {
-    src: "/goti/goti-pose-neutral.png",
-    label: "Preceptor Goti em plantão de simulação",
-    animationClass: "animate-goti-float"
+    src: "/goti/goti-idle.webp",
+    label: "Goti em plantão de simulação",
+    animationClass: ""
   },
   breathing: {
-    src: "/goti/goti-pose-neutral.png",
+    src: "/goti/goti-idle.webp",
     label: "Goti respirando fundo e focado",
-    animationClass: "animate-goti-breathe"
+    animationClass: ""
   },
   neutral: {
-    src: "/goti/goti-pose-neutral.png",
+    src: "/goti/goti-idle.webp",
     label: "Goti sorridente e receptivo",
-    animationClass: "animate-goti-float"
+    animationClass: ""
   },
   wave: {
     src: "/goti/goti-wave.webp",
@@ -28,46 +28,56 @@ const GOTI_POSES = {
     animationClass: ""
   },
 
-  // Sucesso, acerto e comemoração
-  jumping: {
-    src: "/goti/goti-pose-happy.png",
-    label: "Goti radiante comemorando seu acerto clínico",
-    animationClass: "animate-goti-joy"
+  // Sucesso, acerto e amor (corações)
+  love: {
+    src: "/goti/goti-love.webp",
+    label: "Goti comemorando com corações",
+    animationClass: ""
   },
   happy: {
-    src: "/goti/goti-pose-happy.png",
-    label: "Goti vibrando com estrelinhas e olhos brilhantes",
-    animationClass: "animate-goti-joy"
+    src: "/goti/goti-love.webp",
+    label: "Goti vibrando com estrelinhas e corações",
+    animationClass: ""
+  },
+  jumping: {
+    src: "/goti/goti-jumping.webp",
+    label: "Goti radiante pulando de alegria",
+    animationClass: ""
   },
   celebrate: {
-    src: "/goti/goti-pose-celebrate.png",
-    label: "Goti comemorando com braço erguido",
-    animationClass: "animate-goti-joy"
+    src: "/goti/goti-jumping.webp",
+    label: "Goti comemorando sua conquista",
+    animationClass: ""
   },
 
-  // Instrução, mentoria e dicas
+  // Instrução, mentoria, apontar dedo e dicas
   pointing: {
-    src: "/goti/goti-pose-celebrate.png",
+    src: "/goti/goti-pointing.webp",
     label: "Goti orientando uma diretriz clínica",
-    animationClass: "animate-goti-float"
+    animationClass: ""
+  },
+  thinking: {
+    src: "/goti/goti-pointing.webp",
+    label: "Goti formulando hipótese diagnóstica",
+    animationClass: ""
   },
 
-  // Raciocínio clínico, dúvida e alerta
-  thinking: {
-    src: "/goti/goti-pose-thinking.png",
-    label: "Goti formulando hipótese diagnóstica",
-    animationClass: "animate-goti-breathe"
-  },
+  // Alerta, erro e atenção de risco (bravo)
   angry: {
-    src: "/goti/goti-pose-thinking.png",
+    src: "/goti/goti-angry.webp",
     label: "Goti em alerta de segurança do paciente",
-    animationClass: "animate-goti-breathe"
+    animationClass: ""
+  },
+  error: {
+    src: "/goti/goti-angry.webp",
+    label: "Goti atento corrigindo a conduta",
+    animationClass: ""
   },
 
   // Avatar circular
   avatar: {
     src: "/goti/goti-avatar-app.png",
-    label: "Avatar oficial do Preceptor Goti",
+    label: "Avatar oficial do Goti",
     animationClass: ""
   }
 };

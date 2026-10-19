@@ -328,7 +328,42 @@ export default function StudentDashboard() {
           </div>
         ) : (
           <>
+            {/* Card de Boas-Vindas com Mascote Goti no Mobile (Vertical e Horizontal) */}
+            <div className="md:hidden">
+              <div
+                onClick={() => {
+                  triggerHaptic(20);
+                  setIsGotiChatOpen(true);
+                }}
+                className="cursor-pointer group rounded-3xl border border-emerald-400/30 dark:border-emerald-500/20 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-4 shadow-xl text-white relative overflow-hidden flex items-center justify-between gap-3 active:scale-[0.98] transition-all"
+                title="Clique para conversar com o Goti"
+              >
+                {/* Efeito luminoso de fundo */}
+                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
 
+                <div className="flex-1 min-w-0 pr-1">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider mb-1.5 border border-emerald-300/30">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+                    Enfermeiro Digital Goti
+                  </div>
+                  <h3 className="text-base sm:text-lg font-black text-white leading-tight">
+                    {greetingName ? `Olá, ${greetingName}!` : "Olá aluno!"}
+                  </h3>
+                  <p className="text-xs text-emerald-100/90 font-medium mt-1 leading-snug">
+                    Tire dúvidas de condutas, cálculos e diagnósticos com o Goti.
+                  </p>
+                </div>
+
+                {/* Mascote Goti Acenando + Balão Fale com o Goti */}
+                <div className="shrink-0 flex flex-col items-center">
+                  <GotiAnimated animation="wave" size="feedback" className="w-20 h-20 sm:w-24 sm:h-24" />
+                  <div className="mt-1 bg-white text-slate-950 px-3 py-1 rounded-full shadow-lg border border-emerald-400/50 flex items-center gap-1 group-hover:scale-105 transition-transform">
+                    <span className="text-[11px] font-black whitespace-nowrap">Fale com o Goti!</span>
+                    <span className="text-xs">👋</span>
+                  </div>
+                </div>
+              </div>
+            </div>
 
             {/* Hero Card Móvel Estilo Orizon (md:hidden) Conectado à Diretriz Ativa */}
             <div className="md:hidden">
@@ -368,7 +403,7 @@ export default function StudentDashboard() {
                 </div>
                 <div className="min-w-0">
                   <span className="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate">Caso por Áudio</span>
-                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-medium">Voz de Preceptor</span>
+                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-medium">Voz do Goti</span>
                 </div>
               </button>
             </div>
@@ -472,24 +507,24 @@ export default function StudentDashboard() {
         }}
       />
 
-      {/* Botão Flutuante do Preceptor Goti no Mobile na Home */}
+      {/* Botão Flutuante do Goti no Mobile na Home */}
       <div className="md:hidden">
         <button
           onClick={() => {
             triggerHaptic(20);
             setIsGotiChatOpen(true);
           }}
-          className="fixed bottom-20 right-4 z-40 flex items-center gap-2.5 p-2 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
-          title="Dúvidas clínicas? Pergunte ao Preceptor Goti"
-          aria-label="Abrir Chat com Preceptor Goti"
+          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 p-2 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
+          title="Dúvidas clínicas? Pergunte ao Goti"
+          aria-label="Abrir Chat com o Goti"
         >
           <img
             src="/goti/goti-avatar-app.png"
-            alt="Preceptor Goti"
+            alt="Goti IA"
             className="w-8 h-8 object-contain filter drop-shadow-xs group-hover:scale-110 transition-transform"
           />
-          <div className="text-left">
-            <span className="text-xs font-black block leading-none">Preceptor Goti</span>
+          <div className="text-left pr-1">
+            <span className="text-xs font-black block leading-none">Goti IA</span>
             <span className="text-[10px] text-teal-100 block font-medium">Tirar Dúvidas</span>
           </div>
           <span className="flex h-2.5 w-2.5 relative">

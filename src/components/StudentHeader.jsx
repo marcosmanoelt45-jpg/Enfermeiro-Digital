@@ -227,22 +227,22 @@ export default function StudentHeader({ activeTab = "hub" }) {
         </div>
       </header>
 
-      {/* Botão Flutuante do Preceptor Goti (Canto Inferior Direito) */}
+      {/* Botão Flutuante do Goti IA (Canto Inferior Direito) */}
       <button
         onClick={() => {
           triggerHaptic(20);
           setIsGotiChatOpen(true);
         }}
         className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2.5 p-2 sm:px-4 sm:py-2.5 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
-        title="Dúvidas clínicas? Pergunte ao Preceptor Goti"
+        title="Dúvidas clínicas? Pergunte ao Goti"
       >
         <img
           src="/goti/goti-avatar-app.png"
-          alt="Preceptor Goti"
+          alt="Goti IA"
           className="w-8 h-8 object-contain filter drop-shadow-xs group-hover:scale-110 transition-transform"
         />
         <div className="hidden sm:block text-left">
-          <span className="text-xs font-black block leading-none">Preceptor Goti</span>
+          <span className="text-xs font-black block leading-none">Goti IA</span>
           <span className="text-[10px] text-teal-100 block font-medium">Tirar Dúvida Clínica</span>
         </div>
         <span className="flex h-2.5 w-2.5 relative">

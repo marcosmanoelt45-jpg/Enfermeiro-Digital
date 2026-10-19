@@ -40,24 +40,30 @@ export default function GotiEvaluationModal({
   let title = "Parabéns pelo Raciocínio de Excelência! 🌟";
   let defaultComment = "Sua tomada de decisão demonstrou grande adesão aos protocolos de segurança do paciente e raciocínio baseado em evidências!";
 
-  if (numScore >= 80) {
-    pose = "happy"; // ou celebrate
+  if (numScore >= 90) {
+    pose = "jumping";
+    badgeText = "Desempenho Ouro • Raciocínio Impecável";
+    badgeColor = "bg-emerald-500/20 text-emerald-300 border-emerald-400/40";
+    title = "Parabéns pela Maestria Clínica! 🌟";
+    defaultComment = "Você demonstrou raciocínio afiado, técnica precisa e segurança absoluta no cuidado!";
+  } else if (numScore >= 80) {
+    pose = "love";
     badgeText = "Alta Precisão & Segurança do Paciente";
     badgeColor = "bg-emerald-500/20 text-emerald-300 border-emerald-400/40";
-    title = "Parabéns pelo Excelente Plantão!";
-    defaultComment = "Você demonstrou raciocínio afiado e rigor técnico. A equipe e o paciente estão em ótimas mãos!";
+    title = "Excelente Trabalho no Plantão! 💖";
+    defaultComment = "Seu raciocínio clínico foi muito assertivo e baseado em evidências. Parabéns!";
   } else if (numScore >= 50) {
     pose = "pointing";
     badgeText = "Bom Raciocínio • Pontos a Lapidar";
     badgeColor = "bg-amber-500/20 text-amber-300 border-amber-400/40";
     title = "Bom Trabalho! Vamos Lapidar Alguns Pontos";
-    defaultComment = "Você capturou a essência do quadro clínico! Revise os detalhes no meu parecer para consolidar condutas infalíveis.";
+    defaultComment = "Você capturou a essência do caso! Veja as orientações que apontei para aperfeiçoar sua tomada de decisão.";
   } else {
-    pose = "thinking";
-    badgeText = "Plantão Desafiador • Apoio Formativo";
+    pose = "angry";
+    badgeText = "Atenção aos Protocolos • Alerta Clínico";
     badgeColor = "bg-rose-500/20 text-rose-300 border-rose-400/40";
-    title = "O Goti Está Aqui Para Te Ajudar a Revisar!";
-    defaultComment = "Casos críticos exigem treino contínuo. Preparei observações fundamentais no parecer para transformar essa dúvida em maestria!";
+    title = "Atenção aos Detalhes de Segurança!";
+    defaultComment = "Houve falhas que colocariam a assistência em risco. Vamos revisar juntos as etapas para transformar esse erro em aprendizado seguro!";
   }
 
   const finalComment = comment || defaultComment;

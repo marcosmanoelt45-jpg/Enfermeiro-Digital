@@ -527,7 +527,7 @@ export default function MedicationDosageLab() {
             <div className="rounded-2xl border border-teal-200/80 dark:border-teal-800/80 bg-gradient-to-r from-teal-50/80 via-emerald-50/40 to-white dark:from-teal-950/40 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <div className="shrink-0 flex items-center justify-center">
                 <GotiAnimated
-                  animation={evaluating ? "thinking" : feedback?.isCorrect ? "happy" : feedback ? "angry" : "pointing"}
+                  animation={evaluating ? "thinking" : feedback?.isCorrect ? "love" : feedback ? "angry" : "pointing"}
                   size="feedback"
                   className="w-20 h-20 shrink-0"
                   withSoundToggle={false}
@@ -737,7 +737,7 @@ export default function MedicationDosageLab() {
                           title="Clique para ver a comemoração do Goti!"
                         >
                           <GotiAnimated
-                            animation={feedback.isCorrect ? "jumping" : "angry"}
+                            animation={feedback.isCorrect ? "love" : "angry"}
                             size="feedback"
                             className="w-20 h-20 shrink-0"
                             withSoundToggle={true}
