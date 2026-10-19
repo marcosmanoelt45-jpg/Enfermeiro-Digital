@@ -275,5 +275,11 @@ html.dark textarea {
   will-change: transform;
 }
 
+@media (max-height: 520px) {
+  .hide-on-short-landscape {
+    display: none !important;
+  }
+}
+
 
 

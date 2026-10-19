@@ -221,51 +221,51 @@ export default function StudentDashboard() {
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 py-4 sm:py-8 space-y-5">
 
-        {/* Banner Hero no Desktop (md:block) com Plantão de Simulação */}
-        <div className="hidden md:block rounded-3xl border border-emerald-100/40 dark:border-slate-800 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-8 shadow-xl text-white relative overflow-hidden">
+        {/* Banner Hero no Desktop e Tablet/Landscape (md:block) com Plantão de Simulação */}
+        <div className="hidden md:block rounded-3xl border border-emerald-100/40 dark:border-slate-800 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-5 lg:p-8 shadow-xl text-white relative overflow-hidden">
           {/* Luz difusa de fundo */}
           <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
-          <div className="relative z-10 flex flex-col lg:flex-row lg:items-center justify-between gap-8">
-            <div className="space-y-3.5 max-w-xl">
-              <span className="text-[11px] font-black text-emerald-300 uppercase tracking-widest block drop-shadow-xs">
+          <div className="relative z-10 flex flex-row items-center justify-between gap-4 lg:gap-8">
+            <div className="space-y-2.5 lg:space-y-3.5 max-w-xl">
+              <span className="text-[10px] lg:text-[11px] font-black text-emerald-300 uppercase tracking-widest block drop-shadow-xs">
                 {heroCardConfig.desktopSub}
               </span>
-              <h1 className="text-3xl lg:text-4xl font-black tracking-tight text-white leading-tight drop-shadow-sm">
+              <h1 className="text-xl sm:text-2xl lg:text-4xl font-black tracking-tight text-white leading-tight drop-shadow-sm">
                 {isProfessor
                   ? (greetingName ? `Olá professor, ${greetingName}. Pronto para gerenciar suas turmas hoje?` : "Olá professor. Pronto para gerenciar suas turmas hoje?")
                   : (greetingName ? `Olá aluno, ${greetingName}. Pronto para a prática clínica hoje?` : "Olá aluno. Pronto para a prática clínica hoje?")}
               </h1>
-              <p className="text-sm font-medium text-emerald-50/95 leading-relaxed drop-shadow-xs">
+              <p className="text-xs lg:text-sm font-medium text-emerald-50/95 leading-relaxed drop-shadow-xs line-clamp-2 lg:line-clamp-none">
                 {heroCardConfig.desktopDesc}
               </p>
 
-              <div className="flex flex-wrap gap-2.5 pt-2">
+              <div className="flex flex-wrap gap-2 pt-1 lg:pt-2">
                 <Button
                   onClick={() => navigate("/montar-caso")}
-                  className="rounded-full bg-white text-emerald-950 hover:bg-emerald-50 font-black text-sm px-5 h-11 shadow-lg shadow-emerald-950/20 flex items-center gap-2 tap-press"
+                  className="rounded-full bg-white text-emerald-950 hover:bg-emerald-50 font-black text-xs lg:text-sm px-4 lg:px-5 h-9 lg:h-11 shadow-lg shadow-emerald-950/20 flex items-center gap-2 tap-press"
                 >
-                  <PlusCircle className="h-4 w-4 text-emerald-700" /> Montar Meu Caso
+                  <PlusCircle className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-emerald-700" /> Montar Meu Caso
                 </Button>
                 <Button
                   onClick={() => navigate("/montar-caso?mode=audio")}
                   variant="outline"
-                  className="rounded-full border-teal-300/60 bg-teal-950/60 text-white hover:bg-teal-900/80 font-bold text-sm px-4 h-11 flex items-center gap-2 tap-press shadow-sm"
+                  className="rounded-full border-teal-300/60 bg-teal-950/60 text-white hover:bg-teal-900/80 font-bold text-xs lg:text-sm px-3.5 lg:px-4 h-9 lg:h-11 flex items-center gap-1.5 lg:gap-2 tap-press shadow-sm"
                 >
-                  <Mic className="h-4 w-4 text-teal-300" /> Áudio
+                  <Mic className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-teal-300" /> Áudio
                 </Button>
                 <Button
                   onClick={() => navigate(heroCardConfig.actionTo)}
                   variant="outline"
-                  className="rounded-full border-white/30 bg-white/10 text-white hover:bg-white/20 font-bold text-sm px-4 h-11 flex items-center gap-2 tap-press"
+                  className="rounded-full border-white/30 bg-white/10 text-white hover:bg-white/20 font-bold text-xs lg:text-sm px-3.5 lg:px-4 h-9 lg:h-11 flex items-center gap-1.5 lg:gap-2 tap-press"
                 >
-                  <BookOpen className="h-4 w-4 text-emerald-300" /> {heroCardConfig.actionText}
+                  <BookOpen className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-emerald-300" /> {heroCardConfig.actionText}
                 </Button>
               </div>
             </div>
 
             {/* Mascote Goti & Painel Rápido de Plantão Clínico */}
-            <div className="shrink-0 flex items-center justify-center gap-6">
+            <div className="shrink-0 flex items-center justify-center gap-4 lg:gap-6">
               {/* Mascote Goti dando oi & Balão de fala Flat 2D Branco Fofo */}
               <div
                 onClick={() => {
@@ -276,23 +276,24 @@ export default function StudentDashboard() {
                 title="Clique para conversar com o Preceptor Goti"
               >
                 {/* Goti em pose acenando e dando oi (100% sem fundo e sem chão) */}
-                <GotiAnimated animation="wave" size="hero" />
+                <GotiAnimated animation="wave" size="hero" className="w-32 h-40 lg:w-48 lg:h-56" />
 
                 {/* Balão de fala Flat 2D Branco Fofo com texto contrastado e marcante */}
-                <div className="relative mt-2">
+                <div className="relative mt-1.5 lg:mt-2">
                   {/* Rabicho/Ponta do balão apontando para o Goti */}
                   <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-b-8 border-b-white filter drop-shadow-[0_-1px_1px_rgba(0,0,0,0.06)]" />
 
-                  <div className="bg-white text-slate-900 px-4 py-2 rounded-2xl shadow-2xl shadow-teal-950/40 border-2 border-emerald-400/40 flex items-center gap-2 transition-transform group-hover:scale-105">
-                    <span className="text-xs sm:text-sm font-black tracking-tight whitespace-nowrap text-slate-950">
+                  <div className="bg-white text-slate-900 px-3 lg:px-4 py-1.5 lg:py-2 rounded-2xl shadow-2xl shadow-teal-950/40 border-2 border-emerald-400/40 flex items-center gap-1.5 transition-transform group-hover:scale-105">
+                    <span className="text-xs lg:text-sm font-black tracking-tight whitespace-nowrap text-slate-950">
                       Fale com o Goti!
                     </span>
-                    <span className="text-base select-none">👋</span>
+                    <span className="text-sm lg:text-base select-none">👋</span>
                   </div>
                 </div>
               </div>
 
-              <div className="rounded-2xl border border-white/20 bg-slate-950/40 backdrop-blur-md p-5 text-left space-y-3 min-w-[220px] shadow-lg">
+              {/* Estatísticas do Plantão: visível em telas xl+ para manter harmonia em celular landscape */}
+              <div className="hidden xl:block rounded-2xl border border-white/20 bg-slate-950/40 backdrop-blur-md p-5 text-left space-y-3 min-w-[200px] shadow-lg">
                 <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
                   <Stethoscope className="h-4 w-4 text-emerald-400" />
                   <span>Plantão de Simulação</span>
@@ -335,31 +336,35 @@ export default function StudentDashboard() {
                   triggerHaptic(20);
                   setIsGotiChatOpen(true);
                 }}
-                className="cursor-pointer group rounded-3xl border border-emerald-400/30 dark:border-emerald-500/20 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-4 shadow-xl text-white relative overflow-hidden flex items-center justify-between gap-3 active:scale-[0.98] transition-all"
+                className="cursor-pointer group rounded-3xl border border-emerald-400/30 dark:border-emerald-500/20 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-3.5 shadow-xl text-white relative overflow-hidden flex items-center gap-3 active:scale-[0.98] transition-all"
                 title="Clique para conversar com o Goti"
               >
                 {/* Efeito luminoso de fundo */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
 
-                <div className="flex-1 min-w-0 pr-1">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider mb-1.5 border border-emerald-300/30">
+                {/* Mascote Goti em destaque à esquerda (Visibilidade garantida sem cortes) */}
+                <div className="shrink-0 flex items-center justify-center">
+                  <GotiAnimated animation="wave" size="sm" className="w-14 h-14 drop-shadow-md" />
+                </div>
+
+                {/* Mensagem e Saudação no Centro */}
+                <div className="flex-1 min-w-0 space-y-0.5">
+                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-300/30">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Enfermeiro Digital Goti
+                    Goti IA
                   </div>
-                  <h3 className="text-base sm:text-lg font-black text-white leading-tight">
+                  <h3 className="text-sm font-black text-white leading-tight truncate">
                     {greetingName ? `Olá, ${greetingName}!` : "Olá aluno!"}
                   </h3>
-                  <p className="text-xs text-emerald-100/90 font-medium mt-1 leading-snug">
-                    Tire dúvidas de condutas, cálculos e diagnósticos com o Goti.
+                  <p className="text-[11px] text-emerald-100/90 font-medium leading-snug line-clamp-1">
+                    Tire dúvidas e simule condutas clínicas.
                   </p>
                 </div>
 
-                {/* Mascote Goti Acenando + Balão Fale com o Goti */}
-                <div className="shrink-0 flex flex-col items-center">
-                  <GotiAnimated animation="wave" size="feedback" className="w-20 h-20 sm:w-24 sm:h-24" />
-                  <div className="mt-1 bg-white text-slate-950 px-3 py-1 rounded-full shadow-lg border border-emerald-400/50 flex items-center gap-1 group-hover:scale-105 transition-transform">
-                    <span className="text-[11px] font-black whitespace-nowrap">Fale com o Goti!</span>
-                    <span className="text-xs">👋</span>
+                {/* Pílula de Ação Fale com o Goti à Direita */}
+                <div className="shrink-0">
+                  <div className="bg-white text-slate-950 px-2.5 py-1.5 rounded-xl shadow-md border border-emerald-400/60 flex items-center gap-1 group-hover:scale-105 transition-transform">
+                    <span className="text-[11px] font-black whitespace-nowrap">Fale 👋</span>
                   </div>
                 </div>
               </div>
@@ -514,7 +519,7 @@ export default function StudentDashboard() {
             triggerHaptic(20);
             setIsGotiChatOpen(true);
           }}
-          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 p-2 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group"
+          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 p-2 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group hide-on-short-landscape"
           title="Dúvidas clínicas? Pergunte ao Goti"
           aria-label="Abrir Chat com o Goti"
         >

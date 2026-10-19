@@ -8,74 +8,87 @@ import React from "react";
 const GOTI_POSES = {
   // Padrão de repouso / Espera clínica
   idle: {
+    videoSrc: "/goti/goti-idle.webm",
     src: "/goti/goti-idle.webp",
     label: "Goti em plantão de simulação",
     animationClass: ""
   },
   breathing: {
+    videoSrc: "/goti/goti-idle.webm",
     src: "/goti/goti-idle.webp",
     label: "Goti respirando fundo e focado",
     animationClass: ""
   },
   neutral: {
+    videoSrc: "/goti/goti-idle.webm",
     src: "/goti/goti-idle.webp",
     label: "Goti sorridente e receptivo",
     animationClass: ""
   },
   wave: {
+    videoSrc: "/goti/goti-wave.webm",
     src: "/goti/goti-wave.webp",
     label: "Goti acenando e dando as boas-vindas",
     animationClass: ""
   },
 
-  // Sucesso, acerto e amor (corações)
+  // Sucesso, acerto e amor (corações flutuantes)
   love: {
+    videoSrc: "/goti/goti-love.webm",
     src: "/goti/goti-love.webp",
     label: "Goti comemorando com corações",
     animationClass: ""
   },
   happy: {
-    src: "/goti/goti-love.webp",
+    videoSrc: "/goti/goti-happy.webm",
+    src: "/goti/goti-happy.webp",
     label: "Goti vibrando com estrelinhas e corações",
     animationClass: ""
   },
   jumping: {
+    videoSrc: "/goti/goti-jumping.webm",
     src: "/goti/goti-jumping.webp",
     label: "Goti radiante pulando de alegria",
     animationClass: ""
   },
   celebrate: {
-    src: "/goti/goti-jumping.webp",
+    videoSrc: "/goti/goti-celebrate.webm",
+    src: "/goti/goti-celebrate.webp",
     label: "Goti comemorando sua conquista",
     animationClass: ""
   },
 
   // Instrução, mentoria, apontar dedo e dicas
   pointing: {
+    videoSrc: "/goti/goti-pointing.webm",
     src: "/goti/goti-pointing.webp",
     label: "Goti orientando uma diretriz clínica",
     animationClass: ""
   },
   thinking: {
-    src: "/goti/goti-pointing.webp",
+    videoSrc: "/goti/goti-thinking.webm",
+    src: "/goti/goti-thinking.webp",
     label: "Goti formulando hipótese diagnóstica",
     animationClass: ""
   },
 
   // Alerta, erro e atenção de risco (bravo)
   angry: {
+    videoSrc: "/goti/goti-angry.webm",
     src: "/goti/goti-angry.webp",
     label: "Goti em alerta de segurança do paciente",
     animationClass: ""
   },
   error: {
-    src: "/goti/goti-angry.webp",
+    videoSrc: "/goti/goti-error.webm",
+    src: "/goti/goti-error.webp",
     label: "Goti atento corrigindo a conduta",
     animationClass: ""
   },
 
   // Avatar circular
   avatar: {
+    videoSrc: null,
     src: "/goti/goti-avatar-app.png",
     label: "Avatar oficial do Goti",
     animationClass: ""
@@ -96,9 +109,9 @@ const SIZE_PRESETS = {
 /**
  * GotiAnimated
  * Renderiza o mascote Preceptor Goti:
- * - 100% transparente (sem nenhum fundo branco ou caixa retangular).
- * - Olhos cristalinos, jaleco branco puro, gola verde e crocs com furinhos.
- * - Animação suave e orgânica de flutuação/levitação (CSS 60 FPS).
+ * - 100% transparente com canal alfa nativo WebM (zero fundo branco, zero cortes de jaleco ou crocs).
+ * - Vídeos em taxa de quadros fluida (24-60 FPS) e loops orgânicos contínuos.
+ * - Suporte a fallback imediato e acessibilidade.
  */
 export default function GotiAnimated({
   animation = "idle",
@@ -121,16 +134,37 @@ export default function GotiAnimated({
     >
       {/* Sombra de apoio suave e discreta na base */}
       {showShadow && (
-        <div className="absolute bottom-1 w-2/3 h-3 rounded-full bg-black/25 dark:bg-black/40 blur-sm -z-10 pointer-events-none" />
+        <div className="absolute bottom-0 w-1/2 h-2 rounded-full bg-black/15 dark:bg-black/30 blur-xs pointer-events-none" />
       )}
 
-      {/* Ilustração recortada ultra-HD com contornos puros */}
-      <img
-        src={currentPose.src}
-        alt={currentPose.label}
-        className={`w-full h-full object-contain ${currentPose.animationClass} transition-transform duration-300`}
-        loading="eager"
-      />
+      {/* Renderização de Vídeo WebM Transparente ou Fallback de Imagem */}
+      {currentPose.videoSrc ? (
+        <video
+          key={currentPose.videoSrc}
+          ref={(el) => {
+            if (el) {
+              el.muted = true;
+              el.defaultMuted = true;
+            }
+          }}
+          src={currentPose.videoSrc}
+          autoPlay
+          loop
+          muted
+          defaultMuted
+          playsInline
+          preload="auto"
+          aria-label={currentPose.label}
+          className={`w-full h-full object-contain pointer-events-none ${currentPose.animationClass} transition-transform duration-300`}
+        />
+      ) : (
+        <img
+          src={currentPose.src}
+          alt={currentPose.label}
+          className={`w-full h-full object-contain ${currentPose.animationClass} transition-transform duration-300`}
+          loading="eager"
+        />
+      )}
 
       {/* Badge ou Indicador Flutuante Opcional */}
       {showBadge && (
