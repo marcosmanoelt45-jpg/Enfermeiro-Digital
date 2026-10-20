@@ -140,7 +140,7 @@ export default function CaseStudySimulator() {
     if (isContradictory) {
       setDetectiveFeedback({
         type: "warning",
-        title: "⚡ Pegadinha Detectada pelo Goti!",
+        title: "🧐 Incoerência Clínica com o Prontuário",
         text: contradictionReason || `Esta evidência não condiz com os dados reais do prontuário deste paciente!`,
         question: "Revise a régua de sinais vitais e os achados da Etapa 1 antes de selecionar."
       });
@@ -1107,8 +1107,8 @@ export default function CaseStudySimulator() {
                           ? "thinking"
                           : "pointing"
                       }
-                      size="sm"
-                      className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 drop-shadow-md"
+                      size="feedback"
+                      className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 shrink-0 drop-shadow-md"
                     />
                     <div className="flex-1 space-y-1.5">
                       <div className="flex items-center justify-between">
@@ -1419,19 +1419,19 @@ export default function CaseStudySimulator() {
                           </button>
                         )}
 
-                        {/* Distrator / Pegadinha inteligente para testar se o aluno está lendo de fato */}
+                        {/* Distrator clínico plausível para estimular o raciocínio baseado em evidências */}
                         <button
                           type="button"
                           onClick={() =>
                             handleExamineEvidence(
-                              "Paciente totalmente afebril e sem queixas ventilatórias",
+                              "Eupneico em ar ambiente (sem desconforto respiratório)",
                               true,
-                              `Cuidado com a distração! O paciente apresenta FR de ${currentCase?.vitals?.fr || 26} irpm e SatO₂ de ${currentCase?.vitals?.sat || 89}%. Não selecione dados que contradizem o prontuário!`
+                              `Atenção ao raciocínio clínico! O prontuário registra FR de ${currentCase?.vitals?.fr || 26} irpm (taquipneia) e SatO₂ de ${currentCase?.vitals?.sat || 89}% (hipoxemia). Esta opção contradiz os sinais vitais reais do paciente!`
                             )
                           }
-                          className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300 hover:bg-rose-100/70 transition active:scale-95 shadow-2xs whitespace-nowrap"
+                          className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 transition active:scale-95 shadow-2xs whitespace-nowrap"
                         >
-                          ⚡ Eupneico e assintomático (Pegadinha?)
+                          + Eupneico em ar ambiente (sem desconforto)
                         </button>
 
                         {/* Recomendações do catálogo NANDA caso haja */}

@@ -12,28 +12,28 @@ const GOTI_POSES = {
     src: "/goti/goti-idle.webp",
     label: "Goti em plantão de simulação",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
   breathing: {
     videoSrc: "/goti/goti-idle.webm",
     src: "/goti/goti-idle.webp",
     label: "Goti respirando fundo e focado",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
   neutral: {
     videoSrc: "/goti/goti-idle.webm",
     src: "/goti/goti-idle.webp",
     label: "Goti sorridente e receptivo",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
   wave: {
     videoSrc: "/goti/goti-wave.webm",
     src: "/goti/goti-wave.webp",
     label: "Goti acenando e dando as boas-vindas",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
 
   // Sucesso, acerto e comemoração limpa (Goti pulando feliz, sem corações ou estrelas)
@@ -42,28 +42,28 @@ const GOTI_POSES = {
     src: "/goti/goti-jumping.webp",
     label: "Goti comemorando com alegria",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
   happy: {
     videoSrc: "/goti/goti-jumping.webm",
     src: "/goti/goti-jumping.webp",
     label: "Goti vibrando com a conquista",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
   jumping: {
     videoSrc: "/goti/goti-jumping.webm",
     src: "/goti/goti-jumping.webp",
     label: "Goti radiante pulando de alegria",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
   celebrate: {
     videoSrc: "/goti/goti-jumping.webm",
     src: "/goti/goti-jumping.webp",
     label: "Goti comemorando sua conquista",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
 
   // Instrução, mentoria, apontar dedo e dicas
@@ -72,14 +72,14 @@ const GOTI_POSES = {
     src: "/goti/goti-pointing.webp",
     label: "Goti orientando uma diretriz clínica",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
   thinking: {
     videoSrc: "/goti/goti-thinking.webm",
     src: "/goti/goti-thinking.webp",
     label: "Goti formulando hipótese diagnóstica",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
 
   // Alerta, erro e atenção de risco (bravo)
@@ -88,14 +88,14 @@ const GOTI_POSES = {
     src: "/goti/goti-angry.webp",
     label: "Goti em alerta de segurança do paciente",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
   error: {
     videoSrc: "/goti/goti-error.webm",
     src: "/goti/goti-error.webp",
     label: "Goti atento corrigindo a conduta",
     animationClass: "",
-    bottomCropPercent: 16.8
+    bottomCropPercent: 0
   },
 
   // Avatar circular
@@ -137,7 +137,6 @@ export default function GotiAnimated({
 }) {
   const currentPose = GOTI_POSES[animation] || GOTI_POSES.idle;
   const sizeClass = SIZE_PRESETS[size] || size;
-  const bottomCrop = currentPose.bottomCropPercent ?? 9.8;
 
   const canvasRef = useRef(null);
   const videoRef = useRef(null);
@@ -159,14 +158,22 @@ export default function GotiAnimated({
         const vw = video.videoWidth;
         const vh = video.videoHeight;
         if (vw > 0 && vh > 0) {
-          const cropH = Math.floor(vh * (1 - bottomCrop / 100));
-          if (canvas.width !== vw || canvas.height !== cropH) {
-            canvas.width = vw;
-            canvas.height = cropH;
+          // Para vídeos widescreen (1920x1080), foca uma área 1:1 centrada no personagem Goti.
+          // Isso elimina ~600px de sobras vazias laterais e preserva 100% da ponta da gota,
+          // estetoscópio, jaleco, pernas e calçados (crocs), sem decepar os pés.
+          const isWidescreen = vw >= 1400 && vh >= 700;
+          const sDim = isWidescreen ? Math.min(vw, Math.floor(vh * 0.96)) : Math.min(vw, vh);
+          const sx = isWidescreen ? Math.floor((vw - sDim) / 2) : 0;
+          const sy = isWidescreen ? Math.floor(vh * 0.03) : 0;
+          const sw = sDim;
+          const sh = sDim;
+
+          if (canvas.width !== sw || canvas.height !== sh) {
+            canvas.width = sw;
+            canvas.height = sh;
           }
-          ctx.clearRect(0, 0, vw, cropH);
-          // Recorta a base de chão conforme a pose calibrada desenhando apenas a área útil
-          ctx.drawImage(video, 0, 0, vw, cropH, 0, 0, vw, cropH);
+          ctx.clearRect(0, 0, sw, sh);
+          ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
         }
       }
       animId = requestAnimationFrame(drawFrame);
@@ -187,7 +194,7 @@ export default function GotiAnimated({
         video.removeEventListener("play", handlePlay);
       }
     };
-  }, [currentPose.videoSrc, bottomCrop]);
+  }, [currentPose.videoSrc]);
 
   return (
     <div
@@ -223,7 +230,7 @@ export default function GotiAnimated({
               zIndex: -1
             }}
           />
-          {/* Canvas gráfico: zero botões externos, zero overlays, transparência alfa nativa */}
+          {/* Canvas gráfico: zero botões externos, zero overlays, transparência alfa nativa e proporção 1:1 */}
           <canvas
             ref={canvasRef}
             aria-label={currentPose.label}
@@ -232,16 +239,13 @@ export default function GotiAnimated({
               willChange: "transform",
               backfaceVisibility: "hidden"
             }}
-            className={`w-full h-full object-contain pointer-events-none select-none ${currentPose.animationClass} transition-transform duration-300 scale-105`}
+            className={`w-full h-full object-contain pointer-events-none select-none ${currentPose.animationClass} transition-transform duration-300`}
           />
         </>
       ) : (
         <img
           src={currentPose.src}
           alt={currentPose.label}
-          style={{
-            clipPath: `inset(0 0 ${bottomCrop}% 0)`
-          }}
           className={`w-full h-full object-contain pointer-events-none select-none ${currentPose.animationClass} transition-transform duration-300`}
           loading="eager"
         />
