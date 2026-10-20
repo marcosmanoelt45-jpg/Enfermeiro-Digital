@@ -176,10 +176,8 @@ export default function StudentDashboard() {
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 pb-24 md:pb-0 transition-colors">
-      {/* Header Clássico no Desktop (md:block) */}
-      <div className="hidden md:block">
-        <StudentHeader activeTab="hub" />
-      </div>
+      {/* Header Clássico no Desktop (controlado internamente por desktopOnly para não ocultar modais no mobile) */}
+      <StudentHeader activeTab="hub" desktopOnly={true} />
 
       {/* Header Móvel Inspirado no Dribbble 16244904 (md:hidden) */}
       <div className="md:hidden">
@@ -205,13 +203,13 @@ export default function StudentDashboard() {
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 py-4 sm:py-8 space-y-5">
 
         {/* Banner Hero no Desktop e Tablet/Landscape (md:block) com Plantão de Simulação */}
-        <div className="hidden md:block rounded-3xl border border-emerald-100/40 dark:border-slate-800 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-5 lg:p-8 shadow-xl text-white relative overflow-hidden">
+        <div className="hidden md:block rounded-3xl border-2 border-emerald-600/40 dark:border-emerald-700/50 border-b-4 border-b-emerald-950/80 dark:border-b-black bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-6 lg:p-8 shadow-xl text-white relative overflow-hidden">
           {/* Luz difusa de fundo */}
           <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
 
           <div className="relative z-10 flex flex-row items-center justify-between gap-4 lg:gap-8">
-            <div className="space-y-2.5 lg:space-y-3.5 max-w-xl">
-              <span className="text-[10px] lg:text-[11px] font-black text-emerald-300 uppercase tracking-widest block drop-shadow-xs">
+            <div className="space-y-3 lg:space-y-4 max-w-xl">
+              <span className="text-[11px] font-black text-emerald-300 uppercase tracking-widest block drop-shadow-xs">
                 {heroCardConfig.desktopSub}
               </span>
               <h1 className="text-xl sm:text-2xl lg:text-4xl font-black tracking-tight text-white leading-tight drop-shadow-sm">
@@ -223,27 +221,25 @@ export default function StudentDashboard() {
                 {heroCardConfig.desktopDesc}
               </p>
 
-              <div className="flex flex-wrap gap-2 pt-1 lg:pt-2">
-                <Button
+              <div className="flex flex-wrap gap-2.5 pt-2">
+                <button
                   onClick={() => navigate("/montar-caso")}
-                  className="rounded-full bg-white text-emerald-950 hover:bg-emerald-50 font-black text-xs lg:text-sm px-4 lg:px-5 h-9 lg:h-11 shadow-lg shadow-emerald-950/20 flex items-center gap-2 tap-press"
+                  className="rounded-2xl bg-white text-emerald-950 hover:bg-emerald-50 font-black text-xs lg:text-sm px-5 h-10 lg:h-12 border-b-4 border-emerald-200 dark:border-emerald-400/80 shadow-md flex items-center gap-2 select-none active:translate-y-1 active:border-b-0 transition-all cursor-pointer"
                 >
-                  <PlusCircle className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-emerald-700" /> Montar Meu Caso
-                </Button>
-                <Button
+                  <PlusCircle className="h-4 w-4 text-emerald-700 stroke-[2.5]" /> Montar Meu Caso
+                </button>
+                <button
                   onClick={() => navigate("/montar-caso?mode=audio")}
-                  variant="outline"
-                  className="rounded-full border-teal-300/60 bg-teal-950/60 text-white hover:bg-teal-900/80 font-bold text-xs lg:text-sm px-3.5 lg:px-4 h-9 lg:h-11 flex items-center gap-1.5 lg:gap-2 tap-press shadow-sm"
+                  className="rounded-2xl border-2 border-teal-300/40 border-b-4 border-b-teal-500/80 bg-teal-950/70 text-white hover:bg-teal-900/90 font-extrabold text-xs lg:text-sm px-4 h-10 lg:h-12 flex items-center gap-2 select-none active:translate-y-1 active:border-b-2 transition-all shadow-sm cursor-pointer"
                 >
-                  <Mic className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-teal-300" /> Áudio
-                </Button>
-                <Button
+                  <Mic className="h-4 w-4 text-teal-300 stroke-[2.5]" /> Áudio
+                </button>
+                <button
                   onClick={() => navigate(heroCardConfig.actionTo)}
-                  variant="outline"
-                  className="rounded-full border-white/30 bg-white/10 text-white hover:bg-white/20 font-bold text-xs lg:text-sm px-3.5 lg:px-4 h-9 lg:h-11 flex items-center gap-1.5 lg:gap-2 tap-press"
+                  className="rounded-2xl border-2 border-white/20 border-b-4 border-b-emerald-700/80 bg-white/10 text-white hover:bg-white/20 font-extrabold text-xs lg:text-sm px-4 h-10 lg:h-12 flex items-center gap-2 select-none active:translate-y-1 active:border-b-2 transition-all cursor-pointer"
                 >
-                  <BookOpen className="h-3.5 w-3.5 lg:h-4 lg:w-4 text-emerald-300" /> {heroCardConfig.actionText}
-                </Button>
+                  <BookOpen className="h-4 w-4 text-emerald-300 stroke-[2.5]" /> {heroCardConfig.actionText}
+                </button>
               </div>
             </div>
 
@@ -293,7 +289,7 @@ export default function StudentDashboard() {
                   triggerHaptic(20);
                   window.dispatchEvent(new CustomEvent("open-goti-chat"));
                 }}
-                className="cursor-pointer group rounded-3xl border border-emerald-400/30 dark:border-emerald-500/20 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-3.5 shadow-xl text-white relative overflow-hidden flex items-center gap-3.5 active:scale-[0.98] transition-all"
+                className="cursor-pointer group rounded-3xl border-2 border-emerald-500/30 dark:border-emerald-500/20 border-b-4 border-b-emerald-950/80 dark:border-b-black bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-4 shadow-xl text-white relative overflow-hidden flex items-center gap-3.5 select-none active:translate-y-1 active:border-b-2 transition-all"
                 title="Clique para conversar com o Goti"
               >
                 {/* Efeito luminoso de fundo */}
@@ -305,8 +301,8 @@ export default function StudentDashboard() {
                 </div>
 
                 {/* Mensagem e Saudação no Centro */}
-                <div className="flex-1 min-w-0 space-y-0.5">
-                  <div className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-300/30">
+                <div className="flex-1 min-w-0 space-y-1">
+                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-300/30">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     Goti IA
                   </div>
@@ -320,7 +316,7 @@ export default function StudentDashboard() {
 
                 {/* Pílula de Ação Fale com o Goti à Direita */}
                 <div className="shrink-0">
-                  <div className="bg-white text-slate-950 px-2.5 py-1.5 rounded-xl shadow-md border border-emerald-400/60 flex items-center gap-1 group-hover:scale-105 transition-transform">
+                  <div className="bg-white text-slate-950 px-3 py-1.5 rounded-xl shadow-md border-b-4 border-slate-200 dark:border-emerald-600 flex items-center gap-1 group-hover:scale-105 active:translate-y-0.5 active:border-b-2 transition-transform">
                     <span className="text-[11px] font-black whitespace-nowrap">Fale 👋</span>
                   </div>
                 </div>
@@ -341,31 +337,31 @@ export default function StudentDashboard() {
               />
             </div>
 
-            {/* Acesso Rápido a Criação de Casos (Mobile Bar) */}
+            {/* Acesso Rápido a Criação de Casos (Mobile Bar) com Cards 3D Táteis */}
             <div className="md:hidden grid grid-cols-2 gap-2.5">
               <button
                 onClick={() => navigate("/montar-caso")}
-                className="flex items-center gap-2 p-3 rounded-2xl bg-white dark:bg-slate-900 border border-emerald-100 dark:border-slate-800 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700 active:scale-95 transition-all text-left"
+                className="flex items-center gap-2.5 p-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-4 border-b-slate-300 dark:border-b-slate-700/90 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 active:translate-y-1 active:border-b-2 transition-all text-left select-none cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
-                  <FolderPlus className="w-4 h-4" />
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 border border-emerald-100 dark:border-emerald-800/60 shadow-2xs">
+                  <FolderPlus className="w-4 h-4 stroke-[2.2]" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate">Montar Caso</span>
-                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-medium">5 Escores</span>
+                  <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100 block truncate">Montar Caso</span>
+                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-bold">5 Escores</span>
                 </div>
               </button>
 
               <button
                 onClick={() => navigate("/montar-caso?mode=audio")}
-                className="flex items-center gap-2 p-3 rounded-2xl bg-white dark:bg-slate-900 border border-emerald-100 dark:border-slate-800 shadow-xs hover:border-emerald-300 dark:hover:border-emerald-700 active:scale-95 transition-all text-left"
+                className="flex items-center gap-2.5 p-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-4 border-b-slate-300 dark:border-b-slate-700/90 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 active:translate-y-1 active:border-b-2 transition-all text-left select-none cursor-pointer"
               >
-                <div className="w-8 h-8 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center flex-shrink-0">
-                  <Mic className="w-4 h-4 text-emerald-700 dark:text-emerald-400" />
+                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 border border-emerald-100 dark:border-emerald-800/60 shadow-2xs">
+                  <Mic className="w-4 h-4 text-emerald-700 dark:text-emerald-400 stroke-[2.2]" />
                 </div>
                 <div className="min-w-0">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-100 block truncate">Caso por Áudio</span>
-                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-medium">Voz do Goti</span>
+                  <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100 block truncate">Caso por Áudio</span>
+                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-bold">Voz do Goti</span>
                 </div>
               </button>
             </div>

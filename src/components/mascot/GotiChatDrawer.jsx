@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { createPortal } from "react-dom";
 import {
   X,
   Send,
@@ -206,7 +207,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
 
   if (!isOpen) return null;
 
-  return (
+  const content = (
     <div
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in"
       onClick={onClose}
@@ -385,4 +386,6 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
       </div>
     </div>
   );
+
+  return typeof document !== "undefined" ? createPortal(content, document.body) : content;
 }

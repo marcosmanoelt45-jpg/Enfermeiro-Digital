@@ -144,7 +144,7 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
 
         {/* Área de Utilidades & Critérios de Pontuação */}
         <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
-          {/* Card de Congelamento de Plantão (Duolingo Vibe) */}
+          {/* Card de Congelamento de Plantão */}
           <div className="rounded-2xl border-2 border-sky-300 dark:border-sky-800 bg-gradient-to-r from-sky-50/80 via-blue-50/40 to-white dark:from-sky-950/40 dark:via-slate-900 dark:to-slate-900 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center shrink-0 text-sky-600 dark:text-sky-400">

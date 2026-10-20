@@ -174,7 +174,7 @@ export default function LampiMascot({
             <ellipse cx="80" cy="182" rx="10" ry="5" fill="#F59E0B" />
             <ellipse cx="120" cy="182" rx="10" ry="5" fill="#F59E0B" />
 
-            {/* Olhos Grandes Expressivos (Estilo Duolingo) */}
+            {/* Olhos Grandes Expressivos */}
             <g className="lampi-eye">
               {/* Olho Esquerdo */}
               <circle cx="78" cy="68" r="16" fill="#FFFFFF" />

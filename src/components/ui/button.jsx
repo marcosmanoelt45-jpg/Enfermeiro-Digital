@@ -13,6 +13,18 @@ const buttonVariants = cva(
           "bg-teal-600 hover:bg-teal-700 text-white shadow-xs hover:shadow-md hover:-translate-y-0.5",
         clinical:
           "btn-clinical",
+        duo:
+          "btn-3d-teal shadow-xs",
+        duoEmerald:
+          "btn-3d-emerald shadow-xs",
+        duoAmber:
+          "btn-3d-amber shadow-xs",
+        duoSky:
+          "btn-3d-sky shadow-xs",
+        duoRose:
+          "btn-3d-rose shadow-xs",
+        duoOutline:
+          "btn-3d-outline shadow-xs",
         destructive:
           "bg-rose-600 text-white shadow-xs hover:bg-rose-700 hover:shadow-md hover:-translate-y-0.5",
         outline:

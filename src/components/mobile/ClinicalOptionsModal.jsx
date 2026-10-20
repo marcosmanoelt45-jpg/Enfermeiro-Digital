@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import {
   X,
   Moon,
@@ -9,9 +9,12 @@ import {
   Eye,
   Sliders,
   Check,
-  Sparkles
+  Sparkles,
+  Volume2,
+  VolumeX
 } from 'lucide-react';
 import { useTheme } from '@/lib/ThemeContext';
+import { soundEffects } from '@/services/soundEffectsService';
 
 export default function ClinicalOptionsModal({ isOpen, onClose }) {
   const {
@@ -25,6 +28,8 @@ export default function ClinicalOptionsModal({ isOpen, onClose }) {
     setHapticFeedback,
     triggerHaptic
   } = useTheme();
+
+  const [soundEnabled, setSoundEnabled] = useState(!soundEffects.isMuted());
 
   if (!isOpen) return null;
 
@@ -299,7 +304,71 @@ export default function ClinicalOptionsModal({ isOpen, onClose }) {
             </div>
           </div>
 
+          {/* Seção 5: Efeitos Sonoros Clínicos Táteis */}
+          <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800 space-y-2.5">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className={`w-9 h-9 rounded-xl flex items-center justify-center transition-colors ${
+                  soundEnabled
+                    ? 'bg-emerald-100 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400'
+                    : 'bg-slate-200 dark:bg-slate-800 text-slate-400'
+                }`}>
+                  {soundEnabled ? <Volume2 className="w-4 h-4 stroke-[2.2]" /> : <VolumeX className="w-4 h-4 stroke-[2.2]" />}
+                </div>
+                <div>
+                  <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">
+                    Efeitos Sonoros Táteis
+                  </span>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400 block">
+                    Feedback de acertos e alertas em simulações clínicas
+                  </span>
+                </div>
+              </div>
 
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const next = !soundEnabled;
+                    setSoundEnabled(next);
+                    soundEffects.setMuted(!next);
+                    if (next) {
+                      soundEffects.playCorrect();
+                    }
+                  }}
+                  className={`w-11 h-6 rounded-full transition-colors relative focus:outline-none cursor-pointer ${
+                    soundEnabled ? 'bg-emerald-600' : 'bg-slate-300 dark:bg-slate-700'
+                  }`}
+                  aria-label="Alternar Efeitos Sonoros"
+                >
+                  <span
+                    className={`block w-4 h-4 rounded-full bg-white shadow-sm transform transition-transform ${
+                      soundEnabled ? 'translate-x-6' : 'translate-x-1'
+                    }`}
+                  />
+                </button>
+              </div>
+            </div>
+
+            {/* Teste Imediato de Som */}
+            <div className="pt-1 flex items-center justify-between border-t border-slate-100 dark:border-slate-700/60 text-xs">
+              <span className={`text-[11px] font-medium ${
+                soundEnabled ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'
+              }`}>
+                {soundEnabled ? '✓ Áudio ativo (acertos e avaliações)' : '✕ Modo Silencioso (Hospitalar)'}
+              </span>
+
+              {soundEnabled && (
+                <button
+                  type="button"
+                  onClick={() => soundEffects.playCorrect()}
+                  className="px-2.5 py-1 rounded-lg bg-emerald-50 dark:bg-emerald-950/80 border border-emerald-200 dark:border-emerald-800 text-emerald-700 dark:text-emerald-300 text-[10px] font-bold hover:bg-emerald-100 active:scale-95 transition-all flex items-center gap-1 cursor-pointer"
+                >
+                  <Sparkles className="w-3 h-3" /> Testar Som
+                </button>
+              )}
+            </div>
+          </div>
 
           {/* Seção 6: PWA e Offline Status */}
           <div className="p-3.5 rounded-2xl bg-slate-100/70 dark:bg-slate-800/70 border border-slate-200/80 dark:border-slate-800 flex items-center justify-between text-xs">
@@ -320,9 +389,9 @@ export default function ClinicalOptionsModal({ isOpen, onClose }) {
               triggerHaptic(20);
               onClose();
             }}
-            className="w-full py-2.5 rounded-2xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-md shadow-emerald-900/20 active:scale-95 transition-all flex items-center justify-center gap-1.5"
+            className="w-full py-3 rounded-2xl bg-emerald-600 hover:bg-emerald-500 border-b-4 border-b-emerald-800 text-white text-xs sm:text-sm font-extrabold shadow-md active:translate-y-1 active:border-b-0 transition-all flex items-center justify-center gap-1.5 cursor-pointer select-none"
           >
-            <Check className="w-4 h-4" />
+            <Check className="w-4 h-4 stroke-[2.5]" />
             <span>Salvar & Concluir</span>
           </button>
           <p className="text-[10px] text-center text-slate-400 dark:text-slate-400 font-medium">

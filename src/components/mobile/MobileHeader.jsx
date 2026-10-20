@@ -101,29 +101,29 @@ export default function MobileHeader({
           </div>
         </div>
 
-        {/* Botão de Preceptor IA e Ajustes (Engrenagem) */}
-        <div className="flex items-center gap-1.5">
+        {/* Botão de Preceptor IA e Ajustes (Engrenagem) com Acabamento 3D */}
+        <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onOpenAIChat}
-            className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-2xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-200 hover:bg-teal-100 text-xs font-bold transition-all active:scale-95 shadow-xs"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-teal-50 dark:bg-teal-950/80 border-2 border-teal-200 dark:border-teal-800 border-b-4 border-b-teal-300 dark:border-b-teal-900 text-teal-900 dark:text-teal-200 hover:bg-teal-100 text-xs font-black transition-all active:translate-y-1 active:border-b-2 shadow-2xs select-none cursor-pointer"
             aria-label="Abrir Chat com Preceptor Goti"
             title="Dúvidas clínicas? Conversar com o Goti"
           >
             <div className="relative flex items-center justify-center">
-              <img src="/goti/goti-icone.jpg" alt="Goti" className="w-6 h-6 rounded-full object-cover ring-1 ring-teal-400/50 shadow-xs" />
+              <img src="/goti/goti-icone.jpg" alt="Goti" className="w-6 h-6 rounded-xl object-cover ring-1 ring-teal-400/50 shadow-2xs" />
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900 animate-pulse" />
             </div>
-            <span className="text-[11px] font-black">Goti IA</span>
+            <span className="text-[11px] font-black tracking-tight">Goti IA</span>
           </button>
 
           <button
             onClick={onOpenOptions}
-            className="p-2.5 rounded-2xl bg-slate-100/80 dark:bg-slate-900 border border-slate-200/60 dark:border-slate-800 text-slate-600 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:border-emerald-300 active:scale-95 transition-all shadow-xs"
+            className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-4 border-b-slate-300 dark:border-b-slate-700/90 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:border-emerald-300 active:translate-y-1 active:border-b-2 transition-all shadow-2xs select-none cursor-pointer"
             aria-label="Abrir Ajustes e Opções de Tema"
             title="Ajustes de Tema & Opções Clínicas"
           >
-            <Settings className="w-4 h-4 stroke-[2.2]" />
+            <Settings className="w-4 h-4 stroke-[2.5]" />
           </button>
         </div>
       </div>

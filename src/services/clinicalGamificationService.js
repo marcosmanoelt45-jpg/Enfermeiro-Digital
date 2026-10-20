@@ -1,7 +1,7 @@
 /**
  * clinicalGamificationService.js
  * Motor de Gamificação Pedagógica & Infraestrutura Multiplayer do Enfere.
- * Inspirado nas mecânicas de motivação diária e interação social colaborativa (Vibe Duolingo),
+ * Mecânicas de motivação diária e interação social colaborativa,
  * com identidade e rigor clínico autênticos de Enfermagem (COFEN nº 736/2024).
  */
 

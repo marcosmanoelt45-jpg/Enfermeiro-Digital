@@ -23,7 +23,7 @@ import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 
-export default function StudentHeader({ activeTab = "hub" }) {
+export default function StudentHeader({ activeTab = "hub", desktopOnly = false }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
   const { theme, toggleTheme, triggerHaptic } = useTheme();
@@ -79,7 +79,7 @@ export default function StudentHeader({ activeTab = "hub" }) {
 
   return (
     <>
-      <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl transition-colors">
+      <header className={`sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl transition-colors ${desktopOnly ? "hidden md:block" : ""}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between gap-3">
             {/* Logo Oficial com Ícone do Goti */}
@@ -129,26 +129,26 @@ export default function StudentHeader({ activeTab = "hub" }) {
 
             {/* Ações do Usuário: Chat do Goti, Pontos de Estudo (PE), Tema e Perfil */}
             <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* Botão de Chat com o Goti */}
+              {/* Botão de Chat com o Goti com Física 3D Tátil */}
               <button
                 type="button"
                 onClick={() => {
                   triggerHaptic(20);
                   setIsGotiChatOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-2.5 sm:px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 text-teal-800 dark:text-teal-200 hover:bg-teal-100/80 dark:hover:bg-teal-900/80 text-xs font-bold transition-all active:scale-95 shadow-2xs"
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/80 border-2 border-teal-200 dark:border-teal-800 border-b-4 border-b-teal-300 dark:border-b-teal-900 text-teal-900 dark:text-teal-200 hover:bg-teal-100/90 dark:hover:bg-teal-900/90 text-xs font-extrabold transition-all active:translate-y-1 active:border-b-2 shadow-2xs cursor-pointer select-none"
                 title="Conversar diretamente com o Goti"
               >
                 <div className="relative flex items-center justify-center">
                   <img
                     src="/goti/goti-icone.jpg"
                     alt="Goti"
-                    className="w-5 h-5 object-cover rounded-lg"
+                    className="w-5 h-5 object-cover rounded-lg shadow-2xs"
                   />
                   <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
                 <span className="hidden sm:inline">Goti</span>
-                <span className="text-[9px] uppercase px-1 py-0.2 rounded bg-teal-200/60 dark:bg-teal-800/60 text-teal-900 dark:text-teal-200 font-extrabold">
+                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded-md bg-teal-200/80 dark:bg-teal-800/80 text-teal-950 dark:text-teal-100 font-black">
                   Chat
                 </span>
               </button>

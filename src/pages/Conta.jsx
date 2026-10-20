@@ -485,7 +485,7 @@ export default function Conta() {
         {/* ABA 1: PERFIL & ESTATÍSTICAS CLÍNICAS */}
         {activeTab === "stats" && (
           <div className="space-y-4">
-            {/* Card de Ofensiva & Congelamento de Plantão (Estilo Duolingo) */}
+            {/* Card de Ofensiva & Congelamento de Plantão */}
             <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-900/60 bg-gradient-to-r from-amber-50/70 via-orange-50/40 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 p-5 shadow-xs space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                 <div className="flex items-center gap-3.5">
@@ -538,7 +538,7 @@ export default function Conta() {
                       </span>
                     </h5>
                     <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                      Fique 1 dia sem atividade sem perder sua contagem de dias seguidos (estilo Duolingo).
+                      Fique 1 dia sem atividade sem perder sua contagem de dias seguidos na escala clínica.
                     </p>
                   </div>
                 </div>
