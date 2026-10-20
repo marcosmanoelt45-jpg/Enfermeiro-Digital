@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { AlertCircle, Plus, CheckCircle2, ClipboardCheck, Stethoscope, Lightbulb, Check, ArrowRight, X, Edit3 } from "lucide-react";
+import { AlertCircle, Plus, CheckCircle2, ClipboardCheck, Stethoscope, Lightbulb, Check, ArrowRight, X } from "lucide-react";
 import {
   Dialog,
   DialogContent,
@@ -285,7 +285,7 @@ export default function ClinicalGapRadar({
                   <GotiAnimated
                     animation={selectedOption.isCorrect ? "love" : "angry"}
                     size="feedback"
-                    className="w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 shrink-0"
+                    className="w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 shrink-0"
                   />
                 </div>
                 <div className="space-y-0.5">

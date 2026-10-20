@@ -11,76 +11,28 @@
 
 import { sanitizeTextForLGPD } from "../lib/dlpSanitizer.js";
 
-function getGeminiApiKey() {
-  if (typeof localStorage !== "undefined") {
-    const key = localStorage.getItem("enfermeiro_gemini_api_key");
-    if (key && key.trim()) return key.trim();
-  }
-  try {
-    if (typeof import.meta !== "undefined" && import.meta.env && import.meta.env.VITE_GEMINI_API_KEY) {
-      return import.meta.env.VITE_GEMINI_API_KEY;
-    }
-  } catch {}
-  try {
-    if (typeof globalThis !== "undefined" && globalThis.process?.env?.VITE_GEMINI_API_KEY) {
-      return globalThis.process.env.VITE_GEMINI_API_KEY;
-    }
-  } catch {}
-  return "";
-}
+import { callResilientAI } from "./aiCoreService.js";
 
+/**
+ * Executa avaliação pedagógica SBAR usando callResilientAI.
+ */
 async function callGemini(systemPrompt, userPrompt) {
-  const apiKey = getGeminiApiKey();
-  if (!apiKey) return null;
+  try {
+    const result = await callResilientAI(systemPrompt, userPrompt, {
+      temperature: 0.3,
+      responseMimeType: "application/json",
+      maxTokens: 1500,
+    });
 
-  const savedModel = (typeof localStorage !== "undefined" && localStorage.getItem("enfermeiro_gemini_model")) || null;
-  const models = [
-    ...(savedModel ? [savedModel] : []),
-    "gemini-3.5-flash",
-    "gemini-flash-latest",
-    "gemini-3.1-flash-lite",
-    "gemini-3.8-flash",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash"
-  ].filter((v, i, a) => a.indexOf(v) === i);
-
-  for (const model of models) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [{ text: `${systemPrompt}\n\n---\n\n${userPrompt}` }]
-              }
-            ],
-            generationConfig: {
-              temperature: 0.3,
-              responseMimeType: "application/json"
-            }
-          })
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          try {
-            return JSON.parse(text);
-          } catch {
-            return { rawResponse: text };
-          }
-        }
+    if (result?.text) {
+      try {
+        return JSON.parse(result.text);
+      } catch {
+        return { rawResponse: result.text };
       }
-    } catch (err) {
-      console.warn(`[Preceptoria SBAR] Falha com modelo ${model}:`, err);
     }
+  } catch (err) {
+    console.warn("[Preceptoria SBAR] Falha ao invocar motor de IA resiliente:", err);
   }
 
   return null;

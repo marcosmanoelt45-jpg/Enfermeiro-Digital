@@ -524,13 +524,12 @@ export default function MedicationDosageLab() {
             </div>
 
             {/* Dica e Suporte do Goti */}
-            <div className="rounded-2xl border border-teal-200/80 dark:border-teal-800/80 bg-gradient-to-r from-teal-50/80 via-emerald-50/40 to-white dark:from-teal-950/40 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
+            <div className="rounded-2xl border border-teal-200/80 dark:border-teal-800/80 bg-teal-50/70 dark:bg-slate-900/90 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <div className="shrink-0 flex items-center justify-center">
                 <GotiAnimated
-                  animation={evaluating ? "thinking" : feedback?.isCorrect ? "love" : feedback ? "angry" : "pointing"}
+                  animation={evaluating ? "thinking" : feedback?.isCorrect ? "jumping" : feedback ? "angry" : "pointing"}
                   size="feedback"
-                  className="w-22 h-22 sm:w-28 sm:h-28 md:w-36 md:h-36 shrink-0"
-                  withSoundToggle={false}
+                  className="w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 lg:w-56 lg:h-56 shrink-0"
                 />
               </div>
               <div className="flex-1 text-center sm:text-left space-y-2">
@@ -753,15 +752,14 @@ export default function MedicationDosageLab() {
                     >
                       <div className="flex flex-col sm:flex-row items-center gap-4">
                         <div
-                          className="shrink-0 flex items-center justify-center p-1 cursor-pointer transition-transform hover:scale-105 active:scale-95"
+                          className="shrink-0 flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95"
                           onClick={() => setShowGotiEvaluationModal(true)}
                           title="Clique para ver a comemoração do Goti!"
                         >
                           <GotiAnimated
-                            animation={feedback.isCorrect ? "love" : "angry"}
+                            animation={feedback.isCorrect ? "jumping" : "angry"}
                             size="feedback"
-                            className="w-22 h-22 sm:w-28 sm:h-28 md:w-36 md:h-36 shrink-0"
-                            withSoundToggle={true}
+                            className="w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 lg:w-56 lg:h-56 shrink-0"
                           />
                         </div>
                         <div className="flex-1 space-y-1.5 text-center sm:text-left">

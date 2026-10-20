@@ -2,7 +2,6 @@ import React from 'react';
 import { Drawer } from 'vaul';
 import {
   Users,
-  ActivitySquare,
   Sparkles,
   ShieldCheck,
   LogOut,
@@ -37,14 +36,7 @@ export default function MobilePocketDrawer({
       path: '/procedimentos',
       tag: 'Skills Lab'
     },
-    {
-      id: 'systems',
-      title: 'Semiologia por Sistemas',
-      subtitle: 'Exame físico segmentar com orientações práticas',
-      icon: ActivitySquare,
-      path: '/sistemas-organicos',
-      tag: 'Semiologia'
-    },
+
     {
       id: 'turmas',
       title: 'Minhas Turmas',

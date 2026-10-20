@@ -12,8 +12,7 @@ import {
   Clock,
   BookmarkPlus,
   ArrowRight,
-  CheckCircle2,
-  X
+  CheckCircle2
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
@@ -21,7 +20,6 @@ import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
-import GotiAnimated from "@/components/mascot/GotiAnimated";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 
 const SYSTEMS_MODULES = [

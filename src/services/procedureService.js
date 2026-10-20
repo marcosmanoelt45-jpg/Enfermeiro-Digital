@@ -18,7 +18,7 @@ function getGeminiApiKey() {
     const key = localStorage.getItem('enfermeiro_gemini_api_key');
     if (key && key.trim()) return key.trim();
   }
-  return import.meta.env.VITE_GEMINI_API_KEY || '';
+  return '';
 }
 
 // Catálogo Mestre Pré-Carregado de Procedimentos de Enfermagem (Padrão Hospitalar & Acadêmico)
@@ -414,11 +414,6 @@ export const procedureService = {
    * Gera um POP completo com IA (Google Gemini).
    */
   async generateProcedureWithAI(promptTopic) {
-    const apiKey = getGeminiApiKey();
-    if (!apiKey) {
-      throw new Error('Configure sua chave do Google Gemini em Minha Conta para gerar procedimentos com IA.');
-    }
-
     const systemPrompt = `Você é um Enfermeiro Especialista em Educação em Saúde, Semiotécnica e Normativas do COFEN nº 736/2024.
 Sua missão: Gerar um Procedimento Operacional Padrão (POP) e guia de habilidades clínicas de altíssima precisão e rigor asséptico para o procedimento solicitado.
 Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro), com a seguinte estrutura:
@@ -448,35 +443,17 @@ Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro
 
     const userPrompt = `Gere o POP e roteiro didático de procedimento completo para: "${promptTopic}". Seja minucioso nos materiais, na técnica asséptica e nas complicações a evitar.`;
 
-    const activeModel = localStorage.getItem('enfermeiro_gemini_model') || 'gemini-2.0-flash';
+    const result = await callResilientAI(systemPrompt, userPrompt, {
+      maxTokens: 2000,
+      temperature: 0.3,
+      responseMimeType: 'application/json'
+    });
 
-    const res = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/${activeModel}:generateContent?key=${apiKey}`,
-      {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          contents: [
-            {
-              parts: [
-                { text: systemPrompt },
-                { text: userPrompt },
-              ],
-            },
-          ],
-        }),
-      }
-    );
-
-    if (!res.ok) {
-      const errData = await res.json().catch(() => ({}));
-      throw new Error(errData?.error?.message || 'Falha ao comunicar com a IA do Google Gemini.');
+    if (!result?.text) {
+      throw new Error('Não foi possível gerar o procedimento com a IA no momento.');
     }
 
-    const data = await res.json();
-    const rawText = data?.candidates?.[0]?.content?.parts?.[0]?.text || '';
-    const cleanJson = rawText.replace(/```json/g, '').replace(/```/g, '').trim();
-
+    const cleanJson = result.text.replace(/```json/g, '').replace(/```/g, '').trim();
     const parsed = JSON.parse(cleanJson);
     parsed.id = `ai-proc-${Date.now()}`;
     parsed.isGeneratedByAI = true;

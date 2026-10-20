@@ -15,7 +15,6 @@ import StudentDashboard from '@/pages/StudentDashboard';
 import CaseStudySimulator from '@/pages/CaseStudySimulator';
 import CaseStudio from '@/pages/CaseStudio';
 import MedicationDosageLab from '@/pages/MedicationDosageLab';
-import SystemsAssessmentLab from '@/pages/SystemsAssessmentLab';
 import PrivacyPolicyLGPD from '@/pages/PrivacyPolicyLGPD';
 import CaseLibrary from '@/pages/CaseLibrary';
 import References from '@/pages/References';
@@ -67,6 +66,8 @@ const AuthenticatedApp = () => {
       <Route path="/forgot-password" element={<ForgotPassword />} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="/privacidade-lgpd" element={<PrivacyPolicyLGPD />} />
+      <Route path="/faq" element={<PrivacyPolicyLGPD />} />
+      <Route path="/ajuda" element={<PrivacyPolicyLGPD />} />
       <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
         {/* Hub Principal do Estudante e Módulos Educacionais */}
         <Route path="/" element={<StudentDashboard />} />
@@ -76,8 +77,8 @@ const AuthenticatedApp = () => {
         <Route path="/case-study" element={<CaseStudySimulator />} />
         <Route path="/laboratorio-calculos" element={<MedicationDosageLab />} />
         <Route path="/dosage-lab" element={<MedicationDosageLab />} />
-        <Route path="/sistemas-organicos" element={<SystemsAssessmentLab />} />
-        <Route path="/systems-assessment" element={<SystemsAssessmentLab />} />
+        <Route path="/sistemas-organicos" element={<Navigate to="/" replace />} />
+        <Route path="/systems-assessment" element={<Navigate to="/" replace />} />
         <Route path="/banco-casos" element={<CaseLibrary />} />
         <Route path="/referencias" element={<References />} />
         <Route path="/turmas" element={<Turmas />} />

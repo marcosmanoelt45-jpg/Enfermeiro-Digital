@@ -15,29 +15,26 @@ function blobToBase64(blob) {
 }
 
 export const audioTranscriptionService = {
-  // Retorna a chave do AssemblyAI se configurada
+  // Retorna a chave do AssemblyAI se configurada no localStorage do usuário
   getAssemblyAIKey() {
     return (
       (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_assemblyai_api_key')) ||
-      import.meta.env.VITE_ASSEMBLYAI_API_KEY ||
       ''
     ).trim();
   },
 
-  // Retorna a chave do Gemini se configurada
+  // Retorna a chave do Gemini se configurada no localStorage do usuário
   getGeminiKey() {
     return (
       (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_gemini_api_key')) ||
-      import.meta.env.VITE_GEMINI_API_KEY ||
       ''
     ).trim();
   },
 
-  // Retorna a chave do OpenRouter se configurada
+  // Retorna a chave do OpenRouter se configurada no localStorage do usuário
   getOpenRouterKey() {
     return (
       (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_openrouter_api_key')) ||
-      (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env.VITE_OPENROUTER_API_KEY) ||
       ''
     ).trim();
   },

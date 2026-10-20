@@ -43,3 +43,4 @@ _backup_pre_mobile/
 .claude/
 .kilo/
 agent/
+supabase/.temp/

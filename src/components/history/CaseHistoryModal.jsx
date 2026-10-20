@@ -132,7 +132,6 @@ export default function CaseHistoryModal({
               { id: "case_builder", label: "Montador de Casos" },
               { id: "case_simulator", label: "Simulador de Casos" },
               { id: "dosage", label: "Cálculo de Doses" },
-              { id: "systems_assessment", label: "Semiologia" },
             ].map((flt) => (
               <button
                 key={flt.id}

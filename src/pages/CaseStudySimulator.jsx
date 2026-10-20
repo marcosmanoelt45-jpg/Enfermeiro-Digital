@@ -17,13 +17,15 @@ import {
   Eye,
   Check,
   ArrowRightLeft,
-  Scale,
   Award,
   MessageSquareQuote,
   History,
   Clock,
   BookmarkPlus,
-  Sparkles
+  Sparkles,
+  AlertTriangle,
+  HelpCircle,
+  CheckCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -35,9 +37,10 @@ import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
-import { searchNandaCatalog, getNandaContextualSuggestions, COMMON_ETIOLOGIES, COMMON_EVIDENCES } from "@/lib/nandaCatalog";
+import { searchNandaCatalog, getNandaContextualSuggestions, COMMON_ETIOLOGIES } from "@/lib/nandaCatalog";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
+import { useDragScroll } from "@/hooks/useDragScroll";
 
 export default function CaseStudySimulator() {
   const navigate = useNavigate();
@@ -65,6 +68,93 @@ export default function CaseStudySimulator() {
   const contextualData = useMemo(() => {
     return getNandaContextualSuggestions(studentHypothesis);
   }, [studentHypothesis]);
+
+  // Drag-to-scroll refs para atalhos de diagnóstico, etiologias e evidências
+  const quickDiagsScrollRef = useDragScroll();
+  const etiologiesScrollRef = useDragScroll();
+  const evidencesScrollRef = useDragScroll();
+
+  // Feedback pedagógico e socrático do Goti (Detetive Clínico)
+  const [detectiveFeedback, setDetectiveFeedback] = useState(null);
+
+  function handleExamineDiagnosis(quickDiag) {
+    const v = currentCase?.vitals || {};
+    const isRespiratoryDistress = (v.fr && v.fr > 22) || (v.sat && v.sat < 93);
+
+    if (quickDiag === "Padrão respiratório ineficaz" || quickDiag === "Troca de gases prejudicada") {
+      if (isRespiratoryDistress) {
+        setStudentHypothesis(quickDiag);
+        setShowDiagnosisSuggestions(false);
+        setDetectiveFeedback({
+          type: "success",
+          title: "🎯 Pista Confirmada pelo Detetive Goti!",
+          text: `Excelente julgamento clínico! Com FR de ${v.fr} irpm e SpO₂ de ${v.sat}%, a ventilação/oxigenação é a resposta humana mais urgente (Regra do ABC).`,
+          question: "Agora pense: qual fator causal (etiologia) e quais evidências do exame físico sustentam essa hipótese?"
+        });
+        return;
+      }
+    }
+
+    if (quickDiag === "Risco de quedas" || quickDiag === "Integridade da pele prejudicada") {
+      if (isRespiratoryDistress) {
+        setDetectiveFeedback({
+          type: "challenge",
+          title: "🤔 Alto lá, Detetive Clínico!",
+          text: `Atenção à priorização de Maslow! O paciente está com FR de ${v.fr} irpm e SatO₂ de ${v.sat}%. Prevenção de quedas ou lesão de pele é relevante, mas a insuficiência ventilatória é risco iminente de vida.`,
+          question: "Deseja realmente priorizar este diagnóstico ou prefere focar na queixa respiratória aguda?",
+          actionLabel: "Quero manter este mesmo",
+          onConfirm: () => {
+            setStudentHypothesis(quickDiag);
+            setShowDiagnosisSuggestions(false);
+            setDetectiveFeedback(null);
+          }
+        });
+        return;
+      }
+    }
+
+    if (quickDiag === "Volume de líquidos excessivo") {
+      setStudentHypothesis(quickDiag);
+      setShowDiagnosisSuggestions(false);
+      setDetectiveFeedback({
+        type: "success",
+        title: "💡 Raciocínio Fisiopatológico Preciso!",
+        text: `Muito bom! A hipervolemia é a etiologia central da congestão pulmonar observada na ausculta.`,
+        question: "Quais achados da anamnese ou da ausculta comprovam a sobrecarga hídrica?"
+      });
+      return;
+    }
+
+    // Padrão para outros diagnósticos
+    setStudentHypothesis(quickDiag);
+    setShowDiagnosisSuggestions(false);
+    setDetectiveFeedback({
+      type: "info",
+      title: "🧐 Hipótese Selecionada para Investigação:",
+      text: `Você escolheu "${quickDiag}". Lembre-se: diagnósticos com foco no problema exigem etiologia (causa) e características definidoras observadas no exame físico.`,
+      question: "Consulte o prontuário na aba de Avaliação para extrair as evidências correspondentes."
+    });
+  }
+
+  function handleExamineEvidence(evidenceItem, isContradictory = false, contradictionReason = "") {
+    if (isContradictory) {
+      setDetectiveFeedback({
+        type: "warning",
+        title: "⚡ Pegadinha Detectada pelo Goti!",
+        text: contradictionReason || `Esta evidência não condiz com os dados reais do prontuário deste paciente!`,
+        question: "Revise a régua de sinais vitais e os achados da Etapa 1 antes de selecionar."
+      });
+      return;
+    }
+
+    handleSelectEvidence(evidenceItem);
+    setDetectiveFeedback({
+      type: "success",
+      title: "✅ Evidência Adicionada ao Diagnóstico!",
+      text: `Você vinculou "${evidenceItem}" ao quadro do paciente.`,
+      question: "Mais alguma evidência do prontuário confirma este diagnóstico?"
+    });
+  }
 
   function handleSelectEtiology(term) {
     if (!studentEtiology.trim()) {
@@ -603,49 +693,11 @@ export default function CaseStudySimulator() {
                   }`}
                 >
                   <Award className="h-3.5 w-3.5" />
-                  <span>Debriefing PEARLS ({tutorEvaluation.score}%)</span>
+                  <span>Conclusão ({tutorEvaluation.score}%)</span>
                 </button>
               )}
-
-              <button
-                onClick={() => setShowCofenGuideline(!showCofenGuideline)}
-                className={`py-1.5 px-2.5 rounded-xl text-xs font-medium border flex items-center gap-1.5 transition ${
-                  showCofenGuideline
-                    ? "bg-slate-100 dark:bg-slate-800 border-slate-300 dark:border-slate-700 text-slate-900 dark:text-slate-100"
-                    : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                }`}
-                title="Consultar diretriz regulatória da etapa clínica"
-              >
-                <Scale className="h-3.5 w-3.5 text-slate-500" />
-                <span className="hidden sm:inline">{showCofenGuideline ? "Ocultar COFEN" : "COFEN 736"}</span>
-              </button>
             </div>
           </div>
-
-          {/* Diretriz COFEN 736/2024 Sob Demanda (Divulgação Progressiva) */}
-          {showCofenGuideline && (
-            <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-1 animate-in fade-in">
-              <div className="flex items-center justify-between">
-                <span className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide text-[11px] flex items-center gap-1.5">
-                  <Scale className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                  Diretriz Regulatória COFEN nº 736/2024 — Etapa {activeStep}
-                </span>
-                <button
-                  onClick={() => setShowCofenGuideline(false)}
-                  className="text-[10px] font-bold text-slate-500 hover:underline"
-                >
-                  Fechar
-                </button>
-              </div>
-              <p className="leading-relaxed">
-                {activeStep === 1 && "A etapa de Avaliação subsidia todas as decisões clínicas subsequentes por meio da coleta metódica de dados subjetivos e objetivos."}
-                {activeStep === 2 && "O Diagnóstico de Enfermagem representa o julgamento clínico sobre as respostas da pessoa ou coletividade a processos de saúde/doença."}
-                {activeStep === 3 && "O Planejamento envolve a determinação das metas e dos resultados que se espera alcançar com a assistência de enfermagem."}
-                {activeStep === 4 && "A Implementação consiste na execução das intervenções prescritas pelo enfermeiro com rigor e aprazamento."}
-                {activeStep === 5 && "A Evolução é o processo contínuo de avaliação dos resultados alcançados e readequação do plano de cuidados terapêuticos."}
-              </p>
-            </div>
-          )}
         </div>
 
         {/* WORKSPACE CENTRAL LIMPO (Sem ruído lateral - CLT / Sweller) */}
@@ -656,12 +708,12 @@ export default function CaseStudySimulator() {
             /* ========================================================================= */
             <div className="space-y-6 animate-in fade-in">
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5">
-                {/* Cabeçalho do Debriefing */}
+                {/* Cabeçalho da Conclusão */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 gap-3">
                   <div className="space-y-1">
                     <div className="flex items-center gap-2">
                       <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 uppercase tracking-wide">
-                        Framework PEARLS • Debriefing com o Goti
+                        Conclusão do Caso Clínico • Avaliação Formativa
                       </span>
                       <span className="text-xs text-slate-400 font-semibold">Goti IA</span>
                     </div>
@@ -680,10 +732,9 @@ export default function CaseStudySimulator() {
                       title="Clique para ver a comemoração e parecer completo do Goti!"
                     >
                       <GotiAnimated
-                        animation={tutorEvaluation.score >= 80 ? "love" : tutorEvaluation.score >= 50 ? "pointing" : "angry"}
+                        animation={tutorEvaluation.score >= 80 ? "jumping" : tutorEvaluation.score >= 50 ? "pointing" : "angry"}
                         size="feedback"
-                        className="w-22 h-22 sm:w-28 sm:h-28 md:w-36 md:h-36 shrink-0"
-                        withSoundToggle={true}
+                        className="w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 shrink-0"
                       />
                     </div>
                     <div className="text-right">
@@ -980,7 +1031,7 @@ export default function CaseStudySimulator() {
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5 animate-in fade-in">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-3">
                   <div className="flex items-center gap-3">
-                    <GotiAnimated animation="thinking" size="xs" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 shrink-0" />
+                    <GotiAnimated animation="thinking" size="md" className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 shrink-0 drop-shadow-md" />
                     <div>
                       <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
                         Etapa 2 do PE: Diagnóstico de Enfermagem
@@ -1025,12 +1076,83 @@ export default function CaseStudySimulator() {
 
                 {currentHint && (
                   <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-950 dark:text-amber-200 flex items-start gap-3 animate-in fade-in">
-                    <GotiAnimated animation="pointing" size="xs" className="w-12 h-12 sm:w-14 sm:h-14 md:w-18 md:h-18 shrink-0 mt-0.5" />
+                    <GotiAnimated animation="pointing" size="sm" className="w-18 h-18 sm:w-20 sm:h-20 md:w-24 md:h-24 shrink-0 mt-0.5 drop-shadow-md" />
                     <div className="space-y-1">
                       <span className="font-bold flex items-center gap-1 text-amber-800 dark:text-amber-300">
                         <Lightbulb className="h-3.5 w-3.5" /> Dica do Goti:
                       </span>
                       <p className="leading-relaxed">{currentHint.content}</p>
+                    </div>
+                  </div>
+                )}
+
+                {/* Feedback Lúdico e Desafio Socrático do Detetive Goti */}
+                {detectiveFeedback && (
+                  <div
+                    className={`p-4 rounded-2xl border text-xs flex items-start gap-3.5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300 ${
+                      detectiveFeedback.type === "success"
+                        ? "bg-emerald-50/90 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100"
+                        : detectiveFeedback.type === "challenge"
+                        ? "bg-amber-50/95 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-100"
+                        : detectiveFeedback.type === "warning"
+                        ? "bg-rose-50/95 dark:bg-rose-950/60 border-rose-300 dark:border-rose-700 text-rose-950 dark:text-rose-100"
+                        : "bg-teal-50/90 dark:bg-teal-950/50 border-teal-300 dark:border-teal-800 text-teal-950 dark:text-teal-100"
+                    }`}
+                  >
+                    <GotiAnimated
+                      animation={
+                        detectiveFeedback.type === "success"
+                          ? "jumping"
+                          : detectiveFeedback.type === "warning"
+                          ? "thinking"
+                          : "pointing"
+                      }
+                      size="sm"
+                      className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 drop-shadow-md"
+                    />
+                    <div className="flex-1 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-sm flex items-center gap-1.5">
+                          {detectiveFeedback.type === "success" && <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
+                          {detectiveFeedback.type === "challenge" && <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
+                          {detectiveFeedback.type === "warning" && <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />}
+                          {detectiveFeedback.title}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setDetectiveFeedback(null)}
+                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs px-1"
+                        >
+                          ✕
+                        </button>
+                      </div>
+                      <p className="leading-relaxed">{detectiveFeedback.text}</p>
+                      {detectiveFeedback.question && (
+                        <p className="font-semibold italic text-[11px] opacity-90 border-t border-slate-200/60 dark:border-slate-800/80 pt-1 mt-1">
+                          💬 {detectiveFeedback.question}
+                        </p>
+                      )}
+                      {detectiveFeedback.onConfirm && (
+                        <div className="pt-2 flex items-center gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            onClick={detectiveFeedback.onConfirm}
+                            className="rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-2xs h-8"
+                          >
+                            {detectiveFeedback.actionLabel || "Confirmar Escolha"}
+                          </Button>
+                          <Button
+                            type="button"
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setDetectiveFeedback(null)}
+                            className="rounded-xl text-xs h-8 text-slate-600 dark:text-slate-300"
+                          >
+                            Reavaliar Pistas
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   </div>
                 )}
@@ -1063,6 +1185,7 @@ export default function CaseStudySimulator() {
                           onClick={() => {
                             setStudentHypothesis("");
                             setShowDiagnosisSuggestions(false);
+                            setDetectiveFeedback(null);
                           }}
                           className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs px-1"
                         >
@@ -1090,8 +1213,7 @@ export default function CaseStudySimulator() {
                               key={diag.code || diag.title}
                               type="button"
                               onClick={() => {
-                                setStudentHypothesis(diag.title);
-                                setShowDiagnosisSuggestions(false);
+                                handleExamineDiagnosis(diag.title);
                               }}
                               className="w-full text-left p-3 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition flex items-start justify-between gap-3 group"
                             >
@@ -1112,28 +1234,38 @@ export default function CaseStudySimulator() {
                       </div>
                     )}
 
-                    {/* Chips Rápidos de Atalhos Mais Frequentes */}
-                    <div className="flex items-center gap-1.5 flex-wrap mt-2">
-                      <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Exemplos rápidos:</span>
-                      {[
-                        "Risco de quedas",
-                        "Padrão respiratório ineficaz",
-                        "Troca de gases prejudicada",
-                        "Volume de líquidos excessivo",
-                        "Integridade da pele prejudicada"
-                      ].map((quickDiag) => (
-                        <button
-                          key={quickDiag}
-                          type="button"
-                          onClick={() => {
-                            setStudentHypothesis(quickDiag);
-                            setShowDiagnosisSuggestions(false);
-                          }}
-                          className="text-[11px] font-medium px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 text-slate-700 dark:text-slate-300 transition"
-                        >
-                          + {quickDiag}
-                        </button>
-                      ))}
+                    {/* Chips Rápidos de Hipóteses com Drag-to-Scroll e Validação do Detetive */}
+                    <div className="mt-2.5">
+                      <div className="flex items-center justify-between mb-1">
+                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1">
+                          🕵️‍♂️ Laboratório de Hipóteses do Goti (arraste e pense antes de clicar):
+                        </span>
+                        <span className="text-[10px] text-slate-400">arraste ↔</span>
+                      </div>
+                      <div
+                        ref={quickDiagsScrollRef}
+                        className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none"
+                      >
+                        {[
+                          { title: "Padrão respiratório ineficaz", badge: "Ventilação" },
+                          { title: "Troca de gases prejudicada", badge: "Oxigenação" },
+                          { title: "Volume de líquidos excessivo", badge: "Hemodinâmica" },
+                          { title: "Risco de quedas", badge: "Segurança" },
+                          { title: "Integridade da pele prejudicada", badge: "Tegumentar" }
+                        ].map((item) => (
+                          <button
+                            key={item.title}
+                            type="button"
+                            onClick={() => handleExamineDiagnosis(item.title)}
+                            className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 text-slate-700 dark:text-slate-200 transition active:scale-95 shadow-2xs flex items-center gap-1.5 group"
+                          >
+                            <span className="text-[9px] uppercase px-1 py-0.5 rounded bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 font-bold">
+                              {item.badge}
+                            </span>
+                            <span>{item.title}</span>
+                          </button>
+                        ))}
+                      </div>
                     </div>
                   </div>
 
@@ -1158,38 +1290,35 @@ export default function CaseStudySimulator() {
                       className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[64px] focus:ring-2 focus:ring-teal-500"
                     />
 
-                    {/* Chips de Atalhos de Fatores Relacionados / Risco */}
-                    {contextualData.etiologies.length > 0 ? (
-                      <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
+                    {/* Chips de Atalhos de Fatores Relacionados / Risco com Drag-to-Scroll */}
+                    <div className="pt-0.5">
+                      <div className="flex items-center justify-between mb-1">
                         <span className="text-[11px] text-teal-800 dark:text-teal-400 font-semibold">
-                          Causas prováveis recomendadas (NANDA-I):
+                          {contextualData.etiologies.length > 0
+                            ? "Causas prováveis recomendadas (NANDA-I):"
+                            : "Causas frequentes:"}
                         </span>
-                        {contextualData.etiologies.map((item, idx) => (
+                        <span className="text-[10px] text-slate-400">arraste ↔</span>
+                      </div>
+                      <div
+                        ref={etiologiesScrollRef}
+                        className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none"
+                      >
+                        {(contextualData.etiologies.length > 0
+                          ? contextualData.etiologies
+                          : COMMON_ETIOLOGIES.slice(0, 5)
+                        ).map((item, idx) => (
                           <button
                             key={idx}
                             type="button"
                             onClick={() => handleSelectEtiology(item)}
-                            className="text-[11px] font-medium px-2 py-0.5 rounded-lg border border-teal-200 dark:border-teal-800 bg-teal-50/70 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900 text-teal-900 dark:text-teal-200 transition active:scale-95 shadow-2xs"
+                            className="flex-shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/70 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900 text-teal-900 dark:text-teal-200 transition active:scale-95 shadow-2xs whitespace-nowrap"
                           >
                             + {item}
                           </button>
                         ))}
                       </div>
-                    ) : (
-                      <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Exemplos rápidos:</span>
-                        {COMMON_ETIOLOGIES.slice(0, 4).map((item, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => handleSelectEtiology(item)}
-                            className="text-[11px] font-medium px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-teal-400 text-slate-700 dark:text-slate-300 transition active:scale-95"
-                          >
-                            + {item}
-                          </button>
-                        ))}
-                      </div>
-                    )}
+                    </div>
                   </div>
 
                   {/* 3. Características Definidoras / Evidências Clínicas com Ajuda Contextual Inteligente */}
@@ -1230,40 +1359,94 @@ export default function CaseStudySimulator() {
                       className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[64px] focus:ring-2 focus:ring-teal-500"
                     />
 
-                    {/* Chips de Atalhos de Características Definidoras */}
-                    {contextualData.evidences.length > 0 ? (
-                      <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                        <span className="text-[11px] text-emerald-800 dark:text-emerald-400 font-semibold">
-                          Evidências recomendadas (NANDA-I):
+                    {/* Painel do Detetive: Pistas Reais do Paciente vs Pegadinhas */}
+                    <div className="pt-1 space-y-1.5">
+                      <div className="flex items-center justify-between">
+                        <span className="text-[11px] text-emerald-800 dark:text-emerald-400 font-bold flex items-center gap-1">
+                          🔍 Pistas Clínicas do Prontuário deste Caso (Clique para investigar):
                         </span>
+                        <span className="text-[10px] text-slate-400">arraste ↔</span>
+                      </div>
+
+                      <div
+                        ref={evidencesScrollRef}
+                        className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none"
+                      >
+                        {/* Evidências reais calculadas a partir dos vitais do caso */}
+                        {currentCase?.vitals?.fr && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleExamineEvidence(
+                                currentCase.vitals.fr > 20
+                                  ? `Taquipneia acentuada (FR: ${currentCase.vitals.fr} irpm)`
+                                  : `Frequência respiratória mantida (FR: ${currentCase.vitals.fr} irpm)`
+                              )
+                            }
+                            className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 transition active:scale-95 shadow-2xs whitespace-nowrap"
+                          >
+                            + FR: {currentCase.vitals.fr} irpm ({currentCase.vitals.fr > 20 ? "Taquipneia" : "Eupneia"})
+                          </button>
+                        )}
+
+                        {currentCase?.vitals?.sat && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleExamineEvidence(
+                                currentCase.vitals.sat < 93
+                                  ? `Dessaturação / Hipoxemia em ar ambiente (SpO2: ${currentCase.vitals.sat}%)`
+                                  : `Saturação periférica de O2 adequada (SpO2: ${currentCase.vitals.sat}%)`
+                              )
+                            }
+                            className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 transition active:scale-95 shadow-2xs whitespace-nowrap"
+                          >
+                            + SatO₂: {currentCase.vitals.sat}% ({currentCase.vitals.sat < 93 ? "Hipoxemia" : "Normal"})
+                          </button>
+                        )}
+
+                        {currentCase?.vitals?.pa_sistolica && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              handleExamineEvidence(
+                                `Nível pressórico aferido: ${currentCase.vitals.pa_sistolica}/${currentCase.vitals.pa_diastolica} mmHg`
+                              )
+                            }
+                            className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 transition active:scale-95 shadow-2xs whitespace-nowrap"
+                          >
+                            + PA: {currentCase.vitals.pa_sistolica}/{currentCase.vitals.pa_diastolica} mmHg
+                          </button>
+                        )}
+
+                        {/* Distrator / Pegadinha inteligente para testar se o aluno está lendo de fato */}
+                        <button
+                          type="button"
+                          onClick={() =>
+                            handleExamineEvidence(
+                              "Paciente totalmente afebril e sem queixas ventilatórias",
+                              true,
+                              `Cuidado com a distração! O paciente apresenta FR de ${currentCase?.vitals?.fr || 26} irpm e SatO₂ de ${currentCase?.vitals?.sat || 89}%. Não selecione dados que contradizem o prontuário!`
+                            )
+                          }
+                          className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-xl border border-rose-200 dark:border-rose-900/60 bg-rose-50/50 dark:bg-rose-950/20 text-rose-800 dark:text-rose-300 hover:bg-rose-100/70 transition active:scale-95 shadow-2xs whitespace-nowrap"
+                        >
+                          ⚡ Eupneico e assintomático (Pegadinha?)
+                        </button>
+
+                        {/* Recomendações do catálogo NANDA caso haja */}
                         {contextualData.evidences.map((item, idx) => (
                           <button
                             key={idx}
                             type="button"
-                            onClick={() => handleSelectEvidence(item)}
-                            className="text-[11px] font-medium px-2 py-0.5 rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/70 dark:bg-emerald-950/40 hover:bg-emerald-100 dark:hover:bg-emerald-900 text-emerald-900 dark:text-emerald-200 transition active:scale-95 shadow-2xs"
+                            onClick={() => handleExamineEvidence(item)}
+                            className="flex-shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-emerald-400 text-slate-700 dark:text-slate-300 transition active:scale-95 shadow-2xs whitespace-nowrap"
                           >
                             + {item}
                           </button>
                         ))}
                       </div>
-                    ) : (
-                      !contextualData.isRiskDiagnosis && (
-                        <div className="flex items-center gap-1.5 flex-wrap pt-0.5">
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">Exemplos rápidos:</span>
-                          {COMMON_EVIDENCES.slice(0, 4).map((item, idx) => (
-                            <button
-                              key={idx}
-                              type="button"
-                              onClick={() => handleSelectEvidence(item)}
-                              className="text-[11px] font-medium px-2 py-0.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-teal-400 text-slate-700 dark:text-slate-300 transition active:scale-95"
-                            >
-                              + {item}
-                            </button>
-                          ))}
-                        </div>
-                      )
-                    )}
+                    </div>
                   </div>
                 </div>
 

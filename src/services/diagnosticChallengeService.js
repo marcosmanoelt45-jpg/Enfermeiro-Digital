@@ -6,17 +6,7 @@
 
 import { computeGlobalRisk, computeBradenTotal, computeCamPositive, computeCaloiTotal, computeSakTotal } from "@/lib/riskEngine";
 import { formatToInitials } from "@/lib/sampleNames";
-
-/**
- * Obtém a chave do Gemini configurada no ambiente ou no LocalStorage.
- */
-function getGeminiApiKey() {
-  if (typeof localStorage !== "undefined") {
-    const key = localStorage.getItem("enfermeiro_gemini_api_key");
-    if (key && key.trim()) return key.trim();
-  }
-  return import.meta.env.VITE_GEMINI_API_KEY || "";
-}
+import { callResilientAI } from "./aiCoreService.js";
 
 /**
  * Gera uma bateria de 4 desafios clínicos de alta complexidade da vivência real da enfermagem:
@@ -32,14 +22,66 @@ function getGeminiApiKey() {
 /**
  * Embaralha as alternativas para evitar viés de posição fixa e reatribui letras A, B, C, D.
  */
-export function shuffleOptions(options) {
-  if (!Array.isArray(options) || options.length === 0) return options;
+/**
+ * Normaliza e embaralha as alternativas garantindo que:
+ * 1. Exatamente 1 alternativa seja identificada e marcada com isCorrect: true estrito.
+ * 2. As letras A, B, C, D sejam atribuídas sequencialmente após o embaralhamento.
+ * 3. As justificativas whyCorrect e whyDistractor estejam presentes para feedback imediato.
+ */
+export function normalizeAndShuffleOptions(rawQuestion) {
+  if (!rawQuestion || !Array.isArray(rawQuestion.options) || rawQuestion.options.length === 0) {
+    return [];
+  }
+
+  const rawOptions = rawQuestion.options;
   const letters = ["A", "B", "C", "D", "E"];
-  const shuffled = [...options].sort(() => Math.random() - 0.5);
-  return shuffled.map((opt, idx) => ({
-    ...opt,
-    id: letters[idx] || String.fromCharCode(65 + idx),
+
+  // 1. Descobrir qual opção é a correta
+  let correctIndex = rawOptions.findIndex(
+    (opt) => opt.isCorrect === true || String(opt.isCorrect).toLowerCase() === "true" || opt.correct === true
+  );
+
+  // Tentativa 2: correctAnswer ou correctOption no objeto da pergunta
+  if (correctIndex === -1 && (rawQuestion.correctAnswer || rawQuestion.correctOption)) {
+    const targetLetter = String(rawQuestion.correctAnswer || rawQuestion.correctOption).trim().toUpperCase();
+    correctIndex = rawOptions.findIndex(
+      (opt, idx) => (opt.id && String(opt.id).toUpperCase() === targetLetter) || letters[idx] === targetLetter
+    );
+  }
+
+  // Tentativa 3: presença de whyCorrect preenchido e whyDistractor nulo
+  if (correctIndex === -1) {
+    correctIndex = rawOptions.findIndex((opt) => opt.whyCorrect && opt.whyCorrect.trim().length > 0 && !opt.whyDistractor);
+  }
+
+  // Fallback seguro: se nenhuma identificada, a primeira opção é a correta
+  if (correctIndex === -1) {
+    correctIndex = 0;
+  }
+
+  // Mapeia todas as opções com a flag correta inequívoca
+  const preparedOptions = rawOptions.map((opt, idx) => ({
+    title: opt.title || opt.text || "Conduta assistencial fundamentada",
+    whyCorrect: opt.whyCorrect || (idx === correctIndex ? "Conduta prioritária de enfermagem respaldada pelas evidências clínicas." : null),
+    whyDistractor: opt.whyDistractor || (idx !== correctIndex ? "Esta opção não constitui a conduta prioritária imediata para este quadro." : null),
+    _isTheCorrectOne: idx === correctIndex
   }));
+
+  // 2. Embaralha as alternativas para evitar viés posicional
+  const shuffled = [...preparedOptions].sort(() => Math.random() - 0.5);
+
+  // 3. Atribui IDs A, B, C, D e o booleano estrito isCorrect
+  return shuffled.map((opt, idx) => ({
+    id: letters[idx] || String.fromCharCode(65 + idx),
+    title: opt.title,
+    isCorrect: Boolean(opt._isTheCorrectOne),
+    whyCorrect: opt.whyCorrect,
+    whyDistractor: opt.whyDistractor
+  }));
+}
+
+export function shuffleOptions(options) {
+  return normalizeAndShuffleOptions({ options });
 }
 
 export async function generateCaseDiagnosticChallenge(profile, assessmentData) {
@@ -67,18 +109,15 @@ export async function generateCaseDiagnosticChallenge(profile, assessmentData) {
   const vitalsSummary = `PA: ${assessmentData.pa_sistolica}/${assessmentData.pa_diastolica} mmHg | FC: ${assessmentData.fc} bpm | FR: ${assessmentData.fr} irpm | Tax: ${assessmentData.tax}°C | SatO2: ${assessmentData.sat}%`;
   const scoresSummary = `Braden: ${bradenTotal} | CAM (Delirium): ${camPositive ? "Positivo" : "Negativo"} | Dor (CALOI): ${caloiTotal}/10 | Risco Quedas (SAK): ${sakTotal}`;
 
-  const apiKey = getGeminiApiKey();
-
-  if (apiKey) {
-    try {
-      const systemPrompt = `Você é um Preceptor e Docente Sênior de Enfermagem em Terapia Intensiva e Clínica Médica, especialista em julgamento clínico avançado e na Resolução COFEN nº 736/2024.
+  try {
+    const systemPrompt = `Você é um Preceptor e Docente Sênior de Enfermagem em Terapia Intensiva e Clínica Médica, especialista em julgamento clínico avançado e na Resolução COFEN nº 736/2024.
 Sua missão: Criar uma BATERIA DE 4 QUESTÕES CLÍNICAS DE ALTA COMPLEXIDADE baseadas na vivência real do plantão hospitalar, com pegadinhas sutis da prática e análise profunda de distratores.
 NÃO faça perguntas puramente teóricas ou óbvias. Crie dilemas reais de conduta que enfermeiros enfrentam à beira-leito.
 
 DIRETRIZ MANDATÓRIA DE PSICOMETRIA & BALANCEAMENTO DE ALTERNATIVAS:
 1. HOMOGENEIDADE ABSOLUTA DE EXTENSÃO: Todas as 4 alternativas (A, B, C, D) DEVEM POSSUIR EXATAMENTE O MESMO NÚMERO DE PALAVRAS (entre 22 e 28 palavras cada). É TERMINANTEMENTE PROIBIDO fazer a alternativa correta mais longa ou mais detalhada do que os distratores!
 2. DISTRATORES DE ALTO NÍVEL: Os distratores devem empregar terminologia clínica impecável e descrever ações que profissionais frequentemente cometem sob pressão de plantão (ex: priorizar gasometria antes de posicionar cabeceira; ofertar oxigênio em alto fluxo em retentor crônico de CO₂; infundir volume rápido em oligúria por disfunção cardíaca; delegar estadiamento de lesão por pressão).
-3. DISTRIBUIÇÃO DA RESPOSTA CORRETA: A resposta correta NÃO DEVE ficar sempre na letra A! Alterne a correta entre A, B, C e D.
+3. DISTRIBUIÇÃO DA RESPOSTA CORRETA: Exatamente UMA alternativa por questão deve possuir "isCorrect": true, e as outras três "isCorrect": false.
 
 DIRETRIZ MANDATÓRIA DE PRIVACIDADE E LGPD (Lei nº 13.709/2018):
 É expressamente PROIBIDO gerar nomes completos de pessoas. Refira-se ao paciente EXCLUSIVAMENTE por suas iniciais ("Paciente ${patientInitials}") ou pelo leito hospitalar.
@@ -129,27 +168,6 @@ Formato OBRIGATÓRIO de retorno: JSON estrito com esta estrutura:
           "whyDistractor": "Explicação do risco iatrogênico desta opção"
         }
       ]
-    },
-    {
-      "id": 2,
-      "category": "Fisiopatologia & Diagnóstico Crítico",
-      "questionStem": "Enunciado sobre correlação fisiopatológica entre histórico e sinais",
-      "attendingTip": "Dica orientadora de mecanismo de lesão / disfunção orgânica",
-      "options": [ ... 4 opções A, B, C, D de mesmo tamanho ... ]
-    },
-    {
-      "id": 3,
-      "category": "Farmacologia Clínica & Iatrogenia",
-      "questionStem": "Enunciado sobre os riscos farmacoterapêuticos dos remédios do paciente",
-      "attendingTip": "Dica sobre mecanismos de ação e farmacovigilância",
-      "options": [ ... 4 opções A, B, C, D de mesmo tamanho ... ]
-    },
-    {
-      "id": 4,
-      "category": "Segurança do Paciente & Legislação Ética (COFEN)",
-      "questionStem": "Enunciado sobre competência privativa, delegação segura e prevenção de danos",
-      "attendingTip": "Dica legal e assistencial sobre o escopo da enfermagem",
-      "options": [ ... 4 opções A, B, C, D de mesmo tamanho ... ]
     }
   ],
   "recommendedInterventions": [
@@ -157,7 +175,8 @@ Formato OBRIGATÓRIO de retorno: JSON estrito com esta estrutura:
   ]
 }`;
 
-      const userPrompt = `DADOS DO CASO CLÍNICO MONTADO PELO ESTUDANTE:
+    const randomSeed = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+    const userPrompt = `DADOS DO CASO CLÍNICO MONTADO PELO ESTUDANTE (Seed: ${randomSeed}):
 Paciente (LGPD): ${patientInitials}, ${profile.age || "65"} anos, Sexo: ${profile.gender === "M" ? "Masculino" : "Feminino"}
 Histórico & Antecedentes: ${profile.previous_diseases || profile.medical_history || "Sem antecedentes relevantes"}
 Medicações: ${profile.current_medications || "Nenhuma informada"}
@@ -167,58 +186,29 @@ Sinais Vitais: ${vitalsSummary}
 Escores Clínicos: ${scoresSummary}
 Relato da Avaliação: ${assessmentData.notes || "Avaliação regular"}
 
-Gere a Bateria Completa com 4 questões complexas da vivência hospitalar real. As 4 alternativas de cada questão DEVEM ter a mesma quantidade de palavras. Retorne exclusivamente JSON válido.`;
+Instrução especial de novidade: Crie uma bateria inédita para este plantão, com dilemas e perguntas variadas sobre a condição do paciente. Retorne exclusivamente JSON válido com 4 questões.`;
 
-      const savedModel = (typeof localStorage !== "undefined" && localStorage.getItem("enfermeiro_gemini_model")) || null;
-      const candidateModels = [
-        ...(savedModel ? [savedModel] : []),
-        "gemini-3.5-flash",
-        "gemini-flash-latest",
-        "gemini-3.1-flash-lite",
-        "gemini-3.8-flash",
-        "gemini-2.0-flash",
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-flash",
-      ].filter((v, i, a) => a.indexOf(v) === i);
+    const result = await callResilientAI(systemPrompt, userPrompt, {
+      temperature: 0.4,
+      responseMimeType: "application/json",
+      maxTokens: 2500,
+    });
 
-      for (const model of candidateModels) {
-        try {
-          const response = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ role: "user", parts: [{ text: `${systemPrompt}\n\n---\n\n${userPrompt}` }] }],
-                generationConfig: { temperature: 0.35, responseMimeType: "application/json" }
-              })
-            }
-          );
-
-          if (response.ok) {
-            const json = await response.json();
-            const text = json.candidates?.[0]?.content?.parts?.[0]?.text;
-            if (text) {
-              const parsed = JSON.parse(text);
-              if (parsed.questions && parsed.questions.length >= 2) {
-                // Embaralha as opções de cada questão para que a correta nunca fique fixa na letra A
-                parsed.questions = parsed.questions.map((q) => ({
-                  ...q,
-                  options: shuffleOptions(q.options),
-                }));
-                parsed.options = parsed.questions[0].options;
-                parsed.attendingTip = parsed.questions[0].attendingTip;
-                return parsed;
-              }
-            }
-          }
-        } catch (callErr) {
-          console.warn(`Tentativa com modelo ${model} falhou:`, callErr);
-        }
+    if (result?.text) {
+      const parsed = JSON.parse(result.text);
+      if (parsed.questions && parsed.questions.length >= 2) {
+        // Normaliza e embaralha as opções garantindo isCorrect booleano estrito
+        parsed.questions = parsed.questions.map((q) => ({
+          ...q,
+          options: normalizeAndShuffleOptions(q),
+        }));
+        parsed.options = parsed.questions[0].options;
+        parsed.attendingTip = parsed.questions[0].attendingTip;
+        return parsed;
       }
-    } catch (e) {
-      console.warn("[Desafio Diagnóstico] Fallback para motor determinístico de alta complexidade:", e);
     }
+  } catch (e) {
+    console.warn("[Desafio Diagnóstico] Fallback para motor determinístico de alta complexidade:", e);
   }
 
   // MOTOR DETERMINÍSTICO OFFLINE DE ALTA FIDELIDADE & VIVÊNCIA HOSPITALAR REAL
@@ -439,11 +429,11 @@ function buildDeterministicComplexBattery(patientInitials, profile, assessmentDa
     ]
   };
 
-  // Aplica shuffleOptions em cada uma das 4 questões determinísticas
-  const q1 = { ...q1Raw, options: shuffleOptions(q1Raw.options) };
-  const q2 = { ...q2Raw, options: shuffleOptions(q2Raw.options) };
-  const q3 = { ...q3Raw, options: shuffleOptions(q3Raw.options) };
-  const q4 = { ...q4Raw, options: shuffleOptions(q4Raw.options) };
+  // Aplica normalizeAndShuffleOptions em cada uma das 4 questões determinísticas
+  const q1 = { ...q1Raw, options: normalizeAndShuffleOptions(q1Raw) };
+  const q2 = { ...q2Raw, options: normalizeAndShuffleOptions(q2Raw) };
+  const q3 = { ...q3Raw, options: normalizeAndShuffleOptions(q3Raw) };
+  const q4 = { ...q4Raw, options: normalizeAndShuffleOptions(q4Raw) };
 
   const questions = [q1, q2, q3, q4];
 

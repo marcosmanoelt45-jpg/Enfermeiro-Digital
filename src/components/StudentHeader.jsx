@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   Calculator,
-  Stethoscope,
   Users,
   UserCircle,
   LogOut,
@@ -13,7 +12,6 @@ import {
   Sun,
   Moon,
   Video,
-  Sparkles,
   Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -59,7 +57,6 @@ export default function StudentHeader({ activeTab = "hub" }) {
     { id: "casos", label: "Casos Clínicos", path: "/simulador-casos", icon: BookOpen, hasBriefing: true },
     { id: "sbar", label: "Plantão SBAR", path: "/passagem-plantao", icon: ArrowRightLeft, hasBriefing: true },
     { id: "calculos", label: "Cálculo de Doses", path: "/laboratorio-calculos", icon: Calculator, hasBriefing: true },
-    { id: "sistemas", label: "Semiologia", path: "/sistemas-organicos", icon: Stethoscope, hasBriefing: true },
     { id: "turmas", label: "Minhas Turmas", path: "/turmas", icon: Users, hasBriefing: false },
   ];
 
@@ -85,7 +82,7 @@ export default function StudentHeader({ activeTab = "hub" }) {
       <header className="sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl transition-colors">
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between gap-3">
-            {/* Logo e Nome da Plataforma Enfere com Estetoscópio Clínico */}
+            {/* Logo Oficial com Ícone do Goti */}
             <button
               onClick={() => {
                 triggerHaptic(15);
@@ -93,13 +90,14 @@ export default function StudentHeader({ activeTab = "hub" }) {
               }}
               className="flex items-center gap-3 text-left group transition tap-press shrink-0"
             >
-              <div className="relative flex h-11 w-11 items-center justify-center rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white shadow-sm group-hover:scale-105 transition-transform">
-                <Stethoscope className="w-6 h-6 text-white" />
-              </div>
+              <img
+                src="/goti/goti-icone.jpg"
+                alt="Enfere - Mascote Goti"
+                className="h-11 w-11 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform border border-teal-500/20"
+              />
               <div>
                 <span className="font-black text-base text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
                   Enfere
-                  <span className="text-[9px] font-bold px-1.5 py-0.2 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">app</span>
                 </span>
                 <span className="text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium">
                   Simulação & Prática Clínica
@@ -143,9 +141,9 @@ export default function StudentHeader({ activeTab = "hub" }) {
               >
                 <div className="relative flex items-center justify-center">
                   <img
-                    src="/goti/goti-avatar-app.png"
+                    src="/goti/goti-icone.jpg"
                     alt="Goti"
-                    className="w-4 h-4 object-contain rounded-full"
+                    className="w-5 h-5 object-cover rounded-lg"
                   />
                   <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                 </div>
@@ -244,9 +242,9 @@ export default function StudentHeader({ activeTab = "hub" }) {
         title="Dúvidas clínicas? Pergunte ao Goti"
       >
         <img
-          src="/goti/goti-avatar-app.png"
+          src="/goti/goti-icone.jpg"
           alt="Goti IA"
-          className="w-8 h-8 object-contain filter drop-shadow-xs group-hover:scale-110 transition-transform"
+          className="w-8 h-8 rounded-full object-cover filter drop-shadow-xs group-hover:scale-110 transition-transform"
         />
         <div className="hidden sm:block text-left">
           <span className="text-xs font-black block leading-none">Goti IA</span>

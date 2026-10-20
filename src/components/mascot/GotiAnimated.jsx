@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef } from "react";
 
 /**
  * Mapeamento das poses oficiais em Ultra HD do Mascote Preceptor Goti
@@ -11,51 +11,59 @@ const GOTI_POSES = {
     videoSrc: "/goti/goti-idle.webm",
     src: "/goti/goti-idle.webp",
     label: "Goti em plantão de simulação",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
   breathing: {
     videoSrc: "/goti/goti-idle.webm",
     src: "/goti/goti-idle.webp",
     label: "Goti respirando fundo e focado",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
   neutral: {
     videoSrc: "/goti/goti-idle.webm",
     src: "/goti/goti-idle.webp",
     label: "Goti sorridente e receptivo",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
   wave: {
     videoSrc: "/goti/goti-wave.webm",
     src: "/goti/goti-wave.webp",
     label: "Goti acenando e dando as boas-vindas",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
 
-  // Sucesso, acerto e amor (corações flutuantes)
+  // Sucesso, acerto e comemoração limpa (Goti pulando feliz, sem corações ou estrelas)
   love: {
-    videoSrc: "/goti/goti-love.webm",
-    src: "/goti/goti-love.webp",
-    label: "Goti comemorando com corações",
-    animationClass: ""
+    videoSrc: "/goti/goti-jumping.webm",
+    src: "/goti/goti-jumping.webp",
+    label: "Goti comemorando com alegria",
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
   happy: {
-    videoSrc: "/goti/goti-happy.webm",
-    src: "/goti/goti-happy.webp",
-    label: "Goti vibrando com estrelinhas e corações",
-    animationClass: ""
+    videoSrc: "/goti/goti-jumping.webm",
+    src: "/goti/goti-jumping.webp",
+    label: "Goti vibrando com a conquista",
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
   jumping: {
     videoSrc: "/goti/goti-jumping.webm",
     src: "/goti/goti-jumping.webp",
     label: "Goti radiante pulando de alegria",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
   celebrate: {
-    videoSrc: "/goti/goti-celebrate.webm",
-    src: "/goti/goti-celebrate.webp",
+    videoSrc: "/goti/goti-jumping.webm",
+    src: "/goti/goti-jumping.webp",
     label: "Goti comemorando sua conquista",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
 
   // Instrução, mentoria, apontar dedo e dicas
@@ -63,13 +71,15 @@ const GOTI_POSES = {
     videoSrc: "/goti/goti-pointing.webm",
     src: "/goti/goti-pointing.webp",
     label: "Goti orientando uma diretriz clínica",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
   thinking: {
     videoSrc: "/goti/goti-thinking.webm",
     src: "/goti/goti-thinking.webp",
     label: "Goti formulando hipótese diagnóstica",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
 
   // Alerta, erro e atenção de risco (bravo)
@@ -77,13 +87,15 @@ const GOTI_POSES = {
     videoSrc: "/goti/goti-angry.webm",
     src: "/goti/goti-angry.webp",
     label: "Goti em alerta de segurança do paciente",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
   error: {
     videoSrc: "/goti/goti-error.webm",
     src: "/goti/goti-error.webp",
     label: "Goti atento corrigindo a conduta",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 16.8
   },
 
   // Avatar circular
@@ -91,27 +103,29 @@ const GOTI_POSES = {
     videoSrc: null,
     src: "/goti/goti-avatar-app.png",
     label: "Avatar oficial do Goti",
-    animationClass: ""
+    animationClass: "",
+    bottomCropPercent: 0
   }
 };
 
 const SIZE_PRESETS = {
-  xs: "w-10 h-10 md:w-14 md:h-14",
-  sm: "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24",
-  feedback: "w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-44 lg:h-44",
-  md: "w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48",
-  lg: "w-36 h-36 sm:w-44 sm:h-44 md:w-56 md:h-56 lg:w-64 lg:h-64",
-  xl: "w-44 h-44 sm:w-52 sm:h-52 md:w-64 md:h-64 lg:w-72 lg:h-72",
-  "2xl": "w-52 h-52 sm:w-60 sm:h-60 md:w-72 md:h-72 lg:w-80 lg:h-80 xl:w-96 xl:h-96",
-  hero: "w-44 h-52 sm:w-52 sm:h-60 md:w-72 md:h-84 lg:w-88 lg:h-[26rem] xl:w-96 xl:h-[30rem]"
+  xs: "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20",
+  sm: "w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24",
+  feedback: "w-32 h-32 sm:w-40 sm:h-40 md:w-48 md:h-48 lg:w-56 lg:h-56",
+  md: "w-36 h-36 sm:w-44 sm:h-44 md:w-52 md:h-52 lg:w-60 lg:h-60",
+  lg: "w-44 h-44 sm:w-52 sm:h-52 md:w-64 md:h-64 lg:w-72 lg:h-72",
+  xl: "w-52 h-52 sm:w-60 sm:h-60 md:w-72 md:h-72 lg:w-80 lg:h-80",
+  "2xl": "w-60 h-60 sm:w-72 sm:h-72 md:w-84 md:h-84 lg:w-96 lg:h-96",
+  hero: "w-52 h-64 sm:w-64 sm:h-76 md:w-80 md:h-96 lg:w-96 lg:h-[26rem] xl:w-[26rem] xl:h-[30rem]"
 };
 
 /**
  * GotiAnimated
  * Renderiza o mascote Preceptor Goti:
+ * - Renderização via HTML5 Canvas desacoplado do vídeo: elimina botões injetados por extensões/navegadores (>|).
  * - 100% transparente com canal alfa nativo WebM (zero fundo branco, zero cortes de jaleco ou crocs).
- * - Vídeos em taxa de quadros fluida (24-60 FPS) e loops orgânicos contínuos com transição imperceptível.
- * - Aceleração gráfica por hardware (GPU) ativa para eliminar micro-stutters.
+ * - Recorte calibrado por pose (pointing = 15.5%, idle/wave = 9.8%) para eliminar completamente o chão branco.
+ * - Taxa de quadros fluida (24-60 FPS) e aceleração GPU ativa.
  */
 export default function GotiAnimated({
   animation = "idle",
@@ -119,10 +133,61 @@ export default function GotiAnimated({
   className = "",
   onClick = null,
   showBadge = null,
-  showShadow = true
+  showShadow = false
 }) {
   const currentPose = GOTI_POSES[animation] || GOTI_POSES.idle;
   const sizeClass = SIZE_PRESETS[size] || size;
+  const bottomCrop = currentPose.bottomCropPercent ?? 9.8;
+
+  const canvasRef = useRef(null);
+  const videoRef = useRef(null);
+
+  useEffect(() => {
+    if (!currentPose.videoSrc) return;
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    let animId;
+    let isActive = true;
+
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    const drawFrame = () => {
+      if (!isActive) return;
+      if (video.readyState >= 2) {
+        const vw = video.videoWidth;
+        const vh = video.videoHeight;
+        if (vw > 0 && vh > 0) {
+          const cropH = Math.floor(vh * (1 - bottomCrop / 100));
+          if (canvas.width !== vw || canvas.height !== cropH) {
+            canvas.width = vw;
+            canvas.height = cropH;
+          }
+          ctx.clearRect(0, 0, vw, cropH);
+          // Recorta a base de chão conforme a pose calibrada desenhando apenas a área útil
+          ctx.drawImage(video, 0, 0, vw, cropH, 0, 0, vw, cropH);
+        }
+      }
+      animId = requestAnimationFrame(drawFrame);
+    };
+
+    const handlePlay = () => {
+      if (isActive) animId = requestAnimationFrame(drawFrame);
+    };
+
+    video.addEventListener("play", handlePlay);
+    video.play().catch(() => {});
+    animId = requestAnimationFrame(drawFrame);
+
+    return () => {
+      isActive = false;
+      cancelAnimationFrame(animId);
+      if (video) {
+        video.removeEventListener("play", handlePlay);
+      }
+    };
+  }, [currentPose.videoSrc, bottomCrop]);
 
   return (
     <div
@@ -132,41 +197,52 @@ export default function GotiAnimated({
       onClick={onClick}
       title={currentPose.label}
     >
-      {/* Sombra de apoio suave e discreta na base */}
-      {showShadow && (
-        <div className="absolute bottom-0 w-1/2 h-2.5 rounded-full bg-black/15 dark:bg-black/30 blur-xs pointer-events-none" />
-      )}
-
-      {/* Renderização de Vídeo WebM Transparente ou Fallback de Imagem com aceleração de hardware */}
+      {/* Vídeo invisível offscreen: serve estritamente de fonte para o Canvas, impedindo detecção de overlays */}
       {currentPose.videoSrc ? (
-        <video
-          key={currentPose.videoSrc}
-          ref={(el) => {
-            if (el) {
-              el.muted = true;
-              el.defaultMuted = true;
-            }
-          }}
-          src={currentPose.videoSrc}
-          autoPlay
-          loop
-          muted
-          defaultMuted
-          playsInline
-          preload="auto"
-          aria-label={currentPose.label}
-          style={{
-            transform: "translateZ(0)",
-            willChange: "transform",
-            backfaceVisibility: "hidden"
-          }}
-          className={`w-full h-full object-contain pointer-events-none ${currentPose.animationClass} transition-transform duration-300`}
-        />
+        <>
+          <video
+            ref={videoRef}
+            key={currentPose.videoSrc}
+            src={currentPose.videoSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            disablePictureInPicture={true}
+            disableRemotePlayback={true}
+            controls={false}
+            tabIndex={-1}
+            aria-hidden="true"
+            style={{
+              position: "absolute",
+              width: "1px",
+              height: "1px",
+              opacity: 0,
+              pointerEvents: "none",
+              zIndex: -1
+            }}
+          />
+          {/* Canvas gráfico: zero botões externos, zero overlays, transparência alfa nativa */}
+          <canvas
+            ref={canvasRef}
+            aria-label={currentPose.label}
+            style={{
+              transform: "translateZ(0)",
+              willChange: "transform",
+              backfaceVisibility: "hidden"
+            }}
+            className={`w-full h-full object-contain pointer-events-none select-none ${currentPose.animationClass} transition-transform duration-300 scale-105`}
+          />
+        </>
       ) : (
         <img
           src={currentPose.src}
           alt={currentPose.label}
-          className={`w-full h-full object-contain ${currentPose.animationClass} transition-transform duration-300`}
+          style={{
+            clipPath: `inset(0 0 ${bottomCrop}% 0)`
+          }}
+          className={`w-full h-full object-contain pointer-events-none select-none ${currentPose.animationClass} transition-transform duration-300`}
           loading="eager"
         />
       )}

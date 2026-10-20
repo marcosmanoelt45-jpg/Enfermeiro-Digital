@@ -12,75 +12,28 @@
 
 import { sanitizeTextForLGPD } from "@/lib/dlpSanitizer";
 
-/**
- * Obtém a chave do Gemini configurada no ambiente ou no LocalStorage.
- */
-function getGeminiApiKey() {
-  if (typeof localStorage !== "undefined") {
-    const key = localStorage.getItem("enfermeiro_gemini_api_key");
-    if (key && key.trim()) return key.trim();
-  }
-  return import.meta.env.VITE_GEMINI_API_KEY || "";
-}
+import { callResilientAI } from "./aiCoreService.js";
 
 /**
- * Executa uma chamada à API do Gemini usando o modelo recomendado (3.8-flash com fallback).
+ * Executa uma chamada à IA usando callResilientAI (chave pessoal do aluno ou Edge Function do Supabase).
  */
 async function callGemini(systemPrompt, userPrompt) {
-  const apiKey = getGeminiApiKey();
-  if (!apiKey) {
-    return null; // Aciona o motor pedagógico offline estruturado
-  }
+  try {
+    const result = await callResilientAI(systemPrompt, userPrompt, {
+      temperature: 0.3,
+      responseMimeType: "application/json",
+      maxTokens: 1500,
+    });
 
-  const savedModel = (typeof localStorage !== "undefined" && localStorage.getItem("enfermeiro_gemini_model")) || null;
-  const models = [
-    ...(savedModel ? [savedModel] : []),
-    "gemini-3.5-flash",
-    "gemini-flash-latest",
-    "gemini-3.1-flash-lite",
-    "gemini-3.8-flash",
-    "gemini-2.0-flash",
-    "gemini-1.5-flash-latest",
-    "gemini-1.5-flash"
-  ].filter((v, i, a) => a.indexOf(v) === i);
-
-  for (const model of models) {
-    try {
-      const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
-        {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            contents: [
-              {
-                role: "user",
-                parts: [{ text: `${systemPrompt}\n\n---\n\n${userPrompt}` }]
-              }
-            ],
-            generationConfig: {
-              temperature: 0.3,
-              responseMimeType: "application/json"
-            }
-          })
-        }
-      );
-
-      if (response.ok) {
-        const data = await response.json();
-        const text = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        if (text) {
-          try {
-            return JSON.parse(text);
-          } catch {
-            // Se falhar o parse direto de JSON, retorna texto embrulhado
-            return { rawResponse: text };
-          }
-        }
+    if (result?.text) {
+      try {
+        return JSON.parse(result.text);
+      } catch {
+        return { rawResponse: result.text };
       }
-    } catch (err) {
-      console.warn(`[Tutora Socrática] Falha com modelo ${model}:`, err);
     }
+  } catch (err) {
+    console.warn("[Tutora Socrática] Falha ao invocar motor de IA resiliente:", err);
   }
 
   return null;
@@ -121,14 +74,15 @@ export async function evaluateClinicalReasoning({
 REGRAS PEDAGÓGICAS E DE PONTUAÇÃO CRITERIOSA:
 1. NUNCA dê a resposta final pronta de mão beijada.
 2. CRITÉRIO RIGOROSO DE NOTAS:
-   - Resposta vazia, muito curta (menos de 20 caracteres) ou evasiva/genérica (ex: "dar remédio", "cuidar do paciente", "fazer curativo"): Atribua nota entre 0 e 30.
-   - Resposta com hipótese vaga sem justificar com sinais vitais reais do caso: Atribua nota entre 35 e 55.
-   - Resposta correta parcialmente (citou diagnóstico condizente mas esqueceu aprazamento, metas ou sinais vitais): Atribua nota entre 60 e 75.
+   - DETECÇÃO RIGOROSA DE SPAM, GIBBERISH OU TEXTO SEM SENTIDO: Se qualquer campo enviado pelo estudante (hipótese, justificativa, evidências ou intervenções) contiver repetições de letras (ex: "aaaaa", "xxxx", "asdf"), palavras aleatórias ou texto desprovido de termos de enfermagem, ATRIBUA NOTA ZERO (0 a 10). Aponte explicitamente no feedback que a resposta não possui conteúdo assistencial válido.
+   - Resposta vazia, muito curta (menos de 20 caracteres) ou evasiva/genérica (ex: "dar remédio", "cuidar do paciente", "fazer curativo"): Atribua nota entre 0 e 25.
+   - Resposta com hipótese vaga sem justificar com sinais vitais reais do caso: Atribua nota entre 30 e 50.
+   - Resposta correta parcialmente (citou diagnóstico condizente mas esqueceu aprazamento, metas ou sinais vitais): Atribua nota entre 55 e 70.
    - Resposta sólida (hipótese clínica correta, evidências do caso correlacionadas e cuidados seguros): Atribua nota entre 80 e 95.
    - Nota 100% é reservada APENAS para raciocínios exemplares e completos de padrão ouro.
    - TOLERÂNCIA ORTOGRÁFICA: Ignore pequenos erros de digitação, letras trocadas ou ausência de acentos (ex: "padrao respiratorio ineficaz" é plenamente aceito como correto). O foco é a semântica e a segurança clínica.
 3. Se o aluno acertou o foco, elogie a acurácia dos dados correlacionados e faça uma pergunta reflexiva sobre o risco futuro ou priorização de cuidados.
-4. Se o aluno errou ou foi superficial, aponte explicitamente quais sinais vitais ou dados anamnésicos ele negligenciou e por que perdeu pontos.
+4. Se o aluno errou, colocou texto sem sentido ou foi superficial, aponte explicitamente onde está o erro e por que a nota foi deduzida.
 5. Seja encorajador, ético e altamente científico com rigor didático.
 
 Retorne EXCLUSIVAMENTE um JSON válido com esta estrutura:
@@ -289,6 +243,21 @@ function normalizeText(str = "") {
     .trim();
 }
 
+function isGibberish(text) {
+  if (!text || typeof text !== "string") return false;
+  const clean = text.trim().toLowerCase();
+  if (clean.length < 3) return false;
+  // Repetição contínua do mesmo caractere 3 ou mais vezes (ex: aaa, zzzz)
+  if (/(.)\1{2,}/i.test(clean)) return true;
+  // Baixíssima variedade de caracteres (ex: ababab, xxxx)
+  const lettersOnly = clean.replace(/[^a-z0-9]/g, "");
+  if (lettersOnly.length >= 5) {
+    const uniqueCount = new Set(lettersOnly).size;
+    if (uniqueCount <= 2 || (uniqueCount / lettersOnly.length) < 0.25) return true;
+  }
+  return false;
+}
+
 /**
  * Fallback heurístico inteligente e criterioso para avaliação de raciocínio clínico.
  * Avalia a qualidade real por eixos de pontuação, tolerando erros menores de digitação e acentuação.
@@ -299,7 +268,33 @@ function generateHeuristicFeedback(caseData, hypothesis, justification, interven
   const normInterventions = normalizeText(interventions);
   const totalLength = normHypothesis.length + normJustification.length + normInterventions.length;
 
-  // 1. Caso de resposta vazia ou extremamente curta
+  // 1. Caso de Spam, Gibberish ou Letras Repetidas (ex: "aaaaaaaaaaa")
+  if (isGibberish(hypothesis) || isGibberish(justification) || isGibberish(interventions)) {
+    return {
+      score: 0,
+      overallScore: 0,
+      feedbackTitle: "Formulação Inválida / Conteúdo Sem Sentido Clínico",
+      reasoningAnalysis: "A formulação enviada contém repetição de caracteres, termos desconexos ou ausência de embasamento técnico em enfermagem. Para obter parecer positivo do Goti, formule diagnósticos e prescrições com termos clínicos padronizados.",
+      reflectiveQuestion: "Qual é o problema prioritário do paciente e qual conduta imediata você tomaria para garantir sua segurança?",
+      pointsToConsider: [
+        "Utilizar termos padronizados da taxonomia NANDA-I / CIPE",
+        "Prescrever ações assistenciais claras com aprazamento de horário"
+      ],
+      strengths: [],
+      gaps: [
+        "A resposta enviada não continha vocabulário clínico compreensível.",
+        "Não foram descritas intervenções assistenciais válidas."
+      ],
+      socraticQuestions: [
+        "Quais sinais vitais do paciente justificam intervenção imediata?",
+        "Qual conduta de enfermagem previne piora do quadro clínico?"
+      ],
+      pedagogicalHint: "Dúvidas sobre termos? Use as opções sugeridas pelo Goti ou tire dúvidas pelo chat!",
+      cofenStepFocus: "Etapa 2 e 3 - Diagnóstico e Prescrição de Enfermagem (COFEN nº 736/2024)"
+    };
+  }
+
+  // 2. Caso de resposta vazia ou extremamente curta
   if (totalLength < 15) {
     return {
       score: 15,

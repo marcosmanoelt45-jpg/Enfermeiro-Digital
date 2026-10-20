@@ -1,5 +1,5 @@
 import React, { useEffect } from "react";
-import { X, Trophy, Sparkles, Heart, ArrowRight, ShieldCheck } from "lucide-react";
+import { X, Trophy, Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
 import GotiAnimated from "./GotiAnimated";
 
 /**
@@ -98,21 +98,8 @@ export default function GotiEvaluationModal({
           </span>
         </div>
 
-        {/* Mascote Goti em Tamanho Grande com Iluminação Neon */}
-        <div className="relative my-2 select-none">
-          {numScore >= 80 && (
-            <>
-              {/* Partículas de carinho/amor flutuantes */}
-              <div className="absolute -top-3 -left-4 text-rose-400 animate-bounce text-xl select-none">💖</div>
-              <div className="absolute -top-4 -right-3 text-amber-300 animate-pulse text-lg select-none">⭐</div>
-              <div className="absolute top-1/2 -right-6 text-teal-300 animate-bounce text-base select-none">✨</div>
-            </>
-          )}
-
-          {numScore >= 50 && numScore < 80 && (
-            <div className="absolute -top-3 -right-3 text-amber-400 text-xl animate-pulse select-none">💡</div>
-          )}
-
+        {/* Mascote Goti em Tamanho Grande */}
+        <div className="relative my-2 select-none flex items-center justify-center">
           <GotiAnimated
             animation={pose}
             size="2xl"

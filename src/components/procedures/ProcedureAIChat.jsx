@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Send, Loader2, User, Sparkles, Stethoscope } from 'lucide-react';
+import { Send, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { procedureService } from '@/services/procedureService';
@@ -9,7 +9,7 @@ export default function ProcedureAIChat({ procedure }) {
     {
       id: 'm1',
       sender: 'goti',
-      text: `Olá! Sou seu Preceptor Clínico IA. Estou acompanhando seu estudo de "${procedure.title}". Tem alguma dúvida sobre variações anatômicas, complicações ou condutas deste procedimento?`,
+      text: `Olá! Sou o Goti, seu preceptor digital. Estou acompanhando seu estudo de "${procedure.title}". Tem alguma dúvida sobre variações anatômicas, complicações ou condutas deste procedimento?`,
     },
   ]);
   const [input, setInput] = useState('');
@@ -59,12 +59,12 @@ export default function ProcedureAIChat({ procedure }) {
     <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
       <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2.5">
-          <div className="relative flex h-9 w-9 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 shadow-2xs shrink-0">
-            <Sparkles className="w-5 h-5 text-teal-600 dark:text-teal-400" />
+          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 shadow-2xs shrink-0">
+            <img src="/goti/goti-icone.jpg" alt="Goti IA" className="w-full h-full object-cover" />
           </div>
           <div>
             <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
-              <span>Preceptor Clínico IA · Dúvidas de Beira-Leito</span>
+              <span>Goti IA · Dúvidas do Procedimento</span>
               <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-teal-100 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300">Enfere</span>
             </h4>
             <p className="text-[10px] text-slate-500 dark:text-slate-400">
@@ -82,8 +82,8 @@ export default function ProcedureAIChat({ procedure }) {
             className={`flex items-start gap-2 text-xs ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.sender === 'goti' && (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 p-0.5">
-                <Stethoscope className="w-3.5 h-3.5 text-teal-600 dark:text-teal-400" />
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full overflow-hidden bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 p-0.5">
+                <img src="/goti/goti-icone.jpg" alt="Goti" className="w-full h-full object-cover rounded-full" />
               </div>
             )}
 
@@ -108,7 +108,7 @@ export default function ProcedureAIChat({ procedure }) {
         {loading && (
           <div className="flex items-center gap-2 text-xs text-slate-400 py-1">
             <Loader2 className="h-3.5 w-3.5 animate-spin text-teal-600" />
-            <span>Preceptor Clínico IA está formulando a conduta clínica...</span>
+            <span>Goti está fundamentando a conduta clínica...</span>
           </div>
         )}
       </div>

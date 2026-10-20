@@ -111,7 +111,6 @@ function maskSensitiveTerms(text) {
 async function callGeminiCarePlan(clinicalData) {
   const apiKey =
     (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_gemini_api_key')) ||
-    import.meta.env.VITE_GEMINI_API_KEY ||
     '';
 
   if (!apiKey || !apiKey.trim()) {

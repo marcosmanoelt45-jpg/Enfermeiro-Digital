@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   Calculator,
-  Stethoscope,
   Users,
   PlusCircle,
   Mic,
@@ -25,7 +24,6 @@ import HeroCourseCard from "@/components/mobile/HeroCourseCard";
 import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
 import ClinicalModuleCard from "@/components/mobile/ClinicalModuleCard";
 import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
-import GotiChatDrawer from "@/components/mascot/GotiChatDrawer";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 
 export default function StudentDashboard() {
@@ -38,7 +36,6 @@ export default function StudentDashboard() {
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [briefingModuleId, setBriefingModuleId] = useState(null);
   const [isBriefingOpen, setIsBriefingOpen] = useState(false);
-  const [isGotiChatOpen, setIsGotiChatOpen] = useState(false);
 
   const cleanUserName = user?.name ? user.name.split(" ")[0] : (user?.full_name ? user.full_name.split(" ")[0] : "");
   const isGeneric = !cleanUserName || ['estudante', 'enfermeiro', 'aluno', 'professor'].includes(cleanUserName.toLowerCase());
@@ -48,19 +45,19 @@ export default function StudentDashboard() {
   // Configuração Automática do Hero Card
   const heroCardConfig = useMemo(() => ({
     title: "Processo de Enfermagem Completo",
-    subtitle: "5 Etapas COFEN nº 736/2024 & NANDA-I • Raciocínio Diagnóstico",
+    subtitle: "5 Etapas • Raciocínio Diagnóstico & Taxonomias Clínicas",
     progressPercent: 75,
     actionText: isProfessor ? "Ver Minhas Turmas" : "Iniciar Caso Clínico",
     actionTo: isProfessor ? "/turmas" : "/simulador-casos",
     timeEstimate: "15 min",
-    competencyTag: "COFEN nº 736/2024 • NANDA-I / NIC / NOC",
+    competencyTag: "Raciocínio Clínico • NANDA-I / NIC / NOC",
     badgeText: isProfessor ? "Ambiente Docente" : "Trilha Principal",
     desktopSub: isProfessor
       ? "Painel Docente • Gestão de Turmas e Casos Clínicos"
       : "Painel do Aluno • Prática Baseada em Evidências",
     desktopDesc: isProfessor
       ? "Crie e gerencie turmas de enfermagem, acompanhe o desempenho dos alunos e publique novos casos clínicos e questões para as turmas."
-      : "Monte casos clínicos com escores validados (Braden, CAM, CALOI, SAK) ou explore simulações formativas com o Processo de Enfermagem nas 5 etapas normatizadas pelo COFEN e taxonomias NANDA-I/NIC/NOC."
+      : "Monte casos clínicos com escores validados (Braden, CAM, CALOI, SAK) ou explore simulações formativas com o Processo de Enfermagem em 5 etapas e taxonomias NANDA-I/NIC/NOC."
   }), [isProfessor]);
 
   // Definição Completa dos Módulos Clínicos (Cada um com sua diretriz metodológica nativa automática)
@@ -70,12 +67,12 @@ export default function StudentDashboard() {
       category: "cofen",
       title: "Simulador de Casos Clínicos",
       subtitle: "Processo de Enfermagem & Raciocínio Clínico",
-      description: "Pratique o raciocínio diagnóstico nas 5 etapas do PE (COFEN 736/2024) com taxonomias NANDA-I, NIC e NOC e julgamento clínico.",
+      description: "Pratique o raciocínio diagnóstico nas 5 etapas do Processo de Enfermagem com taxonomias NANDA-I, NIC e NOC e julgamento clínico.",
       icon: BookOpen,
       path: "/simulador-casos",
-      tag: "COFEN nº 736 • NANDA-I",
+      tag: "Processo de Enfermagem • NANDA-I",
       time: "15 min",
-      badgeText: "5 Etapas Normatizadas",
+      badgeText: "5 Etapas",
       stats: "Avaliação, Diagnóstico e Metas",
       featured: true
     },
@@ -84,13 +81,13 @@ export default function StudentDashboard() {
       category: "sbar",
       title: "Passagem de Plantão SBAR",
       subtitle: "Comunicação Segura & Preceptoria IA",
-      description: "Treine a técnica SBAR (Situação, Breve Histórico, Avaliação, Recomendação) por voz ou texto, com debriefing socrático do Preceptor Clínico IA.",
+      description: "Treine a técnica SBAR (Situação, Breve Histórico, Avaliação, Recomendação) por voz ou texto, com debriefing e devolutiva do Preceptor IA.",
       icon: ArrowRightLeft,
       path: "/passagem-plantao",
       tag: "Meta 2 OMS • SBAR Áudio",
       time: "8 min",
       badgeText: "Preceptoria IA",
-      stats: "Áudio • Debriefing • PDF",
+      stats: "Áudio • Conclusão • PDF",
       featured: true
     },
     {
@@ -105,19 +102,6 @@ export default function StudentDashboard() {
       time: "5 min",
       badgeText: "4 Modos",
       stats: "Macrogotas • Microgotas • Diluições"
-    },
-    {
-      id: "sistemas",
-      category: "semiologia",
-      title: "Semiologia por Sistemas",
-      subtitle: "Exame Físico Céfalo-Caudal",
-      description: "Identifique achados normais e sinais de alarme em neurologia, respiração, cardiologia e tegumentar.",
-      icon: Stethoscope,
-      path: "/sistemas-organicos",
-      tag: "Exame Físico",
-      time: "10 min",
-      badgeText: "Céfalo-Caudal",
-      stats: "Glasgow • Braden • Ausculta"
     },
     {
       id: "montar",
@@ -168,7 +152,6 @@ export default function StudentDashboard() {
     { id: "cofen", label: "Processo de Enfermagem", count: learningModules.filter(m => m.category === 'cofen').length },
     { id: "sbar", label: "Plantão SBAR", count: learningModules.filter(m => m.category === 'sbar').length },
     { id: "doses", label: "Cálculo de Doses", count: learningModules.filter(m => m.category === 'doses').length },
-    { id: "semiologia", label: "Semiologia", count: learningModules.filter(m => m.category === 'semiologia').length },
     { id: "turmas", label: "Minhas Turmas", count: learningModules.filter(m => m.category === 'turmas').length }
   ], [learningModules]);
 
@@ -214,7 +197,7 @@ export default function StudentDashboard() {
           onOpenOptions={() => setIsOptionsModalOpen(true)}
           onOpenAIChat={() => {
             triggerHaptic(20);
-            setIsGotiChatOpen(true);
+            window.dispatchEvent(new CustomEvent("open-goti-chat"));
           }}
         />
       </div>
@@ -264,52 +247,22 @@ export default function StudentDashboard() {
               </div>
             </div>
 
-            {/* Mascote Goti & Painel Rápido de Plantão Clínico */}
-            <div className="shrink-0 flex items-center justify-center gap-4 lg:gap-6">
-              {/* Mascote Goti dando oi & Balão de fala Flat 2D Branco Fofo */}
+            {/* Mascote Goti em Destaque Imponente (Sem balão de texto e sem card lateral COFEN) */}
+            <div className="shrink-0 flex items-center justify-center">
               <div
                 onClick={() => {
                   triggerHaptic(20);
-                  setIsGotiChatOpen(true);
+                  window.dispatchEvent(new CustomEvent("open-goti-chat"));
                 }}
-                className="cursor-pointer group flex flex-col items-center justify-center p-1 transition-transform hover:scale-105 active:scale-95 select-none"
+                className="cursor-pointer group flex items-center justify-center p-1 transition-transform hover:scale-105 active:scale-95 select-none"
                 title="Clique para conversar com o Preceptor Goti"
               >
-                {/* Goti em pose acenando e dando oi (100% sem fundo e sem chão) */}
+                {/* Goti em pose de boas-vindas com proporção cinematográfica */}
                 <GotiAnimated
                   animation="wave"
                   size="hero"
-                  className="w-40 h-48 sm:w-52 sm:h-60 md:w-64 md:h-72 lg:w-76 lg:h-88 xl:w-84 xl:h-96 shrink-0"
+                  className="w-52 h-64 sm:w-64 sm:h-76 md:w-80 md:h-96 lg:w-96 lg:h-[26rem] xl:w-[26rem] xl:h-[30rem] shrink-0"
                 />
-
-                {/* Balão de fala Flat 2D Branco Fofo com texto contrastado e marcante */}
-                <div className="relative mt-2 lg:mt-3">
-                  {/* Rabicho/Ponta do balão apontando para o Goti */}
-                  <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-b-8 border-b-white filter drop-shadow-[0_-1px_1px_rgba(0,0,0,0.06)]" />
-
-                  <div className="bg-white text-slate-900 px-3 lg:px-4 py-1.5 lg:py-2 rounded-2xl shadow-2xl shadow-teal-950/40 border-2 border-emerald-400/40 flex items-center gap-1.5 transition-transform group-hover:scale-105">
-                    <span className="text-xs lg:text-sm font-black tracking-tight whitespace-nowrap text-slate-950">
-                      Fale com o Goti!
-                    </span>
-                    <span className="text-sm lg:text-base select-none">👋</span>
-                  </div>
-                </div>
-              </div>
-
-              {/* Estatísticas do Plantão: visível em telas xl+ para manter harmonia em celular landscape */}
-              <div className="hidden xl:block rounded-2xl border border-white/20 bg-slate-950/40 backdrop-blur-md p-5 text-left space-y-3 min-w-[200px] shadow-lg">
-                <div className="flex items-center gap-2 text-xs font-black text-emerald-300">
-                  <Stethoscope className="h-4 w-4 text-emerald-400" />
-                  <span>Plantão de Simulação</span>
-                </div>
-                <div className="space-y-1">
-                  <p className="text-xl font-black text-white drop-shadow-xs">Prática Segura</p>
-                  <p className="text-xs font-semibold text-emerald-100/90">Resolução COFEN 736/2024</p>
-                </div>
-                <div className="pt-2 border-t border-white/15 flex items-center justify-between text-[11px] text-teal-100">
-                  <span>Metas da OMS</span>
-                  <span className="font-extrabold text-emerald-300">Ativas</span>
-                </div>
               </div>
             </div>
           </div>
@@ -338,7 +291,7 @@ export default function StudentDashboard() {
               <div
                 onClick={() => {
                   triggerHaptic(20);
-                  setIsGotiChatOpen(true);
+                  window.dispatchEvent(new CustomEvent("open-goti-chat"));
                 }}
                 className="cursor-pointer group rounded-3xl border border-emerald-400/30 dark:border-emerald-500/20 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-3.5 shadow-xl text-white relative overflow-hidden flex items-center gap-3.5 active:scale-[0.98] transition-all"
                 title="Clique para conversar com o Goti"
@@ -346,9 +299,9 @@ export default function StudentDashboard() {
                 {/* Efeito luminoso de fundo */}
                 <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
 
-                {/* Mascote Goti em destaque à esquerda (Visibilidade garantida sem cortes) */}
-                <div className="shrink-0 flex items-center justify-center">
-                  <GotiAnimated animation="wave" size="sm" className="w-18 h-18 sm:w-22 sm:h-22 drop-shadow-md shrink-0" />
+                {/* Mascote Goti em destaque à esquerda (Tamanho ampliado, visibilidade garantida) */}
+                <div className="shrink-0 flex items-center justify-center -my-2 -ml-1">
+                  <GotiAnimated animation="wave" size="lg" className="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-lg shrink-0 transform-gpu scale-110" />
                 </div>
 
                 {/* Mensagem e Saudação no Centro */}
@@ -361,7 +314,7 @@ export default function StudentDashboard() {
                     {greetingName ? `Olá, ${greetingName}!` : "Olá aluno!"}
                   </h3>
                   <p className="text-[11px] text-emerald-100/90 font-medium leading-snug line-clamp-1">
-                    Tire dúvidas e simule condutas clínicas.
+                    Tire dúvidas sobre como navegar no site.
                   </p>
                 </div>
 
@@ -514,39 +467,6 @@ export default function StudentDashboard() {
           const destination = action.query ? `${targetPath}${action.query}` : targetPath;
           navigate(destination);
         }}
-      />
-
-      {/* Botão Flutuante do Goti no Mobile na Home */}
-      <div className="md:hidden">
-        <button
-          onClick={() => {
-            triggerHaptic(20);
-            setIsGotiChatOpen(true);
-          }}
-          className="fixed bottom-20 right-4 z-40 flex items-center gap-2 p-2 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group hide-on-short-landscape"
-          title="Dúvidas clínicas? Pergunte ao Goti"
-          aria-label="Abrir Chat com o Goti"
-        >
-          <img
-            src="/goti/goti-avatar-app.png"
-            alt="Goti IA"
-            className="w-8 h-8 object-contain filter drop-shadow-xs group-hover:scale-110 transition-transform"
-          />
-          <div className="text-left pr-1">
-            <span className="text-xs font-black block leading-none">Goti IA</span>
-            <span className="text-[10px] text-teal-100 block font-medium">Tirar Dúvidas</span>
-          </div>
-          <span className="flex h-2.5 w-2.5 relative">
-            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
-            <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
-          </span>
-        </button>
-      </div>
-
-      {/* Gaveta / Modal de Chat com o Preceptor IA no Mobile */}
-      <GotiChatDrawer
-        isOpen={isGotiChatOpen}
-        onClose={() => setIsGotiChatOpen(false)}
       />
     </div>
   );

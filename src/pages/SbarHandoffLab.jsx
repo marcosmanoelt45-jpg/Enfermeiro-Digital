@@ -32,7 +32,6 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import { useAuth } from "@/lib/AuthContext";
@@ -1278,7 +1277,7 @@ export default function SbarHandoffLab() {
               }`}
             >
               <MessageSquareQuote className="h-4 w-4 text-teal-700 dark:text-teal-400" />
-              <span>4. Debriefing & Parecer do Goti (Score: {tutorEvaluation.safetyScore}/100)</span>
+              <span>4. Conclusão & Parecer do Goti (Score: {tutorEvaluation.safetyScore}/100)</span>
             </button>
           )}
         </div>
@@ -1917,10 +1916,9 @@ export default function SbarHandoffLab() {
                   title="Clique para ver a comemoração e parecer do Goti!"
                 >
                   <GotiAnimated
-                    animation={tutorEvaluation.safetyScore >= 80 ? "love" : tutorEvaluation.safetyScore >= 50 ? "pointing" : "angry"}
+                    animation={tutorEvaluation.safetyScore >= 80 ? "jumping" : tutorEvaluation.safetyScore >= 50 ? "pointing" : "angry"}
                     size="feedback"
-                    className="w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 shrink-0"
-                    withSoundToggle={true}
+                    className="w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 shrink-0"
                   />
                 </div>
                 <div className="text-right">
@@ -2016,77 +2014,6 @@ export default function SbarHandoffLab() {
                 </div>
               )}
             </div>
-
-            {/* DEBRIEFING COM O GOTI: PERGUNTAS REFLEXIVAS INTERATIVAS */}
-            {tutorEvaluation.socraticQuestions?.length > 0 && (
-              <div className="bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-800 rounded-2xl p-5 space-y-4">
-                <div className="flex items-center gap-2">
-                  <MessageSquareQuote className="h-5 w-5 text-teal-700 dark:text-teal-400" />
-                  <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
-                    Debriefing com o Goti (Exercício de Raciocínio Clínico)
-                  </h4>
-                </div>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Responda às questões reflexivas para consolidar a fixação das condutas de emergência:
-                </p>
-
-                <div className="space-y-3 pt-1">
-                  {tutorEvaluation.socraticQuestions.map((q, idx) => (
-                    <div key={idx} className="bg-white dark:bg-slate-800/80 rounded-xl border border-slate-200 dark:border-slate-700 p-3.5 space-y-2">
-                      <p className="text-xs font-semibold text-slate-900 dark:text-slate-100">
-                        {idx + 1}. {q}
-                      </p>
-                      <Input
-                        value={studentReflections[idx] || ""}
-                        onChange={(e) => setStudentReflections({ ...studentReflections, [idx]: e.target.value })}
-                        placeholder="Digite sua resposta e justificativa clínica como enfermeiro(a)..."
-                        className="text-xs rounded-lg border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 focus:border-teal-700"
-                      />
-                    </div>
-                  ))}
-                </div>
-
-                {/* Botão de Salvar e Enviar Respostas para Auditoria do Goti */}
-                <div className="pt-2 flex flex-col sm:flex-row items-center justify-between gap-3 border-t border-slate-200/60 dark:border-slate-700/60">
-                  <Button
-                    onClick={handleSaveStudentReflections}
-                    disabled={isSavingReflections}
-                    className="w-full sm:w-auto rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center justify-center gap-2 px-5 py-2.5 shadow-md transition-all hover:scale-[1.02] cursor-pointer"
-                  >
-                    {isSavingReflections ? (
-                      <>
-                        <Sparkles className="w-4 h-4 animate-spin text-white" />
-                        <span>Goti analisando reflexões...</span>
-                      </>
-                    ) : (
-                      <>
-                        <CheckCircle2 className="w-4 h-4 text-emerald-200" />
-                        <span>Salvar e Enviar Respostas para Avaliação do Goti</span>
-                      </>
-                    )}
-                  </Button>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    Suas respostas serão salvas no prontuário e auditadas pelo Goti.
-                  </span>
-                </div>
-
-                {/* Feedback e Parecer do Goti sobre as Reflexões */}
-                {reflectionsFeedback && (
-                  <div className="p-4 rounded-xl bg-teal-50/80 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-800 flex items-start gap-3.5 animate-in fade-in">
-                    <GotiAnimated animation="love" size="sm" className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 shrink-0 mt-0.5" />
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-xs font-black text-teal-900 dark:text-teal-200">
-                        <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                        <span>Parecer do Goti sobre as suas Respostas ({reflectionsFeedback.savedAt}):</span>
-                      </div>
-                      <p className="text-xs text-slate-700 dark:text-slate-200 leading-relaxed font-medium">
-                        {reflectionsFeedback.comment}
-                      </p>
-                    </div>
-                  </div>
-                )}
-              </div>
-            )}
 
             {/* Mensagem de Mentoria & Exportação em PDF com Goti */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">

@@ -281,5 +281,41 @@ html.dark textarea {
   }
 }
 
+/* Bloqueio estrito de botões nativos de Picture-in-Picture / Pop-out do navegador em mascote Goti */
+video::-webkit-media-controls,
+video::-webkit-media-controls-enclosure,
+video::-webkit-media-controls-panel,
+video::-webkit-media-controls-overlay-play-button {
+  display: none !important;
+  -webkit-appearance: none;
+  opacity: 0 !important;
+  pointer-events: none !important;
+}
+
+/* Animação suave e espaçada do fogo da ofensiva clínica (pulo sutil e calmo a cada 4.5s) */
+@keyframes flameHop {
+  0%, 75%, 100% {
+    transform: translateY(0) scale(1);
+  }
+  80% {
+    transform: translateY(-4px) scale(1.05);
+  }
+  85% {
+    transform: translateY(0) scale(0.98);
+  }
+  90% {
+    transform: translateY(-2px) scale(1.02);
+  }
+  95% {
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-flame-subtle {
+  animation: flameHop 4.5s ease-in-out infinite;
+  will-change: transform;
+}
+
+
 
 

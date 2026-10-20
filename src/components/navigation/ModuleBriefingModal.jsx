@@ -10,7 +10,6 @@ import {
   Clock,
   Video,
   Calculator,
-  Stethoscope,
   PlusCircle,
   ArrowRightLeft,
   ShieldCheck
@@ -85,19 +84,7 @@ const MODULE_DATA = {
       { id: "review", label: "Revisão de Fórmulas e Histórico", desc: "Consultar histórico de cálculos, acertos e macetes", icon: RotateCcw, primary: false, query: "?action=review" }
     ]
   },
-  sistemas: {
-    title: "Semiologia & Exame Físico",
-    category: "Avaliação Céfalo-Caudal",
-    badge: "Escalas • Achados Clínicos",
-    icon: Stethoscope,
-    speech: "Semiologia por sistemas orgânicos: neurológico (Glasgow/CAM), respiratório, cardiovascular e tegumentar (Braden). Identifique sinais de alerta!",
-    targetPath: "/sistemas-organicos",
-    actions: [
-      { id: "start", label: "Começar Novo Exame Clínico", desc: "Selecionar sistema orgânico e avaliar achados", icon: Play, primary: true, query: "?action=new" },
-      { id: "continue", label: "Continuar Avaliação", desc: "Retomar a escala ou sistema que estava analisando", icon: ArrowRight, primary: false, query: "?action=continue" },
-      { id: "review", label: "Revisão de Avaliações e Histórico", desc: "Consultar histórico de exames semiológicos e critérios", icon: RotateCcw, primary: false, query: "?action=review" }
-    ]
-  }
+
 };
 
 export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelectAction }) {
