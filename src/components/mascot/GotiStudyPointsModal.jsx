@@ -8,18 +8,40 @@ import {
   Award,
   CheckCircle2,
   TrendingUp,
-  Target
+  Target,
+  Snowflake
 } from "lucide-react";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { useTheme } from "@/lib/ThemeContext";
+import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 
 export default function GotiStudyPointsModal({ isOpen, onClose }) {
   const { triggerHaptic } = useTheme();
-  const [gameState] = useState(() => clinicalGamificationService.getState());
+  const [gameState, setGameState] = useState(() => clinicalGamificationService.getState());
 
   if (!isOpen) return null;
 
   const currentPe = gameState.studyPoints ?? gameState.totalXp ?? 0;
+  const freezeCount = gameState.streakFreezeAvailable || 0;
+
+  const handleBuyStreakFreeze = () => {
+    triggerHaptic(25);
+    const result = clinicalGamificationService.spendStudyPoints(30, "streak_freeze");
+    if (result.success) {
+      setGameState(clinicalGamificationService.getState());
+      toast({
+        title: "❄️ Congelamento de Plantão Adquirido!",
+        description: "Seu streak de dias está protegido contra imprevistos na escala hospitalar."
+      });
+    } else {
+      toast({
+        title: "Saldo Insuficiente de PE",
+        description: result.reason || "Complete mais tarefas para acumular 30 Pontos de Estudo.",
+        variant: "destructive"
+      });
+    }
+  };
 
   // Critérios pedagógicos de pontuação por mérito
   const scoringCriteria = [
@@ -120,8 +142,41 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
           </div>
         </div>
 
-        {/* Critérios de Conquista de PE (Informativo Pedagógico Sem Gastos) */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4">
+        {/* Área de Utilidades & Critérios de Pontuação */}
+        <div className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-5">
+          {/* Card de Congelamento de Plantão (Duolingo Vibe) */}
+          <div className="rounded-2xl border-2 border-sky-300 dark:border-sky-800 bg-gradient-to-r from-sky-50/80 via-blue-50/40 to-white dark:from-sky-950/40 dark:via-slate-900 dark:to-slate-900 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
+            <div className="flex items-center gap-3.5">
+              <div className="w-12 h-12 rounded-2xl bg-sky-500/15 border border-sky-500/30 flex items-center justify-center shrink-0 text-sky-600 dark:text-sky-400">
+                <Snowflake className="w-6 h-6 animate-pulse" />
+              </div>
+              <div className="space-y-0.5">
+                <div className="flex items-center gap-2">
+                  <h4 className="text-xs sm:text-sm font-black text-slate-900 dark:text-white">
+                    Congelamento de Plantão (Ofensiva)
+                  </h4>
+                  <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-300">
+                    Estoque: {freezeCount} ativo{freezeCount !== 1 ? "s" : ""}
+                  </span>
+                </div>
+                <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-snug">
+                  Protege seus dias consecutivos caso você fique sem praticar hoje por causa do plantão ou correria.
+                </p>
+              </div>
+            </div>
+
+            <Button
+              type="button"
+              size="sm"
+              onClick={handleBuyStreakFreeze}
+              disabled={currentPe < 30}
+              className="rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-2xs py-2 px-4 tap-press disabled:opacity-50"
+            >
+              <Snowflake className="w-3.5 h-3.5" />
+              <span>Comprar por 30 PE</span>
+            </Button>
+          </div>
+
           <div>
             <h4 className="text-xs font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400 flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />

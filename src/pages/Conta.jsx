@@ -17,6 +17,8 @@ import {
   Moon,
   Sliders,
   BarChart3,
+  Flame,
+  Snowflake,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -28,6 +30,7 @@ import PhotoCropper from "@/components/PhotoCropper";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import ClinicalStatsGrid from "@/components/profile/ClinicalStatsGrid";
 import WeeklyActivityChart from "@/components/profile/WeeklyActivityChart";
+import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 
 function cleanName(name) {
   return (name || "").replace(/^models\//, "");
@@ -43,6 +46,7 @@ export default function Conta() {
 
   // Estado da Gamificação Clínica
   const [gameState, setGameState] = useState(() => clinicalGamificationService.getState());
+  const [showPeModal, setShowPeModal] = useState(false);
 
   const refreshGameState = () => {
     setGameState(clinicalGamificationService.getState());
@@ -51,6 +55,24 @@ export default function Conta() {
   useEffect(() => {
     refreshGameState();
   }, []);
+
+  function handleBuyStreakFreeze() {
+    triggerHaptic(25);
+    const result = clinicalGamificationService.spendStudyPoints(30, "streak_freeze");
+    if (result.success) {
+      refreshGameState();
+      toast({
+        title: "❄️ Congelamento de Plantão Adquirido!",
+        description: "Seu streak de dias está protegido contra imprevistos na escala hospitalar."
+      });
+    } else {
+      toast({
+        title: "Saldo Insuficiente de PE",
+        description: result.reason || "Complete mais tarefas para acumular 30 Pontos de Estudo.",
+        variant: "destructive"
+      });
+    }
+  }
 
   const [busy, setBusy] = useState(false);
   const [switching, setSwitching] = useState(false);
@@ -463,6 +485,77 @@ export default function Conta() {
         {/* ABA 1: PERFIL & ESTATÍSTICAS CLÍNICAS */}
         {activeTab === "stats" && (
           <div className="space-y-4">
+            {/* Card de Ofensiva & Congelamento de Plantão (Estilo Duolingo) */}
+            <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-900/60 bg-gradient-to-r from-amber-50/70 via-orange-50/40 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 p-5 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="flex items-center gap-3.5">
+                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-md shrink-0">
+                    <Flame className="w-7 h-7 animate-bounce" />
+                  </div>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="text-2xl font-black text-amber-900 dark:text-amber-300 leading-none">
+                        {gameState.streak || 0} dias seguidos
+                      </span>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
+                        Ofensiva Ativa 🔥
+                      </span>
+                    </div>
+                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
+                      Você está praticando raciocínio clínico sem interrupções! Recorde: <strong>{gameState.bestStreak || gameState.streak || 0} dias</strong>.
+                    </p>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
+                  <Button
+                    type="button"
+                    size="sm"
+                    variant="outline"
+                    onClick={() => {
+                      triggerHaptic(15);
+                      setShowPeModal(true);
+                    }}
+                    className="rounded-xl border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 bg-white/80 dark:bg-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
+                    <span>{gameState.studyPoints ?? gameState.totalXp ?? 0} PE</span>
+                  </Button>
+                </div>
+              </div>
+
+              {/* Módulo de Congelamento de Plantão */}
+              <div className="pt-3 border-t border-amber-200/60 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/60 dark:bg-slate-900/60 p-3.5 rounded-xl border">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/60 border border-sky-300 dark:border-sky-800 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                    <Snowflake className="w-5 h-5 animate-pulse" />
+                  </div>
+                  <div>
+                    <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                      Congelamento de Plantão
+                      <span className="text-[10px] font-extrabold px-2 py-0.2 rounded-full bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-300">
+                        {gameState.streakFreezeAvailable || 0} disponível{(gameState.streakFreezeAvailable || 0) !== 1 ? "is" : ""}
+                      </span>
+                    </h5>
+                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      Fique 1 dia sem atividade sem perder sua contagem de dias seguidos (estilo Duolingo).
+                    </p>
+                  </div>
+                </div>
+
+                <Button
+                  type="button"
+                  size="sm"
+                  onClick={handleBuyStreakFreeze}
+                  disabled={(gameState.studyPoints ?? gameState.totalXp ?? 0) < 30}
+                  className="rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs shrink-0 self-start sm:self-auto py-2 px-3 tap-press disabled:opacity-50"
+                >
+                  <Snowflake className="w-3.5 h-3.5" />
+                  <span>Comprar (+1) por 30 PE</span>
+                </Button>
+              </div>
+            </div>
+
             {/* Grid 2x2 de Métricas Vitais de Desempenho Clínico */}
             <ClinicalStatsGrid
               solvedCases={gameState.solvedCases}
@@ -748,6 +841,14 @@ export default function Conta() {
           onCancel={() => setPendingFile(null)}
         />
       )}
+
+      <GotiStudyPointsModal
+        isOpen={showPeModal}
+        onClose={() => {
+          setShowPeModal(false);
+          refreshGameState();
+        }}
+      />
     </div>
   );
 }

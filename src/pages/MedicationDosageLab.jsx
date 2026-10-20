@@ -523,20 +523,20 @@ export default function MedicationDosageLab() {
               </Button>
             </div>
 
-            {/* Dica do Goti */}
+            {/* Dica e Suporte do Goti */}
             <div className="rounded-2xl border border-teal-200/80 dark:border-teal-800/80 bg-gradient-to-r from-teal-50/80 via-emerald-50/40 to-white dark:from-teal-950/40 dark:via-slate-900 dark:to-slate-900 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
               <div className="shrink-0 flex items-center justify-center">
                 <GotiAnimated
                   animation={evaluating ? "thinking" : feedback?.isCorrect ? "love" : feedback ? "angry" : "pointing"}
                   size="feedback"
-                  className="w-20 h-20 shrink-0"
+                  className="w-22 h-22 sm:w-28 sm:h-28 md:w-36 md:h-36 shrink-0"
                   withSoundToggle={false}
                 />
               </div>
-              <div className="flex-1 text-center sm:text-left space-y-1">
+              <div className="flex-1 text-center sm:text-left space-y-2">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 text-[11px] font-bold uppercase tracking-wider">
                   <Sparkles className="w-3 h-3 text-amber-500" />
-                  Goti
+                  Preceptor Goti
                 </div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">
                   {feedback?.isCorrect
@@ -547,9 +547,30 @@ export default function MedicationDosageLab() {
                     ? "Atenção à margem terapêutica! Vamos recalcular juntos?"
                     : "Resolva este desafio! A dosagem correta protege o paciente contra iatrogenias."}
                 </p>
-                <p className="text-xs text-slate-500 dark:text-slate-400">
-                  Dúvidas no cálculo? Consulte as fórmulas ou tire dúvidas com o Goti.
-                </p>
+                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(
+                          new CustomEvent("open-goti-chat", {
+                            detail: {
+                              prompt: `Olá Goti! Estou resolvendo uma prescrição de ${problem.category}: "${problem.description}". Como devo raciocinar para montar a fórmula passo a passo? Pode me dar um exemplo didático modelo similar sem me dar a resposta final?`
+                            }
+                          })
+                        );
+                      }
+                    }}
+                    className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs py-2 px-3.5 tap-press"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Dúvidas? Fale com o Goti!</span>
+                  </Button>
+                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                    O Goti te guia na fórmula com um exemplo didático modelo.
+                  </span>
+                </div>
               </div>
             </div>
 
@@ -739,7 +760,7 @@ export default function MedicationDosageLab() {
                           <GotiAnimated
                             animation={feedback.isCorrect ? "love" : "angry"}
                             size="feedback"
-                            className="w-20 h-20 shrink-0"
+                            className="w-22 h-22 sm:w-28 sm:h-28 md:w-36 md:h-36 shrink-0"
                             withSoundToggle={true}
                           />
                         </div>

@@ -96,22 +96,22 @@ const GOTI_POSES = {
 };
 
 const SIZE_PRESETS = {
-  xs: "w-8 h-8",
-  sm: "w-12 h-12",
-  feedback: "w-20 h-20 sm:w-24 sm:h-24",
-  md: "w-24 h-24",
-  lg: "w-40 h-40",
-  xl: "w-52 h-52",
-  "2xl": "w-64 h-64",
-  hero: "w-48 h-56 sm:w-56 sm:h-64"
+  xs: "w-10 h-10 md:w-14 md:h-14",
+  sm: "w-14 h-14 sm:w-16 sm:h-16 md:w-20 md:h-20 lg:w-24 lg:h-24",
+  feedback: "w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 lg:w-44 lg:h-44",
+  md: "w-28 h-28 sm:w-32 sm:h-32 md:w-40 md:h-40 lg:w-48 lg:h-48",
+  lg: "w-36 h-36 sm:w-44 sm:h-44 md:w-56 md:h-56 lg:w-64 lg:h-64",
+  xl: "w-44 h-44 sm:w-52 sm:h-52 md:w-64 md:h-64 lg:w-72 lg:h-72",
+  "2xl": "w-52 h-52 sm:w-60 sm:h-60 md:w-72 md:h-72 lg:w-80 lg:h-80 xl:w-96 xl:h-96",
+  hero: "w-44 h-52 sm:w-52 sm:h-60 md:w-72 md:h-84 lg:w-88 lg:h-[26rem] xl:w-96 xl:h-[30rem]"
 };
 
 /**
  * GotiAnimated
  * Renderiza o mascote Preceptor Goti:
  * - 100% transparente com canal alfa nativo WebM (zero fundo branco, zero cortes de jaleco ou crocs).
- * - Vídeos em taxa de quadros fluida (24-60 FPS) e loops orgânicos contínuos.
- * - Suporte a fallback imediato e acessibilidade.
+ * - Vídeos em taxa de quadros fluida (24-60 FPS) e loops orgânicos contínuos com transição imperceptível.
+ * - Aceleração gráfica por hardware (GPU) ativa para eliminar micro-stutters.
  */
 export default function GotiAnimated({
   animation = "idle",
@@ -134,10 +134,10 @@ export default function GotiAnimated({
     >
       {/* Sombra de apoio suave e discreta na base */}
       {showShadow && (
-        <div className="absolute bottom-0 w-1/2 h-2 rounded-full bg-black/15 dark:bg-black/30 blur-xs pointer-events-none" />
+        <div className="absolute bottom-0 w-1/2 h-2.5 rounded-full bg-black/15 dark:bg-black/30 blur-xs pointer-events-none" />
       )}
 
-      {/* Renderização de Vídeo WebM Transparente ou Fallback de Imagem */}
+      {/* Renderização de Vídeo WebM Transparente ou Fallback de Imagem com aceleração de hardware */}
       {currentPose.videoSrc ? (
         <video
           key={currentPose.videoSrc}
@@ -155,6 +155,11 @@ export default function GotiAnimated({
           playsInline
           preload="auto"
           aria-label={currentPose.label}
+          style={{
+            transform: "translateZ(0)",
+            willChange: "transform",
+            backfaceVisibility: "hidden"
+          }}
           className={`w-full h-full object-contain pointer-events-none ${currentPose.animationClass} transition-transform duration-300`}
         />
       ) : (

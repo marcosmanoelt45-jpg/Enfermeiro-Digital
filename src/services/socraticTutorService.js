@@ -118,31 +118,31 @@ export async function evaluateClinicalReasoning({
 
   const systemPrompt = `Você é o Goti IA, o enfermeiro digital e tutor inteligente especialista em Raciocínio Clínico e no Processo de Enfermagem (Resolução COFEN nº 736/2024 e Teoria das Necessidades Humanas Básicas) da plataforma Enfere.
 
-REGRAS PEDAGÓGICAS ABSOLUTAS:
-1. NUNCA dê a resposta final nem o diagnóstico perfeito mastigado de mão beijada.
-2. Seu papel é DESAFIAR e FOMENTAR a reflexão do estudante usando o MÉTODO SOCRÁTICO.
+REGRAS PEDAGÓGICAS E DE PONTUAÇÃO CRITERIOSA:
+1. NUNCA dê a resposta final pronta de mão beijada.
+2. CRITÉRIO RIGOROSO DE NOTAS:
+   - Resposta vazia, muito curta (menos de 20 caracteres) ou evasiva/genérica (ex: "dar remédio", "cuidar do paciente", "fazer curativo"): Atribua nota entre 0 e 30.
+   - Resposta com hipótese vaga sem justificar com sinais vitais reais do caso: Atribua nota entre 35 e 55.
+   - Resposta correta parcialmente (citou diagnóstico condizente mas esqueceu aprazamento, metas ou sinais vitais): Atribua nota entre 60 e 75.
+   - Resposta sólida (hipótese clínica correta, evidências do caso correlacionadas e cuidados seguros): Atribua nota entre 80 e 95.
+   - Nota 100% é reservada APENAS para raciocínios exemplares e completos de padrão ouro.
+   - TOLERÂNCIA ORTOGRÁFICA: Ignore pequenos erros de digitação, letras trocadas ou ausência de acentos (ex: "padrao respiratorio ineficaz" é plenamente aceito como correto). O foco é a semântica e a segurança clínica.
 3. Se o aluno acertou o foco, elogie a acurácia dos dados correlacionados e faça uma pergunta reflexiva sobre o risco futuro ou priorização de cuidados.
-4. Se o aluno errou ou foi superficial, aponte quais sinais vitais ou dados anamnésicos ele negligenciou e formule perguntas que o guiem a perceber o erro por si mesmo.
+4. Se o aluno errou ou foi superficial, aponte explicitamente quais sinais vitais ou dados anamnésicos ele negligenciou e por que perdeu pontos.
 5. Seja encorajador, ético e altamente científico com rigor didático.
 
 Retorne EXCLUSIVAMENTE um JSON válido com esta estrutura:
 {
-  "score": 0 a 100 (número inteiro da qualidade do raciocínio crítico),
-  "feedbackTitle": "Título formativo acolhedor",
-  "reasoningAnalysis": "Análise detalhada do julgamento clínico do aluno, comentando a hipótese diagnóstica e a correlação com as evidências",
-  "reflectiveQuestion": "Pergunta socrática principal instigando a reflexão profunda do aluno",
-  "pointsToConsider": [
-    "Ponto prático 1 essencial para a assistência segura",
-    "Ponto prático 2 de monitorização ou intervenção prioritária"
-  ],
-  "strengths": ["Ponto forte 1 identificado no raciocínio", "Ponto forte 2"],
-  "gaps": ["Dado clínico ou sinal vital crítico que o aluno não mencionou"],
-  "socraticQuestions": [
-    "Pergunta socrática 1 instigando a correlação fisiopatológica",
-    "Pergunta socrática 2 instigando a priorização do cuidado ou segurança do paciente"
-  ],
-  "pedagogicalHint": "Pista orientadora sem entregar a resposta completa",
-  "cofenStepFocus": "Qual das 5 etapas da Resolução COFEN 736/2024 precisa de mais atenção do aluno agora"
+  "score": number (0 a 100, calibrado rigorosamente conforme os critérios acima),
+  "feedbackTitle": string (título formativo acolhedor),
+  "reasoningAnalysis": string (análise detalhada do julgamento clínico explicando com transparência por que a nota foi atribuída e quais pontos foram deduzidos),
+  "reflectiveQuestion": string (pergunta socrática principal instigando a reflexão profunda do aluno),
+  "pointsToConsider": string[] (2 a 3 pontos práticos essenciais para a assistência segura),
+  "strengths": string[] (aspectos positivos identificados),
+  "gaps": string[] (lacunas, dados clínicos ou sinais vitais omitidos),
+  "socraticQuestions": string[] (perguntas socráticas instigando fisiopatologia e segurança),
+  "pedagogicalHint": string (pista orientadora sem entregar a resposta completa),
+  "cofenStepFocus": string (etapa da Resolução COFEN 736/2024 que requer atenção)
 }`;
 
   const userPrompt = `DADOS DO CASO SIMULADO:
@@ -155,11 +155,13 @@ RESPOSTA SUBMETIDA PELO ESTUDANTE:
 - Hipótese Diagnóstica NANDA-I/CIPE: ${cleanHypothesis || "(Não preenchido)"}
 - Justificativa, Etiologia e Evidências: ${cleanJustification || "(Não preenchido)"}
 - Cuidados e Metas Sugeridos: ${cleanInterventions || "(Não preenchido)"}
-- Evolução de Enfermagem: ${cleanEvolution || "(Não preenchido)"}`;
+- Evolução de Enfermagem: ${cleanEvolution || "(Não preenchido)"}
+
+Avalie criteriosamente o raciocínio clínico. Se o texto for genérico ou vago, deduza pontos e explique o motivo.`;
 
   const aiResult = await callGemini(systemPrompt, userPrompt);
   if (aiResult && (aiResult.score !== undefined || aiResult.reasoningAnalysis)) {
-    const finalScore = typeof aiResult.score === 'number' ? aiResult.score : 75;
+    const finalScore = typeof aiResult.score === 'number' ? Math.max(0, Math.min(100, Math.round(aiResult.score))) : 70;
     const reasoningAnalysis = aiResult.reasoningAnalysis ||
       `Você formulou a hipótese diagnóstica "${cleanHypothesis}". ${aiResult.feedbackTitle || ''} ${aiResult.strengths?.join(' ') || ''} ${aiResult.gaps?.length ? 'Lacunas observadas: ' + aiResult.gaps.join(' ') : ''}`;
 
@@ -277,41 +279,135 @@ Resposta Correta Esperada: ${problem.correctResult}`;
 }
 
 /**
- * Fallback heurístico inteligente para avaliação de raciocínio clínico sem chave do Gemini.
+ * Normaliza string removendo acentuação e caracteres especiais para tolerar variações ortográficas.
  */
-function generateHeuristicFeedback(caseData, hypothesis, justification) {
-  const hasVitalsMention = /press[aã]o|pa|frequ[eê]ncia|fc|fr|sat|satura[cç][aã]o|temperatura|tax/i.test(justification);
-  const textLength = (hypothesis + " " + justification).trim().length;
+function normalizeText(str = "") {
+  return str
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim();
+}
 
-  let score = 50;
+/**
+ * Fallback heurístico inteligente e criterioso para avaliação de raciocínio clínico.
+ * Avalia a qualidade real por eixos de pontuação, tolerando erros menores de digitação e acentuação.
+ */
+function generateHeuristicFeedback(caseData, hypothesis, justification, interventions = "") {
+  const normHypothesis = normalizeText(hypothesis);
+  const normJustification = normalizeText(justification);
+  const normInterventions = normalizeText(interventions);
+  const totalLength = normHypothesis.length + normJustification.length + normInterventions.length;
+
+  // 1. Caso de resposta vazia ou extremamente curta
+  if (totalLength < 15) {
+    return {
+      score: 15,
+      overallScore: 15,
+      feedbackTitle: "Formulação Insuficiente para Avaliação",
+      reasoningAnalysis: "A formulação enviada foi muito breve ou incompleta (15/100 pontos). Para o exercício ter validade e ser aprovado pelo Goti, descreva o título do diagnóstico e correlacione os sinais vitais alterados do paciente.",
+      reflectiveQuestion: "Quais são os sinais vitais alterados que você identificou neste caso?",
+      pointsToConsider: [
+        "Identificar o sinal vital com maior desvio da normalidade",
+        "Formular o diagnóstico conforme a resposta humana do paciente"
+      ],
+      strengths: ["Iniciou a tela de resolução de casos clínicos."],
+      gaps: [
+        "Hipótese diagnóstica não fundamentada.",
+        "Não indicou os parâmetros fisiopatológicos observados."
+      ],
+      socraticQuestions: [
+        "Qual é a queixa principal e o diagnóstico médico de base deste paciente?",
+        "Qual necessidade humana básica está prioritariamente afetada?"
+      ],
+      pedagogicalHint: "Dúvidas sobre como estruturar? Fale com o Goti para ver um exemplo metodológico modelo!",
+      cofenStepFocus: "Etapa 2 - Diagnóstico de Enfermagem (COFEN nº 736/2024)"
+    };
+  }
+
+  let score = 0;
   const strengths = [];
   const gaps = [];
+  const scoreBreakdown = [];
 
-  if (textLength > 30) {
-    score += 20;
-    strengths.push("Elaborou uma justificativa clínica com argumentação contextualizada.");
+  // EIXO 1: Diagnóstico / Taxonomia (0 a 30 pontos)
+  const isGenericHypothesis = normHypothesis.length < 8 || ["dor", "doente", "ruim", "mal", "cuidar", "paciente"].includes(normHypothesis);
+  const hasTaxonomyKeywords = /risco|padrao|troca|gas|integridade|pele|perfusao|volume|liquido|glicemia|infeccao|mobilidade|ansiedade|ventilac|respirat/i.test(normHypothesis);
+
+  if (hasTaxonomyKeywords || normHypothesis.length >= 15) {
+    score += 30;
+    scoreBreakdown.push("Diagnóstico clínico bem delineado (+30 pts)");
+    strengths.push("Formulou uma hipótese diagnóstica coerente e contextualizada.");
+  } else if (!isGenericHypothesis && normHypothesis.length >= 8) {
+    score += 18;
+    scoreBreakdown.push("Diagnóstico parcialmente estruturado (+18 pts)");
+    strengths.push("Identificou a área clínica prioritária.");
+    gaps.push("Refine o título diagnóstico utilizando termos padronizados (ex: NANDA-I ou CIPE).");
   } else {
-    gaps.push("A justificativa clínica foi muito sucinta. Desenvolva os argumentos com dados objetivos.");
+    score += 5;
+    scoreBreakdown.push("Diagnóstico genérico (+5 pts)");
+    gaps.push("O diagnóstico proposto foi excessivamente vago.");
   }
 
-  if (hasVitalsMention) {
+  // EIXO 2: Justificativa & Correlação com Sinais Vitais (0 a 35 pontos)
+  const hasVitalsPa = /press[aã]o|pa|\d{2,3}\s*\/\s*\d{2,3}|normotens|hipertens/i.test(justification);
+  const hasVitalsSat = /sat|satura[cç][aã]o|oxigen|spo2|hipox/i.test(justification);
+  const hasVitalsFc = /fc|frequ[eê]ncia|bpm|card[ií]ac|pulso|taquicard/i.test(justification);
+  const hasExamFinding = /dor|ausculta|estertor|sibilo|edema|curativo|dreno|lesao|febre|sudorese/i.test(justification);
+
+  const vitalsMatches = [hasVitalsPa, hasVitalsSat, hasVitalsFc, hasExamFinding].filter(Boolean).length;
+
+  if (vitalsMatches >= 3) {
+    score += 35;
+    scoreBreakdown.push("Fundamentação robusta com múltiplos sinais vitais (+35 pts)");
+    strengths.push("Correlacionou o raciocínio com diversos dados objetivos do exame físico.");
+  } else if (vitalsMatches >= 1) {
     score += 20;
-    strengths.push("Correlacionou a hipótese diagnóstica com os parâmetros de sinais vitais.");
+    scoreBreakdown.push("Fundamentação parcial de sinais vitais (+20 pts)");
+    strengths.push("Mencionou parâmetros vitais do caso na justificativa.");
+    gaps.push("Aprofunde a correlação citando outros sinais vitais alterados (ex: PA, SatO2, FC).");
+  } else if (normJustification.length > 25) {
+    score += 10;
+    scoreBreakdown.push("Argumentação descritiva sem dados numéricos (+10 pts)");
+    gaps.push("A justificativa não citou parâmetros numéricos objetivos dos sinais vitais.");
   } else {
-    gaps.push("Não citou especificamente os sinais vitais alterados que sustentam a sua hipótese.");
+    scoreBreakdown.push("Justificativa ausente ou insuficiente (0 pts)");
+    gaps.push("Faltou fundamentar a etiologia e as características definidoras observadas.");
   }
 
-  const finalScore = Math.min(score, 95);
-  const reasoningAnalysis = `Você formulou a hipótese diagnóstica "${hypothesis || 'Prioritária'}". ${
-    strengths.join(' ')
-  } ${gaps.length ? 'Aspectos a aprimorar: ' + gaps.join(' ') : 'Demonstrou boa coerência na correlação entre dados coletados e hipótese.'}`;
+  // EIXO 3: Prescrições / Intervenções e Metas de Segurança (0 a 35 pontos)
+  const hasTiming = /h|hora|\d{1,2}:\d{2}|de \d+ em \d+|minuto|aprazamento|plantao|turno/i.test(interventions + " " + justification);
+  const hasSpecificAction = /administrar|oxigenio|posicion|decurbito|grade|balanco|glicemia|curativo|monitor|ausculta|aspirar/i.test(interventions + " " + justification);
+
+  if (hasTiming && hasSpecificAction) {
+    score += 35;
+    scoreBreakdown.push("Intervenções com aprazamento e condutas seguras (+35 pts)");
+    strengths.push("Prescreveu intervenções de enfermagem com aprazamento e foco preventivo.");
+  } else if (hasSpecificAction || normInterventions.length > 20) {
+    score += 20;
+    scoreBreakdown.push("Intervenções identificadas sem horários claros (+20 pts)");
+    strengths.push("Definiu ações assistenciais voltadas ao problema principal.");
+    gaps.push("Defina o aprazamento das condutas (ex: monitorar de 2 em 2 horas, checar saturação a cada 30 min).");
+  } else {
+    scoreBreakdown.push("Prescrição de enfermagem ausente ou vaga (0 pts)");
+    gaps.push("Indique condutas prioritárias e metas terapêuticas para a equipe de enfermagem.");
+  }
+
+  const finalScore = Math.max(15, Math.min(100, score));
+  const reasoningAnalysis = `Sua pontuação foi de ${finalScore}/100 baseada na auditoria do Goti:\n• ${scoreBreakdown.join("\n• ")}\n\n${
+    finalScore >= 80
+      ? "Excelente julgamento clínico! Você demonstrou sólida capacidade de correlação fisiopatológica."
+      : finalScore >= 50
+      ? "Bom início de raciocínio, mas há pontos cegos assistenciais que precisam ser aprimorados."
+      : "Atenção: A formulação foi superficial ou omitiu dados fundamentais de segurança do paciente."
+  }`;
 
   return {
     score: finalScore,
     overallScore: finalScore,
-    feedbackTitle: "Análise Formativa do Raciocínio Clínico",
-    reasoningAnalysis: reasoningAnalysis.trim(),
-    reflectiveQuestion: `Considerando o diagnóstico de "${hypothesis || 'enfermagem'}" e a fisiopatologia do paciente ${caseData.title}, qual intervenção imediata da equipe de enfermagem previne eventos adversos nas próximas horas?`,
+    feedbackTitle: finalScore >= 80 ? "Julgamento Clínico Assertivo" : finalScore >= 50 ? "Julgamento Clínico em Desenvolvimento" : "Risco Assistencial Identificado",
+    reasoningAnalysis,
+    reflectiveQuestion: `Considerando o diagnóstico de "${hypothesis || 'enfermagem'}" e a fisiopatologia do caso ${caseData.title || ''}, qual intervenção imediata previne descompensação nas próximas horas?`,
     pointsToConsider: [
       "Verificar sinais vitais em intervalos rigorosos conforme o risco clínico",
       "Garantir a implementação das metas com prazos bem definidos de reavaliação",
@@ -320,10 +416,10 @@ function generateHeuristicFeedback(caseData, hypothesis, justification) {
     strengths: strengths.length > 0 ? strengths : ["Iniciou a formulação de hipótese diagnóstica para o caso."],
     gaps: gaps.length > 0 ? gaps : ["Continue refinando a priorização dos cuidados de acordo com a gravidade."],
     socraticQuestions: [
-      `Qual necessidade humana básica (conforme Wanda Horta) está prioritariamente em risco no momento atual?`,
-      `Se a equipe não intervir nas próximas 2 horas sobre esse achado clínico, qual é a complicação fisiopatológica esperada?`
+      "Qual necessidade humana básica (conforme Wanda Horta) está prioritariamente em risco no momento atual?",
+      "Se a equipe não intervir nas próximas 2 horas sobre esse achado clínico, qual é a complicação fisiopatológica esperada?"
     ],
-    pedagogicalHint: `Lembre-se de seguir as etapas da Resolução COFEN nº 736/2024: Avaliação -> Diagnóstico -> Planejamento -> Implementação -> Evolução.`,
+    pedagogicalHint: "Lembre-se de seguir as etapas da Resolução COFEN nº 736/2024: Avaliação -> Diagnóstico -> Planejamento -> Implementação -> Evolução.",
     cofenStepFocus: "Etapa 2 - Diagnóstico de Enfermagem fundamentado em evidências"
   };
 }

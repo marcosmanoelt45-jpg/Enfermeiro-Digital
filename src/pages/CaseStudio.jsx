@@ -1724,7 +1724,13 @@ export default function CaseStudio() {
 
                   {currentStep < WIZARD_STEPS.length - 1 ? (
                     <Button
-                      onClick={() => setCurrentStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1))}
+                      onClick={() => {
+                        if (currentStep === 0 && !profile.initials?.trim() && !profile.name?.trim()) {
+                          alert("Por favor, preencha as Iniciais ou Nome do paciente antes de avançar para o próximo passo.");
+                          return;
+                        }
+                        setCurrentStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1));
+                      }}
                       className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-5 font-semibold shadow-xs"
                     >
                       Próximo Passo <ArrowRight className="h-4 w-4 ml-1.5" />
@@ -2002,56 +2008,63 @@ export default function CaseStudio() {
                 </div>
 
                 {/* AÇÕES DA QUESTÃO ATIVA & NAVEGAÇÃO NA BATERIA */}
-                <div className="pt-3 border-t border-slate-100 flex flex-wrap items-center justify-between gap-3">
-                  {!isActiveSubmitted ? (
-                    <Button
-                      onClick={handleSubmitCurrentAnswer}
-                      disabled={!activeSelectedOption}
-                      className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-6 h-10 font-semibold flex items-center gap-2"
-                    >
-                      <Check className="h-4 w-4" /> Confirmar Julgamento Clínico
-                    </Button>
-                  ) : (
-                    <div className="flex items-center gap-2">
-                      <span className="text-xs font-bold text-slate-700">
-                        {activeQuestion.options?.find(o => o.id === activeSelectedOption)?.isCorrect ? (
-                          <span className="text-emerald-700 flex items-center gap-1">
-                            <CheckCircle2 className="h-4 w-4" /> Resposta Correta (+100 XP)
-                          </span>
-                        ) : (
-                          <span className="text-rose-600 flex items-center gap-1">
-                            <AlertCircle className="h-4 w-4" /> Resposta Incorreta (Revise os distratores)
-                          </span>
-                        )}
-                      </span>
-                    </div>
-                  )}
-
-                  <div className="flex items-center gap-2 ml-auto">
+                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                  <div className="flex items-center gap-2">
                     <Button
                       variant="outline"
                       size="sm"
                       onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
                       disabled={currentQuestionIndex === 0}
-                      className="rounded-xl border-slate-300 text-slate-700 text-xs font-semibold"
+                      className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold"
                     >
                       <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Questão Anterior
                     </Button>
 
-                    {currentQuestionIndex < questionsList.length - 1 ? (
+                    {isActiveSubmitted && (
+                      <span className="text-xs font-bold">
+                        {activeQuestion.options?.find(o => o.id === activeSelectedOption)?.isCorrect ? (
+                          <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
+                            <CheckCircle2 className="h-4 w-4" /> Resposta Correta (+100 XP)
+                          </span>
+                        ) : (
+                          <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1">
+                            <AlertCircle className="h-4 w-4" /> Resposta Incorreta (Revise os distratores)
+                          </span>
+                        )}
+                      </span>
+                    )}
+                  </div>
+
+                  <div className="flex items-center gap-2 ml-auto">
+                    {!isActiveSubmitted ? (
+                      <Button
+                        onClick={() => {
+                          if (!activeSelectedOption) {
+                            alert("Por favor, selecione uma das alternativas antes de avançar.");
+                            return;
+                          }
+                          handleSubmitCurrentAnswer();
+                        }}
+                        disabled={!activeSelectedOption}
+                        className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                      >
+                        <Check className="h-4 w-4" /> Confirmar & Ver Resultado
+                      </Button>
+                    ) : currentQuestionIndex < questionsList.length - 1 ? (
                       <Button
                         size="sm"
                         onClick={() => setCurrentQuestionIndex((prev) => Math.min(questionsList.length - 1, prev + 1))}
-                        className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold"
+                        className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs"
                       >
-                        Próxima Questão <ArrowRight className="h-3.5 w-3.5 ml-1" />
+                        <span>Próxima Questão</span>
+                        <ArrowRight className="h-3.5 w-3.5" />
                       </Button>
                     ) : (
                       allQuestionsAnswered && (
                         <Button
                           size="sm"
                           onClick={handleLaunchChallenge}
-                          className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-semibold flex items-center gap-1.5"
+                          className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs px-5 h-10 font-semibold flex items-center gap-1.5 shadow-xs"
                         >
                           <RotateCcw className="h-3.5 w-3.5" />
                           <span>Nova Bateria de Casos</span>

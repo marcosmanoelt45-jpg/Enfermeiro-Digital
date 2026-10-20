@@ -18,7 +18,106 @@ const CLINICAL_PROMPTS = [
   "Como passar plantão no método SBAR sem ruídos?"
 ];
 
-export default function GotiChatDrawer({ isOpen, onClose }) {
+/**
+ * Renderizador de Markdown elegante e seguro para mensagens do Goti
+ * Transforma marcadores (* e -) em listas visuais limpas com bolinhas teal,
+ * negritos em tags semânticas e remove asteriscos crus.
+ */
+function GotiMarkdownRenderer({ content = "", isUser = false }) {
+  if (!content) return null;
+
+  function parseInline(text) {
+    const regex = /(\*\*[^*]+\*\*|\*[^*]+\*|`[^`]+`)/g;
+    const parts = text.split(regex);
+
+    return parts.map((part, index) => {
+      if (part.startsWith("**") && part.endsWith("**")) {
+        const inner = part.slice(2, -2);
+        return (
+          <strong key={index} className={`font-extrabold ${isUser ? "text-white" : "text-slate-950 dark:text-white"}`}>
+            {inner}
+          </strong>
+        );
+      }
+      if (part.startsWith("*") && part.endsWith("*")) {
+        const inner = part.slice(1, -1);
+        return (
+          <em key={index} className={`italic ${isUser ? "text-teal-100" : "text-teal-900 dark:text-teal-200"}`}>
+            {inner}
+          </em>
+        );
+      }
+      if (part.startsWith("`") && part.endsWith("`")) {
+        const inner = part.slice(1, -1);
+        return (
+          <code key={index} className="px-1.5 py-0.5 rounded bg-black/15 dark:bg-white/10 font-mono text-[11px]">
+            {inner}
+          </code>
+        );
+      }
+      return part;
+    });
+  }
+
+  const lines = content.split("\n");
+  const blocks = [];
+  let currentList = null;
+
+  lines.forEach((line) => {
+    const trimmed = line.trim();
+    const isBullet = trimmed.startsWith("* ") || trimmed.startsWith("- ") || trimmed.startsWith("• ");
+    const isNumbered = /^\d+\.\s+/.test(trimmed);
+
+    if (isBullet || isNumbered) {
+      const cleanLine = trimmed.replace(/^(\*|-|•|\d+\.)\s+/, "");
+      if (!currentList) {
+        currentList = { type: isNumbered ? "ol" : "ul", items: [] };
+        blocks.push(currentList);
+      }
+      currentList.items.push(cleanLine);
+    } else {
+      currentList = null;
+      if (trimmed.length > 0) {
+        blocks.push({ type: "p", text: trimmed });
+      }
+    }
+  });
+
+  return (
+    <div className="space-y-2 leading-relaxed">
+      {blocks.map((block, bIdx) => {
+        if (block.type === "ul" || block.type === "ol") {
+          return (
+            <ul key={bIdx} className="space-y-1.5 my-2 pl-0.5">
+              {block.items.map((item, iIdx) => (
+                <li key={iIdx} className="flex items-start gap-2">
+                  <span className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${isUser ? "bg-white" : "bg-teal-600 dark:bg-teal-400"}`} />
+                  <span className="flex-1">{parseInline(item)}</span>
+                </li>
+              ))}
+            </ul>
+          );
+        }
+
+        if (block.text.startsWith("### ")) {
+          return (
+            <h4 key={bIdx} className={`font-black text-sm mt-2 mb-1 ${isUser ? "text-white" : "text-teal-900 dark:text-teal-200"}`}>
+              {parseInline(block.text.replace(/^###\s+/, ""))}
+            </h4>
+          );
+        }
+
+        return (
+          <p key={bIdx}>
+            {parseInline(block.text)}
+          </p>
+        );
+      })}
+    </div>
+  );
+}
+
+export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null }) {
   const { triggerHaptic } = useTheme();
   const [messages, setMessages] = useState(() => gotiPreceptorService.getHistory());
   const [inputText, setInputText] = useState("");
@@ -33,8 +132,22 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
         inputRef.current?.focus();
         scrollToBottom();
       }, 150);
+
+      if (initialQuery) {
+        handleSend(initialQuery);
+      }
     }
-  }, [isOpen]);
+  }, [isOpen, initialQuery]);
+
+  useEffect(() => {
+    function handleCustomOpen(e) {
+      if (e.detail?.prompt) {
+        handleSend(e.detail.prompt);
+      }
+    }
+    window.addEventListener("open-goti-chat", handleCustomOpen);
+    return () => window.removeEventListener("open-goti-chat", handleCustomOpen);
+  }, []);
 
   useEffect(() => {
     scrollToBottom();
@@ -179,7 +292,7 @@ export default function GotiChatDrawer({ isOpen, onClose }) {
                       : "bg-slate-100/90 dark:bg-slate-800/90 text-slate-800 dark:text-slate-100 rounded-bl-xs border border-slate-200/80 dark:border-slate-700/80"
                   }`}
                 >
-                  <p className="whitespace-pre-wrap">{msg.text}</p>
+                  <GotiMarkdownRenderer content={msg.text} isUser={isUser} />
                 </div>
               </div>
             );

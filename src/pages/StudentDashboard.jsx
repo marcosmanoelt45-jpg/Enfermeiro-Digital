@@ -276,10 +276,14 @@ export default function StudentDashboard() {
                 title="Clique para conversar com o Preceptor Goti"
               >
                 {/* Goti em pose acenando e dando oi (100% sem fundo e sem chão) */}
-                <GotiAnimated animation="wave" size="hero" className="w-32 h-40 lg:w-48 lg:h-56" />
+                <GotiAnimated
+                  animation="wave"
+                  size="hero"
+                  className="w-40 h-48 sm:w-52 sm:h-60 md:w-64 md:h-72 lg:w-76 lg:h-88 xl:w-84 xl:h-96 shrink-0"
+                />
 
                 {/* Balão de fala Flat 2D Branco Fofo com texto contrastado e marcante */}
-                <div className="relative mt-1.5 lg:mt-2">
+                <div className="relative mt-2 lg:mt-3">
                   {/* Rabicho/Ponta do balão apontando para o Goti */}
                   <div className="absolute -top-2 left-1/2 -translate-x-1/2 w-0 h-0 border-x-8 border-x-transparent border-b-8 border-b-white filter drop-shadow-[0_-1px_1px_rgba(0,0,0,0.06)]" />
 
@@ -336,7 +340,7 @@ export default function StudentDashboard() {
                   triggerHaptic(20);
                   setIsGotiChatOpen(true);
                 }}
-                className="cursor-pointer group rounded-3xl border border-emerald-400/30 dark:border-emerald-500/20 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-3.5 shadow-xl text-white relative overflow-hidden flex items-center gap-3 active:scale-[0.98] transition-all"
+                className="cursor-pointer group rounded-3xl border border-emerald-400/30 dark:border-emerald-500/20 bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-3.5 shadow-xl text-white relative overflow-hidden flex items-center gap-3.5 active:scale-[0.98] transition-all"
                 title="Clique para conversar com o Goti"
               >
                 {/* Efeito luminoso de fundo */}
@@ -344,7 +348,7 @@ export default function StudentDashboard() {
 
                 {/* Mascote Goti em destaque à esquerda (Visibilidade garantida sem cortes) */}
                 <div className="shrink-0 flex items-center justify-center">
-                  <GotiAnimated animation="wave" size="sm" className="w-14 h-14 drop-shadow-md" />
+                  <GotiAnimated animation="wave" size="sm" className="w-18 h-18 sm:w-22 sm:h-22 drop-shadow-md shrink-0" />
                 </div>
 
                 {/* Mensagem e Saudação no Centro */}

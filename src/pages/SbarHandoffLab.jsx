@@ -1090,10 +1090,18 @@ export default function SbarHandoffLab() {
                 <Button
                   variant="outline"
                   size="sm"
-                  onClick={handleInsertGoldenExample}
-                  className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                  onClick={() => {
+                    window.dispatchEvent(
+                      new CustomEvent("open-goti-chat", {
+                        detail: {
+                          prompt: "Goti, como estruturo a passagem de plantão no método SBAR? Me dê um modelo didático de exemplo para eu aprender a fazer com minhas palavras!"
+                        }
+                      })
+                    );
+                  }}
+                  className="rounded-xl border-teal-300 dark:border-teal-700 bg-teal-50/60 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
                 >
-                  <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Exemplo Ouro
+                  <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Dúvidas? Fale com o Goti
                 </Button>
 
                 <Button
@@ -1349,10 +1357,18 @@ export default function SbarHandoffLab() {
                   <Button
                     size="sm"
                     variant="outline"
-                    onClick={() => handleInsertFieldExample(currentGuided.key)}
-                    className="rounded-xl border-emerald-300 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/60 text-xs font-semibold shrink-0 shadow-2xs"
+                    onClick={() => {
+                      window.dispatchEvent(
+                        new CustomEvent("open-goti-chat", {
+                          detail: {
+                            prompt: `Goti, estou com dúvidas de como redigir o campo de ${currentGuided.title} (${currentGuided.label}) no SBAR. Como devo preencher este pilar? Me mostre apenas um modelo de exemplo didático para eu entender como fazer!`
+                          }
+                        })
+                      );
+                    }}
+                    className="rounded-xl border-teal-300 dark:border-teal-800 bg-teal-50/80 dark:bg-teal-950/40 text-teal-900 dark:text-teal-200 hover:bg-teal-100 text-xs font-bold shrink-0 shadow-2xs flex items-center gap-1.5"
                   >
-                    Adotar Exemplo Ouro
+                    <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Dúvidas? Fale com o Goti
                   </Button>
                 </div>
               </div>
@@ -1903,7 +1919,7 @@ export default function SbarHandoffLab() {
                   <GotiAnimated
                     animation={tutorEvaluation.safetyScore >= 80 ? "love" : tutorEvaluation.safetyScore >= 50 ? "pointing" : "angry"}
                     size="feedback"
-                    className="w-20 h-20 shrink-0"
+                    className="w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 shrink-0"
                     withSoundToggle={true}
                   />
                 </div>
@@ -2057,7 +2073,7 @@ export default function SbarHandoffLab() {
                 {/* Feedback e Parecer do Goti sobre as Reflexões */}
                 {reflectionsFeedback && (
                   <div className="p-4 rounded-xl bg-teal-50/80 dark:bg-teal-950/40 border border-teal-300 dark:border-teal-800 flex items-start gap-3.5 animate-in fade-in">
-                    <GotiAnimated animation="love" size="sm" className="w-12 h-12 shrink-0 mt-0.5" />
+                    <GotiAnimated animation="love" size="sm" className="w-16 h-16 sm:w-20 sm:h-20 md:w-24 md:h-24 shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <div className="flex items-center gap-2 text-xs font-black text-teal-900 dark:text-teal-200">
                         <Sparkles className="w-3.5 h-3.5 text-amber-500" />

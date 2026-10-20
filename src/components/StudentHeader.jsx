@@ -41,8 +41,15 @@ export default function StudentHeader({ activeTab = "hub" }) {
     function handleStorage() {
       setStudyPoints(clinicalGamificationService.getStudyPoints());
     }
+    function handleCustomOpen() {
+      setIsGotiChatOpen(true);
+    }
     window.addEventListener("storage", handleStorage);
-    return () => window.removeEventListener("storage", handleStorage);
+    window.addEventListener("open-goti-chat", handleCustomOpen);
+    return () => {
+      window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("open-goti-chat", handleCustomOpen);
+    };
   }, []);
 
   const navLinks = [
@@ -148,14 +155,14 @@ export default function StudentHeader({ activeTab = "hub" }) {
                 </span>
               </button>
 
-              {/* Saldo de Pontos de Estudo (PE) */}
+              {/* Saldo de Pontos de Estudo (PE) - Ocultado temporariamente conforme diretriz */}
               <button
                 type="button"
                 onClick={() => {
                   triggerHaptic(20);
                   setIsStudyPointsOpen(true);
                 }}
-                className="flex items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-xs font-black transition-all active:scale-95"
+                className="hidden items-center gap-1 px-2 sm:px-2.5 py-1.5 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800/80 text-amber-800 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-900/60 text-xs font-black transition-all active:scale-95"
                 title="Ver saldo de Pontos de Estudo (PE) e mérito clínico"
               >
                 <Coins className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />

@@ -166,7 +166,6 @@ export default function ClinicalGapRadar({
           <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1 uppercase tracking-wide">
             <AlertCircle className="h-3.5 w-3.5 text-amber-500" /> Parâmetros Complementares Recomendados ({missingGaps.length})
           </span>
-          <span className="text-[11px] text-emerald-700 dark:text-emerald-400 font-medium">Toque para investigar ativamente</span>
         </div>
 
         {missingGaps.length === 0 ? (
@@ -286,7 +285,7 @@ export default function ClinicalGapRadar({
                   <GotiAnimated
                     animation={selectedOption.isCorrect ? "love" : "angry"}
                     size="feedback"
-                    className="w-20 h-20 shrink-0"
+                    className="w-24 h-24 sm:w-28 sm:h-28 md:w-36 md:h-36 shrink-0"
                   />
                 </div>
                 <div className="space-y-0.5">
@@ -310,23 +309,13 @@ export default function ClinicalGapRadar({
               </div>
             )}
 
-            {/* Campo Editável de Achado Propedêutico */}
-            <div className="space-y-1.5 pt-2 border-t border-slate-100 dark:border-slate-800">
-              <label className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center justify-between">
-                <span className="flex items-center gap-1">
-                  <Edit3 className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
-                  Achado Clínico a Registrar no Prontuário:
-                </span>
-                <span className="text-[10px] text-slate-400 font-normal">(Você pode editar antes de incorporar)</span>
-              </label>
-              <textarea
-                value={customValue}
-                onChange={(e) => setCustomValue(e.target.value)}
-                placeholder="Descreva o achado clínico observado..."
-                rows={2}
-                className="w-full text-xs rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-2.5 text-slate-800 dark:text-slate-200 focus:outline-none focus:ring-1 focus:ring-emerald-500 transition-all resize-none"
-              />
-            </div>
+            {/* Alerta formativo caso o aluno ainda não tenha respondido */}
+            {findingData?.options && !isAnswered && (
+              <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-1.5 pt-1">
+                <AlertCircle className="h-3.5 w-3.5 shrink-0" />
+                Selecione uma conduta acima para interpretar o exame antes de incorporar ao prontuário.
+              </p>
+            )}
 
             {/* Pérola Clínica Formativa pós-resposta */}
             {isAnswered && findingData?.pearl && (
@@ -351,8 +340,8 @@ export default function ClinicalGapRadar({
             <Button
               size="sm"
               onClick={handleConfirmFinding}
-              disabled={findingData?.options && !isAnswered && !customValue.trim()}
-              className="rounded-xl text-xs bg-teal-700 hover:bg-teal-800 text-white font-semibold flex items-center gap-1.5"
+              disabled={Boolean(findingData?.options && !isAnswered)}
+              className="rounded-xl text-xs bg-teal-700 hover:bg-teal-800 text-white font-semibold flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <span>Incorporar ao Prontuário</span>
               <ArrowRight className="h-3.5 w-3.5" />

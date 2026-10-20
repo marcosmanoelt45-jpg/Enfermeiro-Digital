@@ -682,7 +682,7 @@ export default function CaseStudySimulator() {
                       <GotiAnimated
                         animation={tutorEvaluation.score >= 80 ? "love" : tutorEvaluation.score >= 50 ? "pointing" : "angry"}
                         size="feedback"
-                        className="w-20 h-20 shrink-0"
+                        className="w-22 h-22 sm:w-28 sm:h-28 md:w-36 md:h-36 shrink-0"
                         withSoundToggle={true}
                       />
                     </div>
@@ -978,9 +978,9 @@ export default function CaseStudySimulator() {
             {/* ETAPA 2: DIAGNÓSTICO DE ENFERMAGEM */}
             {activeStep === 2 && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5 animate-in fade-in">
-                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-3">
                   <div className="flex items-center gap-3">
-                    <GotiAnimated animation="thinking" size="xs" className="w-10 h-10 shrink-0" />
+                    <GotiAnimated animation="thinking" size="xs" className="w-12 h-12 sm:w-16 sm:h-16 md:w-20 md:h-20 shrink-0" />
                     <div>
                       <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
                         Etapa 2 do PE: Diagnóstico de Enfermagem
@@ -990,21 +990,42 @@ export default function CaseStudySimulator() {
                       </h2>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={handleRequestHint}
-                    disabled={loadingHint}
-                    className="rounded-xl text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 flex items-center gap-1.5"
-                  >
-                    <Lightbulb className="h-4 w-4 text-amber-500" />
-                    <span>{loadingHint ? "Buscando dica..." : `Pista Diagnóstica (Nível ${hintLevel})`}</span>
-                  </Button>
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <Button
+                      type="button"
+                      size="sm"
+                      onClick={() => {
+                        if (typeof window !== "undefined") {
+                          window.dispatchEvent(
+                            new CustomEvent("open-goti-chat", {
+                              detail: {
+                                prompt: `Olá Goti! Estou analisando o caso clínico do paciente ${currentCase?.patient?.name || ''} (${currentCase?.title || ''}). Como estruturo o diagnóstico de enfermagem (Título, Etiologia e Evidências) pelo COFEN 736/2024? Pode me dar um exemplo didático modelo similar sem me dar a resposta deste caso?`
+                              }
+                            })
+                          );
+                        }
+                      }}
+                      className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs py-2 px-3 tap-press"
+                    >
+                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                      <span>Dúvidas? Fale com o Goti!</span>
+                    </Button>
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={handleRequestHint}
+                      disabled={loadingHint}
+                      className="rounded-xl text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 flex items-center gap-1.5"
+                    >
+                      <Lightbulb className="h-4 w-4 text-amber-500" />
+                      <span>{loadingHint ? "Buscando dica..." : `Pista Diagnóstica (Nível ${hintLevel})`}</span>
+                    </Button>
+                  </div>
                 </div>
 
                 {currentHint && (
                   <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-950 dark:text-amber-200 flex items-start gap-3 animate-in fade-in">
-                    <GotiAnimated animation="pointing" size="xs" className="w-9 h-9 shrink-0 mt-0.5" />
+                    <GotiAnimated animation="pointing" size="xs" className="w-12 h-12 sm:w-14 sm:h-14 md:w-18 md:h-18 shrink-0 mt-0.5" />
                     <div className="space-y-1">
                       <span className="font-bold flex items-center gap-1 text-amber-800 dark:text-amber-300">
                         <Lightbulb className="h-3.5 w-3.5" /> Dica do Goti:
@@ -1318,13 +1339,34 @@ export default function CaseStudySimulator() {
             {/* ETAPA 4: IMPLEMENTAÇÃO (PRESCRIÇÃO DE ENFERMAGEM) */}
             {activeStep === 4 && (
               <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5 animate-in fade-in">
-                <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                    Etapa 4 do PE: Implementação
-                  </span>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
-                    Prescrição de Cuidados de Enfermagem & Conduta Prática
-                  </h2>
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-3">
+                  <div>
+                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                      Etapa 4 do PE: Implementação
+                    </span>
+                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
+                      Prescrição de Cuidados de Enfermagem & Conduta Prática
+                    </h2>
+                  </div>
+                  <Button
+                    type="button"
+                    size="sm"
+                    onClick={() => {
+                      if (typeof window !== "undefined") {
+                        window.dispatchEvent(
+                          new CustomEvent("open-goti-chat", {
+                            detail: {
+                              prompt: `Olá Goti! Estou prescrevendo as intervenções de enfermagem para o paciente ${currentCase?.patient?.name || ''}. Como estruturo os cuidados com verbos no infinitivo, aprazamento e metas seguras? Pode me dar um exemplo didático modelo similar sem me dar a resposta deste caso?`
+                            }
+                          })
+                        );
+                      }
+                    }}
+                    className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs py-2 px-3 self-start sm:self-auto tap-press"
+                  >
+                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Dúvidas? Fale com o Goti!</span>
+                  </Button>
                 </div>
 
                 <div className="space-y-3">

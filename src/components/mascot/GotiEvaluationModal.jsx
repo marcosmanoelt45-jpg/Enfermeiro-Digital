@@ -116,7 +116,7 @@ export default function GotiEvaluationModal({
           <GotiAnimated
             animation={pose}
             size="2xl"
-            className="w-44 h-44 sm:w-52 sm:h-52 drop-shadow-2xl"
+            className="w-48 h-48 sm:w-56 sm:h-56 md:w-68 md:h-68 lg:w-76 lg:h-76 xl:w-80 xl:h-80 drop-shadow-2xl shrink-0"
           />
         </div>
 
