@@ -1,6 +1,6 @@
 /**
  * socraticTutorService.js
- * Motor Pedagógico de Tutoria Socrática para Estudantes de Enfermagem (Preceptor Clínico IA).
+ * Motor Pedagógico do Goti IA para Estudantes de Enfermagem.
  *
  * Diretrizes Centrais:
  * 1. Não dar a resposta pronta mastigada.
@@ -33,7 +33,7 @@ async function callGemini(systemPrompt, userPrompt) {
       }
     }
   } catch (err) {
-    console.warn("[Tutora Socrática] Falha ao invocar motor de IA resiliente:", err);
+    console.warn("[Goti IA] Falha ao invocar motor de IA resiliente:", err);
   }
 
   return null;
@@ -69,7 +69,7 @@ export async function evaluateClinicalReasoning({
   const cleanInterventions = sanitizeTextForLGPD(actualInterventions);
   const cleanEvolution = sanitizeTextForLGPD(actualEvolution);
 
-  const systemPrompt = `Você é o Goti IA, o enfermeiro digital e tutor inteligente especialista em Raciocínio Clínico e no Processo de Enfermagem (Resolução COFEN nº 736/2024 e Teoria das Necessidades Humanas Básicas) da plataforma Enfere.
+  const systemPrompt = `Você é o Goti IA, o enfermeiro digital especialista em Raciocínio Clínico e no Processo de Enfermagem (Resolução COFEN nº 736/2024 e Teoria das Necessidades Humanas Básicas) da plataforma Enfere.
 
 REGRAS PEDAGÓGICAS E DE PONTUAÇÃO CRITERIOSA:
 1. NUNCA dê a resposta final pronta de mão beijada.
@@ -144,7 +144,7 @@ Avalie criteriosamente o raciocínio clínico. Se o texto for genérico ou vago,
  * @param {number} level - 1 (pergunta guia), 2 (pista fisiopatológica), 3 (fundamentação conceitual)
  */
 export async function getScaffoldingHint(caseData, level = 1) {
-  const systemPrompt = `Você é o Goti IA, enfermeiro digital e tutor de Enfermagem da plataforma Enfere. O estudante está analisando um caso simulado e pediu uma Dica Pedagógica de Nível ${level}.
+  const systemPrompt = `Você é o Goti IA, enfermeiro digital da plataforma Enfere. O estudante está analisando um caso simulado e pediu uma Dica Pedagógica de Nível ${level}.
 
 NÍVEIS DE ANDAIME PEDAGÓGICO:
 - Nível 1 (Pergunta Guia): Faça uma pergunta orientando o olhar do aluno para o sinal vital ou achado mais crítico, sem citar diagnósticos.

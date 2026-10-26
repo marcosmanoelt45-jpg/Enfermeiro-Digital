@@ -43,7 +43,7 @@ export const NIGHTINGALE_LEVELS = [
   },
   {
     level: 5,
-    title: 'Preceptor Nightingale',
+    title: 'Especialista Nightingale',
     minXp: 2201,
     maxXp: 99999,
     badgeColor: 'text-amber-700 bg-amber-50 border-amber-200 dark:bg-amber-950/60 dark:text-amber-300 dark:border-amber-800',
@@ -151,9 +151,9 @@ export const INITIAL_COLLEAGUES = [
   {
     id: 'colleague-3',
     name: 'Dra. Camila Nogueira',
-    role: 'Docente Preceptora UTI',
+    role: 'Docente Especialista UTI',
     level: 5,
-    levelTitle: 'Preceptor Nightingale',
+    levelTitle: 'Especialista Nightingale',
     streak: 19,
     xp: 2840,
     isOnline: false,
@@ -254,7 +254,7 @@ function getPast7Days() {
 export const STUDY_POINTS_STORE_ITEMS = [
   {
     id: 'goti_hint',
-    title: 'Dica Socrática do Preceptor IA',
+    title: 'Dica Clínica do Goti IA',
     cost: 15,
     icon: 'Lightbulb',
     category: 'Suporte Clínico',
@@ -281,7 +281,7 @@ export const STUDY_POINTS_STORE_ITEMS = [
   },
   {
     id: 'ai_deep_audit',
-    title: 'Auditoria de Conduta com Preceptor IA',
+    title: 'Auditoria de Conduta com Goti IA',
     cost: 20,
     icon: 'Sparkles',
     category: 'Debriefing IA',
@@ -294,7 +294,7 @@ export const STUDY_POINTS_STORE_ITEMS = [
     cost: 75,
     icon: 'Award',
     category: 'Certificação',
-    description: 'Gera laudo formativo com chancela do Preceptor Clínico IA e memorial descritivo em PDF.',
+    description: 'Gera laudo formativo com chancela do Goti IA e memorial descritivo em PDF.',
     benefit: 'Exportação de atestado de competência simulada.',
   },
 ];

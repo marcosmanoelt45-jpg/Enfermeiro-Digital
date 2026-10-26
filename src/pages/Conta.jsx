@@ -124,13 +124,10 @@ export default function Conta() {
       });
 
       const priorityOrder = [
-        "gemini-3.5-flash",
-        "gemini-flash-latest",
-        "gemini-3.1-flash-lite",
-        "gemini-3.8-flash",
-        "gemini-3.7-flash",
-        "gemini-3.6-flash",
+        "gemini-2.5-flash",
+        "gemini-2.5-pro",
         "gemini-2.0-flash",
+        "gemini-flash-latest",
         "gemini-1.5-flash-latest",
         "gemini-1.5-flash",
       ];
@@ -261,37 +258,29 @@ export default function Conta() {
     });
   }
 
-  const profileLabel =
-    user?.user_type === "professor"
-      ? "Professor"
-      : user?.user_type === "aluno"
-      ? "Aluno"
-      : "Não definido";
+  async function handleLogout() {
+    setBusy(true);
+    triggerHaptic(20);
+    try {
+      await logout(true);
+      navigate("/splash");
+    } catch {
+      navigate("/splash");
+    } finally {
+      setBusy(false);
+    }
+  }
+
+  function handleViewSplash() {
+    triggerHaptic(20);
+    navigate("/splash");
+  }
+
+  const profileLabel = "Estudante de Enfermagem";
 
   function handleLogout() {
     setBusy(true);
     logout(true);
-  }
-
-  async function _switchProfile(type) {
-    if (switching || user?.user_type === type) return;
-    setSwitching(true);
-    try {
-      await base44.auth.updateMe({ user_type: type, role: type });
-      await checkUserAuth();
-      toast({
-        title: "Perfil atualizado",
-        description: type === "professor" ? "Agora você está como Professor." : "Agora você está como Aluno.",
-      });
-    } catch (err) {
-      toast({
-        title: "Erro ao trocar perfil",
-        description: err.message || "Tente novamente.",
-        variant: "destructive",
-      });
-    } finally {
-      setSwitching(false);
-    }
   }
 
   async function saveName() {
@@ -572,44 +561,6 @@ export default function Conta() {
         {/* ABA 2: AJUSTES, TEMAS & CHAVES DE INTELIGÊNCIA ARTIFICIAL */}
         {activeTab === "settings" && (
           <div className="space-y-4">
-            {/* Alternar Perfil Aluno vs Professor */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3 shadow-xs">
-              <div>
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                  <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Papel no Enfere
-                </p>
-                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                  Alterne seu modo de uso entre Estudante (responder tarefas e simulações) e Professor (gerenciar turmas e criar casos).
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3 pt-1">
-                <button
-                  type="button"
-                  onClick={() => _switchProfile("aluno")}
-                  disabled={switching || user?.user_type === "aluno"}
-                  className={`p-3 rounded-xl border text-center font-bold text-xs transition ${
-                    user?.user_type === "aluno"
-                      ? "bg-teal-600 text-white border-teal-600 shadow-xs"
-                      : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  Aluno de Enfermagem
-                </button>
-                <button
-                  type="button"
-                  onClick={() => _switchProfile("professor")}
-                  disabled={switching || user?.user_type === "professor"}
-                  className={`p-3 rounded-xl border text-center font-bold text-xs transition ${
-                    user?.user_type === "professor"
-                      ? "bg-teal-600 text-white border-teal-600 shadow-xs"
-                      : "border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
-                  }`}
-                >
-                  Professor Docente
-                </button>
-              </div>
-            </div>
 
             {/* Card de Configuração de Aparência e Tema */}
             <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-xs">
@@ -809,21 +760,32 @@ export default function Conta() {
               </div>
             </div>
 
-            {/* Botão de Logout */}
-            <Button
-              onClick={handleLogout}
-              disabled={busy}
-              variant="destructive"
-              className="w-full rounded-xl font-bold py-3"
-            >
-              {busy ? (
-                "Saindo..."
-              ) : (
-                <>
-                  <LogOut className="h-4 w-4" /> Sair da conta
-                </>
-              )}
-            </Button>
+            {/* Ações Rápidas: Rever Apresentação (Splash) & Logout */}
+            <div className="space-y-3 pt-2">
+              <button
+                type="button"
+                onClick={handleViewSplash}
+                className="w-full rounded-2xl bg-teal-50 dark:bg-teal-950/80 border-2 border-teal-200 dark:border-teal-800 border-b-4 border-b-teal-300 dark:border-b-teal-900 text-teal-900 dark:text-teal-200 hover:bg-teal-100 font-black text-xs sm:text-sm py-3 px-4 flex items-center justify-center gap-2 select-none active:translate-y-1 active:border-b-2 transition-all cursor-pointer shadow-2xs"
+              >
+                <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <span>Rever Tela de Abertura (Splash / Boas-Vindas)</span>
+              </button>
+
+              <Button
+                onClick={handleLogout}
+                disabled={busy}
+                variant="destructive"
+                className="w-full rounded-2xl font-bold py-3.5 border-b-4 border-b-rose-900 active:translate-y-1 active:border-b-2"
+              >
+                {busy ? (
+                  "Saindo..."
+                ) : (
+                  <>
+                    <LogOut className="h-4 w-4 mr-2" /> Sair da conta e Ir para a Tela Inicial
+                  </>
+                )}
+              </Button>
+            </div>
           </div>
         )}
       </main>

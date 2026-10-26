@@ -3,16 +3,30 @@
  * Motor Unificado de Inteligência Artificial Clínica do Enfere.
  * Arquitetura de Segurança Zero-Trust:
  * 1. Chaves corporativas e cotas gerenciadas residem unicamente nas Supabase Edge Functions.
- * 2. Suporte opcional para estudante/docente conectar sua própria chave pessoal via LocalStorage.
+ * 2. Suporte opcional para estudante/docente conectar sua própria chave pessoal via LocalStorage ou Env.
  * 3. Fallback gracioso para motores pedagógicos e taxonômicos determinísticos locais.
  */
 
-import { supabase } from './supabaseClient.js';
+import { supabase, isSupabaseConfigured } from './supabaseClient.js';
 
 /**
- * Obtém a chave pessoal do Google Gemini configurada pelo usuário no LocalStorage.
+ * Obtém a chave pessoal do Google Gemini configurada pelo usuário no LocalStorage ou Env.
  * @returns {string}
  */
+const safeGetEnv = (key) => {
+  try {
+    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
+      return import.meta.env[key];
+    }
+  } catch {}
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env[key]) {
+      return process.env[key];
+    }
+  } catch {}
+  return '';
+};
+
 export function getGeminiKey() {
   try {
     if (typeof localStorage !== 'undefined') {
@@ -20,11 +34,11 @@ export function getGeminiKey() {
       if (key && key.trim()) return key.trim();
     }
   } catch {}
-  return '';
+  return safeGetEnv('VITE_GEMINI_API_KEY').trim();
 }
 
 /**
- * Obtém a chave pessoal do OpenRouter configurada pelo usuário no LocalStorage.
+ * Obtém a chave pessoal do OpenRouter configurada pelo usuário no LocalStorage ou Env.
  * @returns {string}
  */
 export function getOpenRouterKey() {
@@ -34,24 +48,42 @@ export function getOpenRouterKey() {
       if (key && key.trim()) return key.trim();
     }
   } catch {}
-  return '';
+  return (
+    safeGetEnv('VITE_OPENROUTER_API_KEY') ||
+    safeGetEnv('OPENROUTER_API_KEY')
+  ).trim();
 }
 
 /**
  * Executa chamada direta caso o estudante tenha fornecido sua chave pessoal do Gemini.
+ * Utiliza timeout estrito de 7s por tentativa para evitar travamentos infinitos.
  */
 async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
   const maxTokens = options.maxTokens || 1500;
   const temperature = options.temperature ?? 0.35;
   const isJson = options.responseMimeType === 'application/json';
 
-  const candidateModels = [
-    'gemini-2.5-flash',
+  let preferredModel = '';
+  try {
+    if (typeof localStorage !== 'undefined') {
+      preferredModel = (localStorage.getItem('enfermeiro_gemini_model') || '').trim();
+    }
+  } catch {}
+
+  // Modelos válidos da API v1beta pública do Google Gemini
+  const defaultModels = [
     'gemini-2.0-flash',
-    'gemini-1.5-flash'
+    'gemini-1.5-flash',
+    'gemini-1.5-pro'
   ];
+  const candidateModels = preferredModel && !preferredModel.includes('2.5')
+    ? [preferredModel, ...defaultModels.filter((m) => m !== preferredModel)]
+    : defaultModels;
 
   for (const model of candidateModels) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
+
     try {
       const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
       const generationConfig = {
@@ -65,6 +97,7 @@ async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
       const res = await fetch(endpoint, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        signal: controller.signal,
         body: JSON.stringify({
           contents: [
             {
@@ -76,6 +109,8 @@ async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
         })
       });
 
+      clearTimeout(timeoutId);
+
       if (res.ok) {
         const data = await res.json();
         const text = data?.candidates?.[0]?.content?.parts?.[0]?.text;
@@ -84,7 +119,8 @@ async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
         }
       }
     } catch {
-      // Tenta o próximo modelo candidato
+      clearTimeout(timeoutId);
+      // Tenta o próximo modelo candidato ou segue para o próximo provider
     }
   }
   return null;
@@ -92,6 +128,7 @@ async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
 
 /**
  * Executa chamada direta caso o estudante tenha fornecido sua chave pessoal do OpenRouter.
+ * Utiliza timeout estrito de 7s por tentativa.
  */
 async function callPersonalOpenRouter(apiKey, systemPrompt, userPrompt, options) {
   const maxTokens = options.maxTokens || 1500;
@@ -99,12 +136,16 @@ async function callPersonalOpenRouter(apiKey, systemPrompt, userPrompt, options)
   const isJson = options.responseMimeType === 'application/json';
 
   const candidateModels = [
-    'google/gemini-2.5-flash',
+    'google/gemini-2.0-flash-001',
+    'google/gemini-flash-1.5',
     'openai/gpt-4o-mini',
     'deepseek/deepseek-chat'
   ];
 
   for (const model of candidateModels) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 7000);
+
     try {
       const bodyPayload = {
         model,
@@ -128,8 +169,11 @@ async function callPersonalOpenRouter(apiKey, systemPrompt, userPrompt, options)
           'HTTP-Referer': 'https://enfermeirodigital.com.br',
           'X-Title': 'Enfere Digital'
         },
+        signal: controller.signal,
         body: JSON.stringify(bodyPayload)
       });
+
+      clearTimeout(timeoutId);
 
       if (res.ok) {
         const data = await res.json();
@@ -145,6 +189,7 @@ async function callPersonalOpenRouter(apiKey, systemPrompt, userPrompt, options)
         }
       }
     } catch {
+      clearTimeout(timeoutId);
       // Tenta o próximo modelo candidato
     }
   }
@@ -153,10 +198,22 @@ async function callPersonalOpenRouter(apiKey, systemPrompt, userPrompt, options)
 
 /**
  * Invoca a Edge Function segura do Supabase (Zero-Trust com sanitização server-side).
+ * Configurada com timeout estrito de 10s e fallback automático.
  */
 async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
+  if (!isSupabaseConfigured({ ignoreDemoSession: true })) {
+    return null;
+  }
+
+  const supabaseAnonKey = safeGetEnv('VITE_SUPABASE_ANON_KEY');
+
   try {
-    const { data, error } = await supabase.functions.invoke('clinical-ai-sanitize', {
+    // Timeout de 10 segundos via Promise.race para blindar a Edge Function
+    const invokePromise = supabase.functions.invoke('clinical-ai-sanitize', {
+      headers: supabaseAnonKey ? {
+        'apikey': supabaseAnonKey,
+        'Authorization': `Bearer ${supabaseAnonKey}`
+      } : {},
       body: {
         systemPrompt,
         userPrompt,
@@ -168,8 +225,14 @@ async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
       }
     });
 
+    const timeoutPromise = new Promise((_, reject) =>
+      setTimeout(() => reject(new Error('Timeout Edge Function (10s)')), 10000)
+    );
+
+    const { data, error } = await Promise.race([invokePromise, timeoutPromise]);
+
     if (error) {
-      console.warn('[aiCoreService] Edge function reportou erro:', error);
+      console.warn('[aiCoreService] Edge function reportou erro ou indisponibilidade:', error);
       return null;
     }
 
@@ -181,7 +244,7 @@ async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
       };
     }
   } catch (err) {
-    console.warn('[aiCoreService] Falha ao invocar Edge Function:', err);
+    console.warn('[aiCoreService] Falha ou timeout ao invocar Edge Function institucional:', err?.message || err);
   }
   return null;
 }

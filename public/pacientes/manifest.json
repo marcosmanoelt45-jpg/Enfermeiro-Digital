@@ -1,0 +1,16 @@
+{
+  "formato": "Cada clipe existe em .webm (VP9 com transparência) e .mp4 (H.264, fundo #16222E já aplicado). Usar <video muted playsinline> com <source webm> e <source mp4>; no Safari vale o mp4.",
+  "tamanho": "560x424",
+  "fps": 24,
+  "fundo_do_app": "#16222E",
+  "pacientes": {
+    "marcus":    { "nome": "Sr. Marcus",      "idade": 74, "voz": "masculina idosa pt-BR", "clipes": {
+      "fala":   { "arquivo": "marcus/fala",   "duracao_s": 6, "modo": "loop enquanto o áudio do paciente toca; parar no primeiro quadro ao terminar" },
+      "acerto": { "arquivo": "marcus/acerto", "duracao_s": 6, "modo": "tocar uma vez após resposta certa" },
+      "erro":   { "arquivo": "marcus/erro",   "duracao_s": 6, "modo": "tocar uma vez após resposta errada" } } },
+    "teresinha": { "nome": "Dona Teresinha",  "idade": 71, "voz": "feminina idosa pt-BR",  "clipes": {
+      "fala":   { "arquivo": "teresinha/fala",   "duracao_s": 6, "modo": "loop enquanto o áudio do paciente toca; parar no primeiro quadro ao terminar" },
+      "acerto": { "arquivo": "teresinha/acerto", "duracao_s": 6, "modo": "tocar uma vez após resposta certa" },
+      "erro":   { "arquivo": "teresinha/erro",   "duracao_s": 6, "modo": "tocar uma vez após resposta errada" } } }
+  }
+}

@@ -1,12 +1,12 @@
 /**
  * sbarTutorService.js
- * Motor Pedagógico de Avaliação e Preceptoria da Passagem de Plantão (Metodologia SBAR).
+ * Motor Pedagógico de Avaliação da Passagem de Plantão (Metodologia SBAR) pelo Goti IA.
  * 
  * Foco Central na Aprendizagem do Estudante de Enfermagem:
  * - Meta Internacional de Segurança do Paciente nº 2 (Comunicação Efetiva).
  * - Resolução COFEN nº 736/2024.
  * - Simulação de Consequências de Evento Sentinela (O que aconteceria na vida real se um dado for omitido).
- * - Debriefing Socrático Interativo do Preceptor Clínico IA.
+ * - Debriefing Interativo do Goti IA.
  */
 
 import { sanitizeTextForLGPD } from "../lib/dlpSanitizer.js";
@@ -32,7 +32,7 @@ async function callGemini(systemPrompt, userPrompt) {
       }
     }
   } catch (err) {
-    console.warn("[Preceptoria SBAR] Falha ao invocar motor de IA resiliente:", err);
+    console.warn("[Goti IA SBAR] Falha ao invocar motor de IA resiliente:", err);
   }
 
   return null;
@@ -156,7 +156,7 @@ export function buildOfflineSbarEvaluation(caseData, sbar) {
       assessment: {
         score: assessmentScore,
         feedback: vitalsCount >= 2
-          ? "Sinais vitais objetivos e dados de semiologia bem comunicados."
+          ? "Sinais vitais objetivos e dados do exame físico bem comunicados."
           : "Evite termos subjetivos como 'está bem'. Crie o hábito de citar PA, SatO2, FC e aspectos de drenos/ferida."
       },
       recommendation: {
@@ -176,7 +176,7 @@ export function buildOfflineSbarEvaluation(caseData, sbar) {
     strengths: [
       hasBed ? "Identificação topográfica precisa (leito/setor)." : null,
       hasComorbidities ? "Reconhecimento das comorbidades de base que impactam o plano terapêutico." : null,
-      hasExamFinding ? "Valorização de queixas álgicas e achados de semiologia à beira-leito." : null,
+      hasExamFinding ? "Valorização de queixas álgicas e achados do exame físico à beira-leito." : null,
       hasActionTiming ? "Atenção à linha do tempo e pendências assistenciais." : null
     ].filter(Boolean),
     socraticQuestions: [
@@ -189,11 +189,11 @@ export function buildOfflineSbarEvaluation(caseData, sbar) {
 }
 
 /**
- * Avalia a Passagem de Plantão SBAR do estudante com o Preceptor Clínico IA.
+ * Avalia a Passagem de Plantão SBAR do estudante com o Goti IA.
  * @param {object} params
  * @param {object} params.caseData - Dados do paciente e do caso
  * @param {object} params.sbar - Objeto com { situation, background, assessment, recommendation }
- * @returns {Promise<object>} Avaliação formativa socrática do Preceptor Clínico IA
+ * @returns {Promise<object>} Avaliação formativa do Goti IA
  */
 export async function evaluateSbarHandoff({ caseData, sbar }) {
   const sanitizedSituation = sanitizeTextForLGPD(sbar?.situation || "");
@@ -201,8 +201,8 @@ export async function evaluateSbarHandoff({ caseData, sbar }) {
   const sanitizedAssessment = sanitizeTextForLGPD(sbar?.assessment || "");
   const sanitizedRecommendation = sanitizeTextForLGPD(sbar?.recommendation || "");
 
-  const systemPrompt = `Você é o "Goti IA", enfermeiro digital e tutor inteligente especialista em Prática Clínica, Terapia Intensiva e Segurança do Paciente da plataforma Enfere.
-Sua missão é realizar uma tutoria socrática formativa avaliando a passagem de plantão (metodologia SBAR) feita por um estudante de enfermagem.
+  const systemPrompt = `Você é o "Goti IA", enfermeiro digital especialista em Prática Clínica, Terapia Intensiva e Segurança do Paciente da plataforma Enfere.
+Sua missão é realizar uma avaliação formativa construtiva avaliando a passagem de plantão (metodologia SBAR) feita por um estudante de enfermagem.
 Diretrizes: Meta Internacional de Segurança do Paciente nº 2 (Comunicação Efetiva) e Resolução COFEN nº 736/2024.
 
 CRITÉRIOS RIGOROSOS DE AVALIAÇÃO DE NOTAS (safetyScore de 0 a 100):

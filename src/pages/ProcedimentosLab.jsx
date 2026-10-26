@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useRef } from 'react';
 import {
   Video,
   Search,
@@ -28,6 +28,29 @@ export default function ProcedimentosLab() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeProcedure, setActiveProcedure] = useState(null);
+
+  const categoriesRef = useRef(null);
+  const isDraggingRef = useRef(false);
+  const startXRef = useRef(0);
+  const scrollLeftRef = useRef(0);
+
+  const handleMouseDown = (e) => {
+    isDraggingRef.current = true;
+    startXRef.current = e.pageX - (categoriesRef.current?.offsetLeft || 0);
+    scrollLeftRef.current = categoriesRef.current?.scrollLeft || 0;
+  };
+
+  const handleMouseMove = (e) => {
+    if (!isDraggingRef.current || !categoriesRef.current) return;
+    e.preventDefault();
+    const x = e.pageX - (categoriesRef.current.offsetLeft || 0);
+    const walk = (x - startXRef.current) * 1.5;
+    categoriesRef.current.scrollLeft = scrollLeftRef.current - walk;
+  };
+
+  const handleMouseUpOrLeave = () => {
+    isDraggingRef.current = false;
+  };
   const [watchedIds, setWatchedIds] = useState(() => procedureService.getWatchedList());
 
   const refreshList = () => {
@@ -124,7 +147,7 @@ export default function ProcedimentosLab() {
 
             {/* Layout em 2 Colunas Despoluído e Técnico com o Player Próprio do Enfere */}
             <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
-              {/* Coluna da Esquerda (Player Próprio Enfere + 'O Que NÃO Fazer' + Chat Preceptor IA) */}
+              {/* Coluna da Esquerda (Player Próprio Enfere + 'O Que NÃO Fazer' + Chat Goti IA) */}
               <div className="lg:col-span-7 space-y-6">
                 <EnfereClinicalPlayer
                   videoUrl={activeProcedure.videoUrl}
@@ -169,7 +192,7 @@ export default function ProcedimentosLab() {
                     Videoteca & Procedimentos Operacionais Padrão (POPs)
                   </h1>
                   <p className="mt-2 text-xs sm:text-sm text-teal-100/90 leading-relaxed">
-                    Vídeos com chancela de hospitais e universidades de excelência (UFRGS, UFSM, Einstein), guias de <strong>O Que Fazer</strong> e <strong>O Que NÃO Fazer</strong>, com técnica asséptica e suporte do Preceptor Clínico IA.
+                    Vídeos com chancela de hospitais e universidades de excelência (UFRGS, UFSM, Einstein), guias de <strong>O Que Fazer</strong> e <strong>O Que NÃO Fazer</strong>, com técnica asséptica e suporte do Goti IA.
                   </p>
                 </div>
 
@@ -211,8 +234,16 @@ export default function ProcedimentosLab() {
               </div>
             </div>
 
-            {/* Chips de Categorias Deslizáveis */}
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1">
+            {/* Chips de Categorias Deslizáveis com Suporte a Toque e Arraste Fluido */}
+            <div
+              ref={categoriesRef}
+              onMouseDown={handleMouseDown}
+              onMouseMove={handleMouseMove}
+              onMouseUp={handleMouseUpOrLeave}
+              onMouseLeave={handleMouseUpOrLeave}
+              style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}
+              className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1.5 -mx-4 px-4 sm:mx-0 sm:px-0 select-none cursor-grab active:cursor-grabbing"
+            >
               {categories.map((cat) => {
                 const isActive = selectedCategory === cat.id;
                 let count = procedures.length;

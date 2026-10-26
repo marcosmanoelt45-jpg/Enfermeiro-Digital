@@ -682,27 +682,27 @@ export default function CaseStudio() {
       <StudentHeader activeTab="montar" />
 
       <main className="flex-1 mx-auto max-w-5xl w-full px-4 sm:px-6 py-6 space-y-6">
-        {/* Barra Superior Minimalista e Funcional (Sem poluição de banners gigantes) */}
-        <div className="flex items-center justify-between pb-3 border-b border-slate-200/80 dark:border-slate-800">
-          <div className="flex items-center gap-3">
+        {/* Barra Superior Minimalista e Funcional (Responsiva no Celular) */}
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800">
+          <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => navigate("/")}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors"
+              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors shrink-0"
               aria-label="Voltar ao Painel"
               title="Voltar ao Painel"
             >
               <ArrowLeft className="h-5 w-5" />
             </button>
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wider">
+            <div className="min-w-0">
+              <div className="flex items-center gap-2 flex-wrap">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wider whitespace-nowrap inline-flex items-center">
                   Prática Baseada em Evidências
                 </span>
                 <span className="text-xs font-semibold text-slate-400 dark:text-slate-400 hidden sm:inline">
                   • Julgamento Clínico
                 </span>
               </div>
-              <h1 className="text-lg sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight mt-0.5">
+              <h1 className="text-base sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight mt-0.5 truncate">
                 {viewMode === "choose" && "Novo Caso Clínico"}
                 {viewMode === "builder" && "Montar Caso Clínico"}
                 {viewMode === "audio" && "Avaliação por Áudio & Fala"}
@@ -711,7 +711,7 @@ export default function CaseStudio() {
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 overflow-x-auto no-scrollbar shrink-0">
             <Button
               variant="outline"
               size="sm"
@@ -1646,7 +1646,7 @@ export default function CaseStudio() {
                       <div>
                         <h4 className="font-bold text-xs uppercase tracking-wider">Atividade Oficialmente Concluída (100%)</h4>
                         <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
-                          Este caso foi assinado e registrado com sucesso no seu Histórico de Prática Clínica. Você pode gerar o desafio com o preceptor abaixo ou consultar no histórico a qualquer momento.
+                          Este caso foi assinado e registrado com sucesso no seu Histórico de Prática Clínica. Você pode gerar o desafio com o Goti abaixo ou consultar no histórico a qualquer momento.
                         </p>
                       </div>
                     </div>

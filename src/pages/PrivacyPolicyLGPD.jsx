@@ -17,7 +17,7 @@ export default function PrivacyPolicyLGPD() {
   const faqItems = [
     {
       q: "O que é o Enfere e qual o seu objetivo?",
-      a: "O Enfere é um ambiente educacional e simulador clínico projetado para estudantes de enfermagem. O objetivo é desenvolver o raciocínio diagnóstico, a semiologia e a segurança na administração de medicamentos com base em cenários práticos e na Resolução COFEN nº 736/2024."
+      a: "O Enfere é um ambiente educacional e simulador clínico projetado para estudantes de enfermagem. O objetivo é desenvolver o raciocínio diagnóstico, o exame clínico e a segurança na administração de medicamentos com base em cenários práticos e na Resolução COFEN nº 736/2024."
     },
     {
       q: "Os casos clínicos utilizam dados de pacientes reais?",
@@ -276,7 +276,7 @@ export default function PrivacyPolicyLGPD() {
                     <strong>Código-Fonte e Arquitetura:</strong> Toda a base de código, estrutura de dados, interfaces e serviços são obras intelectuais protegidas de titularidade de Marcos Manoel Tavares Neumann.
                   </li>
                   <li>
-                    <strong>Algoritmos de Tutoria Clínica e SBAR:</strong> O sistema de inteligência formativa, debriefing socrático (Preceptor Clínico IA) e reconhecimento fonético são propriedades intelectuais exclusivas.
+                    <strong>Algoritmos de Simulação Clínica e SBAR:</strong> O sistema de inteligência formativa, debriefing (Goti IA) e reconhecimento fonético são propriedades intelectuais exclusivas.
                   </li>
                   <li>
                     <strong>Identidade e Design System:</strong> A identidade visual, organização de módulos, fluxos de simulação e montador de casos clínicos são de titularidade reservada.

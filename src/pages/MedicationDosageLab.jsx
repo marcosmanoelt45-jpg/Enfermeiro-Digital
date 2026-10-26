@@ -416,7 +416,7 @@ export default function MedicationDosageLab() {
                     : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
                 }`}
               >
-                Desafios & Tutoria
+                Desafios Práticos
               </button>
               <button
                 onClick={() => {
@@ -444,7 +444,7 @@ export default function MedicationDosageLab() {
         )}
 
         {/* ========================================================================= */}
-        {/* ABA 1: DESAFIOS CLÍNICOS & TUTORIA SOCRÁTICA                              */}
+        {/* ABA 1: DESAFIOS CLÍNICOS & CASOS PRÁTICOS                                */}
         {/* ========================================================================= */}
         {activeTab === "desafios" && (
           <div className="space-y-6 animate-in fade-in">
@@ -535,7 +535,7 @@ export default function MedicationDosageLab() {
               <div className="flex-1 text-center sm:text-left space-y-2">
                 <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 text-[11px] font-bold uppercase tracking-wider">
                   <Sparkles className="w-3 h-3 text-amber-500" />
-                  Preceptor Goti
+                  Goti
                 </div>
                 <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">
                   {feedback?.isCorrect

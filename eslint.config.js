@@ -6,12 +6,26 @@ import pluginUnusedImports from "eslint-plugin-unused-imports";
 
 export default [
   {
+    ignores: [
+      "dist/**",
+      "node_modules/**",
+      "_backup_*/**",
+      ".agents/**",
+      ".claude/**",
+      ".kilo/**",
+      "agent/**",
+      "Goti/**",
+      "Modelos Personagens/**",
+      "src/lib/**/*",
+      "src/components/ui/**/*",
+    ],
+  },
+  {
     files: [
       "src/components/**/*.{js,mjs,cjs,jsx}",
       "src/pages/**/*.{js,mjs,cjs,jsx}",
       "src/App.jsx",
     ],
-    ignores: ["src/lib/**/*", "src/components/ui/**/*"],
     ...pluginJs.configs.recommended,
     ...pluginReact.configs.flat.recommended,
     languageOptions: {

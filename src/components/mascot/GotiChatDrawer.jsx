@@ -12,11 +12,13 @@ import { gotiPreceptorService } from "@/services/gotiPreceptorService";
 import { useTheme } from "@/lib/ThemeContext";
 import { useDragScroll } from "@/hooks/useDragScroll";
 
-const SITE_NAVIGATION_PROMPTS = [
+const GOTI_NAVIGATION_PROMPTS = [
   "Onde posso aprender a puncionar?",
-  "Como inicio uma simulação de caso clínico?",
   "Onde treino o cálculo de dosagens?",
-  "Como realizo a passagem de plantão SBAR?"
+  "Como inicio uma simulação de caso clínico?",
+  "Onde treino passagem de plantão SBAR?",
+  "Onde monto um caso clínico do zero?",
+  "Onde vejo minhas turmas e atividades?"
 ];
 
 /**
@@ -124,9 +126,30 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [gotiState, setGotiState] = useState("idle"); // "idle" | "speaking" | "celebrating" | "thinking"
+  const [thinkingStep, setThinkingStep] = useState(0);
   const messagesContainerRef = useRef(null);
   const inputRef = useRef(null);
   const promptsScrollRef = useDragScroll();
+
+  const thinkingMessages = [
+    "Localizando os módulos e simuladores do Enfere...",
+    "Identificando o melhor laboratório prático para você...",
+    "Preparando o seu roteiro de estudo no site..."
+  ];
+
+  // Alterna dinamicamente as fases de localização do Goti durante o processamento
+  useEffect(() => {
+    if (!isLoading) {
+      setThinkingStep(0);
+      return;
+    }
+    const t1 = setTimeout(() => setThinkingStep(1), 1000);
+    const t2 = setTimeout(() => setThinkingStep(2), 2200);
+    return () => {
+      clearTimeout(t1);
+      clearTimeout(t2);
+    };
+  }, [isLoading]);
 
   // Fechar com tecla Escape
   useEffect(() => {
@@ -141,6 +164,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
 
   useEffect(() => {
     if (isOpen) {
+      setMessages(gotiPreceptorService.getHistory());
       setTimeout(() => {
         inputRef.current?.focus();
         scrollToBottom();
@@ -182,18 +206,36 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
     setGotiState("thinking");
 
     // Adiciona temporariamente a mensagem do usuário na tela
-    const updatedHistory = [...messages, { role: "user", text, timestamp: new Date().toISOString() }];
+    const updatedHistory = [...messages, { role: "user", sender: "user", text, timestamp: new Date().toISOString() }];
     setMessages(updatedHistory);
 
+    // Timeout visual de segurança irredutível: nunca deixa a UI presa em loading
+    const visualSafetyTimer = setTimeout(() => {
+      setIsLoading(false);
+      setGotiState("idle");
+    }, 13000);
+
     try {
-      await gotiPreceptorService.sendMessage(text);
+      const sendPromise = gotiPreceptorService.sendMessage(text);
+      // Intervalo breve para animação visual do Goti guiando (900ms)
+      const minDeliberationPromise = new Promise((resolve) => setTimeout(resolve, 900));
+      await Promise.all([sendPromise, minDeliberationPromise]);
       setMessages(gotiPreceptorService.getHistory());
       setGotiState("speaking");
       setTimeout(() => setGotiState("idle"), 2500);
     } catch (err) {
       console.error("Erro no chat do Goti:", err);
+      // Fallback gracioso imediato em caso de anomalia
+      const fallbackReply = gotiPreceptorService.generateEducationalFallback(text);
+      const safeHistory = [
+        ...updatedHistory,
+        { role: "assistant", sender: "goti", text: fallbackReply, timestamp: new Date().toISOString() }
+      ];
+      setMessages(safeHistory);
+      gotiPreceptorService.saveHistory(safeHistory);
       setGotiState("idle");
     } finally {
+      clearTimeout(visualSafetyTimer);
       setIsLoading(false);
     }
   }
@@ -238,11 +280,11 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
                   Goti IA
                 </h3>
                 <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
-                  {gotiState === "thinking" ? "Pensando..." : gotiState === "speaking" ? "Orientando..." : "Online"}
+                  {gotiState === "thinking" ? "Buscando no site..." : gotiState === "speaking" ? "Guiando..." : "Online"}
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-medium">
-                Guia & Navegação da Plataforma Enfere
+                Guia Oficial da Plataforma Enfere
               </p>
             </div>
           </div>
@@ -283,10 +325,10 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
             />
             <div className="space-y-1">
               <p className="font-extrabold text-slate-100 text-sm">
-                Espaço Seguro de Aprendizagem com o Goti
+                Guia da Plataforma com o Goti 💧
               </p>
               <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                Tire dúvidas sobre onde encontrar procedimentos, como iniciar simulações de casos, praticar dosagens e navegar no Enfere.
+                Pergunte onde encontrar qualquer simulador, videoteca de procedimentos, laboratório de cálculo de dosagens ou casos clínicos no Enfere!
               </p>
             </div>
           </div>
@@ -302,7 +344,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
                 {!isUser && (
                   <img
                     src="/goti/goti-icone.jpg"
-                    alt="Preceptor Goti"
+                    alt="Goti"
                     className="w-8 h-8 rounded-full object-cover shrink-0 self-end mb-1 filter drop-shadow-xs border border-teal-500/30"
                   />
                 )}
@@ -320,31 +362,33 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
             );
           })}
 
-          {/* Indicador de Digitação do Preceptor IA */}
+          {/* Indicador de Localização do Goti IA */}
           {isLoading && (
             <div className="flex gap-3 justify-start animate-in fade-in">
               <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shrink-0 self-end mb-1 shadow-xs">
                 <Sparkles className="w-4 h-4 text-emerald-100 animate-spin" />
               </div>
-              <div className="bg-slate-800 rounded-2xl rounded-bl-xs p-3.5 border border-slate-700 flex items-center gap-2 text-slate-300">
-                <span className="flex space-x-1">
+              <div className="bg-slate-800 rounded-2xl rounded-bl-xs p-3.5 border border-slate-700 flex items-center gap-2.5 text-slate-300">
+                <span className="flex space-x-1 shrink-0">
                   <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce [animation-delay:-0.3s]"></span>
                   <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce [animation-delay:-0.15s]"></span>
                   <span className="w-2 h-2 bg-teal-400 rounded-full animate-bounce"></span>
                 </span>
-                <span className="text-[11px] font-medium">Goti está fundamentando a resposta...</span>
+                <span className="text-[11px] font-medium text-teal-200 transition-all duration-300">
+                  {thinkingMessages[thinkingStep] || thinkingMessages[0]}
+                </span>
               </div>
             </div>
           )}
         </div>
 
-        {/* Sugestões de Dúvidas sobre o Site */}
+        {/* Sugestões de Navegação & Treino no Site */}
         <div className="px-4 py-2 border-t border-slate-800 bg-slate-950/70 shrink-0">
           <p className="text-[10px] uppercase font-bold tracking-wider text-slate-400 mb-1.5 flex items-center gap-1">
-            <Lightbulb className="w-3 h-3 text-amber-500" /> Dúvidas sobre o Site
+            <Lightbulb className="w-3 h-3 text-amber-500" /> Sugestões de Navegação & Treino no Site
           </p>
           <div ref={promptsScrollRef} className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-1 select-none">
-            {SITE_NAVIGATION_PROMPTS.map((prompt, i) => (
+            {GOTI_NAVIGATION_PROMPTS.map((prompt, i) => (
               <button
                 key={i}
                 onClick={() => handleSend(prompt)}
@@ -370,7 +414,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Pergunte ao Goti onde encontrar algo no site..."
+            placeholder="Pergunte ao Goti onde encontrar ou treinar algo no site..."
             disabled={isLoading}
             className="flex-1 px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-xs sm:text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
           />

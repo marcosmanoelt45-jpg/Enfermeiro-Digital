@@ -4,6 +4,9 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />
     <meta name="description" content="Enfere - Plataforma de raciocínio clínico, Processo de Enfermagem COFEN nº 736/2024, simulações realísticas e videoteca de habilidades de enfermagem." />
     <title>Enfere · Simulação & Raciocínio Clínico de Enfermagem</title>
     <script>
@@ -14,17 +17,6 @@
             document.documentElement.classList.remove('dark');
           } else {
             document.documentElement.classList.add('dark');
-          }
-
-          if (!localStorage.getItem('enfermeiro_digital_local_user')) {
-            localStorage.setItem('enfermeiro_digital_local_user', JSON.stringify({
-              id: 'aluno-demo',
-              email: 'aluno@enfere.edu.br',
-              name: 'Mariana Duarte',
-              full_name: 'Mariana Duarte',
-              role: 'aluno',
-              user_type: 'aluno'
-            }));
           }
         } catch(e) {}
       })();

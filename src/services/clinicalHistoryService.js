@@ -21,7 +21,7 @@ export const MODULE_LABELS = {
   case_simulator: 'Simulador de Casos Clínicos (PE)',
   dosage: 'Cálculo de Medicamentos & Doses',
   procedures: 'Videoteca de Procedimentos',
-  systems_assessment: 'Semiologia por Sistemas',
+  systems_assessment: 'Avaliação Clínica',
 };
 
 function getStorage() {

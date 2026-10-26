@@ -9,7 +9,7 @@ export default function ProcedureAIChat({ procedure }) {
     {
       id: 'm1',
       sender: 'goti',
-      text: `Olá! Sou o Goti, seu preceptor digital. Estou acompanhando seu estudo de "${procedure.title}". Tem alguma dúvida sobre variações anatômicas, complicações ou condutas deste procedimento?`,
+      text: `Olá! Sou o Goti! Estou acompanhando seu estudo de "${procedure.title}". Tem alguma dúvida sobre variações anatômicas, complicações ou passos deste procedimento?`,
     },
   ]);
   const [input, setInput] = useState('');
@@ -35,8 +35,13 @@ export default function ProcedureAIChat({ procedure }) {
     setInput('');
     setLoading(true);
 
+    let safetyTimer = setTimeout(() => {
+      setLoading(false);
+    }, 12000);
+
     try {
       const response = await procedureService.askGotiAI(procedure, textToSend);
+      clearTimeout(safetyTimer);
       const aiMsg = {
         id: `ai-${Date.now()}`,
         sender: 'goti',
@@ -44,6 +49,7 @@ export default function ProcedureAIChat({ procedure }) {
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch {
+      clearTimeout(safetyTimer);
       const errMsg = {
         id: `err-${Date.now()}`,
         sender: 'goti',
@@ -51,6 +57,7 @@ export default function ProcedureAIChat({ procedure }) {
       };
       setMessages((prev) => [...prev, errMsg]);
     } finally {
+      clearTimeout(safetyTimer);
       setLoading(false);
     }
   };

@@ -2,7 +2,7 @@
  * procedureService.js
  * Serviço de Videoteca Didática & Laboratório de Habilidades Clínicas de Enfermagem (Skills Lab).
  * Reúne procedimentos fundamentais e avançados com vídeos institucionais de alta definição,
- * diretrizes 'O Que Fazer' e 'O Que NÃO Fazer', checklists assépticos e tutoria com IA (Preceptor Clínico IA).
+ * diretrizes 'O Que Fazer' e 'O Que NÃO Fazer', checklists assépticos e suporte inteligente do Goti IA.
  */
 
 import { clinicalGamificationService } from './clinicalGamificationService';
@@ -428,7 +428,7 @@ Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro
   "institutionalBadge": "Fonte Acadêmica ou Hospitalar de Referência",
   "cofenNorm": "Legislação aplicável (COFEN/ANVISA)",
   "videoUrl": "https://www.youtube.com/embed/6cxkjHMU__E",
-  "videoSource": "Simulação Didática com Preceptor Clínico IA",
+  "videoSource": "Simulação Didática com Goti IA",
   "description": "Indicação clínica, finalidade e justificativa científica",
   "materials": [
     { "id": "m1", "name": "Nome do material estéril ou de suporte", "checked": false }
@@ -462,11 +462,11 @@ Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro
   },
 
   /**
-   * Responde dúvidas clínicas pontuais sobre o procedimento em execução (Preceptor Clínico IA).
+   * Responde dúvidas clínicas pontuais sobre o procedimento em execução (Goti IA).
    * Cascata: Gemini Direto -> OpenRouter -> Motor Pedagógico & Institucional Local.
    */
   async askPreceptorAI(procedure, userQuestion) {
-    const systemPrompt = `Você é o Goti IA, tutor inteligente especialista em procedimentos e práticas de enfermagem da plataforma Enfere.
+    const systemPrompt = `Você é o Goti IA, especialista em procedimentos e práticas de enfermagem da plataforma Enfere.
 A plataforma Enfere foi criada e desenvolvida por Marcos Manoel Tavares Neumann, detentor exclusivo de todos os direitos autorais.
 O estudante está assistindo e treinando o procedimento: "${procedure?.title || 'Procedimento Clínico'}".
 Categoria: ${procedure?.categoryLabel || procedure?.category || 'Geral'}.
@@ -517,7 +517,7 @@ DIRETRIZES DE RESPOSTA:
         'detentor exclusivo de todos os direitos autorais e da propriedade intelectual do sistema.\n\n' +
         'O Enfere foi construído para revolucionar o aprendizado prático e a simulação clínica em enfermagem, unindo a ' +
         'Resolução COFEN nº 736/2024, as 5 etapas do Processo de Enfermagem (NANDA-I, NIC e NOC), escores validados de beira-leito ' +
-        'e a tutoria inteligente do Goti.'
+        'e o apoio inteligente do Goti.'
       );
     }
 
@@ -536,7 +536,7 @@ DIRETRIZES DE RESPOSTA:
       q.includes('tokens')
     ) {
       return (
-        'Sou o **Goti**, seu enfermeiro digital! Atuo como seu tutor virtual de beira-leito para esclarecer dúvidas técnicas, ' +
+        'Sou o **Goti**, seu enfermeiro digital! Atuo como seu guia virtual de beira-leito para esclarecer dúvidas técnicas, ' +
         'variações anatômicas, prevenção de iatrogenias e fundamentação científica dos procedimentos.\n\n' +
         '• **Qual IA usamos:** Opero por meio de uma arquitetura híbrida de alto desempenho com o **Google Gemini 2.5 Flash** e o roteador ' +
         '**OpenRouter**, integrados a um motor determinístico local de Sistematização da Assistência de Enfermagem (SAE).\n' +

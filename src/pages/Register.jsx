@@ -1,27 +1,28 @@
 import React, { useState } from "react";
-import { Link } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import { authService } from "@/services/authService";
+import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { UserPlus, Mail, Lock, User, Loader2, GraduationCap, Users } from "lucide-react";
+import { UserPlus, Mail, Lock, User, Loader2, Sparkles } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
+import GoogleOAuthModal from "@/components/auth/GoogleOAuthModal";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
 export default function Register() {
+  const navigate = useNavigate();
+  const { checkUserAuth } = useAuth();
   const returnTo = safeReturnTo();
-  const roleParam = typeof window !== "undefined"
-    ? new URLSearchParams(window.location.search).get("role")
-    : null;
 
-  const [userType, setUserType] = useState(roleParam === "professor" ? "professor" : "aluno");
   const [fullName, setFullName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showGoogleSetupModal, setShowGoogleSetupModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -37,10 +38,11 @@ export default function Register() {
     setLoading(true);
     try {
       await authService.register(email, password, {
-        full_name: fullName.trim() || (userType === "professor" ? "Professor" : "Aluno"),
-        user_type: userType,
+        full_name: fullName.trim() || "Estudante de Enfermagem",
+        user_type: "aluno",
       });
-      window.location.href = returnTo;
+      // Direciona para a área de login com mensagem de sucesso
+      navigate(`/login?registered=true&email=${encodeURIComponent(email)}`);
     } catch (err) {
       setError(err.message || "Falha no cadastro. Tente novamente.");
     } finally {
@@ -52,9 +54,29 @@ export default function Register() {
     setError("");
     setLoading(true);
     try {
-      await authService.loginWithProvider("google", returnTo, { user_type: userType });
+      if (typeof localStorage !== "undefined") {
+        localStorage.removeItem("enfermeiro_digital_local_user");
+      }
+      await authService.loginWithProvider("google", returnTo, { user_type: "aluno" });
     } catch (err) {
-      setError(err.message || "Falha ao autenticar com Google");
+      if (err.code === "PROVIDER_DISABLED" || err.message?.includes("ativado no painel do Supabase")) {
+        setShowGoogleSetupModal(true);
+      } else {
+        setError(err.message || "Falha ao autenticar com Google");
+      }
+      setLoading(false);
+    }
+  };
+
+  const handleDemoLogin = async () => {
+    setError("");
+    setLoading(true);
+    try {
+      await authService.loginDemo();
+      if (checkUserAuth) await checkUserAuth();
+      navigate(returnTo || "/");
+    } catch (err) {
+      setError(err.message || "Erro no acesso demonstrativo");
       setLoading(false);
     }
   };
@@ -63,101 +85,19 @@ export default function Register() {
     <AuthLayout
       icon={UserPlus}
       title="Criar sua Conta"
-      subtitle="Cadastre-se para acessar simuladores e turmas"
+      subtitle="Cadastre-se para acessar os simuladores e módulos clínicos"
       footer={
         <>
           Já tem conta?{" "}
           <Link
-            to={
-              "/login?role=" +
-              userType +
-              (returnTo !== "/" ? "&returnTo=" + encodeURIComponent(returnTo) : "")
-            }
+            to={"/login" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")}
             className="text-teal-600 dark:text-teal-400 font-semibold hover:underline"
           >
-            Entrar como {userType === "professor" ? "Professor" : "Aluno"}
+            Acessar minha conta
           </Link>
         </>
       }
     >
-      {/* SELETOR DE PERFIL: ALUNO vs PROFESSOR */}
-      <div className="mb-5 space-y-2">
-        <div className="flex items-center justify-between">
-          <Label className="text-xs font-bold uppercase tracking-wider text-slate-700 dark:text-slate-200">
-            Você é Aluno ou Professor?
-          </Label>
-          <span className="text-[11px] font-semibold text-teal-600 dark:text-teal-400 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-800">
-            {userType === "professor" ? "Docente" : "Estudante"}
-          </span>
-        </div>
-
-        <div className="grid grid-cols-2 gap-2.5">
-          <button
-            type="button"
-            onClick={() => setUserType("aluno")}
-            className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all text-center relative ${
-              userType === "aluno"
-                ? "border-teal-600 bg-teal-50/90 dark:bg-teal-950/50 shadow-xs ring-1 ring-teal-600/30"
-                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"
-            }`}
-          >
-            <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center mb-1.5 transition ${
-                userType === "aluno"
-                  ? "bg-teal-600 text-white"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
-              }`}
-            >
-              <GraduationCap className="w-5 h-5" />
-            </div>
-            <span
-              className={`text-sm font-bold block leading-tight ${
-                userType === "aluno"
-                  ? "text-teal-900 dark:text-teal-200"
-                  : "text-slate-700 dark:text-slate-300"
-              }`}
-            >
-              Sou Aluno
-            </span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
-              Entrar em turmas e responder
-            </span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setUserType("professor")}
-            className={`flex flex-col items-center justify-center p-3 rounded-2xl border-2 transition-all text-center relative ${
-              userType === "professor"
-                ? "border-teal-600 bg-teal-50/90 dark:bg-teal-950/50 shadow-xs ring-1 ring-teal-600/30"
-                : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 hover:border-slate-300 dark:hover:border-slate-700"
-            }`}
-          >
-            <div
-              className={`w-9 h-9 rounded-xl flex items-center justify-center mb-1.5 transition ${
-                userType === "professor"
-                  ? "bg-teal-600 text-white"
-                  : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"
-              }`}
-            >
-              <Users className="w-5 h-5" />
-            </div>
-            <span
-              className={`text-sm font-bold block leading-tight ${
-                userType === "professor"
-                  ? "text-teal-900 dark:text-teal-200"
-                  : "text-slate-700 dark:text-slate-300"
-              }`}
-            >
-              Sou Professor
-            </span>
-            <span className="text-[10px] text-slate-500 dark:text-slate-400 leading-tight mt-0.5">
-              Gerenciar turmas e criar casos
-            </span>
-          </button>
-        </div>
-      </div>
-
       {/* BOTÃO GOOGLE */}
       <Button
         type="button"
@@ -167,7 +107,7 @@ export default function Register() {
         disabled={loading}
       >
         <GoogleIcon className="w-5 h-5 mr-2 shrink-0" />
-        Cadastrar com Google como {userType === "professor" ? "Professor" : "Aluno"}
+        Cadastrar com o Google
       </Button>
 
       <div className="relative mb-5">
@@ -197,7 +137,7 @@ export default function Register() {
             <Input
               id="fullname"
               type="text"
-              placeholder={userType === "professor" ? "Prof. Dr. Marcos Silva" : "Ana Clara Rodrigues"}
+              placeholder="Ana Clara Rodrigues"
               value={fullName}
               onChange={(e) => setFullName(e.target.value)}
               className="pl-10 h-11 rounded-xl dark:bg-slate-800/90 dark:border-slate-700 dark:text-slate-100"
@@ -216,7 +156,7 @@ export default function Register() {
               id="email"
               type="email"
               autoComplete="email"
-              placeholder="seu-email@universidade.edu.br"
+              placeholder="seu.email@exemplo.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10 h-11 rounded-xl dark:bg-slate-800/90 dark:border-slate-700 dark:text-slate-100"
@@ -274,10 +214,35 @@ export default function Register() {
               Criando conta...
             </>
           ) : (
-            `Criar conta como ${userType === "professor" ? "Professor" : "Aluno"}`
+            "Criar Minha Conta no Enfere"
           )}
         </Button>
       </form>
+
+      {/* ACESSO DE DEMONSTRAÇÃO IMEDIATA */}
+      <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
+        <p className="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2.5">
+          Quer testar a plataforma agora?
+        </p>
+        <Button
+          type="button"
+          variant="outline"
+          className="w-full text-xs rounded-xl h-11 border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/60 text-teal-800 dark:text-teal-200 font-bold shadow-2xs transition"
+          onClick={handleDemoLogin}
+          disabled={loading}
+        >
+          <Sparkles className="w-4 h-4 mr-2 text-teal-600 dark:text-teal-400" />
+          Acessar Modo Demonstrativo Imediato
+        </Button>
+      </div>
+
+      <GoogleOAuthModal
+        isOpen={showGoogleSetupModal}
+        onClose={() => setShowGoogleSetupModal(false)}
+        userType="aluno"
+        returnTo={returnTo}
+        initialEmail={email}
+      />
     </AuthLayout>
   );
 }

@@ -58,7 +58,7 @@ const MODULE_DATA = {
   },
   sbar: {
     title: "Passagem de Plantão SBAR",
-    category: "Comunicação Segura & Preceptoria",
+    category: "Comunicação Segura & Simulação",
     badge: "Meta 2 OMS • SBAR Multimodal",
     icon: ArrowRightLeft,
     speech: "A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) evita 80% das falhas de comunicação. Como deseja treinar hoje?",
@@ -140,7 +140,7 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
           </button>
         </div>
 
-        {/* Card do Preceptor Clínico IA com Fala Explicativa da Aba */}
+        {/* Card do Goti IA com Fala Explicativa da Aba */}
         <div className="p-4 sm:p-5 bg-teal-50/50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800 flex items-start gap-3.5">
           <div className="shrink-0 -mt-0.5">
             <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shadow-xs">

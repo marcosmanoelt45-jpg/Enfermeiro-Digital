@@ -1,7 +1,7 @@
 import React, { useEffect, useRef } from "react";
 
 /**
- * Mapeamento das poses oficiais em Ultra HD do Mascote Preceptor Goti
+ * Mapeamento das poses oficiais em Ultra HD do Mascote Goti
  * Todas com recorte transparente puro (zero fundo branco), olhos brilhantes
  * e jaleco médico com cores 100% fiéis à ilustração original.
  */
@@ -121,7 +121,7 @@ const SIZE_PRESETS = {
 
 /**
  * GotiAnimated
- * Renderiza o mascote Preceptor Goti:
+ * Renderiza o mascote Goti:
  * - Renderização via HTML5 Canvas desacoplado do vídeo: elimina botões injetados por extensões/navegadores (>|).
  * - 100% transparente com canal alfa nativo WebM (zero fundo branco, zero cortes de jaleco ou crocs).
  * - Recorte calibrado por pose (pointing = 15.5%, idle/wave = 9.8%) para eliminar completamente o chão branco.

@@ -4,65 +4,95 @@
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Design System "Enfere Vivo" — Tema Claro */
+    --vivo-bg: #F4F8F9;
+    --vivo-surface: #FFFFFF;
+    --vivo-line: #DCE5EC;
+    --vivo-base: #C4D1DC;
+    --vivo-text: #1B2B3A;
+    --vivo-text-sec: #52667A;
+    --vivo-aqua: #1FC7B6;
+    --vivo-aqua-base: #12A596;
+    --vivo-aqua-label: #06302E;
+    --vivo-indigo: #3F43C9;
+    --vivo-amber: #D97706;
+    --vivo-green: #1F9D63;
+    --vivo-coral: #D63B3B;
+
+    --background: 192 29% 97%;
+    --foreground: 209 36% 17%;
 
     --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    --card-foreground: 209 36% 17%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    --popover-foreground: 209 36% 17%;
 
-    --primary: 173 80% 36%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 174 73% 45%;
+    --primary-foreground: 177 78% 11%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    --secondary: 206 31% 89%;
+    --secondary-foreground: 209 36% 17%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    --muted: 206 31% 93%;
+    --muted-foreground: 210 20% 40%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    --accent: 206 31% 93%;
+    --accent-foreground: 209 36% 17%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 66% 54%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 173 80% 36%;
+    --border: 206 31% 89%;
+    --input: 206 31% 89%;
+    --ring: 174 73% 45%;
 
-    --radius: 0.5rem;
+    --radius: 1rem;
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    /* Design System "Enfere Vivo" — Tema Escuro */
+    --vivo-bg: #0E1720;
+    --vivo-surface: #16222E;
+    --vivo-line: #27394B;
+    --vivo-base: #0A1118;
+    --vivo-text: #EAF2F8;
+    --vivo-text-sec: #9FB3C6;
+    --vivo-aqua: #2AD3C1;
+    --vivo-aqua-base: #17A99A;
+    --vivo-aqua-label: #06302E;
+    --vivo-indigo: #B4B7FF;
+    --vivo-amber: #FFC247;
+    --vivo-green: #3DD68C;
+    --vivo-coral: #F0645F;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --background: 210 39% 9%;
+    --foreground: 206 50% 95%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --card: 210 35% 13%;
+    --card-foreground: 206 50% 95%;
 
-    --primary: 173 80% 40%;
-    --primary-foreground: 222.2 47.4% 11.2%;
+    --popover: 210 35% 13%;
+    --popover-foreground: 206 50% 95%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --primary: 174 66% 50%;
+    --primary-foreground: 177 78% 11%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 25% 75%;
+    --secondary: 210 32% 22%;
+    --secondary-foreground: 206 50% 95%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --muted: 210 32% 18%;
+    --muted-foreground: 209 25% 70%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --accent: 210 32% 20%;
+    --accent-foreground: 206 50% 95%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 173 80% 40%;
+    --destructive: 2 83% 66%;
+    --destructive-foreground: 210 39% 9%;
+
+    --border: 210 32% 22%;
+    --input: 210 32% 22%;
+    --ring: 174 66% 50%;
   }
 }
 
@@ -70,7 +100,11 @@
   * {
     @apply border-border;
   }
+  html,
   body {
+    font-family: 'Nunito', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    background-color: var(--vivo-bg);
+    color: var(--vivo-text);
     @apply bg-background text-foreground antialiased selection:bg-emerald-100 selection:text-emerald-900;
     -webkit-tap-highlight-color: transparent;
   }
@@ -118,34 +152,44 @@ html.night-shift-mode {
 }
 
 /* ========================================================================== */
-/* Regras Globais de Contraste e Neutralização de Tema Escuro (WCAG AA)        */
+/* Regras Globais de Contraste e Paleta de Fundo "Enfere Vivo"                 */
 /* ========================================================================== */
+html:not(.dark),
+html:not(.dark) body {
+  background-color: #F4F8F9;
+  color: #1B2B3A;
+}
+
 html.dark,
 html.dark body {
-  background-color: #020617;
-  color: #f8fafc;
+  background-color: #0E1720;
+  color: #EAF2F8;
 }
 
 html.dark .min-h-screen.bg-slate-50 {
-  background-color: #020617;
+  background-color: #0E1720;
+}
+
+html:not(.dark) .min-h-screen.bg-slate-50 {
+  background-color: #F4F8F9;
 }
 
 /* Garantir legibilidade de botões com texto cinza no modo escuro */
 html.dark button.text-slate-700:not(.bg-white):not([class*="bg-emerald"]):not([class*="bg-teal"]) {
-  color: #cbd5e1;
+  color: #EAF2F8;
 }
 
 html.dark button.text-slate-800:not(.bg-white):not([class*="bg-emerald"]):not([class*="bg-teal"]) {
-  color: #f1f5f9;
+  color: #EAF2F8;
 }
 
-/* Salvaguarda de contraste estrito para textos secundários no modo escuro (WCAG AA) */
+/* Salvaguarda de contraste estrito para textos secundários no modo escuro */
 html.dark .text-slate-500:not([class*="bg-"]):not(button):not(svg) {
-  color: #94a3b8;
+  color: #9FB3C6;
 }
 
 html.dark .text-slate-400:not([class*="bg-"]):not(button):not(svg) {
-  color: #cbd5e1;
+  color: #9FB3C6;
 }
 
 /* Neutralização de inputs nativos e selects no modo escuro */
@@ -156,56 +200,58 @@ html.dark textarea {
 }
 
 /* ========================================================================== */
-/* Micro-Interações & Estética Tátil Premium (Enfere Experience)              */
+/* Micro-Interações & Estética Tátil "Enfere Vivo"                             */
+/* Raios: 14px chips, 16px botões, 18px cartões, 999px cápsulas               */
+/* Bordas: 2px nas laterais/topo, 5px na base; compressão de 4px em 120ms      */
 /* ========================================================================== */
 
-/* Elevação suave e elegante no hover */
 .hover-lift {
   transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1);
 }
 .hover-lift:hover {
   transform: translateY(-2px);
-  box-shadow: 0 10px 25px -5px rgba(13, 148, 136, 0.15), 0 8px 10px -6px rgba(13, 148, 136, 0.08);
+  box-shadow: 0 10px 25px -5px rgba(31, 199, 182, 0.16), 0 8px 10px -6px rgba(31, 199, 182, 0.08);
 }
 
-/* Feedback tátil orgânico ao toque e clique */
 .tap-press {
-  transition: transform 0.12s cubic-bezier(0.16, 1, 0.3, 1);
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1);
   will-change: transform;
 }
 .tap-press:active {
-  transform: scale(0.965);
+  transform: translateY(3px);
 }
 
-/* Botão clínico de destaque com gradiente suave */
+/* Botão clínico principal com física tátil Enfere Vivo */
 .btn-clinical {
-  background: linear-gradient(135deg, #0d9488 0%, #059669 100%);
-  color: #ffffff;
-  box-shadow: 0 4px 14px 0 rgba(13, 148, 136, 0.25);
-  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  background-color: var(--vivo-aqua);
+  color: var(--vivo-aqua-label);
+  border: 2px solid var(--vivo-aqua);
+  border-bottom: 5px solid var(--vivo-aqua-base);
+  border-radius: 16px;
+  font-weight: 800;
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
 }
 .btn-clinical:hover {
-  background: linear-gradient(135deg, #0f766e 0%, #047857 100%);
-  box-shadow: 0 6px 20px 0 rgba(13, 148, 136, 0.35);
-  transform: translateY(-1px);
+  filter: brightness(1.05);
 }
 .btn-clinical:active {
-  transform: scale(0.97);
+  transform: translateY(4px);
+  border-bottom-width: 2px;
 }
 
-/* Superfície vítrea de alto padrão (Glassmorphism sutil) */
+/* Superfície Enfere Vivo */
 .glass-panel {
-  background-color: rgba(255, 255, 255, 0.85);
+  background-color: rgba(255, 255, 255, 0.92);
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(226, 232, 240, 0.8);
+  border: 2px solid #DCE5EC;
 }
 .dark .glass-panel {
-  background-color: rgba(15, 23, 42, 0.85);
-  border: 1px solid rgba(30, 41, 59, 0.8);
+  background-color: rgba(22, 34, 46, 0.92);
+  border: 2px solid #27394B;
 }
 
-/* Animação fluida e orgânica do Mascote Preceptor Goti (Sem fundo, levitação carismática) */
+/* Animações do Mascote Goti */
 @keyframes gotiFloat {
   0%, 100% {
     transform: translateY(0px) scale(1);
@@ -281,7 +327,6 @@ html.dark textarea {
   }
 }
 
-/* Bloqueio estrito de botões nativos de Picture-in-Picture / Pop-out do navegador em mascote Goti */
 video::-webkit-media-controls,
 video::-webkit-media-controls-enclosure,
 video::-webkit-media-controls-panel,
@@ -292,7 +337,6 @@ video::-webkit-media-controls-overlay-play-button {
   pointer-events: none !important;
 }
 
-/* Animação suave e espaçada do fogo da ofensiva clínica (pulo sutil e calmo a cada 4.5s) */
 @keyframes flameHop {
   0%, 75%, 100% {
     transform: translateY(0) scale(1);
@@ -317,146 +361,149 @@ video::-webkit-media-controls-overlay-play-button {
 }
 
 /* ==========================================================================
-   DESIGN SYSTEM 3D TÁTIL DE ENFERMAGEM CLÍNICA
-   Física de botões: borda inferior de 4px, compressão ao clique (-3px) em 150ms
+   DESIGN SYSTEM 3D TÁTIL "ENFERE VIVO"
+   Física de botões: borda 2px topo/laterais, 5px base, compressão 4px em 120ms
    ========================================================================== */
 
-/* Botão 3D Primário (Teal Clínico) */
+/* Botão 3D Primário (Aqua Enfere Vivo) */
 .btn-3d-teal {
-  background-color: #0d9488;
-  color: #ffffff;
-  border-bottom: 4px solid #0f766e;
-  border-radius: 0.875rem;
-  font-weight: 700;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, background-color 150ms ease;
+  background-color: var(--vivo-aqua);
+  color: var(--vivo-aqua-label);
+  border: 2px solid var(--vivo-aqua);
+  border-bottom: 5px solid var(--vivo-aqua-base);
+  border-radius: 16px;
+  font-weight: 800;
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
   user-select: none;
 }
 .btn-3d-teal:hover {
-  background-color: #14b8a6;
+  filter: brightness(1.05);
 }
 .btn-3d-teal:active {
-  transform: translateY(3px);
-  border-bottom-width: 1px;
+  transform: translateY(4px);
+  border-bottom-width: 2px;
 }
 
-/* Botão 3D Esmeralda (Sucesso / Prática Concluída) */
+/* Botão 3D Verde (Correto / Estável — #1F9D63 claro | #3DD68C escuro) */
 .btn-3d-emerald {
-  background-color: #059669;
-  color: #ffffff;
-  border-bottom: 4px solid #047857;
-  border-radius: 0.875rem;
-  font-weight: 700;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, background-color 150ms ease;
+  background-color: var(--vivo-green);
+  color: #062819;
+  border: 2px solid var(--vivo-green);
+  border-bottom: 5px solid #147A4B;
+  border-radius: 16px;
+  font-weight: 800;
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
   user-select: none;
 }
 .btn-3d-emerald:hover {
-  background-color: #10b981;
+  filter: brightness(1.05);
 }
 .btn-3d-emerald:active {
-  transform: translateY(3px);
-  border-bottom-width: 1px;
+  transform: translateY(4px);
+  border-bottom-width: 2px;
 }
 
-/* Botão 3D Âmbar / Laranja (Ofensiva Clínica #FF9600 / Destaque de Plantão) */
+/* Botão 3D Âmbar (Ofensiva / Alerta — #D97706 claro | #FFC247 escuro) */
 .btn-3d-amber {
-  background-color: #f59e0b;
-  color: #ffffff;
-  border-bottom: 4px solid #d97706;
-  border-radius: 0.875rem;
-  font-weight: 700;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, background-color 150ms ease;
+  background-color: var(--vivo-amber);
+  color: #2B1700;
+  border: 2px solid var(--vivo-amber);
+  border-bottom: 5px solid #B45309;
+  border-radius: 16px;
+  font-weight: 800;
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
   user-select: none;
 }
 .btn-3d-amber:hover {
-  background-color: #fbbf24;
+  filter: brightness(1.05);
 }
 .btn-3d-amber:active {
-  transform: translateY(3px);
-  border-bottom-width: 1px;
+  transform: translateY(4px);
+  border-bottom-width: 2px;
 }
 
-/* Botão 3D Céu (Sky Blue / Habilidades Práticas & Procedimentos) */
+/* Botão 3D Índigo / Sky (Raciocínio / Procedimentos) */
 .btn-3d-sky {
-  background-color: #0ea5e9;
-  color: #ffffff;
-  border-bottom: 4px solid #0284c7;
-  border-radius: 0.875rem;
-  font-weight: 700;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, background-color 150ms ease;
+  background-color: var(--vivo-aqua);
+  color: var(--vivo-aqua-label);
+  border: 2px solid var(--vivo-aqua);
+  border-bottom: 5px solid var(--vivo-aqua-base);
+  border-radius: 16px;
+  font-weight: 800;
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
   user-select: none;
 }
 .btn-3d-sky:hover {
-  background-color: #38bdf8;
+  filter: brightness(1.05);
 }
 .btn-3d-sky:active {
-  transform: translateY(3px);
-  border-bottom-width: 1px;
+  transform: translateY(4px);
+  border-bottom-width: 2px;
 }
 
-/* Botão 3D Destrutivo / Alerta (Rose #FF4B4B) */
+/* Botão 3D Coral (Erro / Crítico — #D63B3B claro | #F0645F escuro) */
 .btn-3d-rose {
-  background-color: #f43f5e;
+  background-color: var(--vivo-coral);
   color: #ffffff;
-  border-bottom: 4px solid #e11d48;
-  border-radius: 0.875rem;
-  font-weight: 700;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, background-color 150ms ease;
+  border: 2px solid var(--vivo-coral);
+  border-bottom: 5px solid #A82828;
+  border-radius: 16px;
+  font-weight: 800;
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
   user-select: none;
 }
 .btn-3d-rose:hover {
-  background-color: #fb7185;
+  filter: brightness(1.05);
 }
 .btn-3d-rose:active {
-  transform: translateY(3px);
-  border-bottom-width: 1px;
+  transform: translateY(4px);
+  border-bottom-width: 2px;
 }
 
-/* Botão 3D Outline com base sólida (fundo branco / dark slate) */
+/* Botão 3D Outline com superfície e base Enfere Vivo */
 .btn-3d-outline {
-  background-color: #ffffff;
-  color: #334155;
-  border: 2px solid #e2e8f0;
-  border-bottom: 4px solid #cbd5e1;
-  border-radius: 0.875rem;
-  font-weight: 700;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, background-color 150ms ease;
+  background-color: var(--vivo-surface);
+  color: var(--vivo-text);
+  border: 2px solid var(--vivo-line);
+  border-bottom: 5px solid var(--vivo-base);
+  border-radius: 16px;
+  font-weight: 800;
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, border-color 120ms ease;
   user-select: none;
 }
 .dark .btn-3d-outline {
-  background-color: #0f172a;
-  color: #e2e8f0;
-  border: 2px solid #334155;
-  border-bottom: 4px solid #1e293b;
+  background-color: #16222E;
+  color: #EAF2F8;
+  border: 2px solid #27394B;
+  border-bottom: 5px solid #0A1118;
 }
 .btn-3d-outline:hover {
-  background-color: #f8fafc;
-  color: #0f172a;
+  border-color: var(--vivo-aqua);
 }
 .dark .btn-3d-outline:hover {
-  background-color: #1e293b;
-  color: #ffffff;
+  border-color: #2AD3C1;
 }
 .btn-3d-outline:active {
-  transform: translateY(2px);
+  transform: translateY(4px);
   border-bottom-width: 2px;
 }
 
 /* ==========================================================================
-   CARDS COM PROFUNDIDADE TÁTIL (Sólidos, Relevo 3D e Micro-pressão)
+   CARDS COM PROFUNDIDADE TÁTIL "ENFERE VIVO" (18px raio, 2px linha, 5px base)
    ========================================================================== */
 .card-3d {
-  background-color: #ffffff;
-  border: 2px solid #e2e8f0;
-  border-bottom: 4px solid #cbd5e1;
-  border-radius: 1.25rem;
-  box-shadow: 0 2px 8px -2px rgba(15, 23, 42, 0.05);
-  transition: transform 150ms cubic-bezier(0.2, 0.8, 0.4, 1), border-color 150ms ease, box-shadow 150ms ease;
+  background-color: #FFFFFF;
+  border: 2px solid #DCE5EC;
+  border-bottom: 5px solid #C4D1DC;
+  border-radius: 18px;
+  box-shadow: 0 2px 8px -2px rgba(27, 43, 58, 0.05);
+  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-color 120ms ease, box-shadow 120ms ease;
 }
 .dark .card-3d {
-  background-color: #0f172a;
-  border: 2px solid #1e293b;
-  border-bottom: 4px solid #090d16;
-  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.3);
+  background-color: #16222E;
+  border: 2px solid #27394B;
+  border-bottom: 5px solid #0A1118;
+  box-shadow: 0 4px 12px -2px rgba(0, 0, 0, 0.35);
 }
 
 .card-3d-interactive {
@@ -465,44 +512,39 @@ video::-webkit-media-controls-overlay-play-button {
 }
 .card-3d-interactive:hover {
   transform: translateY(-2px);
-  border-color: #cbd5e1;
-  border-bottom-color: #94a3b8;
-  box-shadow: 0 8px 16px -4px rgba(15, 23, 42, 0.08);
+  border-color: #1FC7B6;
+  border-bottom-color: #12A596;
 }
 .dark .card-3d-interactive:hover {
-  border-color: #334155;
-  border-bottom-color: #1e293b;
-  box-shadow: 0 8px 20px -4px rgba(0, 0, 0, 0.5);
+  border-color: #2AD3C1;
+  border-bottom-color: #17A99A;
 }
 .card-3d-interactive:active {
-  transform: translateY(2px);
+  transform: translateY(4px);
   border-bottom-width: 2px;
 }
 
 /* ==========================================================================
-   BARRA DE PROGRESSO CÁPSULA GLOSSY COM REFLEXO
+   BARRA DE PROGRESSO CÁPSULA (999px) "ENFERE VIVO"
    ========================================================================== */
 .progress-capsule {
   position: relative;
   overflow: hidden;
-  height: 1rem;
-  border-radius: 9999px;
-  background-color: #e2e8f0;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.08);
+  height: 14px;
+  border-radius: 999px;
+  background-color: #DCE5EC;
 }
 .dark .progress-capsule {
-  background-color: #1e293b;
-  box-shadow: inset 0 2px 4px rgba(0, 0, 0, 0.3);
+  background-color: #27394B;
 }
 
 .progress-capsule-fill {
   position: relative;
   height: 100%;
-  border-radius: 9999px;
-  background: linear-gradient(180deg, #14b8a6 0%, #0d9488 100%);
-  transition: width 500ms cubic-bezier(0.34, 1.56, 0.64, 1);
+  border-radius: 999px;
+  background-color: var(--vivo-aqua);
+  transition: width 350ms cubic-bezier(0.2, 0.8, 0.4, 1);
 }
-/* Linha de reflexo (gloss highlight) no topo */
 .progress-capsule-fill::after {
   content: '';
   position: absolute;
@@ -510,29 +552,29 @@ video::-webkit-media-controls-overlay-play-button {
   left: 6px;
   right: 6px;
   height: 3px;
-  background-color: rgba(255, 255, 255, 0.45);
-  border-radius: 9999px;
+  background-color: rgba(255, 255, 255, 0.4);
+  border-radius: 999px;
   pointer-events: none;
 }
 
-/* Indicador de Streak Flame 3D */
+/* Chip de Ofensiva 3D (14px raio, 2px linha, 4px base) */
 .badge-streak-3d {
   display: inline-flex;
   align-items: center;
   gap: 0.375rem;
   padding: 0.375rem 0.75rem;
-  border-radius: 9999px;
+  border-radius: 14px;
   font-weight: 800;
   font-size: 0.8125rem;
-  background-color: #fff7ed;
-  color: #ea580c;
-  border: 1.5px solid #fed7aa;
-  border-bottom: 3px solid #fdba74;
-  box-shadow: 0 1px 3px rgba(234, 88, 12, 0.1);
+  background-color: #FFFFFF;
+  color: #D97706;
+  border: 2px solid #DCE5EC;
+  border-bottom: 4px solid #C4D1DC;
 }
 .dark .badge-streak-3d {
-  background-color: rgba(234, 88, 12, 0.15);
-  color: #fb923c;
-  border: 1.5px solid rgba(251, 146, 60, 0.3);
-  border-bottom: 3px solid rgba(251, 146, 60, 0.45);
+  background-color: #16222E;
+  color: #FFC247;
+  border: 2px solid #27394B;
+  border-bottom: 4px solid #0A1118;
 }
+

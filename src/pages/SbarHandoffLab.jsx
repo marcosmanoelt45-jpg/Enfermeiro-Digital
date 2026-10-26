@@ -1889,7 +1889,7 @@ export default function SbarHandoffLab() {
           </div>
         )}
 
-        {/* CONTEÚDO DA ABA 3: DEBRIEFING SOCRÁTICO DO PRECEPTOR CLÍNICO IA */}
+        {/* CONTEÚDO DA ABA 3: DEBRIEFING DO GOTI IA */}
         {tutorEvaluation && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-teal-200 dark:border-teal-900/60 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
             {/* Topo do Feedback com Score e Grade */}

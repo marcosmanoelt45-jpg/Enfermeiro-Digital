@@ -1,61 +1,90 @@
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL || 'https://placeholder-enfermeiro-digital.supabase.co';
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY || 'placeholder-anon-key';
+const safeGetEnv = (key) => {
+  try {
+    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
+      return import.meta.env[key];
+    }
+  } catch {}
+  try {
+    if (typeof process !== 'undefined' && process.env && process.env[key]) {
+      return process.env[key];
+    }
+  } catch {}
+  return '';
+};
 
-let isReachable = true;
+const rawUrl = safeGetEnv('VITE_SUPABASE_URL');
+const isKnownOfflineOrPlaceholder =
+  !rawUrl ||
+  rawUrl.includes('placeholder');
+
+const supabaseUrl = isKnownOfflineOrPlaceholder
+  ? 'https://placeholder-enfermeiro-digital.supabase.co'
+  : rawUrl;
+const supabaseAnonKey = safeGetEnv('VITE_SUPABASE_ANON_KEY') || 'placeholder-anon-key';
+
+let isReachable = !isKnownOfflineOrPlaceholder;
+let offlineTimestamp = 0;
+const OFFLINE_COOLDOWN_MS = 15000; // 15 segundos de cooldown
 
 export const markSupabaseOffline = (reason) => {
+  offlineTimestamp = Date.now();
   if (isReachable) {
-    console.warn(`[Supabase Circuit Breaker] Servidor remoto inacessível (${reason || 'erro de rede/DNS'}). Alternando instantaneamente para modo LocalStorage resiliente.`);
+    console.warn(`[Supabase Circuit Breaker] Servidor remoto temporariamente inacessível (${reason || 'erro de rede/DNS'}). Alternando para modo LocalStorage.`);
     isReachable = false;
   }
 };
 
 export const setSupabaseReachable = (status) => {
-  isReachable = status;
+  isReachable = Boolean(status);
+  if (status) offlineTimestamp = 0;
 };
 
-// Prova rápida de conectividade com timeout agressivo de 2 segundos
-if (
-  typeof window !== 'undefined' &&
-  supabaseUrl &&
-  !supabaseUrl.includes('placeholder')
-) {
+export const checkSupabaseReachable = () => {
+  if (isKnownOfflineOrPlaceholder) return false;
+  if (!isReachable && Date.now() - offlineTimestamp > OFFLINE_COOLDOWN_MS) {
+    isReachable = true;
+  }
+  return isReachable;
+};
+
+export function isLocalDemoSession() {
   try {
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), 2000);
-    fetch(`${supabaseUrl}/rest/v1/`, {
-      method: 'HEAD',
-      headers: { apikey: supabaseAnonKey },
-      signal: controller.signal,
-    })
-      .then(() => {
-        clearTimeout(timer);
-        isReachable = true;
-      })
-      .catch((err) => {
-        clearTimeout(timer);
-        markSupabaseOffline(err?.message || 'timeout/DNS');
-      });
+    if (typeof localStorage === 'undefined') return false;
+    const raw = localStorage.getItem('enfermeiro_digital_local_user');
+    if (!raw) return false;
+    const parsed = JSON.parse(raw);
+    const id = String(parsed?.id || '');
+    return id.startsWith('aluno-demo') || id.startsWith('prof-demo');
   } catch {
-    markSupabaseOffline('fetch initialization error');
+    return false;
   }
 }
 
 export const isSupabaseConfigured = () => {
-  if (!isReachable) return false;
-  return (
-    Boolean(import.meta.env.VITE_SUPABASE_URL) &&
-    Boolean(import.meta.env.VITE_SUPABASE_ANON_KEY) &&
-    !import.meta.env.VITE_SUPABASE_URL.includes('placeholder')
-  );
+  if (isKnownOfflineOrPlaceholder) return false;
+  const url = safeGetEnv('VITE_SUPABASE_URL');
+  const key = safeGetEnv('VITE_SUPABASE_ANON_KEY');
+  return Boolean(url && key && !url.includes('placeholder'));
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
   auth: {
-    persistSession: true,
-    autoRefreshToken: true,
-    detectSessionInUrl: true,
+    persistSession: !isKnownOfflineOrPlaceholder,
+    autoRefreshToken: !isKnownOfflineOrPlaceholder,
+    detectSessionInUrl: !isKnownOfflineOrPlaceholder,
+  },
+  global: {
+    fetch: (...args) => {
+      const targetUrl = String(args[0] || '');
+      // Se for especificamente a rota de placeholder falsa, rejeita imediatamente
+      if (targetUrl.includes('placeholder-enfermeiro-digital')) {
+        return Promise.reject(new Error('Supabase offline circuit breaker active'));
+      }
+      return fetch(...args);
+    },
   },
 });
+
+export { supabaseUrl, supabaseAnonKey };

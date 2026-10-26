@@ -22,11 +22,11 @@ function getFormattedNow() {
 }
 
 /**
- * Exporta o Prontuário Clínico Oficial com Parecer de Preceptoria Clínica em PDF.
+ * Exporta o Prontuário Clínico Oficial com Parecer do Goti IA em PDF.
  * @param {object} params
  * @param {object} params.caseData - Dados do paciente e do caso clínico
  * @param {object} [params.sbarData] - Relatório SBAR preenchido pelo aluno
- * @param {object} [params.tutorEvaluation] - Parecer pedagógico do Preceptor Clínico IA
+ * @param {object} [params.tutorEvaluation] - Parecer pedagógico do Goti IA
  * @param {object} [params.studentInfo] - Informações do acadêmico (nome, faculdade, matrícula)
  */
 export function exportClinicalCaseToPdf({
@@ -269,7 +269,7 @@ export function exportClinicalCaseToPdf({
     y += 4;
   }
 
-  // 5. PARECER FORMATIVO DO PRECEPTOR CLÍNICO IA (AUDITORIA PEDAGÓGICA)
+  // 5. PARECER FORMATIVO DO GOTI IA (AUDITORIA PEDAGÓGICA)
   if (tutorEvaluation) {
     checkPageBreak(50);
     doc.setFillColor(240, 253, 250); // teal-50
@@ -309,7 +309,7 @@ export function exportClinicalCaseToPdf({
     doc.setFont("helvetica", "bold");
     doc.setFontSize(7.5);
     doc.setTextColor(15, 118, 110);
-    doc.text("Goti • Tutor de Enfermagem Digital", margin + 4, y + 35);
+    doc.text("Goti • IA Enfere", margin + 4, y + 35);
     doc.setFont("helvetica", "normal");
     doc.setFontSize(7);
     doc.setTextColor(100, 116, 139);
@@ -339,7 +339,7 @@ export function exportClinicalCaseToPdf({
   doc.setFont("helvetica", "bold");
   doc.setFontSize(8);
   doc.setTextColor(15, 118, 110);
-  doc.text("Goti IA • Tutoria Enfere", margin + signW + 10 + signW / 2, y + 18, { align: "center" });
+  doc.text("Goti IA • Plataforma Enfere", margin + signW + 10 + signW / 2, y + 18, { align: "center" });
   doc.setFont("helvetica", "normal");
   doc.setFontSize(7);
   doc.setTextColor(100, 116, 139);

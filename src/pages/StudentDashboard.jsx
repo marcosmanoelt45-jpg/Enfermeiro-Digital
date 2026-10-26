@@ -20,7 +20,7 @@ import { useTheme } from "@/lib/ThemeContext";
 
 // Componentes Móveis Estilo Orizon Verde e Branco / Dark Mode
 import MobileHeader from "@/components/mobile/MobileHeader";
-import HeroCourseCard from "@/components/mobile/HeroCourseCard";
+import EnfereVivoTrail from "@/components/mobile/EnfereVivoTrail";
 import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
 import ClinicalModuleCard from "@/components/mobile/ClinicalModuleCard";
 import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
@@ -36,29 +36,23 @@ export default function StudentDashboard() {
   const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
   const [briefingModuleId, setBriefingModuleId] = useState(null);
   const [isBriefingOpen, setIsBriefingOpen] = useState(false);
-
   const cleanUserName = user?.name ? user.name.split(" ")[0] : (user?.full_name ? user.full_name.split(" ")[0] : "");
-  const isGeneric = !cleanUserName || ['estudante', 'enfermeiro', 'aluno', 'professor'].includes(cleanUserName.toLowerCase());
+  const isGeneric = !cleanUserName || ['estudante', 'enfermeiro', 'aluno'].includes(cleanUserName.toLowerCase());
   const greetingName = isGeneric ? '' : cleanUserName;
-  const isProfessor = user?.user_type === "professor";
 
-  // Configuração Automática do Hero Card
+  // Configuração Automática do Hero Card (Foco 100% no Aluno e Prática Clínica)
   const heroCardConfig = useMemo(() => ({
     title: "Processo de Enfermagem Completo",
     subtitle: "5 Etapas • Raciocínio Diagnóstico & Taxonomias Clínicas",
     progressPercent: 75,
-    actionText: isProfessor ? "Ver Minhas Turmas" : "Iniciar Caso Clínico",
-    actionTo: isProfessor ? "/turmas" : "/simulador-casos",
+    actionText: "Iniciar Caso Clínico",
+    actionTo: "/simulador-casos",
     timeEstimate: "15 min",
     competencyTag: "Raciocínio Clínico • NANDA-I / NIC / NOC",
-    badgeText: isProfessor ? "Ambiente Docente" : "Trilha Principal",
-    desktopSub: isProfessor
-      ? "Painel Docente • Gestão de Turmas e Casos Clínicos"
-      : "Painel do Aluno • Prática Baseada em Evidências",
-    desktopDesc: isProfessor
-      ? "Crie e gerencie turmas de enfermagem, acompanhe o desempenho dos alunos e publique novos casos clínicos e questões para as turmas."
-      : "Monte casos clínicos com escores validados (Braden, CAM, CALOI, SAK) ou explore simulações formativas com o Processo de Enfermagem em 5 etapas e taxonomias NANDA-I/NIC/NOC."
-  }), [isProfessor]);
+    badgeText: "Trilha Principal",
+    desktopSub: "Painel do Aluno • Prática Baseada em Evidências",
+    desktopDesc: "Monte casos clínicos com escores validados (Braden, CAM, CALOI, SAK) ou explore simulações formativas com o Processo de Enfermagem em 5 etapas e taxonomias NANDA-I/NIC/NOC.",
+  }), []);
 
   // Definição Completa dos Módulos Clínicos (Cada um com sua diretriz metodológica nativa automática)
   const learningModules = useMemo(() => [
@@ -80,13 +74,13 @@ export default function StudentDashboard() {
       id: "sbar",
       category: "sbar",
       title: "Passagem de Plantão SBAR",
-      subtitle: "Comunicação Segura & Preceptoria IA",
-      description: "Treine a técnica SBAR (Situação, Breve Histórico, Avaliação, Recomendação) por voz ou texto, com debriefing e devolutiva do Preceptor IA.",
+      subtitle: "Comunicação Segura & Treino SBAR",
+      description: "Treine a técnica SBAR (Situação, Breve Histórico, Avaliação, Recomendação) por voz ou texto, com debriefing e devolutiva do Goti IA.",
       icon: ArrowRightLeft,
       path: "/passagem-plantao",
       tag: "Meta 2 OMS • SBAR Áudio",
       time: "8 min",
-      badgeText: "Preceptoria IA",
+      badgeText: "Goti IA",
       stats: "Áudio • Conclusão • PDF",
       featured: true
     },
@@ -129,30 +123,16 @@ export default function StudentDashboard() {
       badgeText: "Vídeos + Checklists",
       stats: "Punção • SVD • SNG • Injeções • IA",
       featured: true
-    },
-    {
-      id: "turmas",
-      category: "turmas",
-      title: "Minhas Turmas & Desafios",
-      subtitle: "Ambiente Acadêmico",
-      description: "Acesse suas salas de aula, responda a estudos de caso atribuídos pelo seu professor e acompanhe sua evolução.",
-      icon: Users,
-      path: "/turmas",
-      tag: "Acadêmico",
-      time: "Variável",
-      badgeText: "Docência",
-      stats: "Estudos Atribuídos e Turmas"
     }
   ], []);
 
   // Categorias para os Chips Deslizáveis
   const categories = useMemo(() => [
     { id: "all", label: "Todos", count: learningModules.length },
-    { id: "procedimentos", label: "Procedimentos & POPs", count: learningModules.filter(m => m.category === 'procedimentos').length },
     { id: "cofen", label: "Processo de Enfermagem", count: learningModules.filter(m => m.category === 'cofen').length },
     { id: "sbar", label: "Plantão SBAR", count: learningModules.filter(m => m.category === 'sbar').length },
     { id: "doses", label: "Cálculo de Doses", count: learningModules.filter(m => m.category === 'doses').length },
-    { id: "turmas", label: "Minhas Turmas", count: learningModules.filter(m => m.category === 'turmas').length }
+    { id: "procedimentos", label: "Procedimentos & POPs", count: learningModules.filter(m => m.category === 'procedimentos').length },
   ], [learningModules]);
 
   const isSearching = searchQuery.trim().length > 0;
@@ -179,26 +159,28 @@ export default function StudentDashboard() {
       {/* Header Clássico no Desktop (controlado internamente por desktopOnly para não ocultar modais no mobile) */}
       <StudentHeader activeTab="hub" desktopOnly={true} />
 
-      {/* Header Móvel Inspirado no Dribbble 16244904 (md:hidden) */}
-      <div className="md:hidden">
-        <MobileHeader
-          userName={greetingName}
-          userType={isProfessor ? "professor" : "aluno"}
-          searchQuery={searchQuery}
-          onSearchChange={setSearchQuery}
-          selectedCategory={selectedCategory}
-          onSelectCategory={(catId) => {
-            triggerHaptic(20);
-            setSelectedCategory(catId);
-          }}
-          categories={categories}
-          onOpenOptions={() => setIsOptionsModalOpen(true)}
-          onOpenAIChat={() => {
-            triggerHaptic(20);
-            window.dispatchEvent(new CustomEvent("open-goti-chat"));
-          }}
-        />
-      </div>
+      {/* Header Móvel de Busca (Exibido apenas em busca ativa) */}
+      {isSearching && (
+        <div className="md:hidden">
+          <MobileHeader
+            userName={greetingName}
+            userType="aluno"
+            searchQuery={searchQuery}
+            onSearchChange={setSearchQuery}
+            selectedCategory={selectedCategory}
+            onSelectCategory={(catId) => {
+              triggerHaptic(20);
+              setSelectedCategory(catId);
+            }}
+            categories={categories}
+            onOpenOptions={() => setIsOptionsModalOpen(true)}
+            onOpenAIChat={() => {
+              triggerHaptic(20);
+              window.dispatchEvent(new CustomEvent("open-goti-chat"));
+            }}
+          />
+        </div>
+      )}
 
       <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 py-4 sm:py-8 space-y-5">
 
@@ -213,9 +195,7 @@ export default function StudentDashboard() {
                 {heroCardConfig.desktopSub}
               </span>
               <h1 className="text-xl sm:text-2xl lg:text-4xl font-black tracking-tight text-white leading-tight drop-shadow-sm">
-                {isProfessor
-                  ? (greetingName ? `Olá professor, ${greetingName}. Pronto para gerenciar suas turmas hoje?` : "Olá professor. Pronto para gerenciar suas turmas hoje?")
-                  : (greetingName ? `Olá aluno, ${greetingName}. Pronto para a prática clínica hoje?` : "Olá aluno. Pronto para a prática clínica hoje?")}
+                {greetingName ? `Olá, ${greetingName}! Pronto para a prática clínica hoje?` : "Olá! Pronto para a prática clínica hoje?"}
               </h1>
               <p className="text-xs lg:text-sm font-medium text-emerald-50/95 leading-relaxed drop-shadow-xs line-clamp-2 lg:line-clamp-none">
                 {heroCardConfig.desktopDesc}
@@ -251,7 +231,7 @@ export default function StudentDashboard() {
                   window.dispatchEvent(new CustomEvent("open-goti-chat"));
                 }}
                 className="cursor-pointer group flex items-center justify-center p-1 transition-transform hover:scale-105 active:scale-95 select-none"
-                title="Clique para conversar com o Preceptor Goti"
+                title="Clique para conversar com o Goti"
               >
                 {/* Goti em pose de boas-vindas com proporção cinematográfica */}
                 <GotiAnimated
@@ -282,88 +262,15 @@ export default function StudentDashboard() {
           </div>
         ) : (
           <>
-            {/* Card de Boas-Vindas com Mascote Goti no Mobile (Vertical e Horizontal) */}
+            {/* Trilha Tátil Vertical do Plantão de Hoje - Especificação 1:1 do PDF Enfere Vivo */}
             <div className="md:hidden">
-              <div
-                onClick={() => {
+              <EnfereVivoTrail
+                userName={greetingName}
+                onOpenAIChat={() => {
                   triggerHaptic(20);
                   window.dispatchEvent(new CustomEvent("open-goti-chat"));
                 }}
-                className="cursor-pointer group rounded-3xl border-2 border-emerald-500/30 dark:border-emerald-500/20 border-b-4 border-b-emerald-950/80 dark:border-b-black bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-4 shadow-xl text-white relative overflow-hidden flex items-center gap-3.5 select-none active:translate-y-1 active:border-b-2 transition-all"
-                title="Clique para conversar com o Goti"
-              >
-                {/* Efeito luminoso de fundo */}
-                <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-400/10 rounded-full blur-2xl pointer-events-none" />
-
-                {/* Mascote Goti em destaque à esquerda (Tamanho ampliado, visibilidade garantida) */}
-                <div className="shrink-0 flex items-center justify-center -my-2 -ml-1">
-                  <GotiAnimated animation="wave" size="lg" className="w-28 h-28 sm:w-32 sm:h-32 drop-shadow-lg shrink-0 transform-gpu scale-110" />
-                </div>
-
-                {/* Mensagem e Saudação no Centro */}
-                <div className="flex-1 min-w-0 space-y-1">
-                  <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-emerald-400/20 text-emerald-300 text-[10px] font-black uppercase tracking-wider border border-emerald-300/30">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-                    Goti IA
-                  </div>
-                  <h3 className="text-sm font-black text-white leading-tight truncate">
-                    {greetingName ? `Olá, ${greetingName}!` : "Olá aluno!"}
-                  </h3>
-                  <p className="text-[11px] text-emerald-100/90 font-medium leading-snug line-clamp-1">
-                    Tire dúvidas sobre como navegar no site.
-                  </p>
-                </div>
-
-                {/* Pílula de Ação Fale com o Goti à Direita */}
-                <div className="shrink-0">
-                  <div className="bg-white text-slate-950 px-3 py-1.5 rounded-xl shadow-md border-b-4 border-slate-200 dark:border-emerald-600 flex items-center gap-1 group-hover:scale-105 active:translate-y-0.5 active:border-b-2 transition-transform">
-                    <span className="text-[11px] font-black whitespace-nowrap">Fale 👋</span>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Hero Card Móvel Estilo Orizon (md:hidden) Conectado à Diretriz Ativa */}
-            <div className="md:hidden">
-              <HeroCourseCard
-                title={heroCardConfig.title}
-                subtitle={heroCardConfig.subtitle}
-                progressPercent={heroCardConfig.progressPercent}
-                actionText={heroCardConfig.actionText}
-                actionTo={heroCardConfig.actionTo}
-                timeEstimate={heroCardConfig.timeEstimate}
-                competencyTag={heroCardConfig.competencyTag}
-                badgeText={heroCardConfig.badgeText}
               />
-            </div>
-
-            {/* Acesso Rápido a Criação de Casos (Mobile Bar) com Cards 3D Táteis */}
-            <div className="md:hidden grid grid-cols-2 gap-2.5">
-              <button
-                onClick={() => navigate("/montar-caso")}
-                className="flex items-center gap-2.5 p-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-4 border-b-slate-300 dark:border-b-slate-700/90 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 active:translate-y-1 active:border-b-2 transition-all text-left select-none cursor-pointer"
-              >
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 border border-emerald-100 dark:border-emerald-800/60 shadow-2xs">
-                  <FolderPlus className="w-4 h-4 stroke-[2.2]" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100 block truncate">Montar Caso</span>
-                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-bold">5 Escores</span>
-                </div>
-              </button>
-
-              <button
-                onClick={() => navigate("/montar-caso?mode=audio")}
-                className="flex items-center gap-2.5 p-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-4 border-b-slate-300 dark:border-b-slate-700/90 shadow-2xs hover:border-slate-300 dark:hover:border-slate-700 active:translate-y-1 active:border-b-2 transition-all text-left select-none cursor-pointer"
-              >
-                <div className="w-9 h-9 rounded-xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 flex items-center justify-center flex-shrink-0 border border-emerald-100 dark:border-emerald-800/60 shadow-2xs">
-                  <Mic className="w-4 h-4 text-emerald-700 dark:text-emerald-400 stroke-[2.2]" />
-                </div>
-                <div className="min-w-0">
-                  <span className="text-xs font-extrabold text-slate-800 dark:text-slate-100 block truncate">Caso por Áudio</span>
-                  <span className="text-[10px] text-emerald-700 dark:text-emerald-400 block font-bold">Voz do Goti</span>
-                </div>
-              </button>
             </div>
           </>
         )}
@@ -425,7 +332,7 @@ export default function StudentDashboard() {
                   badgeText={mod.badgeText}
                   onClick={() => {
                     triggerHaptic(15);
-                    if (mod.id === "procedimentos" || mod.id === "turmas") {
+                    if (mod.id === "procedimentos") {
                       navigate(mod.path);
                     } else {
                       setBriefingModuleId(mod.id);

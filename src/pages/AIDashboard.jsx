@@ -18,27 +18,28 @@ export default function AIDashboard() {
   const [imported, setImported] = useState(false);
   const pollRef = useRef(null);
 
-  async function loadAssessment() {
-    const a = await assessmentService.get(id);
-    setAssessment(a);
-    if (a.patient_id) {
-      try { setPatient(await patientService.get(a.patient_id)); } catch {}
-    }
-    if (a.ai_response) setPlan(a.ai_response);
-    return a;
-  }
-
   useEffect(() => {
+    async function loadAssessment() {
+      const a = await assessmentService.get(id);
+      setAssessment(a);
+      if (a.patient_id) {
+        try { setPatient(await patientService.get(a.patient_id)); } catch {}
+      }
+      if (a.ai_response) setPlan(a.ai_response);
+      return a;
+    }
+
     (async () => {
       setLoading(true);
       try {
         const a = await loadAssessment();
+        const targetId = a?.id || id;
         // Se a IA ainda estiver pendente, dispara a geração direta no cliente e monitora
-        if (a.ai_status === "pending" || (!a.ai_status && !a.ai_response)) {
-          aiService.invokeCarePlanSync(id).then(async (generatedPlan) => {
+        if (targetId && (a.ai_status === "pending" || (!a.ai_status && !a.ai_response))) {
+          aiService.invokeCarePlanSync(targetId).then(async (generatedPlan) => {
             if (generatedPlan) {
               setPlan(generatedPlan);
-              const fresh = await assessmentService.get(id);
+              const fresh = await assessmentService.get(targetId);
               setAssessment(fresh);
               if (fresh.patient_id) {
                 try { setPatient(await patientService.get(fresh.patient_id)); } catch {}
@@ -48,7 +49,7 @@ export default function AIDashboard() {
 
           pollRef.current = setInterval(async () => {
             try {
-              const fresh = await assessmentService.get(id);
+              const fresh = await assessmentService.get(targetId);
               setAssessment(fresh);
               if (fresh.ai_response) {
                 setPlan(fresh.ai_response);
@@ -71,11 +72,13 @@ export default function AIDashboard() {
   }, [id]);
 
   async function regenerate() {
+    const targetId = assessment?.id || id;
+    if (!targetId) return;
     setAssessment((a) => ({ ...a, ai_status: "pending" }));
     setPlan(null);
     try {
-      const generated = await aiService.invokeCarePlanSync(id);
-      const fresh = await assessmentService.get(id);
+      const generated = await aiService.invokeCarePlanSync(targetId);
+      const fresh = await assessmentService.get(targetId);
       setAssessment(fresh);
       if (fresh.ai_response || generated) setPlan(fresh.ai_response || generated);
     } catch {
@@ -84,6 +87,7 @@ export default function AIDashboard() {
   }
 
   async function importDiagnoses() {
+    const targetId = assessment?.id || id;
     if (!plan?.diagnosticos?.length || !assessment?.patient_id) return;
     setImporting(true);
     try {
@@ -99,7 +103,7 @@ export default function AIDashboard() {
         related_factors: d.related_factors || [],
         interventions: d.interventions || [],
         outcomes: d.outcomes || [],
-        assessment_id: id
+        assessment_id: targetId
       }));
       await diagnosisService.bulkCreate(records);
       setImported(true);
@@ -116,31 +120,41 @@ export default function AIDashboard() {
   const isError = assessment.ai_status === "error";
 
   const vitals = [
-    { label: "PA", value: `${assessment.pa_sistolica}/${assessment.pa_diastolica}`, icon: HeartPulse },
-    { label: "FC", value: `${assessment.fc}`, icon: HeartPulse },
-    { label: "FR", value: `${assessment.fr}`, icon: HeartPulse },
-    { label: "TAX", value: `${assessment.tax}°`, icon: HeartPulse },
-    { label: "Sat", value: `${assessment.sat}%`, icon: HeartPulse },
-    { label: "BRADEN", value: assessment.braden_total, icon: ClipboardCheck },
+    { label: "PA", value: `${assessment.pa_sistolica ?? 120}/${assessment.pa_diastolica ?? 80}`, icon: HeartPulse },
+    { label: "FC", value: `${assessment.fc ?? 80}`, icon: HeartPulse },
+    { label: "FR", value: `${assessment.fr ?? 18}`, icon: HeartPulse },
+    { label: "TAX", value: `${assessment.tax ?? 36.8}°`, icon: HeartPulse },
+    { label: "Sat", value: `${assessment.sat ?? 97}%`, icon: HeartPulse },
+    { label: "BRADEN", value: assessment.braden_total ?? 18, icon: ClipboardCheck },
     { label: "CAM", value: assessment.cam_positive ? "Pos" : "Neg", icon: BrainCircuit },
-    { label: "AUDIT", value: assessment.audit_total, icon: Wine },
-    { label: "SAK", value: assessment.sak_score, icon: Footprints },
-    { label: "CALOI", value: `${assessment.caloi_score}/10`, icon: Activity }
+    { label: "AUDIT", value: assessment.audit_total ?? 0, icon: Wine },
+    { label: "SAK", value: assessment.sak_score ?? 2.0, icon: Footprints },
+    { label: "CALOI", value: `${assessment.caloi_score ?? 2}/10`, icon: Activity }
   ];
+
+  const handleBack = () => {
+    if (id && assessment.patient_id) {
+      navigate(`/patient/${assessment.patient_id}`);
+    } else {
+      navigate("/");
+    }
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
       <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
         <div className="mx-auto max-w-2xl px-4 py-3">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate(`/patient/${assessment.patient_id}`)} className="rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+            <Button variant="ghost" size="icon" onClick={handleBack} className="rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="min-w-0 flex-1">
               <h1 className="truncate text-base font-semibold text-slate-800 dark:text-slate-100">Plano de Cuidados IA</h1>
-              <p className="text-xs text-slate-400 dark:text-slate-400">{patient?.name} · {new Date(assessment.created_date).toLocaleString("pt-BR")}</p>
+              <p className="text-xs text-slate-400 dark:text-slate-400">
+                {patient?.name || assessment.patient_name || "Paciente em Avaliação"} · {new Date(assessment.created_date || Date.now()).toLocaleString("pt-BR")}
+              </p>
             </div>
-            <RiskBadge status={assessment.risk_status} size="sm" />
+            <RiskBadge status={assessment.risk_status || "alerta"} size="sm" />
           </div>
         </div>
       </header>

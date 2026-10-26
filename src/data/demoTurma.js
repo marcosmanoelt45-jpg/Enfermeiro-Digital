@@ -11,7 +11,7 @@ export const DEMO_TURMA = {
   description: "Turma de demonstração do Enfere. Explore estudos de caso clínicos atribuídos, acompanhamento de alunos matriculados e correção de planos de cuidado.",
   code: "ENF2026",
   teacher_id: "teacher-demo",
-  teacher_name: "Coordenação de Preceptoria Clínica",
+  teacher_name: "Coordenação de Ensino Clínico",
   is_demo: true,
   created_date: new Date().toISOString(),
 };
@@ -26,7 +26,7 @@ export const DEMO_MEMBERSHIP = {
 };
 
 export const DEMO_MEMBERS = [
-  { id: "mem-prof", user_id: "teacher-demo", user_name: "Coordenação de Preceptoria Clínica", user_email: "preceptoria@exemplo.edu", role: "professor", turma_id: "demo-turma-enf-2026" },
+  { id: "mem-prof", user_id: "teacher-demo", user_name: "Coordenação de Ensino Clínico", user_email: "ensino@exemplo.edu", role: "professor", turma_id: "demo-turma-enf-2026" },
   { id: "mem-1", user_id: "u-1", user_name: "M. H. S. (Estudante)", user_email: "aluno.mhs@exemplo.edu", role: "aluno", turma_id: "demo-turma-enf-2026" },
   { id: "mem-2", user_id: "u-2", user_name: "L. C. R. (Estudante)", user_email: "aluno.lcr@exemplo.edu", role: "aluno", turma_id: "demo-turma-enf-2026" },
   { id: "mem-3", user_id: "u-3", user_name: "B. A. P. (Estudante)", user_email: "aluno.bap@exemplo.edu", role: "aluno", turma_id: "demo-turma-enf-2026" },

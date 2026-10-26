@@ -33,7 +33,7 @@ export default function ColleaguesList({ colleagues = [], onUpdate }) {
             Colegas de Plantão & Turma
           </h4>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-            Conecte-se com estudantes e preceptores para estudos cooperativos.
+            Conecte-se com outros estudantes para estudos cooperativos.
           </p>
         </div>
 

@@ -78,19 +78,20 @@ export const CLINICAL_SCALES = {
   },
 
   sak: {
-    name: 'Escala de SAK (Avaliação do Risco de Quedas)',
-    purpose: 'Identificação de pacientes adultos e idosos sob risco de queda hospitalar',
+    name: 'Escala de Quedas SAK (Severo-Almeida-Kuchenbecker)',
+    purpose: 'Identificação e estratificação ponderada de pacientes adultos e idosos sob risco de queda hospitalar',
+    range: { min: 0, max: 20 },
     items: [
-      { id: 'desorientacao', label: 'Desorientação / Confusão Mental / Delirium', weight: 1 },
-      { id: 'miccao_frequente', label: 'Micção Frequente / Urgência / Incontinência', weight: 1 },
-      { id: 'limitacao_marcha', label: 'Limitação da Marcha / Paresia / Uso de Dispositivo de Apoio', weight: 1 },
-      { id: 'ausencia_acompanhante', label: 'Ausência de Acompanhante no Leito', weight: 1 },
-      { id: 'pos_operatorio', label: 'Pós-operatório Imediato ou Procedimento sob Sedação (< 24-48h)', weight: 1 },
-      { id: 'quedas_previas', label: 'Histórico de Quedas Prévias nos últimos 6 meses', weight: 1 },
-      { id: 'medicamentos_risco', label: 'Uso de Medicamentos de Alto Risco (Sedativos, Anti-hipertensivos, Diuréticos, Hipoglicemiantes)', weight: 1 }
+      { id: 'desorientacao', label: 'Desorientação / Confusão Mental / Delirium', weight: 5.0 },
+      { id: 'miccao_frequente', label: 'Micção ou Eliminação Frequente / Urgência / Incontinência', weight: 5.0 },
+      { id: 'limitacao_marcha', label: 'Limitação da Marcha / Paresia / Uso de Dispositivo de Apoio', weight: 4.0 },
+      { id: 'ausencia_acompanhante', label: 'Ausência de Cuidador / Acompanhante no Leito', weight: 0.5 },
+      { id: 'pos_operatorio', label: 'Pós-operatório Imediato ou Procedimento sob Sedação (< 72h)', weight: 0.5 },
+      { id: 'quedas_previas', label: 'Histórico de Quedas Prévias nos últimos 12 meses', weight: 1.0 },
+      { id: 'medicamentos_risco', label: 'Classes Medicamentosas de Risco Administradas < 72h (+1,0 por classe)', weight: 1.0 }
     ],
     interpretScore: (total) => {
-      if (total >= 2) {
+      if (total >= 10.5) {
         return {
           risk: 'Alto Risco de Queda',
           color: 'red',
@@ -101,6 +102,18 @@ export const CLINICAL_SCALES = {
             'Campainha de emergência ao alcance imediato das mãos',
             'Assistência da equipe de enfermagem obrigatória durante qualquer mobilização ou transferência',
             'Orientação intensiva ao paciente e acompanhante sobre não levantar desacompanhado'
+          ]
+        };
+      }
+      if (total >= 6.5) {
+        return {
+          risk: 'Risco Moderado de Queda',
+          color: 'orange',
+          interventions: [
+            'Identificação preventiva de risco no leito e prontuário',
+            'Manter grades elevadas e leito travado em posição baixa',
+            'Supervisionar deambulação e idas ao sanitário',
+            'Revisar prescrição de medicamentos sedativos ou hipotensores'
           ]
         };
       }

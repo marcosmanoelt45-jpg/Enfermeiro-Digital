@@ -57,7 +57,6 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
     { id: "casos", label: "Casos Clínicos", path: "/simulador-casos", icon: BookOpen, hasBriefing: true },
     { id: "sbar", label: "Plantão SBAR", path: "/passagem-plantao", icon: ArrowRightLeft, hasBriefing: true },
     { id: "calculos", label: "Cálculo de Doses", path: "/laboratorio-calculos", icon: Calculator, hasBriefing: true },
-    { id: "turmas", label: "Minhas Turmas", path: "/turmas", icon: Users, hasBriefing: false },
   ];
 
   function handleNavClick(link) {
@@ -114,7 +113,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
                   <button
                     key={link.id}
                     onClick={() => handleNavClick(link)}
-                    className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-bold transition-all tap-press ${
+                    className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-bold transition-all tap-press ${
                       isActive
                         ? "bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 font-bold border border-teal-200 dark:border-teal-800 shadow-2xs"
                         : "text-slate-600 dark:text-slate-300 hover:text-teal-800 dark:hover:text-teal-400 hover:bg-slate-100/70 dark:hover:bg-slate-900"
@@ -199,7 +198,10 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
               <Button
                 variant="ghost"
                 size="sm"
-                onClick={() => logout(true)}
+                onClick={() => {
+                  logout(true);
+                  navigate("/splash");
+                }}
                 className="rounded-xl text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 h-9 px-2 sm:px-2.5"
                 title="Sair da Plataforma"
               >
@@ -207,38 +209,16 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
               </Button>
             </div>
           </div>
-
-          {/* Barra de Navegação Mobile (Chips Deslizáveis) */}
-          <div className="flex lg:hidden items-center gap-1.5 overflow-x-auto py-2.5 border-t border-slate-100 dark:border-slate-800/80 no-scrollbar">
-            {navLinks.map((link) => {
-              const Icon = link.icon;
-              const isActive = activeTab === link.id;
-              return (
-                <button
-                  key={link.id}
-                  onClick={() => handleNavClick(link)}
-                  className={`flex items-center gap-1.5 whitespace-nowrap px-3 py-1.5 rounded-full text-xs font-semibold transition-all ${
-                    isActive
-                      ? "bg-teal-700 dark:bg-teal-600 text-white shadow-xs"
-                      : "text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 hover:border-teal-200 hover:text-teal-700 dark:hover:text-teal-400"
-                  }`}
-                >
-                  <Icon className="h-3.5 w-3.5" />
-                  {link.label}
-                </button>
-              );
-            })}
-          </div>
         </div>
       </header>
 
-      {/* Botão Flutuante do Goti IA (Canto Inferior Direito) */}
+      {/* Botão Flutuante do Goti IA (Canto Inferior Direito - com folga segura acima do dock móvel) */}
       <button
         onClick={() => {
           triggerHaptic(20);
           setIsGotiChatOpen(true);
         }}
-        className="fixed bottom-20 sm:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2.5 p-2 sm:px-4 sm:py-2.5 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group hide-on-short-landscape"
+        className="fixed bottom-28 sm:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2.5 p-2 sm:px-4 sm:py-2.5 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group hide-on-short-landscape"
         title="Dúvidas clínicas? Pergunte ao Goti"
       >
         <img
@@ -264,7 +244,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
         onSelectAction={handleBriefingAction}
       />
 
-      {/* Gaveta / Modal de Chat com o Preceptor IA */}
+      {/* Gaveta / Modal de Chat com o Goti */}
       <GotiChatDrawer
         isOpen={isGotiChatOpen}
         onClose={() => setIsGotiChatOpen(false)}

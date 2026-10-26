@@ -5,10 +5,89 @@ import { aiService } from './aiService';
 
 const LOCAL_STORAGE_ASSESSMENTS_KEY = 'enfermeiro_digital_assessments';
 
+function buildDefaultAssessment(customId = 'assessment-demo') {
+  const now = new Date().toISOString();
+  return {
+    id: customId || 'assessment-demo',
+    patient_id: 'patient-demo-01',
+    patient_name: 'Carlos Eduardo Mendes (Leito 04 · Clínica Médica)',
+    pa_sistolica: 138,
+    pa_diastolica: 86,
+    fc: 94,
+    fr: 21,
+    tax: 37.4,
+    sat: 93,
+    braden_total: 13,
+    braden_level: 'Risco Moderado',
+    cam_positive: false,
+    audit_total: 2,
+    sak_score: 7.5,
+    sak_level: 'Moderado',
+    caloi_score: 4,
+    risk_status: 'alerta',
+    notes: 'Paciente consciente, orientado no tempo e espaço, refere dispneia aos médios esforços e mobilidade reduzida no leito após 4º DIH. Hiperemia não branqueável em região sacral.',
+    ai_status: 'generated',
+    ai_response: {
+      ai_engine: 'Motor Clínico NANDA-I (Demonstração)',
+      prioridade: 'alta',
+      resumo: 'Paciente apresenta risco moderado para lesão por pressão (Braden 13) associado a mobilidade física prejudicada no leito, risco moderado de quedas (SAK 7,5) e padrão respiratório limítrofe (FR 21 irpm, SpO2 93% em ar ambiente). Priorizar proteção tegumentar, vigilância respiratória e prevenção de quedas.',
+      diagnosticos: [
+        {
+          code: '00312',
+          title: 'Integridade tissular prejudicada / Risco de lesão por pressão no adulto',
+          domain: 'Domínio 11 · Segurança/Proteção',
+          class: 'Classe 2 · Lesão Física',
+          defining_characteristics: ['Hiperemia em proeminência óssea sacral', 'Escore de Braden 13 (Risco Moderado)'],
+          related_factors: ['Mobilidade física diminuída no leito', 'Pressão sobre proeminência óssea'],
+          interventions: [
+            'NIC 3540 — Prevenção de Lesão por Pressão: reposicionamento a cada 2h com alívio de pressão sacral',
+            'Aplicar cobertura preventiva multicamadas de espuma de silicone em região sacral',
+            'Inspecionar pele em proeminências ósseas a cada turno e manter hidratação com ácidos graxos essenciais'
+          ],
+          outcomes: [
+            'NOC 1101 — Integridade Tissular: Pele e Mucosas mantida sem evolução para estágio 2 em 48h',
+            'Ausência de novas áreas de hiperemia não branqueável'
+          ]
+        },
+        {
+          code: '00303',
+          title: 'Risco de quedas no adulto',
+          domain: 'Domínio 11 · Segurança/Proteção',
+          class: 'Classe 2 · Lesão Física',
+          defining_characteristics: ['Escore SAK 7,5 (Risco Moderado)'],
+          related_factors: ['Limitação para deambular sem auxílio', 'Uso de dispositivos e fraqueza muscular'],
+          interventions: [
+            'NIC 6490 — Prevenção de Quedas: manter grades elevadas, leito travado em posição baixa e campainha ao alcance',
+            'Orientar paciente e acompanhante a solicitar auxílio da equipe antes de levantar do leito'
+          ],
+          outcomes: [
+            'NOC 1909 — Comportamento de Prevenção de Quedas: zero episódios de queda durante a internação'
+          ]
+        }
+      ]
+    },
+    created_at: now,
+    updated_at: now,
+    created_date: now,
+    updated_date: now,
+  };
+}
+
 function getLocalAssessments() {
   const data = localStorage.getItem(LOCAL_STORAGE_ASSESSMENTS_KEY);
   if (!data) return [];
-  try { return JSON.parse(data); } catch { return []; }
+  try {
+    const parsed = JSON.parse(data);
+    if (!Array.isArray(parsed)) return [];
+    // Filtra registros corrompidos sem id ou sem sinais vitais criados anteriormente
+    const valid = parsed.filter((a) => a && typeof a.id === 'string' && a.id !== 'undefined' && a.pa_sistolica !== undefined);
+    if (valid.length !== parsed.length) {
+      localStorage.setItem(LOCAL_STORAGE_ASSESSMENTS_KEY, JSON.stringify(valid));
+    }
+    return valid;
+  } catch {
+    return [];
+  }
 }
 
 function saveLocalAssessments(list) {
@@ -74,19 +153,22 @@ export const assessmentService = {
   },
 
   async get(id) {
+    const list = getLocalAssessments();
+
+    if (!id || id === 'undefined') {
+      if (list.length > 0) {
+        return list[0];
+      }
+      const demo = buildDefaultAssessment('assessment-demo');
+      list.push(demo);
+      saveLocalAssessments(list);
+      return demo;
+    }
+
     if (!isSupabaseConfigured()) {
-      const list = getLocalAssessments();
       const item = list.find((a) => a.id === id);
       if (item) return item;
-      const fallback = {
-        id,
-        patient_id: 'patient-fallback',
-        patient_name: 'Paciente em Avaliação',
-        ai_status: 'generated',
-        risk_status: 'alerta',
-        created_at: new Date().toISOString(),
-        created_date: new Date().toISOString(),
-      };
+      const fallback = buildDefaultAssessment(id);
       list.push(fallback);
       saveLocalAssessments(list);
       return fallback;
@@ -106,18 +188,9 @@ export const assessmentService = {
         updated_date: data.updated_at,
       };
     } catch {
-      const list = getLocalAssessments();
       const item = list.find((a) => a.id === id);
       if (item) return item;
-      const fallback = {
-        id,
-        patient_id: 'patient-fallback',
-        patient_name: 'Paciente em Avaliação',
-        ai_status: 'generated',
-        risk_status: 'alerta',
-        created_at: new Date().toISOString(),
-        created_date: new Date().toISOString(),
-      };
+      const fallback = buildDefaultAssessment(id);
       list.push(fallback);
       saveLocalAssessments(list);
       return fallback;

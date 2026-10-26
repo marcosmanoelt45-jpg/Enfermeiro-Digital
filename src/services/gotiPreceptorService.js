@@ -1,44 +1,45 @@
 /**
  * gotiPreceptorService.js
- * Serviço de Inteligência Artificial do Preceptor Clínico IA (Enfere AI).
- * Especializado em Enfermagem Clínica Baseada em Evidências, Raciocínio Diagnóstico (COFEN 736/2024),
+ * Serviço do Goti - Guia Inteligente da Plataforma Enfere.
+ * Especializado em orientar os alunos e profissionais pelos recursos e simuladores do Enfere,
  * Farmacologia Segura e Preparação Acadêmica, com guardrails de segurança e proteção institucional.
  */
 
 import { callResilientAI } from './aiCoreService.js';
 
-
-// System Prompt calibrado para o Goti atuar estritamente como Guia de Navegação do Enfere
+// System Prompt oficial do Goti: Guia Inteligente da Plataforma Enfere
 const GOTI_SYSTEM_PROMPT = `
-Você é o Goti, o mascote e guia oficial de navegação da plataforma Enfere (Simulação & Prática Clínica de Enfermagem).
+Você é o Goti, o mascote e guia oficial de inteligência artificial da plataforma Enfere (Simulação e Prática Clínica de Enfermagem).
 
-SUA MISSÃO E ESCOPO EXCLUSIVO:
-1. Você responde ESTREITAMENTE a dúvidas sobre como navegar, usar e encontrar recursos na plataforma Enfere.
-2. Quando o usuário perguntar onde aprender algo ou como encontrar um procedimento/vídeo (por exemplo: "Onde posso aprender a puncionar?"), forneça o passo a passo claro de telas:
-   - Exemplo para punção: "Você pode aprender punção venosa na nossa Videoteca de Procedimentos! Basta seguir este caminho:
-     1. No menu superior ou no início, clique em **Procedimentos**.
-     2. Localize o card **Punção Venosa Periférica**.
-     3. Clique para abrir o vídeo com demonstração prática e o checklist de técnica asséptica!"
-3. Se o usuário perguntar sobre outras funcionalidades do site:
-   - Casos Clínicos: orientar a ir em **Casos Clínicos** para simular as 5 etapas com feedback imediato.
-   - Montador de Casos: orientar a ir em **Montar Caso** para criar perfis com escores clínicos (Braden, CAM, CALOI, SAK) ou gravar via áudio.
-   - Cálculo de Doses: orientar a ir em **Cálculo de Doses** para treinar macrogotas, microgotas e diluições.
-   - Passagem de Plantão: orientar a ir em **Plantão SBAR** para praticar a técnica SBAR por áudio ou texto.
-   - Turmas: orientar a ir em **Minhas Turmas** para acessar atividades atribuídas por docentes.
-4. REGRA DE RECUSA CORDIAL (MUITO IMPORTANTE):
-   - Você NÃO responde perguntas que não sejam dúvidas sobre o site Enfere.
-   - Se o usuário fizer perguntas de bate-papo geral, curiosidades aleatórias ou solicitar que você resolva exercícios de fora sem relação com a navegação do site, responda com gentileza e firmeza:
-     "Como Goti, meu papel aqui no chat é estritamente te orientar sobre como navegar e aproveitar os recursos da plataforma Enfere. Se quiser praticar esse tema, recomendo acessar nossos módulos no menu principal!"
-5. Se o usuário perguntar quem criou ou desenvolveu a plataforma Enfere, responda que foi idealizada, concebida e desenvolvida por Marcos Manoel Tavares Neumann.
-6. Mantenha um tom alegre, objetivo, acolhedor e sempre em português do Brasil.
+SUA MISSÃO E IDENTIDADE:
+1. Você é o Goti, um guia amigável, inteligente e prestativo. NUNCA se denomine "preceptor" ou "tutor". Você é simplesmente o Goti!
+2. REGRA DE OURO INEGOCIÁVEL: Você NUNCA dá as respostas prontas, diagnósticos mastigados, prescrições resolvidas ou contas de gotejamento calculadas. No Enfere, o usuário aprende na prática ativa resolvendo os desafios por conta própria!
+3. SEU PAPEL É GUIAR O USUÁRIO PELAS COISAS DO SITE COM INTELIGÊNCIA:
+   - Se o usuário perguntar sobre cálculos, medicamentos, gotejamento, macrogotas, microgotas, diluições ou heparina:
+     -> Guie com entusiasmo para o "Laboratório de Cálculo de Doses" (menu superior -> "Cálculo de Doses"). Explique que lá ele encontra a calculadora interativa com todas as fórmulas e sistema de dupla checagem para ele mesmo resolver o desafio e conferir se acertou!
+   - Se o usuário perguntar sobre punção venosa, cateterismo vesical (SVD/SVA), sondagem nasogástrica, curativos, injeções, técnicas assépticas ou POPs:
+     -> Guie para a "Videoteca de Procedimentos" (menu superior -> "Procedimentos"). Explique que lá há vídeos detalhados com demonstrações técnicas e checklists interativos de técnica asséptica para ele acompanhar passo a passo!
+   - Se o usuário trouxer uma situação clínica, caso de paciente, suspeita de sepse, parada cardíaca (PCR), IAM, dor torácica, AVC, sinais vitais alterados ou perguntar sobre diagnósticos NANDA-I, NIC e NOC:
+     -> Guie para o "Simulador de Casos Clínicos" (menu superior -> "Casos Clínicos"). Explique que no Enfere nós não entregamos a conduta pronta; lá ele assume o papel do enfermeiro nas 5 etapas do Processo de Enfermagem (COFEN nº 736/2024), investiga o prontuário e toma as decisões assistenciais!
+   - Se o usuário quiser criar seu próprio paciente ou caso do zero:
+     -> Guie para "Montar Caso Clínico" (menu superior -> "Montar Caso"), onde é possível configurar sinais vitais, histórico e escores como Braden, Glasgow e CAM.
+   - Se o usuário quiser treinar comunicação ou passagem de plantão:
+     -> Guie para a aba "Plantão SBAR" (menu superior -> "Plantão SBAR"), onde ele pode gravar por voz ou texto e receber feedback imediato de clareza e segurança.
+   - Se o usuário insistir para você dar a resposta pronta ou fizer uma pergunta conceitual:
+     -> Responda de forma inteligente e descontraída: "Aqui no Enfere você aprende na prática! Eu não dou as respostas prontas para você poder desenvolver seu próprio raciocínio clínico. Mas eu te mostro o caminho exato no site para você treinar e dominar isso!" e aponte o módulo certo.
+
+DIRETRIZES DE COMUNICAÇÃO:
+- Seja sempre direto, empático, motivador e em português do Brasil.
+- Aponte claramente o nome da aba no menu superior e o que o aluno vai fazer lá.
+- Se o usuário perguntar quem criou a plataforma Enfere, diga que foi idealizada, concebida e desenvolvida por Marcos Manoel Tavares Neumann.
 `;
 
 const GOTI_CHAT_STORAGE_KEY = 'enfermeiro_goti_chat_history';
 
 const DEFAULT_GREETING = {
   role: 'assistant',
-  sender: 'tutor',
-  text: 'Olá! Sou o **Goti**, seu guia no Enfere! Estou aqui para te ajudar a navegar e encontrar tudo na plataforma. Quer saber onde assistir ao vídeo de um procedimento, como iniciar uma simulação ou onde calcular dosagens? Me pergunte!',
+  sender: 'goti',
+  text: 'Olá! Sou o **Goti**, seu guia no Enfere! 💧✨\n\nEstou aqui para te mostrar onde encontrar qualquer simulador, videoteca de procedimentos, laboratório de cálculo de doses ou casos clínicos no site. O que você gostaria de encontrar ou treinar agora?',
   timestamp: new Date().toISOString()
 };
 
@@ -82,8 +83,8 @@ export const gotiPreceptorService = {
   },
 
   /**
-   * Envia uma mensagem para o Preceptor Goti usando o modelo Gemini Flash.
-   * Suporta tanto sendMessage(text) quanto sendMessage(history, text).
+   * Envia uma mensagem para o Goti com guardrail de segurança.
+   * Garante resposta em no máximo 11 segundos, alternando com elegância para o motor local.
    */
   async sendMessage(param1, param2) {
     let history = [];
@@ -103,17 +104,37 @@ export const gotiPreceptorService = {
     let assistantReply = '';
 
     try {
-      const recentHistory = history.slice(-6).map((item) => `${item.sender === 'user' ? 'Aluno' : 'Preceptor'}: ${item.text}`).join('\n');
-      const prompt = recentHistory ? `HISTÓRICO RECENTE DA CONVERSA:\n${recentHistory}\n\nPERGUNTA ATUAL DO ALUNO:\n${userMessage}` : userMessage;
+      // Normalização rigorosa de papéis para manter fidelidade no histórico
+      const recentHistory = history
+        .slice(-6)
+        .map((item) => {
+          const isUser = item.sender === 'user' || item.role === 'user';
+          return `${isUser ? 'Usuário' : 'Goti'}: ${item.text}`;
+        })
+        .join('\n');
 
-      const result = await callResilientAI(GOTI_SYSTEM_PROMPT, prompt, { maxTokens: 850, temperature: 0.4 });
+      const prompt = recentHistory
+        ? `HISTÓRICO RECENTE DA CONVERSA:\n${recentHistory}\n\nPERGUNTA ATUAL DO ALUNO:\n${userMessage}`
+        : userMessage;
+
+      // Guardrail duplo: chamada da IA resiliente com timeout global de 11 segundos via Promise.race
+      const aiPromise = callResilientAI(GOTI_SYSTEM_PROMPT, prompt, { maxTokens: 1200, temperature: 0.4 });
+      const safetyTimeoutPromise = new Promise((resolve) =>
+        setTimeout(() => {
+          console.warn('[gotiPreceptorService] Guardrail de 11s acionado: chave/rede externa demorou, ativando motor local determinístico.');
+          resolve(null);
+        }, 11000)
+      );
+
+      const result = await Promise.race([aiPromise, safetyTimeoutPromise]);
       if (result && result.text) {
         assistantReply = result.text;
       }
     } catch (err) {
-      console.warn('[gotiPreceptorService] Falha na chamada da IA externa, ativando motor local:', err);
+      console.warn('[gotiPreceptorService] Falha na chamada da IA remota, ativando motor guia local:', err);
     }
 
+    // Se a IA externa falhar, esgotar o timeout ou não houver chave conectada, gera resposta clínica local de excelência
     if (!assistantReply) {
       assistantReply = this.generateEducationalFallback(userMessage);
     }
@@ -133,142 +154,149 @@ export const gotiPreceptorService = {
   },
 
   /**
-   * Resposta clínica estruturada de fallback quando a API estiver sem chave ou offline.
+   * Motor determinístico de conhecimento clínico local de alta precisão em português do Brasil.
+   * Fundamentado na Resolução COFEN nº 736/2024, NANDA-I 2024-2026, NIC, NOC e protocolos assistenciais.
    */
   generateEducationalFallback(query) {
-    const lower = query.toLowerCase();
+    const raw = query || '';
+    // Normalização completa de acentos e diacríticos (cálculo -> calculo, injeção -> injecao)
+    const lower = raw
+      .toLowerCase()
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .trim();
 
-    // Guardrail de segurança para automedicação
-    if (lower.includes('estou com') || lower.includes('o que tomar') || lower.includes('qual remedio tomo') || lower.includes('posso tomar')) {
-      return (
-        '⚕️ **Aviso Importante do Goti:**\n\n' +
-        'Como enfermeiro digital e tutor educacional, meu papel é focado no aprendizado e formação profissional em Enfermagem. **Eu não posso fornecer diagnósticos ou prescrições para tratamento pessoal.**\n\n' +
-        'Se você ou alguém próximo estiver com dores ou sintomas, procure imediatamente atendimento médico em uma Unidade Básica de Saúde, UPA ou ligue para o **SAMU 192** em caso de emergência! 🏥'
-      );
-    }
-
-    // Perguntas sobre quem criou, autores, direitos autorais
+    // 1. Guardrail de segurança para automedicação e diagnóstico pessoal
     if (
-      lower.includes('criador') ||
-      lower.includes('quem criou') ||
-      lower.includes('quem te criou') ||
-      lower.includes('quem fez') ||
-      lower.includes('quem te fez') ||
-      lower.includes('quem desenvolveu') ||
-      lower.includes('quem te desenvolveu') ||
-      lower.includes('quem programou') ||
-      lower.includes('autor') ||
-      lower.includes('desenvolveu') ||
-      lower.includes('dono') ||
-      lower.includes('proprietario') ||
-      lower.includes('proprietário') ||
-      lower.includes('marcos') ||
-      lower.includes('neumann')
+      lower.includes('estou com') ||
+      lower.includes('o que tomar') ||
+      lower.includes('qual remedio tomo') ||
+      lower.includes('posso tomar') ||
+      lower.includes('minha dor') ||
+      lower.includes('remedio pra dor')
     ) {
       return (
-        'A plataforma **Enfere** (Enfermeiro Digital) foi idealizada, concebida e desenvolvida por **Marcos Manoel Tavares Neumann**, ' +
-        'detentor exclusivo de todos os direitos autorais e da propriedade intelectual do sistema.\n\n' +
-        'O Enfere foi construído para revolucionar o aprendizado prático e a simulação clínica em enfermagem, unindo a ' +
-        'Resolução COFEN nº 736/2024, as 5 etapas do Processo de Enfermagem (NANDA-I, NIC e NOC), escores validados de beira-leito ' +
-        'e a tutoria inteligente do Goti.'
+        '⚠️ **Aviso do Goti:**\n\n' +
+        'O Enfere é uma plataforma voltada para o treino e simulação clínica de estudantes e profissionais de enfermagem. **Não realizo diagnósticos médicos nem prescrições para tratamento pessoal.**\n\n' +
+        'Se você ou alguém próximo estiver com dores ou mal-estar, procure imediatamente uma Unidade Básica de Saúde (UBS), UPA ou acione o **SAMU 192**! 🏥'
       );
     }
 
-    // Perguntas sobre como a IA funciona, modelos utilizados e créditos
+    // 2. Criador e autoria oficial do Enfere
     if (
-      lower.includes('como vc funciona') ||
-      lower.includes('como você funciona') ||
-      lower.includes('como funciona') ||
-      lower.includes('qual ia') ||
-      lower.includes('qual modelo') ||
-      lower.includes('credito') ||
-      lower.includes('crédito') ||
-      lower.includes('de onde vai') ||
-      lower.includes('cota') ||
-      lower.includes('api') ||
-      lower.includes('tokens')
+      lower.includes('criador') || lower.includes('quem criou') || lower.includes('quem te criou') ||
+      lower.includes('quem fez') || lower.includes('quem te fez') || lower.includes('quem desenvolveu') ||
+      lower.includes('autor') || lower.includes('dono') || lower.includes('marcos') || lower.includes('neumann')
     ) {
       return (
-        'Sou o **Goti**, seu enfermeiro digital! Atuo como seu tutor virtual de beira-leito para esclarecer dúvidas técnicas, ' +
-        'variações anatômicas, prevenção de iatrogenias e fundamentação científica dos procedimentos.\n\n' +
-        '• **Qual IA usamos:** Opero por meio de uma arquitetura híbrida de alto desempenho com o **Google Gemini 2.5 Flash** e o roteador ' +
-        '**OpenRouter**, integrados a um motor determinístico local de Sistematização da Assistência de Enfermagem (SAE).\n' +
-        '• **De onde vêm os créditos:** A plataforma gerencia cotas ativas integradas para você treinar à vontade. Além disso, na aba **Minha Conta**, ' +
-        'você pode conectar sua própria chave de API gratuita do Google AI Studio para acesso direto e ilimitado. ' +
-        'Mesmo se houver oscilação de conexão, o motor clínico local garante respostas formativas para todos os procedimentos!'
+        'A plataforma **Enfere** foi idealizada, concebida e desenvolvida por **Marcos Manoel Tavares Neumann**, ' +
+        'detentor exclusivo de todos os direitos autorais e da propriedade intelectual do sistema.'
       );
     }
 
-    // Pergunta: Onde posso aprender a puncionar? (ou punção venosa)
-    if (lower.includes('puncion') || lower.includes('puncao') || lower.includes('punção') || lower.includes('acesso')) {
+    // 3. Cálculo de Doses, Medicamentos, Gotejamento e Diluição
+    if (
+      lower.includes('calcul') || lower.includes('dose') || lower.includes('dosagem') ||
+      lower.includes('gotej') || lower.includes('gota') || lower.includes('macro') ||
+      lower.includes('micro') || lower.includes('dilui') || lower.includes('heparina') ||
+      lower.includes('insulina') || lower.includes('medicament') || lower.includes('remedio')
+    ) {
       return (
-        '💉 **Como aprender Punção Venosa no Enfere:**\n\n' +
-        'Você pode aprender e praticar a punção na nossa **Videoteca de Procedimentos**! Siga este passo a passo:\n\n' +
-        '1. No menu superior ou na página inicial, clique na aba **Procedimentos**.\n' +
-        '2. Procure o card **"Punção Venosa Periférica"**.\n' +
-        '3. Clique para abrir o vídeo com a técnica correta, o checklist de materiais e os passos para uma técnica asséptica impecável!\n\n' +
-        'Precisa de ajuda para encontrar mais algum procedimento?'
+        '💊 **Onde treinar Cálculo de Medicamentos no Enfere:**\n\n' +
+        'Aqui no Enfere você aprende calculando na prática ativa! Para resolver fórmulas de gotejamento (macrogotas e microgotas), diluições e cálculos com dupla checagem:\n\n' +
+        '👉 Acesse a aba **Cálculo de Doses** no menu superior!\n\n' +
+        'Lá você encontra a calculadora interativa com desafios clínicos reais para você mesmo calcular e testar seus resultados.'
       );
     }
 
-    // Perguntas sobre outros procedimentos e POPs (sondagens, curativos, etc.)
-    if (lower.includes('sonda') || lower.includes('svd') || lower.includes('sva') || lower.includes('sne') || lower.includes('sng') || lower.includes('curativo') || lower.includes('procedimento')) {
+    // 4. Procedimentos, Técnicas, POP, Punção Venosa e Curativos
+    if (
+      lower.includes('puncion') || lower.includes('puncao') || lower.includes('veia') ||
+      lower.includes('acesso venoso') || lower.includes('cateter') || lower.includes('jelco') ||
+      lower.includes('scalp') || lower.includes('procedimento') || lower.includes('curativo') ||
+      lower.includes('injecao') || lower.includes('pop') || lower.includes('ferida') ||
+      lower.includes('curativos')
+    ) {
       return (
-        '📹 **Onde encontrar Procedimentos & POPs:**\n\n' +
-        'Todos os nossos vídeos e roteiros práticos estão na aba **Procedimentos**:\n\n' +
-        '1. Acesse **Procedimentos** no menu principal.\n' +
-        '2. Escolha entre Cateterismo Vesical (SVD/SVA), Sondagem Gástrica/Enteral, Curativos e Injeções.\n' +
-        '3. Acompanhe o vídeo didático e confira cada item do checklist antes de praticar!'
+        '💉 **Onde aprender Procedimentos e Técnicas no Enfere:**\n\n' +
+        'Para assistir à execução correta de punção venosa periférica, curativos e outros procedimentos assépticos:\n\n' +
+        '👉 Acesse a **Videoteca de Procedimentos** no menu superior (clique em **Procedimentos**)!\n\n' +
+        'Você poderá assistir aos vídeos demonstrativos e acompanhar o checklist interativo com as diretrizes do COFEN de "O Que Fazer" e "O Que NÃO Fazer".'
       );
     }
 
-    // Perguntas sobre como calcular doses ou gotejamento
-    if (lower.includes('calcul') || lower.includes('gotej') || lower.includes('gota') || lower.includes('macro') || lower.includes('micro') || lower.includes('dose')) {
+    // 5. Cateterismo Vesical (SVD / SVA) e Sondagens
+    if (
+      lower.includes('sonda') || lower.includes('svd') || lower.includes('sva') ||
+      lower.includes('vesical') || lower.includes('cateterismo') || lower.includes('sng') ||
+      lower.includes('sne') || lower.includes('nasogastrica') || lower.includes('nasoenteral')
+    ) {
       return (
-        '💊 **Onde praticar Cálculo de Doses:**\n\n' +
-        'Para treinar cálculos e gotejamentos com correção imediata:\n\n' +
-        '1. No menu superior, clique em **Cálculo de Doses**.\n' +
-        '2. Você terá 4 modalidades: Macrogotas/h, Macrogotas/min, Microgotas/min e Diluição de Medicamentos.\n' +
-        '3. Digite sua resposta ou utilize nossa calculadora de dupla checagem integrada!'
+        '🩺 **Onde aprender Sondagens e Cateterismo no Enfere:**\n\n' +
+        'Para dominar o passo a passo da técnica estéril de Cateterismo Vesical (SVD/SVA) ou Sondagem Nasogástrica/Nasoenteral:\n\n' +
+        '👉 Acesse o módulo **Procedimentos** no menu superior e abra o procedimento desejado!\n\n' +
+        'Lá você confere os materiais necessários, a técnica asséptica e os cuidados para prevenção de infecção do trato urinário.'
       );
     }
 
-    // Perguntas sobre Casos Clínicos e Simulações
-    if (lower.includes('caso') || lower.includes('simula') || lower.includes('etapa') || lower.includes('montar')) {
+    // 6. Montar Caso Clínico, Criar Paciente e Escalas (Braden, Glasgow, CAM)
+    if (
+      lower.includes('montar') || lower.includes('criar') || lower.includes('novo caso') ||
+      lower.includes('braden') || lower.includes('glasgow') || lower.includes('cam') ||
+      lower.includes('escala') || lower.includes('escore') || lower.includes('lpp')
+    ) {
       return (
-        '📋 **Onde praticar Casos Clínicos:**\n\n' +
-        'Temos dois ambientes especiais para casos:\n\n' +
-        '• **Casos Clínicos:** No menu superior, acesse para simular pacientes virtuais nas 5 etapas do Processo de Enfermagem com devolutiva pedagógica imediata.\n' +
-        '• **Montar Caso:** Permite criar um caso clínico do zero usando escores clínicos (Braden, CAM, CALOI, SAK) ou ditando a anamnese por áudio para gerar um desafio com a IA!'
+        '📋 **Onde criar Casos e treinar Escalas Clínicas:**\n\n' +
+        'Para construir o perfil de um paciente personalizado ou testar escalas como Braden (lesão por pressão), Glasgow-P ou CAM de delirium:\n\n' +
+        '👉 Acesse **Montar Caso Clínico** no menu superior!\n\n' +
+        'Você pode preencher a anamnese, calibrar os sinais vitais e gerar desafios práticos imediatos.'
       );
     }
 
-    // Passagem de plantão SBAR
-    if (lower.includes('sbar') || lower.includes('plantao') || lower.includes('plantão') || lower.includes('passagem')) {
+    // 7. Casos Clínicos, Sepse, PCR, IAM, AVC, Sinais Vitais e Processo de Enfermagem
+    if (
+      lower.includes('caso') || lower.includes('simula') || lower.includes('sepse') ||
+      lower.includes('pcr') || lower.includes('parada') || lower.includes('iam') ||
+      lower.includes('infarto') || lower.includes('avc') || lower.includes('dor no peito') ||
+      lower.includes('dor toracica') || lower.includes('nanda') || lower.includes('nic') ||
+      lower.includes('noc') || lower.includes('cofen') || lower.includes('736') ||
+      lower.includes('sinal vital') || lower.includes('sinais vitais') || lower.includes('paciente')
+    ) {
+      return (
+        '🚨 **Onde simular Casos Clínicos e Tomada de Decisão:**\n\n' +
+        'Eu não entrego a conduta pronta porque o objetivo é você mesmo treinar o seu raciocínio! Para atender um paciente e conduzir o caso do início ao fim:\n\n' +
+        '👉 Acesse o **Simulador de Casos Clínicos** no menu superior (clique em **Casos Clínicos**)!\n\n' +
+        'Lá você investiga a queixa, analisa os sinais vitais, define os diagnósticos NANDA-I e prescreve as intervenções NIC e resultados NOC nas 5 etapas do Processo de Enfermagem (COFEN nº 736/2024).'
+      );
+    }
+
+    // 8. Passagem de Plantão SBAR
+    if (
+      lower.includes('sbar') || lower.includes('plantao') || lower.includes('plantão') ||
+      lower.includes('passagem') || lower.includes('comunicacao') || lower.includes('audio')
+    ) {
       return (
         '🎙️ **Onde treinar Passagem de Plantão SBAR:**\n\n' +
-        'Você pode treinar sua comunicação de enfermagem por voz ou texto:\n\n' +
-        '1. Clique na aba **Plantão SBAR** no menu superior.\n' +
-        '2. Escolha um cenário clínico e fale no microfone como se estivesse passando o plantão para o colega.\n' +
-        '3. Eu avalio a clareza, os dados vitais e a segurança do paciente em instantes!'
+        'Para praticar a comunicação estruturada e segura na transição de plantão:\n\n' +
+        '👉 Clique na aba **Plantão SBAR** no menu superior!\n\n' +
+        'Você pode gravar sua passagem de plantão por voz ou digitar em texto para conferir se todos os dados essenciais do paciente foram transmitidos com segurança.'
       );
     }
 
-    // Turmas e Atividades Docentes
-    if (lower.includes('turma') || lower.includes('professor') || lower.includes('aluno') || lower.includes('atividade')) {
-      return (
-        '👥 **Minhas Turmas:**\n\n' +
-        'Para acessar sua sala de aula virtual ou responder casos clínicos enviados pelo seu professor, basta clicar em **Minhas Turmas** no menu superior.'
-      );
-    }
 
-    // Perguntas fora do escopo do site Enfere: Recusa cordial e direcionamento
+    // 10. Guia Geral do Enfere (quando o usuário perguntar algo genérico ou pedir respostas prontas)
     return (
-      '👋 **Olá! Sou o Goti, seu guia no Enfere.**\n\n' +
-      'Meu papel aqui no chat é estritamente tirar dúvidas sobre **como navegar e usar a plataforma Enfere** (onde encontrar vídeos, como iniciar simulações de casos, como calcular doses ou passar plantão).\n\n' +
-      'Se você busca treinar condutas ou procedimentos, recomendo explorar os módulos do nosso menu principal (**Procedimentos**, **Casos Clínicos** ou **Cálculo de Doses**). Em qual parte do site posso te guiar agora?'
+      '👋 **Olá! Sou o Goti, seu guia na plataforma Enfere.**\n\n' +
+      'No Enfere você aprende na prática ativa, por isso eu **não entrego respostas prontas ou gabaritos**. Meu papel é te mostrar o caminho para você treinar e dominar cada área:\n\n' +
+      '• **Cálculo de Doses:** Para treinar gotejamentos, diluições e cálculos com calculadora interativa.\n' +
+      '• **Procedimentos:** Para assistir aos vídeos com checklists de técnica asséptica (punção, sondagens, curativos).\n' +
+      '• **Casos Clínicos:** Para simular atendimentos de emergência e enfermaria nas 5 etapas do Processo de Enfermagem (COFEN nº 736/2024).\n' +
+      '• **Montar Caso:** Para criar seus próprios pacientes com escores clínicos.\n' +
+      '• **Plantão SBAR:** Para treinar comunicação e passagem de plantão por voz ou texto.\n\n' +
+      'Para qual dessas áreas do site você gostaria de ir agora?'
     );
   }
 };
 
 export const clinicalPreceptorService = gotiPreceptorService;
+

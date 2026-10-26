@@ -6,10 +6,10 @@ import {
   ShieldCheck,
   LogOut,
   FolderPlus,
-  Stethoscope,
   ChevronRight,
   Sliders,
-  Video
+  Video,
+  Stethoscope
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
 
@@ -36,27 +36,18 @@ export default function MobilePocketDrawer({
       path: '/procedimentos',
       tag: 'Skills Lab'
     },
-
-    {
-      id: 'turmas',
-      title: 'Minhas Turmas',
-      subtitle: 'Acompanhamento acadêmico e tarefas docentes',
-      icon: Users,
-      path: '/turmas',
-      tag: 'Acadêmico'
-    },
     {
       id: 'studio',
       title: 'Montador de Casos Clínicos',
-      subtitle: 'Escores Braden, CAM, CALOI e áudios de preceptores',
+      subtitle: 'Escores Braden, CAM, CALOI e áudios clínicos',
       icon: FolderPlus,
       path: '/montar-caso',
-      tag: 'Docência'
+      tag: 'Estúdio Clínico'
     },
     {
       id: 'ai-dashboard',
-      title: 'Analytics & Preceptor IA',
-      subtitle: 'Métricas de proficiência clínica e tutoria com IA',
+      title: 'Analytics & Goti IA',
+      subtitle: 'Métricas de proficiência clínica e evolução no Enfere',
       icon: Sparkles,
       path: '/ai-dashboard',
       tag: 'Desempenho'
@@ -81,11 +72,11 @@ export default function MobilePocketDrawer({
               </div>
               <div className="flex-1 min-w-0">
                 <Drawer.Title className="text-base font-bold text-slate-800 dark:text-slate-100 truncate">
-                  {currentUser?.full_name || currentUser?.name || (currentUser?.user_type === 'professor' ? 'Professor Docente' : 'Aluno de Enfermagem')}
+                  {currentUser?.full_name || currentUser?.name || 'Estudante de Enfermagem'}
                 </Drawer.Title>
                 <Drawer.Description className="text-xs text-slate-400 dark:text-slate-400 truncate flex items-center gap-1.5 mt-0.5">
                   <span className="font-semibold text-emerald-700 dark:text-emerald-400">
-                    {currentUser?.user_type === 'professor' ? 'Docente / Professor' : 'Estudante / Aluno'}
+                    Estudante de Enfermagem
                   </span>
                   <span>·</span>
                   <span>{currentUser?.email || 'Ambiente Educacional'}</span>

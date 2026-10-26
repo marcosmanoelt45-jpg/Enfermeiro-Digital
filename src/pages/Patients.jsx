@@ -88,9 +88,6 @@ export default function Patients() {
                 <Button onClick={() => navigate("/conta")} variant="outline" size="sm" className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
                   <UserCircle className="h-4 w-4" /> Conta
                 </Button>
-                <Button onClick={() => navigate("/turmas")} variant="outline" size="sm" className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
-                  <Users className="h-4 w-4" /> Turmas
-                </Button>
                 <Button onClick={() => logout(true)} variant="outline" size="sm" className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
                   <LogOut className="h-4 w-4" /> Sair
                 </Button>

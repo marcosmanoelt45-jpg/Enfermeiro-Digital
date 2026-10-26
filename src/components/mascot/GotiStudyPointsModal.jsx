@@ -61,13 +61,13 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
       icon: Lightbulb,
       title: "Passagem de Plantão SBAR",
       reward: "+35 PE",
-      desc: "Treinar a comunicação segura SBAR por texto ou áudio com debriefing do Preceptor IA."
+      desc: "Treinar a comunicação segura SBAR por texto ou áudio com debriefing do Goti IA."
     },
     {
       icon: Shield,
-      title: "Avaliação Semiológica Céfalo-Caudal",
+      title: "Procedimentos e Técnicas Práticas",
       reward: "+30 PE",
-      desc: "Investigar e registrar todos os achados clínicos e sinais de alarme nos sistemas orgânicos."
+      desc: "Completar checklists assépticos e treinar procedimentos operacionais padrão (POPs)."
     },
     {
       icon: Flame,

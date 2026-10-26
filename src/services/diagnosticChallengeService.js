@@ -110,7 +110,7 @@ export async function generateCaseDiagnosticChallenge(profile, assessmentData) {
   const scoresSummary = `Braden: ${bradenTotal} | CAM (Delirium): ${camPositive ? "Positivo" : "Negativo"} | Dor (CALOI): ${caloiTotal}/10 | Risco Quedas (SAK): ${sakTotal}`;
 
   try {
-    const systemPrompt = `Você é um Preceptor e Docente Sênior de Enfermagem em Terapia Intensiva e Clínica Médica, especialista em julgamento clínico avançado e na Resolução COFEN nº 736/2024.
+    const systemPrompt = `Você é um Especialista e Docente Sênior de Enfermagem em Terapia Intensiva e Clínica Médica, especialista em julgamento clínico avançado e na Resolução COFEN nº 736/2024.
 Sua missão: Criar uma BATERIA DE 4 QUESTÕES CLÍNICAS DE ALTA COMPLEXIDADE baseadas na vivência real do plantão hospitalar, com distratores de alta verossimilhança e raciocínio fisiopatológico profundo.
 NÃO faça perguntas puramente teóricas ou óbvias. Crie dilemas reais de conduta que enfermeiros enfrentam à beira-leito.
 NUNCA insira a palavra 'pegadinha' ou qualquer aviso/spoiler no texto das alternativas ou enunciados.

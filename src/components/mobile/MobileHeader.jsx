@@ -101,14 +101,14 @@ export default function MobileHeader({
           </div>
         </div>
 
-        {/* Botão de Preceptor IA e Ajustes (Engrenagem) com Acabamento 3D */}
+        {/* Botão do Goti IA e Ajustes (Engrenagem) com Acabamento 3D */}
         <div className="flex items-center gap-2">
           <button
             type="button"
             onClick={onOpenAIChat}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-teal-50 dark:bg-teal-950/80 border-2 border-teal-200 dark:border-teal-800 border-b-4 border-b-teal-300 dark:border-b-teal-900 text-teal-900 dark:text-teal-200 hover:bg-teal-100 text-xs font-black transition-all active:translate-y-1 active:border-b-2 shadow-2xs select-none cursor-pointer"
-            aria-label="Abrir Chat com Preceptor Goti"
-            title="Dúvidas clínicas? Conversar com o Goti"
+            aria-label="Abrir Chat com o Goti"
+            title="Dúvidas sobre o site? Conversar com o Goti"
           >
             <div className="relative flex items-center justify-center">
               <img src="/goti/goti-icone.jpg" alt="Goti" className="w-6 h-6 rounded-xl object-cover ring-1 ring-teal-400/50 shadow-2xs" />

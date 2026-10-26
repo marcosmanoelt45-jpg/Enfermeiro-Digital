@@ -172,7 +172,7 @@ export default function CaseStudySimulator() {
     }
   }
 
-  // Estados de Tutoria e Feedback Clínico
+  // Estados de Avaliação do Goti e Feedback Clínico
   const [tutorEvaluation, setTutorEvaluation] = useState(null);
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [currentHint, setCurrentHint] = useState(null);
@@ -488,7 +488,7 @@ export default function CaseStudySimulator() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100">
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 pb-28 md:pb-0">
       <StudentHeader activeTab="casos" />
 
       <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-6 space-y-6">

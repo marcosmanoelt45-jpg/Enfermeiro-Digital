@@ -1,4 +1,4 @@
-/** @type {import('tailwindcss').Config} */
+﻿/** @type {import('tailwindcss').Config} */
 module.exports = {
   darkMode: ["class"],
   content: [
@@ -17,7 +17,50 @@ module.exports = {
       },
     },
     extend: {
+      fontFamily: {
+        sans: ["Nunito", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+      },
       colors: {
+        // Mapeamento nativo da paleta "Enfere Vivo" nas escalas do Design System
+        slate: {
+          50: "#F4F8F9",   // Fundo Claro Enfere Vivo
+          100: "#EAF1F5",
+          200: "#DCE5EC",  // Linha Clara Enfere Vivo
+          300: "#C4D1DC",  // Base 3D Clara Enfere Vivo
+          400: "#9FB3C6",  // Texto Secundário Escuro Enfere Vivo
+          500: "#52667A",  // Texto Secundário Claro Enfere Vivo
+          600: "#435668",
+          700: "#27394B",  // Linha Escura Enfere Vivo
+          800: "#27394B",  // Linha Escura Enfere Vivo
+          900: "#16222E",  // Superfície Escura Enfere Vivo
+          950: "#0E1720",  // Fundo Escuro Enfere Vivo
+        },
+        teal: {
+          50: "#E8FBF8",
+          100: "#C5F6EF",
+          200: "#8EECE0",
+          300: "#54DFCF",
+          400: "#2AD3C1",  // Aqua Escuro Enfere Vivo
+          500: "#1FC7B6",  // Aqua Claro Enfere Vivo
+          600: "#17A99A",  // Base Aqua Escuro Enfere Vivo
+          700: "#12A596",  // Base Aqua Claro Enfere Vivo
+          800: "#0D7A6F",
+          900: "#06302E",  // Rótulo sobre Aqua Enfere Vivo
+          950: "#042220",
+        },
+        emerald: {
+          50: "#E8FBF8",
+          100: "#C5F6EF",
+          200: "#8EECE0",
+          300: "#3DD68C",  // Verde Escuro Enfere Vivo
+          400: "#2AD3C1",  // Aqua Escuro Enfere Vivo
+          500: "#1FC7B6",  // Aqua Claro Enfere Vivo
+          600: "#1F9D63",  // Verde Claro Enfere Vivo
+          700: "#12A596",  // Base Aqua Claro Enfere Vivo
+          800: "#0D7A6F",
+          900: "#06302E",
+          950: "#042220",
+        },
         border: "hsl(var(--border))",
         input: "hsl(var(--input))",
         ring: "hsl(var(--ring))",
@@ -75,3 +118,4 @@ module.exports = {
   },
   plugins: [require("tailwindcss-animate")],
 }
+

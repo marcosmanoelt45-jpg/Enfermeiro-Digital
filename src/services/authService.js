@@ -1,4 +1,4 @@
-import { supabase, isSupabaseConfigured, markSupabaseOffline } from './supabaseClient';
+import { supabase, supabaseUrl, supabaseAnonKey, isSupabaseConfigured, markSupabaseOffline } from './supabaseClient.js';
 
 const LOCAL_STORAGE_USER_KEY = 'enfermeiro_digital_local_user';
 
@@ -65,38 +65,53 @@ export const authService = {
 
   async getCurrentUser() {
     try {
+      // 1. Se o Supabase estiver configurado, a sessão oficial autenticada tem prioridade máxima
+      if (isSupabaseConfigured()) {
+        const { data: { session } } = await supabase.auth.getSession();
+        if (session?.user) {
+          const user = session.user;
+          const profile = await this.getProfile(user.id);
+          const pendingRole = typeof localStorage !== 'undefined' ? localStorage.getItem('pending_oauth_role') : null;
+          if (pendingRole && (!profile || !profile.role)) {
+            localStorage.removeItem('pending_oauth_role');
+            try {
+              await this.updateProfile(user.id, { role: pendingRole });
+            } catch {}
+          }
+
+          const finalRole = profile?.role || user.user_metadata?.user_type || pendingRole || 'aluno';
+          // Limpa qualquer resíduo obsoleto de mock do localStorage
+          if (typeof localStorage !== 'undefined') {
+            const currentStored = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
+            if (currentStored && (currentStored.includes('hospital.digital') || currentStored.includes('user-'))) {
+              localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+            }
+          }
+
+          return {
+            ...user,
+            ...profile,
+            user_type: finalRole,
+            role: finalRole,
+            name: profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0],
+            coren: profile?.coren || user.user_metadata?.coren || '',
+            org_id: profile?.org_id || null,
+          };
+        }
+      }
+
+      // 2. Fallback de sessão local (removendo qualquer resíduo de mock de google demo)
       const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LOCAL_STORAGE_USER_KEY) : null;
       if (stored) {
-        return JSON.parse(stored);
+        const parsed = JSON.parse(stored);
+        if (parsed?.email?.includes('google@hospital.digital')) {
+          localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+          return null;
+        }
+        return parsed;
       }
 
-      if (!isSupabaseConfigured()) {
-        return null;
-      }
-      const { data: { user }, error } = await supabase.auth.getUser();
-      if (error || !user) {
-        return null;
-      }
-
-      const profile = await this.getProfile(user.id);
-      const pendingRole = typeof localStorage !== 'undefined' ? localStorage.getItem('pending_oauth_role') : null;
-      if (pendingRole && (!profile || !profile.role)) {
-        localStorage.removeItem('pending_oauth_role');
-        try {
-          await this.updateProfile(user.id, { role: pendingRole });
-        } catch {}
-      }
-
-      const finalRole = profile?.role || user.user_metadata?.user_type || pendingRole || 'aluno';
-      return {
-        ...user,
-        ...profile,
-        user_type: finalRole,
-        role: finalRole,
-        name: profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0],
-        coren: profile?.coren || user.user_metadata?.coren || '',
-        org_id: profile?.org_id || null,
-      };
+      return null;
     } catch {
       const stored = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
       return stored ? JSON.parse(stored) : null;
@@ -155,88 +170,141 @@ export const authService = {
   },
 
   async login(email, password, { user_type = 'aluno' } = {}) {
-    if (!isSupabaseConfigured() || email.includes('hospital.digital') || email.includes('enfere.edu.br')) {
-      const mockUser = createLocalFallbackUser(email, { user_type });
-      return { user: mockUser };
+    if (!email || !password) {
+      throw new Error('Informe o e-mail e a senha para acessar.');
+    }
+
+    if (!isSupabaseConfigured()) {
+      throw new Error('Serviço de autenticação não configurado no servidor.');
+    }
+
+    // 1. Limpa resíduos legados do localStorage antes de autenticar
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
     }
 
     try {
+      // 2. Validação estrita no Supabase Auth (criptografia de senha Bcrypt/Argon2)
       const { data, error } = await supabase.auth.signInWithPassword({
-        email,
+        email: email.trim().toLowerCase(),
         password,
       });
+
       if (error) throw error;
-      if (data.user && user_type) {
+
+      if (!data?.user) {
+        throw new Error('Não foi possível autenticar o usuário. Tente novamente.');
+      }
+
+      // 3. Atualiza perfil caso necessário
+      if (user_type) {
         try {
           await this.updateProfile(data.user.id, { role: user_type });
         } catch {}
       }
+
       return data;
     } catch (err) {
-      if (isNetworkOrDnsError(err)) {
-        console.warn('Conexão remota pendente de DNS/rede. Ativando sessão local resiliente.');
-        const mockUser = createLocalFallbackUser(email, { user_type });
-        return { user: mockUser };
+      const msg = (err?.message || '').toLowerCase();
+      if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
+        throw new Error('E-mail ou senha incorretos. Verifique suas credenciais ou crie uma conta caso ainda não possua cadastro.');
       }
-      throw err;
+      if (msg.includes('email not confirmed')) {
+        throw new Error('E-mail ainda não confirmado. Verifique sua caixa de entrada ou desative a confirmação de e-mail no painel do Supabase para acesso imediato.');
+      }
+      if (msg.includes('too many requests') || msg.includes('rate limit')) {
+        throw new Error('Muitas tentativas consecutivas de login. Aguarde alguns instantes antes de tentar novamente.');
+      }
+      // Rejeição sem fallback falso!
+      throw new Error(err.message || 'Falha ao autenticar. Verifique suas credenciais.');
     }
   },
 
+  async loginDemo() {
+    const demoUser = {
+      id: 'aluno-demo-session',
+      email: 'estudante@enfere.digital',
+      full_name: 'Estudante de Enfermagem',
+      name: 'Estudante de Enfermagem',
+      role: 'aluno',
+      user_type: 'aluno',
+      coren: 'ESTUDANTE-GRADUAÇÃO',
+      org_id: 'enfere-academico',
+      is_demo: true,
+    };
+    if (typeof localStorage !== 'undefined') {
+      localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(demoUser));
+    }
+    return { user: demoUser };
+  },
+
   async register(email, password, { full_name, user_type = 'aluno', coren = '' } = {}) {
+    if (!email || !password) {
+      throw new Error('Informe o e-mail e a senha para realizar o cadastro.');
+    }
+    if (password.length < 6) {
+      throw new Error('A senha deve ter no mínimo 6 caracteres.');
+    }
+
     if (!isSupabaseConfigured()) {
-      const mockUser = createLocalFallbackUser(email, { full_name, user_type, coren });
-      return { user: mockUser };
+      throw new Error('Serviço de autenticação não configurado no servidor.');
+    }
+
+    // Limpa resíduos legados
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
     }
 
     try {
       const { data, error } = await supabase.auth.signUp({
-        email,
+        email: email.trim().toLowerCase(),
         password,
         options: {
           data: {
-            full_name,
+            full_name: full_name?.trim() || '',
             user_type,
-            coren,
+            coren: coren?.trim() || '',
           },
         },
       });
+
       if (error) throw error;
 
-      if (data.user) {
-        createLocalFallbackUser(email, {
+      if (!data?.user) {
+        throw new Error('Falha ao criar usuário no Supabase.');
+      }
+
+      // Tenta criar o perfil público no PostgreSQL
+      try {
+        await supabase.from('profiles').insert({
           id: data.user.id,
-          full_name,
-          user_type,
-          coren,
+          full_name: full_name?.trim() || email.split('@')[0],
+          role: user_type,
+          coren: coren?.trim() || '',
         });
-        try {
-          await supabase.from('profiles').insert({
-            id: data.user.id,
-            full_name: full_name || email.split('@')[0],
-            role: user_type,
-            coren,
-          });
-        } catch (profileErr) {
-          console.warn('Perfil inicial gerenciado por trigger:', profileErr);
-        }
+      } catch (profileErr) {
+        console.warn('Perfil gerenciado ou pendente de trigger:', profileErr);
       }
 
       return data;
     } catch (err) {
-      if (isNetworkOrDnsError(err)) {
-        console.warn('Conexão remota pendente de DNS/rede. Ativando cadastro local resiliente.');
-        const mockUser = createLocalFallbackUser(email, { full_name, user_type, coren });
-        return { user: mockUser };
+      const msg = (err?.message || '').toLowerCase();
+      if (msg.includes('already registered') || msg.includes('user already exists') || msg.includes('já cadastrado')) {
+        throw new Error('Este e-mail já possui cadastro. Faça login com suas credenciais ou use a recuperação de senha.');
       }
-      throw err;
+      if (msg.includes('rate limit')) {
+        throw new Error('Limite de envio de e-mails do Supabase atingido. Acesse o painel do Supabase em Authentication > Providers > Email e desmarque "Confirm email" para cadastros instantâneos.');
+      }
+      throw new Error(err.message || 'Falha no cadastro. Verifique os dados informados.');
     }
   },
 
   async logout() {
+    const hadLocalUser = Boolean(typeof localStorage !== 'undefined' && localStorage.getItem(LOCAL_STORAGE_USER_KEY));
     localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
     localStorage.removeItem('pending_oauth_role');
     try {
-      if (isSupabaseConfigured()) {
+      if (!hadLocalUser && isSupabaseConfigured()) {
         await supabase.auth.signOut();
       }
     } catch {
@@ -270,67 +338,107 @@ export const authService = {
     }
   },
 
+  async isProviderEnabled(provider = 'google') {
+    try {
+      if (!isSupabaseConfigured() || !supabaseUrl || !supabaseAnonKey) {
+        return false;
+      }
+      const res = await fetch(`${supabaseUrl}/auth/v1/settings`, {
+        method: 'GET',
+        headers: {
+          apikey: supabaseAnonKey,
+        },
+      });
+      if (!res.ok) return false;
+      const data = await res.json();
+      return Boolean(data?.external?.[provider]);
+    } catch (err) {
+      console.warn(`[authService] Erro ao verificar status do provedor ${provider}:`, err);
+      return false;
+    }
+  },
+
   async loginWithProvider(provider = 'google', redirectTo, { user_type = 'aluno' } = {}) {
-    const targetUrl = redirectTo || window.location.origin;
     if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
       localStorage.setItem('pending_oauth_role', user_type);
     }
 
-    const demoName = user_type === 'professor' ? 'Professor Google Demo' : 'Aluno Google Demo';
-    const demoEmail = user_type === 'professor' ? 'professor.google@hospital.digital' : 'aluno.google@hospital.digital';
-    const demoCoren = user_type === 'professor' ? 'COREN-SP 999999-DOCENTE' : '';
+    const targetUrl = redirectTo || (typeof window !== 'undefined' ? `${window.location.origin}/` : '/');
 
     if (!isSupabaseConfigured()) {
-      const mockUser = createLocalFallbackUser(demoEmail, {
-        full_name: demoName,
-        user_type,
-        coren: demoCoren,
-      });
-      window.location.href = targetUrl;
-      return { user: mockUser };
+      throw new Error('Supabase não está configurado.');
     }
 
-    try {
-      const { data, error } = await supabase.auth.signInWithOAuth({
-        provider,
-        options: {
-          redirectTo: targetUrl,
-          skipBrowserRedirect: true,
-          queryParams: {
-            user_type,
-          },
+    // 1. Verificação oficial e segura no Supabase antes de qualquer redirecionamento
+    const isEnabled = await this.isProviderEnabled(provider);
+    if (!isEnabled) {
+      const err = new Error(
+        `O provedor de login com ${provider === 'google' ? 'Google' : provider} precisa ser ativado no painel do Supabase com as credenciais do Google Cloud.`
+      );
+      err.code = 'PROVIDER_DISABLED';
+      err.provider = provider;
+      // ABORTA o processo aqui: NUNCA arremessa o usuário para fora do site
+      throw err;
+    }
+
+    // 2. Se e somente se o provedor estiver ativo no painel, inicia o fluxo OAuth
+    const { data, error } = await supabase.auth.signInWithOAuth({
+      provider,
+      options: {
+        redirectTo: targetUrl,
+        queryParams: {
+          prompt: 'select_account',
+          access_type: 'offline',
         },
-      });
+      },
+    });
 
-      if (error) throw error;
-
-      if (data?.url) {
-        // Prova conexão de rede antes de navegar
-        try {
-          await fetch(data.url, { mode: 'no-cors' });
-          window.location.href = data.url;
-          return data;
-        } catch {
-          console.warn('Endpoint OAuth do Supabase inacessível (DNS/rede). Ativando login Google de demonstração.');
-          const mockUser = createLocalFallbackUser(demoEmail, {
-            full_name: demoName,
-            user_type,
-            coren: demoCoren,
-          });
-          window.location.href = targetUrl;
-          return { user: mockUser };
-        }
+    if (error) {
+      if (error.message?.toLowerCase().includes('not enabled') || error.message?.toLowerCase().includes('unsupported provider')) {
+        const err = new Error('O provedor de login com Google precisa ser ativado no painel do Supabase com as credenciais do Google Cloud.');
+        err.code = 'PROVIDER_DISABLED';
+        throw err;
       }
-    } catch (err) {
-      console.warn('Falha na autenticação OAuth do Supabase. Ativando login local resiliente:', err);
-      const mockUser = createLocalFallbackUser(demoEmail, {
-        full_name: demoName,
-        user_type,
-        coren: demoCoren,
-      });
-      window.location.href = targetUrl;
-      return { user: mockUser };
+      throw error;
     }
+
+    // Navega para o Google somente se a URL foi gerada com o provedor devidamente ativo
+    if (data?.url && typeof window !== 'undefined') {
+      window.location.href = data.url;
+    }
+
+    return data;
+  },
+
+  async loginWithGoogleIdToken(idToken, { user_type = 'aluno' } = {}) {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+      localStorage.setItem('pending_oauth_role', user_type);
+    }
+    const { data, error } = await supabase.auth.signInWithIdToken({
+      provider: 'google',
+      token: idToken,
+    });
+    if (error) throw error;
+    return data;
+  },
+
+  async loginWithMagicLink(email, { user_type = 'aluno', redirectTo } = {}) {
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+      localStorage.setItem('pending_oauth_role', user_type);
+    }
+    const targetUrl = redirectTo || (typeof window !== 'undefined' ? `${window.location.origin}/` : '/');
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        emailRedirectTo: targetUrl,
+        data: { user_type },
+      },
+    });
+    if (error) throw error;
+    return data;
   },
 
   onAuthStateChange(callback) {

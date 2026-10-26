@@ -9,23 +9,23 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.ico', 'apple-touch-icon.png'],
+      includeAssets: ['favicon.svg'],
       workbox: {
-        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5 MiB para suportar os módulos clínicos interativos
+        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
       },
       manifest: {
         name: 'Enfere · Simulação & Raciocínio Clínico de Enfermagem',
         short_name: 'Enfere',
         description: 'Plataforma de raciocínio clínico, Processo de Enfermagem COFEN nº 736/2024, simulações realísticas e videoteca de habilidades de enfermagem.',
-        theme_color: '#0284c7',
+        theme_color: '#0d9488',
         background_color: '#0b1329',
         display: 'standalone',
         orientation: 'portrait',
         icons: [
           {
-            src: '/favicon.ico',
-            sizes: '64x64 32x32 24x24 16x16',
-            type: 'image/x-icon'
+            src: '/favicon.svg',
+            sizes: 'any',
+            type: 'image/svg+xml'
           }
         ]
       }
@@ -35,6 +35,23 @@ export default defineConfig({
     alias: {
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
+  },
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          if (!id.includes('node_modules')) return;
+          if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
+          if (id.includes('framer-motion')) return 'vendor-motion';
+          if (id.includes('@radix-ui') || id.includes('vaul') || id.includes('cmdk')) return 'vendor-ui';
+          if (id.includes('lucide-react')) return 'vendor-icons';
+          if (id.includes('jspdf')) return 'vendor-pdf';
+          if (id.includes('@supabase')) return 'vendor-supabase';
+          if (id.includes('react-router') || id.includes('@tanstack/react-query')) return 'vendor-router-query';
+          if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('scheduler')) return 'vendor-react';
+        }
+      }
+    }
   },
   server: {
     port: 5174,

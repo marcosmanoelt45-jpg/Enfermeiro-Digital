@@ -269,7 +269,7 @@ export default function ClinicalGapRadar({
             ) : (
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 space-y-2">
                 <p>
-                  Parâmetro: <strong>{activeGap?.label}</strong>. {activeGap?.hint || "Confirme a realização da técnica de semiologia e o registro no prontuário."}
+                  Parâmetro: <strong>{activeGap?.label}</strong>. {activeGap?.hint || "Confirme a realização do exame físico e o registro no prontuário."}
                 </p>
               </div>
             )}

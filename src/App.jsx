@@ -1,7 +1,8 @@
-import { Toaster } from "@/components/ui/toaster"
-import { QueryClientProvider } from '@tanstack/react-query'
-import { queryClientInstance } from '@/lib/query-client'
-import { BrowserRouter as Router, Route, Routes, Navigate } from 'react-router-dom';
+import React, { Suspense, lazy } from 'react';
+import { Toaster } from "@/components/ui/toaster";
+import { QueryClientProvider } from '@tanstack/react-query';
+import { queryClientInstance } from '@/lib/query-client';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { ThemeProvider } from '@/lib/ThemeContext';
@@ -9,103 +10,177 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import EnfereSplash from '@/components/EnfereSplash';
 
-// Páginas Principais da Plataforma do Estudante de Enfermagem
-import StudentDashboard from '@/pages/StudentDashboard';
-import CaseStudySimulator from '@/pages/CaseStudySimulator';
-import CaseStudio from '@/pages/CaseStudio';
-import MedicationDosageLab from '@/pages/MedicationDosageLab';
-import PrivacyPolicyLGPD from '@/pages/PrivacyPolicyLGPD';
-import CaseLibrary from '@/pages/CaseLibrary';
-import References from '@/pages/References';
-import Turmas from '@/pages/Turmas';
-import TurmaDetail from '@/pages/TurmaDetail';
-import AssignmentAnswer from '@/pages/AssignmentAnswer';
-import CaseBuilder from '@/pages/CaseBuilder';
-import AudioAssessment from '@/pages/AudioAssessment';
-import ExpressAssessment from '@/pages/ExpressAssessment';
-import AIDashboard from '@/pages/AIDashboard';
-import Patients from '@/pages/Patients';
-import PatientDetail from '@/pages/PatientDetail';
-import Conta from '@/pages/Conta';
-import Login from '@/pages/Login';
-import Register from '@/pages/Register';
-import ForgotPassword from '@/pages/ForgotPassword';
-import ResetPassword from '@/pages/ResetPassword';
-import SbarHandoffLab from '@/pages/SbarHandoffLab';
-import ProcedimentosLab from '@/pages/ProcedimentosLab';
+// Páginas Principais Carregadas sob Demanda (Code-Splitting)
+const StudentDashboard = lazy(() => import('@/pages/StudentDashboard'));
+const CaseStudySimulator = lazy(() => import('@/pages/CaseStudySimulator'));
+const CaseStudio = lazy(() => import('@/pages/CaseStudio'));
+const MedicationDosageLab = lazy(() => import('@/pages/MedicationDosageLab'));
+const PrivacyPolicyLGPD = lazy(() => import('@/pages/PrivacyPolicyLGPD'));
+const CaseLibrary = lazy(() => import('@/pages/CaseLibrary'));
+const References = lazy(() => import('@/pages/References'));
+const AudioAssessment = lazy(() => import('@/pages/AudioAssessment'));
+const ExpressAssessment = lazy(() => import('@/pages/ExpressAssessment'));
+const AIDashboard = lazy(() => import('@/pages/AIDashboard'));
+const Patients = lazy(() => import('@/pages/Patients'));
+const PatientDetail = lazy(() => import('@/pages/PatientDetail'));
+const Conta = lazy(() => import('@/pages/Conta'));
+const Login = lazy(() => import('@/pages/Login'));
+const Register = lazy(() => import('@/pages/Register'));
+const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
+const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
+const SbarHandoffLab = lazy(() => import('@/pages/SbarHandoffLab'));
+const ProcedimentosLab = lazy(() => import('@/pages/ProcedimentosLab'));
+const Videochamada = lazy(() => import('@/pages/Videochamada'));
+
+const PageLoader = () => (
+  <div className="fixed inset-0 flex items-center justify-center bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xs z-50">
+    <div className="w-8 h-8 border-4 border-teal-200 dark:border-teal-900 border-t-teal-600 dark:border-t-teal-400 rounded-full animate-spin"></div>
+  </div>
+);
+
+const SplashPage = () => {
+  const navigate = useNavigate();
+  const { user, isAuthenticated } = useAuth();
+  const query = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
+  const isDemoAuth = query ? (query.get("demo") === "auth" || query.get("auth") === "1") : false;
+  const demoUserName = query ? (query.get("user") || "Marcos") : "Marcos";
+
+  const effectiveAuth = isAuthenticated || isDemoAuth;
+  const effectiveName = user?.user_metadata?.full_name || user?.full_name || user?.email || (isDemoAuth ? demoUserName : "");
+
+  return (
+    <EnfereSplash
+      isAuthenticated={effectiveAuth}
+      userName={effectiveName}
+      onGetStarted={() => {
+        if (effectiveAuth) {
+          navigate("/");
+        } else {
+          navigate("/register");
+        }
+      }}
+      onHaveAccount={() => navigate("/login")}
+    />
+  );
+};
 
 const AuthenticatedApp = () => {
-  const { isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const navigate = useNavigate();
+  const [showInitialSplash, setShowInitialSplash] = React.useState(() => {
+    if (typeof window === "undefined") return false;
+    const path = window.location.pathname;
+    const search = new URLSearchParams(window.location.search);
+    if (search.get("nosplash") === "1" || sessionStorage.getItem("enfere_splash_passed")) {
+      return false;
+    }
+    // Se o usuário estiver acessando rotas de login ou registro, não sobrepõe a animação de splash
+    if (
+      path.startsWith("/login") ||
+      path.startsWith("/register") ||
+      path.startsWith("/forgot-password") ||
+      path.startsWith("/reset-password") ||
+      path.startsWith("/splash")
+    ) {
+      return false;
+    }
+    // Ao iniciar o site na raiz ou outras rotas, exibe a abertura
+    return true;
+  });
 
-  // Show loading spinner while checking app public settings or auth
-  if (isLoadingPublicSettings || isLoadingAuth) {
+  if (showInitialSplash) {
     return (
-      <div className="fixed inset-0 flex items-center justify-center">
-        <div className="w-8 h-8 border-4 border-slate-200 border-t-slate-800 rounded-full animate-spin"></div>
-      </div>
+      <EnfereSplash
+        isAuthenticated={isAuthenticated}
+        userName={user?.user_metadata?.full_name || user?.full_name || user?.email}
+        onGetStarted={() => {
+          sessionStorage.setItem("enfere_splash_passed", "true");
+          setShowInitialSplash(false);
+          if (isAuthenticated) {
+            navigate("/");
+          } else {
+            navigate("/register");
+          }
+        }}
+        onHaveAccount={() => {
+          sessionStorage.setItem("enfere_splash_passed", "true");
+          setShowInitialSplash(false);
+          navigate("/login");
+        }}
+      />
     );
   }
 
-  // Handle authentication errors
+  if (isLoadingPublicSettings || isLoadingAuth) {
+    return <PageLoader />;
+  }
+
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      // Redirect to login automatically
       navigateToLogin();
       return null;
     }
   }
 
-  // Render the main app
   return (
-    <Routes>
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/privacidade-lgpd" element={<PrivacyPolicyLGPD />} />
-      <Route path="/faq" element={<PrivacyPolicyLGPD />} />
-      <Route path="/ajuda" element={<PrivacyPolicyLGPD />} />
-      <Route element={<ProtectedRoute unauthenticatedElement={<Navigate to="/login" replace />} />}>
-        {/* Hub Principal do Estudante e Módulos Educacionais */}
-        <Route path="/" element={<StudentDashboard />} />
-        <Route path="/montar-caso" element={<CaseStudio />} />
-        <Route path="/case-studio" element={<CaseStudio />} />
-        <Route path="/simulador-casos" element={<CaseStudySimulator />} />
-        <Route path="/case-study" element={<CaseStudySimulator />} />
-        <Route path="/laboratorio-calculos" element={<MedicationDosageLab />} />
-        <Route path="/dosage-lab" element={<MedicationDosageLab />} />
-        <Route path="/sistemas-organicos" element={<Navigate to="/" replace />} />
-        <Route path="/systems-assessment" element={<Navigate to="/" replace />} />
-        <Route path="/banco-casos" element={<CaseLibrary />} />
-        <Route path="/referencias" element={<References />} />
-        <Route path="/turmas" element={<Turmas />} />
-        <Route path="/turma/:id" element={<TurmaDetail />} />
-        <Route path="/turma/:id/nova-atividade" element={<CaseBuilder />} />
-        <Route path="/assignment/:id" element={<AssignmentAnswer />} />
-        <Route path="/passagem-plantao" element={<SbarHandoffLab />} />
-        <Route path="/sbar" element={<SbarHandoffLab />} />
-        <Route path="/sbar-lab" element={<SbarHandoffLab />} />
-        <Route path="/procedimentos" element={<ProcedimentosLab />} />
-        <Route path="/skills-lab" element={<ProcedimentosLab />} />
-        <Route path="/videoteca" element={<ProcedimentosLab />} />
-        
-        {/* Rotas de Áudio e Avaliação Assistencial Hospitalar */}
-        <Route path="/avaliacao-audio" element={<AudioAssessment />} />
-        <Route path="/audio-assessment" element={<AudioAssessment />} />
-        <Route path="/patient/:id/audio-assessment" element={<AudioAssessment />} />
-        <Route path="/patient/:id/assessment" element={<ExpressAssessment />} />
-        <Route path="/patient/:id" element={<PatientDetail />} />
-        <Route path="/assessment/:id/ai" element={<AIDashboard />} />
-        <Route path="/ai-dashboard" element={<AIDashboard />} />
-        <Route path="/pacientes" element={<Patients />} />
-        
-        <Route path="/conta" element={<Conta />} />
-      </Route>
-      <Route path="*" element={<PageNotFound />} />
-    </Routes>
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/splash" element={<SplashPage />} />
+        <Route path="/login" element={<Login />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/forgot-password" element={<ForgotPassword />} />
+        <Route path="/reset-password" element={<ResetPassword />} />
+        <Route path="/privacidade-lgpd" element={<PrivacyPolicyLGPD />} />
+        <Route path="/faq" element={<PrivacyPolicyLGPD />} />
+        <Route path="/ajuda" element={<PrivacyPolicyLGPD />} />
+        <Route element={<ProtectedRoute unauthenticatedElement={<SplashPage />} />}>
+          {/* Hub Principal do Estudante e Módulos Educacionais */}
+          <Route path="/" element={<StudentDashboard />} />
+          <Route path="/montar-caso" element={<CaseStudio />} />
+          <Route path="/case-studio" element={<CaseStudio />} />
+          <Route path="/simulador-casos" element={<CaseStudySimulator />} />
+          <Route path="/case-study" element={<CaseStudySimulator />} />
+          <Route path="/laboratorio-calculos" element={<MedicationDosageLab />} />
+          <Route path="/calculo-doses" element={<MedicationDosageLab />} />
+          <Route path="/dosage-lab" element={<MedicationDosageLab />} />
+          <Route path="/sistemas-organicos" element={<Navigate to="/" replace />} />
+          <Route path="/systems-assessment" element={<Navigate to="/" replace />} />
+          <Route path="/banco-casos" element={<CaseLibrary />} />
+          <Route path="/referencias" element={<References />} />
+          <Route path="/turmas" element={<Navigate to="/" replace />} />
+          <Route path="/turma/:id" element={<Navigate to="/" replace />} />
+          <Route path="/turma/:id/nova-atividade" element={<Navigate to="/" replace />} />
+          <Route path="/assignment/:id" element={<Navigate to="/" replace />} />
+          <Route path="/passagem-plantao" element={<SbarHandoffLab />} />
+          <Route path="/passagem-plantao-sbar" element={<SbarHandoffLab />} />
+          <Route path="/sbar" element={<SbarHandoffLab />} />
+          <Route path="/sbar-lab" element={<SbarHandoffLab />} />
+          <Route path="/procedimentos" element={<ProcedimentosLab />} />
+          <Route path="/procedimentos-lab" element={<ProcedimentosLab />} />
+          <Route path="/skills-lab" element={<ProcedimentosLab />} />
+          <Route path="/videoteca" element={<ProcedimentosLab />} />
+          <Route path="/videochamada" element={<Videochamada />} />
+          <Route path="/atendimento-voz" element={<Videochamada />} />
+
+          {/* Rotas de Áudio e Avaliação Assistencial Hospitalar */}
+          <Route path="/avaliacao-audio" element={<AudioAssessment />} />
+          <Route path="/audio-assessment" element={<AudioAssessment />} />
+          <Route path="/patient/:id/audio-assessment" element={<AudioAssessment />} />
+          <Route path="/patient/:id/assessment" element={<ExpressAssessment />} />
+          <Route path="/patient/:id" element={<PatientDetail />} />
+          <Route path="/assessment/:id/ai" element={<AIDashboard />} />
+          <Route path="/ai-dashboard" element={<AIDashboard />} />
+          <Route path="/pacientes" element={<Patients />} />
+
+          <Route path="/conta" element={<Conta />} />
+        </Route>
+        <Route path="*" element={<PageNotFound />} />
+      </Routes>
+    </Suspense>
   );
 };
 
