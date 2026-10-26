@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   Calculator,
-  Users,
   UserCircle,
   LogOut,
   PlusCircle,
@@ -12,6 +11,7 @@ import {
   Sun,
   Moon,
   Video,
+  PhoneCall,
   Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -52,6 +52,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
 
   const navLinks = [
     { id: "hub", label: "Início", path: "/", icon: LayoutGrid, hasBriefing: false },
+    { id: "videochamada", label: "Videochamada", path: "/videochamada", icon: PhoneCall, hasBriefing: false, isNew: true },
     { id: "procedimentos", label: "Procedimentos", path: "/procedimentos", icon: Video, hasBriefing: false },
     { id: "montar", label: "Montar Caso", path: "/montar-caso", icon: PlusCircle, hasBriefing: true },
     { id: "casos", label: "Casos Clínicos", path: "/simulador-casos", icon: BookOpen, hasBriefing: true },
@@ -78,7 +79,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
 
   return (
     <>
-      <header className={`sticky top-0 z-30 border-b border-slate-200/80 dark:border-slate-800/80 bg-white/95 dark:bg-slate-950/95 backdrop-blur-xl transition-colors ${desktopOnly ? "hidden md:block" : ""}`}>
+      <header className={`sticky top-0 z-30 border-b border-[#1F3045] bg-[#0B131D]/95 backdrop-blur-xl transition-colors ${desktopOnly ? "hidden md:block" : ""}`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6">
           <div className="flex h-16 items-center justify-between gap-3">
             {/* Logo Oficial com Ícone do Goti */}
@@ -89,23 +90,25 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
               }}
               className="flex items-center gap-3 text-left group transition tap-press shrink-0"
             >
-              <img
-                src="/goti/goti-icone.jpg"
-                alt="Enfere - Mascote Goti"
-                className="h-11 w-11 rounded-2xl object-cover shadow-sm group-hover:scale-105 transition-transform border border-teal-500/20"
-              />
+              <div className="w-10 h-10 rounded-2xl bg-[#16222E] border border-[#20D5B5]/30 p-1 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+                <img
+                  src="/goti/goti-avatar-app.png"
+                  alt="Enfere - Mascote Goti"
+                  className="w-full h-full object-contain"
+                />
+              </div>
               <div>
-                <span className="font-black text-base text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
+                <span className="font-black text-lg text-[#20D5B5] tracking-tight flex items-center gap-1.5 leading-none">
                   Enfere
                 </span>
-                <span className="text-[10px] text-slate-500 dark:text-slate-400 block -mt-0.5 font-medium">
-                  Simulação & Prática Clínica
+                <span className="text-[10px] text-[#9FB3C6] block mt-0.5 font-bold tracking-tight">
+                  Prática Clínica de Enfermagem
                 </span>
               </div>
             </button>
 
             {/* Navegação Principal Desktop */}
-            <nav className="hidden lg:flex items-center gap-1">
+            <nav className="hidden lg:flex items-center gap-1.5">
               {navLinks.map((link) => {
                 const Icon = link.icon;
                 const isActive = activeTab === link.id;
@@ -113,43 +116,45 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
                   <button
                     key={link.id}
                     onClick={() => handleNavClick(link)}
-                    className={`flex items-center gap-1.5 px-2.5 py-2 rounded-xl text-xs font-bold transition-all tap-press ${
+                    className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black transition-all relative ${
                       isActive
-                        ? "bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 font-bold border border-teal-200 dark:border-teal-800 shadow-2xs"
-                        : "text-slate-600 dark:text-slate-300 hover:text-teal-800 dark:hover:text-teal-400 hover:bg-slate-100/70 dark:hover:bg-slate-900"
+                        ? "bg-[#20D5B5]/10 text-[#20D5B5] border border-[#20D5B5]/30 shadow-[0_0_10px_rgba(32,213,181,0.2)]"
+                        : "text-[#9FB3C6] hover:text-[#EAF2F8] hover:bg-[#16222E]"
                     }`}
                   >
-                    <Icon className={`h-4 w-4 ${isActive ? "text-teal-600 dark:text-teal-400" : "text-slate-400"}`} />
+                    <Icon className={`h-4 w-4 ${isActive ? "text-[#20D5B5]" : "text-[#52667A]"}`} />
                     <span>{link.label}</span>
+                    {link.isNew && (
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#20D5B5] text-[#0A1118] uppercase tracking-wider">
+                        NOVO
+                      </span>
+                    )}
                   </button>
                 );
               })}
             </nav>
 
             {/* Ações do Usuário: Chat do Goti, Pontos de Estudo (PE), Tema e Perfil */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* Botão de Chat com o Goti com Física 3D Tátil */}
+            <div className="flex items-center gap-2 shrink-0">
+              {/* Botão de Chat com o Goti */}
               <button
                 type="button"
                 onClick={() => {
                   triggerHaptic(20);
                   setIsGotiChatOpen(true);
                 }}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/80 border-2 border-teal-200 dark:border-teal-800 border-b-4 border-b-teal-300 dark:border-b-teal-900 text-teal-900 dark:text-teal-200 hover:bg-teal-100/90 dark:hover:bg-teal-900/90 text-xs font-extrabold transition-all active:translate-y-1 active:border-b-2 shadow-2xs cursor-pointer select-none"
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#16222E] border border-[#20D5B5]/40 border-b-4 border-b-[#0A1118] text-[#20D5B5] hover:bg-[#1b2b3a] text-xs font-black transition-all active:translate-y-1 active:border-b-2 shadow-xs cursor-pointer select-none"
                 title="Conversar diretamente com o Goti"
               >
                 <div className="relative flex items-center justify-center">
                   <img
-                    src="/goti/goti-icone.jpg"
+                    src="/goti/goti-avatar-app.png"
                     alt="Goti"
-                    className="w-5 h-5 object-cover rounded-lg shadow-2xs"
+                    className="w-5 h-5 object-contain"
                   />
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#20D5B5] animate-pulse" />
                 </div>
-                <span className="hidden sm:inline">Goti</span>
-                <span className="text-[9px] uppercase px-1.5 py-0.5 rounded-md bg-teal-200/80 dark:bg-teal-800/80 text-teal-950 dark:text-teal-100 font-black">
-                  Chat
-                </span>
+                <span className="hidden sm:inline">Preceptor Goti</span>
               </button>
 
               {/* Saldo de Pontos de Estudo (PE) - Ocultado temporariamente conforme diretriz */}
@@ -189,9 +194,9 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
                 variant="outline"
                 size="sm"
                 onClick={() => navigate("/conta")}
-                className="rounded-xl border-slate-200 dark:border-slate-800 text-xs font-semibold flex items-center gap-1.5 text-slate-700 dark:text-slate-200 hover:border-teal-300 dark:hover:border-teal-700 hover:text-teal-800 dark:hover:text-teal-400 dark:bg-slate-900 h-9 px-2.5 sm:px-3"
+                className="rounded-xl border-[#27394B] text-xs font-bold flex items-center gap-1.5 text-[#EAF2F8] hover:border-[#20D5B5] hover:text-[#20D5B5] bg-[#16222E] h-9 px-3"
               >
-                <UserCircle className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <UserCircle className="h-4 w-4 text-[#20D5B5]" />
                 <span className="hidden md:inline">Conta</span>
               </Button>
 
@@ -202,7 +207,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
                   logout(true);
                   navigate("/splash");
                 }}
-                className="rounded-xl text-xs text-rose-600 dark:text-rose-400 hover:text-rose-700 dark:hover:text-rose-300 hover:bg-rose-50 dark:hover:bg-rose-950/40 flex items-center gap-1.5 h-9 px-2 sm:px-2.5"
+                className="rounded-xl text-xs text-[#F0645F] hover:text-white hover:bg-[#F0645F]/20 flex items-center gap-1.5 h-9 px-2.5"
                 title="Sair da Plataforma"
               >
                 <LogOut className="h-4 w-4" />
@@ -212,13 +217,13 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
         </div>
       </header>
 
-      {/* Botão Flutuante do Goti IA (Canto Inferior Direito - com folga segura acima do dock móvel) */}
+      {/* Botão Flutuante do Goti IA no Desktop */}
       <button
         onClick={() => {
           triggerHaptic(20);
           setIsGotiChatOpen(true);
         }}
-        className="fixed bottom-28 sm:bottom-6 right-4 sm:right-6 z-40 flex items-center gap-2.5 p-2 sm:px-4 sm:py-2.5 rounded-full bg-gradient-to-r from-teal-700 to-emerald-700 hover:from-teal-800 hover:to-emerald-800 text-white shadow-xl shadow-teal-900/30 border-2 border-white/20 active:scale-95 transition-all group hide-on-short-landscape"
+        className="hidden md:flex fixed bottom-6 right-6 z-40 items-center gap-2.5 px-4 py-2.5 rounded-full bg-[#16222E] border-2 border-[#20D5B5]/40 hover:border-[#20D5B5] text-white shadow-xl shadow-black/50 active:scale-95 transition-all group"
         title="Dúvidas clínicas? Pergunte ao Goti"
       >
         <img

@@ -1,7 +1,6 @@
 import React from 'react';
 import { Drawer } from 'vaul';
 import {
-  Users,
   Sparkles,
   ShieldCheck,
   LogOut,
@@ -9,6 +8,7 @@ import {
   ChevronRight,
   Sliders,
   Video,
+  PhoneCall,
   Stethoscope
 } from 'lucide-react';
 import { useNavigate } from 'react-router-dom';
@@ -28,6 +28,14 @@ export default function MobilePocketDrawer({
   };
 
   const pocketTools = [
+    {
+      id: 'videochamada',
+      title: 'Videochamada (Atendimento por voz)',
+      subtitle: 'Simulação interativa com paciente por voz e condutas',
+      icon: PhoneCall,
+      path: '/videochamada',
+      tag: 'NOVO'
+    },
     {
       id: 'procedimentos',
       title: 'Videoteca de Procedimentos',
