@@ -6,6 +6,13 @@
 
 const STORAGE_KEY = 'enfere_clinical_history_v1';
 
+function getKey(userId) {
+  if (!userId) return STORAGE_KEY;
+  // Sanitiza para chave válida de localStorage
+  const cleanId = String(userId).replace(/[^a-zA-Z0-9_-]/g, '_');
+  return `${STORAGE_KEY}_${cleanId}`;
+}
+
 export const MODULE_TYPES = {
   SBAR: 'sbar',
   CASE_BUILDER: 'case_builder',
@@ -24,10 +31,11 @@ export const MODULE_LABELS = {
   systems_assessment: 'Avaliação Clínica',
 };
 
-function getStorage() {
+function getStorage(userId) {
   try {
     if (typeof localStorage === 'undefined') return [];
-    const raw = localStorage.getItem(STORAGE_KEY);
+    const k = getKey(userId);
+    const raw = localStorage.getItem(k);
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -37,10 +45,11 @@ function getStorage() {
   }
 }
 
-function setStorage(items) {
+function setStorage(items, userId) {
   try {
     if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      const k = getKey(userId);
+      localStorage.setItem(k, JSON.stringify(items));
     }
   } catch (err) {
     console.warn('[clinicalHistoryService] Falha ao salvar histórico:', err);
@@ -49,21 +58,33 @@ function setStorage(items) {
 
 export const clinicalHistoryService = {
   /**
+   * Retorna a atividade em andamento mais recente de um usuário específico.
+   * Usado pelo card "Continuar de onde parou".
+   */
+  getLatestInProgressActivity(userId) {
+    const list = getStorage(userId);
+    const inProgress = list
+      .filter((it) => it.status === 'em_andamento')
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    return inProgress.length > 0 ? inProgress[0] : null;
+  },
+
+  /**
    * Retorna todas as atividades ordenadas por data decrescente.
    */
-  getAllActivities(moduleFilter = 'all') {
-    const list = getStorage();
+  getAllActivities(moduleFilter = 'all', userId = null) {
+    const list = getStorage(userId);
     if (moduleFilter && moduleFilter !== 'all') {
       return list.filter((item) => item.moduleType === moduleFilter);
     }
-    return list.sort((a, b) => new Date(b.updatedAt) - new Date(a.updatedAt));
+    return list.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   },
 
   /**
    * Salva ou atualiza um rascunho de atividade em andamento.
    */
-  saveDraft({ id, moduleType, title, patientInfo, progress = 0, durationSeconds = 0, formData = {}, step = 0 }) {
-    const list = getStorage();
+  saveDraft({ id, moduleType, title, patientInfo, progress = 0, durationSeconds = 0, formData = {}, step = 0, userId = null }) {
+    const list = getStorage(userId);
     const now = new Date().toISOString();
     const existingIndex = id ? list.findIndex((it) => it.id === id) : -1;
 
@@ -82,6 +103,7 @@ export const clinicalHistoryService = {
       formData,
       score: null,
       evaluation: null,
+      userId: userId || null
     };
 
     if (existingIndex >= 0) {
@@ -90,15 +112,15 @@ export const clinicalHistoryService = {
       list.unshift(activityItem);
     }
 
-    setStorage(list);
+    setStorage(list, userId);
     return activityItem;
   },
 
   /**
    * Submete e finaliza formalmente uma atividade clínica com 100% de conclusão.
    */
-  submitActivity({ id, moduleType, title, patientInfo, durationSeconds = 0, score = 100, evaluation = null, formData = {} }) {
-    const list = getStorage();
+  submitActivity({ id, moduleType, title, patientInfo, durationSeconds = 0, score = 100, evaluation = null, formData = {}, userId = null }) {
+    const list = getStorage(userId);
     const now = new Date().toISOString();
     const existingIndex = id ? list.findIndex((it) => it.id === id) : -1;
 
@@ -117,6 +139,7 @@ export const clinicalHistoryService = {
       score: typeof score === 'number' ? score : 100,
       evaluation: evaluation || 'Atividade clínica concluída com conformidade aos protocolos de enfermagem.',
       formData,
+      userId: userId || null
     };
 
     if (existingIndex >= 0) {
@@ -125,27 +148,27 @@ export const clinicalHistoryService = {
       list.unshift(completedItem);
     }
 
-    setStorage(list);
+    setStorage(list, userId);
     return completedItem;
   },
 
   /**
    * Busca uma atividade específica pelo identificador.
    */
-  getActivityById(id) {
+  getActivityById(id, userId = null) {
     if (!id) return null;
-    const list = getStorage();
+    const list = getStorage(userId);
     return list.find((it) => it.id === id) || null;
   },
 
   /**
    * Remove uma atividade do histórico.
    */
-  deleteActivity(id) {
+  deleteActivity(id, userId = null) {
     if (!id) return false;
-    const list = getStorage();
+    const list = getStorage(userId);
     const filtered = list.filter((it) => it.id !== id);
-    setStorage(filtered);
+    setStorage(filtered, userId);
     return true;
   },
 
@@ -167,8 +190,8 @@ export const clinicalHistoryService = {
   /**
    * Estatísticas resumidas de progresso clínico do estudante.
    */
-  getSummaryStats() {
-    const list = getStorage();
+  getSummaryStats(userId = null) {
+    const list = getStorage(userId);
     const completed = list.filter((it) => it.status === 'concluido');
     const inProgress = list.filter((it) => it.status === 'em_andamento');
     const totalDurationSeconds = list.reduce((acc, it) => acc + (it.durationSeconds || 0), 0);

@@ -596,21 +596,22 @@ export default function Videochamada() {
 
               {/* Coluna Esquerda (Desktop): Palco de Vídeo + Pergunta do Paciente com Ondas */}
               <div className="md:col-span-5 flex flex-col gap-2.5 mb-2 md:mb-0">
-                {/* Visualização Mobile: Linha compacta */}
-                <div className="flex md:hidden items-stretch gap-2">
+                {/* Visualização Mobile: Paciente em destaque vertical ampliado + Fala abaixo */}
+                <div className="flex md:hidden flex-col items-center gap-2.5 w-full">
                   <PacienteVideoStage
                     pacienteId={pacienteId}
                     clipeAtivo={clipeAtivo}
                     isSpeaking={isSpeaking}
-                    small
+                    small={false}
                     onClipeEnded={() => setClipeAtivo("fala")}
+                    className="w-full max-w-[280px] xs:max-w-[300px] h-[175px] sm:h-[195px] mx-auto rounded-2xl shadow-md border-2 border-[#27394B]"
                   />
                   <FalaLegendaBubble
                     texto={passoAtual.pergunta}
                     isSpeaking={isSpeaking}
                     activeWordIndex={activeWordIndex}
                     compact
-                    className="flex-1"
+                    className="w-full text-center"
                   />
                 </div>
 
@@ -646,15 +647,16 @@ export default function Videochamada() {
 
               {/* Coluna Direita (Desktop): Opções da Questão + Botão Verificar */}
               <div className="md:col-span-7 flex flex-col justify-between flex-1 gap-2 md:min-h-[460px]">
-                {/* Tema da Questão */}
-                {passoAtual.tema && (
-                  <div className="text-[11px] font-black text-[#2AD3C1] uppercase tracking-wider mb-0.5 px-0.5">
-                    {passoAtual.tema}
-                  </div>
-                )}
+                <div className="flex flex-col gap-1.5 w-full mt-1.5 md:mt-0">
+                  {/* Tema da Questão agrupado com as opções (sem vazio vertical) */}
+                  {passoAtual.tema && (
+                    <div className="text-[11px] font-black text-[#2AD3C1] uppercase tracking-wider px-0.5 mb-0.5">
+                      {passoAtual.tema}
+                    </div>
+                  )}
 
-                {/* Corpo Dinâmico por Tipo de Questão */}
-                <div className="flex-1 flex flex-col justify-center gap-1.5 my-1">
+                  {/* Corpo Dinâmico por Tipo de Questão */}
+                  <div className="flex flex-col gap-1.5 w-full">
                   {/* -----------------------------------------------------------
                       TELA 4: MÚLTIPLA ESCOLHA (04-questao-escolha.png)
                   ----------------------------------------------------------- */}
@@ -832,9 +834,10 @@ export default function Videochamada() {
                     </div>
                   )}
                 </div>
+              </div>
 
-                {/* Botão 3D Verificar */}
-                <div className="mt-auto pt-2">
+              {/* Botão 3D Verificar */}
+              <div className="mt-auto pt-2">
                   <button
                     type="button"
                     disabled={!canVerificar()}
