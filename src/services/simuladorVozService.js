@@ -1,30 +1,30 @@
 /**
  * simuladorVozService.js
  *
- * Gerenciador provisório de voz para o Simulador de Atendimento (Fase 1).
- * Implementa síntese (TTS via Web Speech API speechSynthesis) e reconhecimento (STT via SpeechRecognition).
- *
- * Preparado com interface modular para receber arquivos de áudio gerados
- * pelo VoiceBox MCP nas fases seguintes.
+ * Gerenciador de voz e áudio para o Simulador de Atendimento (Videochamada).
+ * Integração com as vozes neurais locais geradas pelo VoiceBox (Marcus e Teresinha)
+ * com fallback para síntese Web Speech API (speechSynthesis) e reconhecimento contínuo via SpeechRecognition.
  */
 
-// Configurações de voz por paciente
 export const PACIENTE_VOZ_CONFIG = {
   marcus: {
     nome: "Sr. Marcus",
     pitch: 0.72,
     rate: 0.90,
-    descricao: "Voz masculina idosa pt-BR"
+    voiceFile: "/pacientes/marcus/fala.wav",
+    descricao: "Voz masculina idosa (VoiceBox)"
   },
   teresinha: {
     nome: "Dona Teresinha",
     pitch: 1.10,
     rate: 0.92,
-    descricao: "Voz feminina idosa pt-BR"
+    voiceFile: "/pacientes/teresinha/fala.wav",
+    descricao: "Voz feminina idosa (VoiceBox)"
   }
 };
 
 let currentTimers = [];
+let currentAudioElement = null;
 let isSpeakingState = false;
 
 export function getAvailableVoices() {
@@ -43,6 +43,17 @@ export function pickPtBrVoice() {
 export function pararFala() {
   currentTimers.forEach(clearTimeout);
   currentTimers = [];
+
+  if (currentAudioElement) {
+    try {
+      currentAudioElement.pause();
+      currentAudioElement.currentTime = 0;
+    } catch {
+      // Ignora erro ao pausar elemento de áudio
+    }
+    currentAudioElement = null;
+  }
+
   if (typeof window !== "undefined" && window.speechSynthesis) {
     try {
       window.speechSynthesis.cancel();
@@ -54,11 +65,14 @@ export function pararFala() {
 }
 
 /**
- * Fala o texto em português utilizando a Web Speech API.
+ * Fala o texto utilizando prioritariamente o áudio real do VoiceBox
+ * com fallback gracioso para Web Speech API.
+ * 
  * @param {string} texto Texto a ser falado
  * @param {'marcus'|'teresinha'} pacienteKey Chave do paciente
  * @param {Object} options
  * @param {boolean} [options.soundEnabled=true]
+ * @param {string} [options.customAudioFile] Caminho de áudio customizado
  * @param {Function} [options.onStart]
  * @param {Function} [options.onWordIndex] (index: number) => void
  * @param {Function} [options.onEnd]
@@ -69,6 +83,7 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
 
   const {
     soundEnabled = true,
+    customAudioFile,
     onStart,
     onWordIndex,
     onEnd
@@ -85,16 +100,12 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
   const words = texto.split(" ").filter(Boolean);
   const nWords = words.length;
 
-  // Duração estimada da fala em ms (aproximadamente 68ms por caractere)
-  const estimatedDuration = Math.max(2200, texto.length * 68);
-
   let finished = false;
   function handleFinish() {
     if (finished) return;
     finished = true;
     isSpeakingState = false;
 
-    // Garante que todas as palavras fiquem marcadas como faladas
     if (onWordIndex) {
       for (let i = 0; i < nWords; i++) {
         onWordIndex(i);
@@ -104,95 +115,124 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
     if (onEnd) onEnd();
   }
 
-  // Agenda o acendimento progressivo (efeito karaokê) das palavras
-  if (onWordIndex && nWords > 0) {
-    for (let k = 0; k < nWords; k++) {
-      const delay = (estimatedDuration * k) / nWords;
-      const timer = setTimeout(() => {
-        onWordIndex(k);
-      }, delay);
-      currentTimers.push(timer);
+  function programarKaraoke(duracaoMs) {
+    if (onWordIndex && nWords > 0) {
+      for (let k = 0; k < nWords; k++) {
+        const delay = (duracaoMs * k) / nWords;
+        const timer = setTimeout(() => {
+          onWordIndex(k);
+        }, delay);
+        currentTimers.push(timer);
+      }
     }
   }
 
-  // Se som estiver desativado ou não houver speechSynthesis, utiliza apenas o timer
-  if (!soundEnabled || typeof window === "undefined" || !window.speechSynthesis) {
+  const config = PACIENTE_VOZ_CONFIG[pacienteKey] || PACIENTE_VOZ_CONFIG.marcus;
+  const audioFile = customAudioFile || config.voiceFile;
+
+  // Duração estimada como fallback
+  const estimatedDuration = Math.max(2200, texto.length * 68);
+
+  // 1. Se som desligado, simula duração apenas para progresso visual
+  if (!soundEnabled) {
+    programarKaraoke(estimatedDuration);
     const finishTimer = setTimeout(handleFinish, estimatedDuration);
     currentTimers.push(finishTimer);
     return;
   }
 
-  try {
-    const config = PACIENTE_VOZ_CONFIG[pacienteKey] || PACIENTE_VOZ_CONFIG.marcus;
-    const utterance = new SpeechSynthesisUtterance(texto);
-    utterance.lang = "pt-BR";
-    utterance.pitch = config.pitch;
-    utterance.rate = config.rate;
+  // 2. Tenta tocar o arquivo de áudio real do VoiceBox se disponível
+  if (audioFile && typeof Audio !== "undefined") {
+    try {
+      const audio = new Audio(audioFile);
+      currentAudioElement = audio;
 
-    const voice = pickPtBrVoice();
-    if (voice) {
-      utterance.voice = voice;
+      audio.onloadedmetadata = () => {
+        const durMs = (audio.duration && !isNaN(audio.duration) && audio.duration > 0)
+          ? audio.duration * 1000
+          : estimatedDuration;
+        programarKaraoke(durMs);
+      };
+
+      audio.onended = () => {
+        currentAudioElement = null;
+        handleFinish();
+      };
+
+      audio.onerror = () => {
+        // Fallback para Web Speech API se o arquivo não puder ser reproduzido
+        currentAudioElement = null;
+        tocarViaWebSpeech();
+      };
+
+      const playPromise = audio.play();
+      if (playPromise !== undefined) {
+        playPromise.catch(() => {
+          // Bloqueio de autoplay do navegador ou arquivo inacessível -> fallback
+          tocarViaWebSpeech();
+        });
+      }
+      return;
+    } catch {
+      // Se falhar ao instanciar Audio, segue para o fallback
+    }
+  }
+
+  tocarViaWebSpeech();
+
+  function tocarViaWebSpeech() {
+    programarKaraoke(estimatedDuration);
+
+    if (typeof window === "undefined" || !window.speechSynthesis) {
+      const finishTimer = setTimeout(handleFinish, estimatedDuration);
+      currentTimers.push(finishTimer);
+      return;
     }
 
-    utterance.onend = handleFinish;
-    utterance.onerror = handleFinish;
+    try {
+      const utterance = new SpeechSynthesisUtterance(texto);
+      utterance.lang = "pt-BR";
+      utterance.pitch = config.pitch;
+      utterance.rate = config.rate;
 
-    window.speechSynthesis.speak(utterance);
+      const voice = pickPtBrVoice();
+      if (voice) {
+        utterance.voice = voice;
+      }
 
-    // Timer de segurança caso o navegador silencie ou não dispare onend
-    const safetyTimer = setTimeout(handleFinish, estimatedDuration + 3000);
-    currentTimers.push(safetyTimer);
-  } catch (err) {
-    console.warn("SpeechSynthesis error, caindo para simulação por tempo:", err);
-    const finishTimer = setTimeout(handleFinish, estimatedDuration);
-    currentTimers.push(finishTimer);
+      utterance.onend = handleFinish;
+      utterance.onerror = handleFinish;
+
+      window.speechSynthesis.speak(utterance);
+    } catch {
+      const finishTimer = setTimeout(handleFinish, estimatedDuration);
+      currentTimers.push(finishTimer);
+    }
   }
 }
 
 /**
- * Inicia o microfone e captura transcrição de fala do estudante.
+ * Inicia o reconhecimento de voz contínuo do estudante via Web Speech API.
+ * Sem nenhuma resposta mockada ou exemplo pré-programado.
+ *
+ * @param {Object} options
+ * @param {Function} [options.onInterim] (parcial: string) => void
+ * @param {Function} [options.onFinal] (completo: string) => void
+ * @param {Function} [options.onError] (erro: string) => void
+ * @param {Function} [options.onEnd] () => void
+ * @returns {{ stop: () => void }}
  */
-export function iniciarReconhecimentoVoz({
-  onInterim,
-  onFinal,
-  onError,
-  onEnd
-}) {
-  pararFala();
+export function iniciarReconhecimentoVoz(options = {}) {
+  const { onInterim, onFinal, onError, onEnd } = options;
 
-  if (typeof window === "undefined") {
-    if (onError) onError("Reconhecimento não disponível fora do navegador");
-    return { stop: () => {} };
-  }
-
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+  const SpeechRecognition =
+    typeof window !== "undefined" &&
+    (window.SpeechRecognition || window.webkitSpeechRecognition);
 
   if (!SpeechRecognition) {
-    // Simulação graciosa quando a API não estiver presente no browser
-    let canceled = false;
-    const simulatedText = "Higienizar as mãos com água e sabão";
-    let curIndex = 0;
-
-    const interval = setInterval(() => {
-      if (canceled) return;
-      curIndex += 2;
-      const part = simulatedText.slice(0, curIndex);
-      if (onInterim) onInterim(part);
-
-      if (curIndex >= simulatedText.length) {
-        clearInterval(interval);
-        if (onFinal) onFinal(simulatedText);
-        if (onEnd) onEnd();
-      }
-    }, 80);
-
-    return {
-      stop: () => {
-        canceled = true;
-        clearInterval(interval);
-        if (onEnd) onEnd();
-      }
-    };
+    if (onError) onError("Microfone não suportado neste navegador. Utilize a opção 'Prefiro digitar'.");
+    if (onEnd) onEnd();
+    return { stop: () => {} };
   }
 
   try {
@@ -200,34 +240,48 @@ export function iniciarReconhecimentoVoz({
     recognition.lang = "pt-BR";
     recognition.interimResults = true;
     recognition.maxAlternatives = 1;
-    recognition.continuous = false;
+    recognition.continuous = true;
 
-    let finalTranscript = "";
+    let transcriptAcumulada = "";
+    let isStoppedManualmente = false;
 
     recognition.onresult = (event) => {
       let interim = "";
       for (let i = event.resultIndex; i < event.results.length; i++) {
-        const transcript = event.results[i][0].transcript;
+        const item = event.results[i][0].transcript;
         if (event.results[i].isFinal) {
-          finalTranscript = transcript;
+          transcriptAcumulada += (transcriptAcumulada ? " " : "") + item.trim();
         } else {
-          interim += transcript;
+          interim += item;
         }
       }
 
+      const textoExibicao = (transcriptAcumulada + " " + interim).trim();
       if (interim && onInterim) {
-        onInterim(interim);
+        onInterim(textoExibicao);
       }
-      if (finalTranscript && onFinal) {
-        onFinal(finalTranscript);
+      if (transcriptAcumulada && onFinal) {
+        onFinal(transcriptAcumulada.trim());
       }
     };
 
     recognition.onerror = (event) => {
-      if (onError) onError(event.error);
+      console.warn("SpeechRecognition error:", event.error);
+      if (onError) {
+        if (event.error === "not-allowed" || event.error === "permission-denied") {
+          onError("Permissão de microfone negada. Clique em 'Prefiro digitar' para responder.");
+        } else if (event.error === "no-speech") {
+          // Apenas silêncio momentâneo, não bloqueia
+        } else {
+          onError(`Microfone: ${event.error}`);
+        }
+      }
     };
 
     recognition.onend = () => {
+      if (!isStoppedManualmente && transcriptAcumulada && onFinal) {
+        onFinal(transcriptAcumulada.trim());
+      }
       if (onEnd) onEnd();
     };
 
@@ -235,15 +289,21 @@ export function iniciarReconhecimentoVoz({
 
     return {
       stop: () => {
+        isStoppedManualmente = true;
         try {
           recognition.stop();
         } catch {
           // ignore
         }
+        if (transcriptAcumulada && onFinal) {
+          onFinal(transcriptAcumulada.trim());
+        }
+        if (onEnd) onEnd();
       }
     };
   } catch (err) {
-    if (onError) onError(err?.message || "Erro ao iniciar microfone");
+    if (onError) onError(err?.message || "Erro ao inicializar microfone");
+    if (onEnd) onEnd();
     return { stop: () => {} };
   }
 }
@@ -263,25 +323,31 @@ export function normalizarTextoVoz(texto) {
 }
 
 /**
- * Validação determinística de resposta falada.
- * Confere termos esperados por código e sinônimos (ex: "lavar as mãos" = "higienizar as mãos").
+ * Validação semântica e fonética determinística de respostas faladas.
  */
-export function validarRespostaFalada(textoAluno, aceitas = []) {
-  if (!textoAluno) return false;
-  const normalizado = normalizarTextoVoz(textoAluno);
+export function validarRespostaFalada(respostaAluno, respostasAceitas = []) {
+  if (!respostaAluno || !respostasAceitas.length) return false;
 
-  // Se houver lista de frases ou expressões aceitas
-  if (Array.isArray(aceitas) && aceitas.length > 0) {
-    const matchExatoOuContido = aceitas.some((item) => {
-      const itemNorm = normalizarTextoVoz(item);
-      return normalizado.includes(itemNorm) || itemNorm.includes(normalizado);
-    });
-    if (matchExatoOuContido) return true;
+  const alunoNorm = normalizarTextoVoz(respostaAluno);
+
+  for (const aceita of respostasAceitas) {
+    const aceitaNorm = normalizarTextoVoz(aceita);
+    if (!aceitaNorm) continue;
+
+    if (alunoNorm === aceitaNorm) return true;
+
+    if (alunoNorm.includes(aceitaNorm) || aceitaNorm.includes(alunoNorm)) {
+      if (Math.min(alunoNorm.length, aceitaNorm.length) >= 4) {
+        return true;
+      }
+    }
+
+    const palavrasAceitas = aceitaNorm.split(" ").filter((w) => w.length > 2);
+    if (palavrasAceitas.length > 0) {
+      const contemTodas = palavrasAceitas.every((palavra) => alunoNorm.includes(palavra));
+      if (contemTodas) return true;
+    }
   }
 
-  // Regras clínicas gerais para higiene de mãos
-  const contemMao = /m[aã]o|maos|m[aã]os/.test(normalizado);
-  const contemAcao = /higien|lav|limp|assep|asseps|alcool|sab|agua/.test(normalizado);
-
-  return contemMao && contemAcao;
+  return false;
 }

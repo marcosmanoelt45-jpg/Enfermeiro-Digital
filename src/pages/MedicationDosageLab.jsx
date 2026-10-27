@@ -1,22 +1,15 @@
 import React, { useState, useEffect } from "react";
-import { useSearchParams } from "react-router-dom";
+import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   CheckCircle2,
-  AlertTriangle,
   Lightbulb,
-  ArrowRight,
   FileText,
-  ShieldCheck,
   Calculator,
   Droplet,
   Beaker,
   BookOpen,
-  Shuffle,
-  Sparkles,
-  History,
-  Clock,
-  BookmarkPlus,
-  RotateCcw
+  X,
+  MoreVertical
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -27,130 +20,13 @@ import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
+import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
-const DOSAGE_PROBLEMS = [
-  {
-    id: "prob_1",
-    category: "Macrogotas / Horas",
-    title: "Infusão de Soro Fisiológico em 8h",
-    description: "Prescrição médica: Soro Fisiológico 0,9% 1000 mL para ser administrado por via intravenosa no período de 8 horas, utilizando equipo comum (macrogotas).",
-    solutionName: "Soro Fisiológico 0,9%",
-    volume: "1000 mL",
-    route: "Intravenosa (IV)",
-    time: "8 horas",
-    device: "Equipo de Macrogotas",
-    question: "Quantas gotas por minuto (gts/min) deverão ser administradas?",
-    formulaHint: "Gotas/min = Volume (mL) ÷ (Tempo (h) × 3)",
-    correctResult: "42",
-    explanationSteps: [
-      "Identifique as variáveis da prescrição: Volume = 1000 mL | Tempo = 8 horas",
-      "Equipo de macrogotas com tempo em horas utiliza a fórmula: Gotas/min = V / (T × 3)",
-      "Cálculo matemático: 1000 ÷ (8 × 3) = 1000 ÷ 24 = 41,66...",
-      "Regra de arredondamento em gotas: como a fração é ≥ 0,5, arredondamos para 42 gotas/minuto."
-    ]
-  },
-  {
-    id: "prob_2",
-    category: "Microgotas / Horas",
-    title: "Infusão em Paciente Pediátrico / Cardiopata",
-    description: "Prescrição médica: Soro Glicosado 5% 500 mL para infundir em 12 horas através de equipo de microgotas.",
-    solutionName: "Soro Glicosado 5%",
-    volume: "500 mL",
-    route: "Intravenosa (IV)",
-    time: "12 horas",
-    device: "Equipo de Microgotas",
-    question: "Qual deve ser a taxa de infusão em microgotas por minuto (mgts/min)?",
-    formulaHint: "Microgotas/min = Volume (mL) ÷ Tempo (h)",
-    correctResult: "42",
-    explanationSteps: [
-      "Identifique as variáveis da prescrição: Volume = 500 mL | Tempo = 12 horas",
-      "Para microgotas com tempo em horas: Microgotas/min = Volume ÷ Tempo",
-      "Cálculo matemático: 500 ÷ 12 = 41,66...",
-      "Arredondamento: 42 microgotas/minuto (numericamente igual a 42 mL/h em bomba de infusão)."
-    ]
-  },
-  {
-    id: "prob_3",
-    category: "Macrogotas / Minutos",
-    title: "Antibiótico em Infusão Rápida (30 minutos)",
-    description: "Prescrição médica: Metronidazol 500mg em bolsa de 100 mL para correr em 30 minutos via equipo de macrogotas.",
-    solutionName: "Metronidazol 500mg (100 mL)",
-    volume: "100 mL",
-    route: "Intravenosa (IV)",
-    time: "30 minutos",
-    device: "Equipo de Macrogotas",
-    question: "Quantas gotas por minuto devem ser infundidas?",
-    formulaHint: "Gotas/min = (Volume × 20) ÷ Tempo em minutos",
-    correctResult: "67",
-    explanationSteps: [
-      "Quando o tempo é prescrito em minutos, a constante muda para 20!",
-      "Fórmula: Gotas/min = (Volume em mL × 20) ÷ Tempo em minutos",
-      "Cálculo matemático: (100 × 20) ÷ 30 = 2000 ÷ 30 = 66,66...",
-      "Arredondamento: 67 gotas/minuto."
-    ]
-  },
-  {
-    id: "prob_4",
-    category: "Diluição de Antibióticos",
-    title: "Penicilina Cristalina (Frasco de 5.000.000 UI)",
-    description: "Prescrição médica: Penicilina Cristalina 2.000.000 UI EV. Disponível na enfermaria: Frasco-ampola com pó liofilizado de 5.000.000 UI e ampolas de água destilada (AD) de 10 mL.",
-    solutionName: "Penicilina Cristalina 5.000.000 UI",
-    volume: "Reconstituir p/ 10 mL",
-    route: "Intravenosa (IV)",
-    time: "Horário prescrito",
-    device: "Frasco-Ampola + Seringa",
-    question: "Sabendo que o pó ocupa 2 mL de soluto, se adicionarmos 8 mL de AD (totalizando 10 mL), quantos mL devemos aspirar para administrar a dose prescrita?",
-    formulaHint: "Soluto (2 mL) + solvente (8 mL) = 10 mL. Regra de três: 5.000.000 UI = 10 mL, logo 2.000.000 UI = X.",
-    correctResult: "4",
-    explanationSteps: [
-      "No frasco de 5 milhões de UI, o soluto (pó) equivale a 2 mL de volume.",
-      "Ao injetar 8 mL de diluente (AD), o volume total da solução reconstituída é 10 mL.",
-      "Montagem da proporção direta: 5.000.000 UI --- 10 mL | 2.000.000 UI --- X mL",
-      "Cálculo: X = (2.000.000 × 10) ÷ 5.000.000 = 20 ÷ 5 = 4 mL."
-    ]
-  },
-  {
-    id: "prob_5",
-    category: "Anticoagulação & Alta Vigilância",
-    title: "Heparina Sódica Contínua em UTI",
-    description: "Prescrição médica: Heparina sódica 800 UI/h em infusão intravenosa contínua. Solução preparada: Frasco de SF 0,9% 250 mL + 25.000 UI de Heparina (5 mL da apresentação 5.000 UI/mL). Volume total = 250 mL.",
-    solutionName: "Heparina 25.000 UI em 250 mL SF 0,9%",
-    volume: "250 mL (100 UI/mL)",
-    route: "Intravenosa Contínua (IV)",
-    time: "Contínuo",
-    device: "Bomba de Infusão Contínua (BIC)",
-    question: "Qual vazão em mL/h deve ser programada na Bomba de Infusão Contínua (BIC) para administrar exatamente 800 UI/hora?",
-    formulaHint: "Concentração: 25.000 UI ÷ 250 mL = 100 UI/mL. Vazão (mL/h) = Dose prescrita (UI/h) ÷ Concentração (UI/mL).",
-    correctResult: "8",
-    explanationSteps: [
-      "Determine a concentração da solução: 25.000 UI ÷ 250 mL = 100 UI por cada 1 mL.",
-      "A dose prescrita é de 800 UI/h.",
-      "Regra de três ou divisão direta: 100 UI --- 1 mL | 800 UI --- X mL.",
-      "Cálculo: X = 800 ÷ 100 = 8 mL/h.",
-      "Na Bomba de Infusão Contínua (BIC), programa-se a vazão de 8 mL/h."
-    ]
-  },
-  {
-    id: "prob_6",
-    category: "Corticoterapia & Emergência",
-    title: "Hidrocortisona em Crise Asmática",
-    description: "Prescrição médica: Hidrocortisona 150 mg EV em bólus lento. Na farmácia hospitalar há frasco-ampola com pó liofilizado de Hidrocortisona 500 mg e ampola de diluente de 5 mL.",
-    solutionName: "Hidrocortisona 500 mg (Frasco-Ampola)",
-    volume: "5 mL após reconstituição",
-    route: "Intravenosa (IV)",
-    time: "Dose Imediata (STAT)",
-    device: "Frasco-Ampola + Seringa de 5 mL",
-    question: "Após reconstituir o pó de 500 mg com 5 mL de diluente (AD), quantos mL devem ser aspirados para administrar exatamente 150 mg?",
-    formulaHint: "500 mg --- 5 mL | 150 mg --- X mL. X = (150 × 5) ÷ 500.",
-    correctResult: "1.5",
-    explanationSteps: [
-      "Volume e concentração: 500 mg reconstituídos em 5 mL resultam em 100 mg/mL.",
-      "Montagem da proporção: 500 mg = 5 mL | 150 mg = X mL",
-      "Cálculo: X = (150 × 5) ÷ 500 = 750 ÷ 500 = 1,5 mL.",
-      "Aspire exatamente 1,5 mL da seringa graduada para administrar a dose de 150 mg."
-    ]
-  }
-];
+import { getDosageProblems } from "@/data/dosageProblems";
+import { generateProceduralDosageProblem } from "@/services/proceduralDosageGenerator";
+
+const INITIAL_PROBLEMS = getDosageProblems();
+
 
 const CALC_TYPES = [
   { key: "dose", label: "Dose → Volume", icon: Calculator, hint: "Descobrir quantos mL aplicar a partir da concentração" },
@@ -170,10 +46,13 @@ const CONVERSIONS = [
 ];
 
 export default function MedicationDosageLab() {
+  const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("desafios"); // "desafios" | "calculadora"
 
-  // Estado dos Desafios Clínicos
+  // Estado dos Desafios Clínicos & Geração Procedural
+  const [problemsList, setProblemsList] = useState(INITIAL_PROBLEMS);
   const [selectedIdx, setSelectedIdx] = useState(0);
+  const [selectedOption, setSelectedOption] = useState(null);
   const [studentInput, setStudentInput] = useState("");
   const [feedback, setFeedback] = useState(null);
   const [evaluating, setEvaluating] = useState(false);
@@ -182,7 +61,7 @@ export default function MedicationDosageLab() {
   const [showFullSolution, setShowFullSolution] = useState(false);
   const [showGotiEvaluationModal, setShowGotiEvaluationModal] = useState(false);
 
-  // Estado da Calculadora Interativa Livre (Resgatada do Backup)
+  // Estado da Calculadora Interativa Livre
   const [calcType, setCalcType] = useState("drip");
   const [calcForm, setCalcForm] = useState({
     drug_name: "",
@@ -203,6 +82,7 @@ export default function MedicationDosageLab() {
   const [currentActivityId, setCurrentActivityId] = useState(null);
   const [activitySeconds, setActivitySeconds] = useState(0);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
   useEffect(() => {
     const action = searchParams.get("action");
@@ -218,7 +98,7 @@ export default function MedicationDosageLab() {
     return () => clearInterval(timer);
   }, []);
 
-  const [toastMessage, setToastMessage] = useState("");
+  const problem = problemsList[selectedIdx] || problemsList[0] || INITIAL_PROBLEMS[0];
 
   function handleSaveDraft() {
     const draft = clinicalHistoryService.saveDraft({
@@ -250,7 +130,67 @@ export default function MedicationDosageLab() {
     setIsHistoryOpen(false);
   }
 
-  const problem = DOSAGE_PROBLEMS[selectedIdx];
+  function handleReset() {
+    setStudentInput("");
+    setSelectedOption(null);
+    setFeedback(null);
+    setShowFormula(false);
+    setShowConversions(false);
+    setShowFullSolution(false);
+  }
+
+  function handleSelectProblem(idx) {
+    setSelectedIdx(idx);
+    handleReset();
+  }
+
+  function handleRandomProblem() {
+    let nextIdx = Math.floor(Math.random() * problemsList.length);
+    if (nextIdx === selectedIdx && problemsList.length > 1) {
+      nextIdx = (selectedIdx + 1) % problemsList.length;
+    }
+    setSelectedIdx(nextIdx);
+    handleReset();
+  }
+
+  function handleGenerateProcedural() {
+    const newProblem = generateProceduralDosageProblem();
+    setProblemsList((prev) => [newProblem, ...prev]);
+    setSelectedIdx(0);
+    handleReset();
+    setToastMessage("⚡ Novo cálculo gerado proceduralmente com 4 alternativas aleatórias!");
+    setTimeout(() => setToastMessage(""), 3500);
+  }
+
+  function handleSelectOption(opt) {
+    setSelectedOption(opt.id);
+    setStudentInput(opt.value || opt.text);
+
+    if (opt.isCorrect) {
+      setFeedback({
+        isCorrect: true,
+        feedback: `Alternativa (${opt.letter}) Correta! ${opt.rationale}`,
+        questionToThink: null
+      });
+      setShowGotiEvaluationModal(true);
+      clinicalHistoryService.submitActivity({
+        id: currentActivityId,
+        moduleType: MODULE_TYPES.DOSAGE,
+        title: `Cálculo: ${problem.title}`,
+        patientInfo: `${problem.category} • Solução: ${problem.solutionName}`,
+        durationSeconds: activitySeconds,
+        score: 100,
+        evaluation: `Alternativa (${opt.letter}) correta: ${opt.rationale}`,
+        formData: { selectedIdx, studentInput: opt.value, selectedOption: opt.id }
+      });
+    } else {
+      setFeedback({
+        isCorrect: false,
+        feedback: `Alternativa (${opt.letter}) Incorreta. ${opt.rationale}`,
+        questionToThink: "Revise a montagem da fórmula ou o cálculo de diluição."
+      });
+    }
+  }
 
   async function handleEvaluate() {
     if (!studentInput.trim()) return;
@@ -275,28 +215,6 @@ export default function MedicationDosageLab() {
     } finally {
       setEvaluating(false);
     }
-  }
-
-  function handleReset() {
-    setStudentInput("");
-    setFeedback(null);
-    setShowFormula(false);
-    setShowConversions(false);
-    setShowFullSolution(false);
-  }
-
-  function handleSelectProblem(idx) {
-    setSelectedIdx(idx);
-    handleReset();
-  }
-
-  function handleRandomProblem() {
-    let nextIdx = Math.floor(Math.random() * DOSAGE_PROBLEMS.length);
-    if (nextIdx === selectedIdx && DOSAGE_PROBLEMS.length > 1) {
-      nextIdx = (selectedIdx + 1) % DOSAGE_PROBLEMS.length;
-    }
-    setSelectedIdx(nextIdx);
-    handleReset();
   }
 
   function updateCalc(k, v) {
@@ -361,496 +279,330 @@ export default function MedicationDosageLab() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100">
-      <StudentHeader activeTab="calculos" />
+    <div className="min-h-screen bg-[#0B131D] text-[#EAF2F8] pb-28 md:pb-8 flex flex-col">
+      <div className="hidden md:block">
+        <StudentHeader activeTab="calculos" />
+      </div>
 
-      <main className="flex-1 mx-auto max-w-5xl w-full px-4 sm:px-6 py-6 space-y-6">
-        {/* Barra Superior Limpa e Funcional com Histórico */}
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-          <div className="flex items-center gap-2.5 flex-wrap">
-            <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
-              Cálculo de Medicamentos & Gotejamento
-            </h1>
-            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-              Segurança do Paciente
+      <main className="flex-1 mx-auto max-w-xl w-full px-4 sm:px-6 py-4 space-y-5">
+        {/* Barra Superior de Exercício 1:1 com Página 17 do PDF */}
+        <div className="flex items-center justify-between gap-3 pt-1 pb-2">
+          <button
+            type="button"
+            onClick={() => navigate("/")}
+            className="w-10 h-10 rounded-full border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#9FB3C6] hover:text-white flex items-center justify-center transition-colors shrink-0"
+            title="Voltar ao início"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          {/* Barra de Progresso Centralizada (1/6) */}
+          <div className="flex-1 max-w-[200px] flex items-center gap-2">
+            <div className="flex-1 h-2 bg-[#1F3045] rounded-full overflow-hidden">
+              <div
+                className="h-full bg-[#20D5B5] rounded-full transition-all duration-300"
+                style={{ width: `${((selectedIdx + 1) / problemsList.length) * 100}%` }}
+              />
+            </div>
+            <span className="text-xs font-bold text-[#9FB3C6] shrink-0">
+              {selectedIdx + 1}/{problemsList.length}
             </span>
           </div>
 
-          <div className="flex items-center gap-2 flex-wrap self-start sm:self-auto">
-            {/* Cronômetro */}
-            <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-              <Clock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-              <span>{clinicalHistoryService.formatDuration(activitySeconds)}</span>
-            </span>
-
-            {/* Botão de Salvar Rascunho */}
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handleSaveDraft}
-              className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
-              title="Salvar rascunho do cálculo no Histórico"
-            >
-              <BookmarkPlus className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-              <span>Salvar Rascunho</span>
-            </Button>
-
-            {/* Botão de Histórico Exclusivo de Cálculos */}
-            <Button
-              variant="outline"
-              size="sm"
+          <div className="relative">
+            <button
+              type="button"
               onClick={() => setIsHistoryOpen(true)}
-              className="rounded-xl border-teal-300 dark:border-teal-800 text-teal-800 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/60 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              className="w-10 h-10 rounded-full border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#9FB3C6] hover:text-white flex items-center justify-center transition-colors shrink-0"
+              title="Opções do desafio & Histórico"
             >
-              <History className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-              <span>Histórico de Cálculos</span>
-            </Button>
-
-            {/* Seletor de Modo Principal */}
-            <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 p-1 rounded-xl border border-slate-200 dark:border-slate-700">
-              <button
-                onClick={() => setActiveTab("desafios")}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  activeTab === "desafios"
-                    ? "bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-400 shadow-xs"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                }`}
-              >
-                Desafios Práticos
-              </button>
-              <button
-                onClick={() => {
-                  setActiveTab("calculadora");
-                  runFreeCalculate();
-                }}
-                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${
-                  activeTab === "calculadora"
-                    ? "bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-400 shadow-xs"
-                    : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-                }`}
-              >
-                Calculadora Livre
-              </button>
-            </div>
+              <MoreVertical className="w-5 h-5" />
+            </button>
           </div>
         </div>
 
         {/* Notificação Toast */}
         {toastMessage && (
-          <div className="p-3.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs flex items-center gap-2 animate-in fade-in shadow-sm">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-            <span className="font-medium">{toastMessage}</span>
+          <div className="p-3.5 rounded-2xl bg-[#16222E] border border-[#20D5B5]/40 text-white text-xs flex items-center gap-2 animate-in fade-in shadow-md">
+            <CheckCircle2 className="h-4 w-4 text-[#20D5B5] shrink-0" />
+            <span className="font-bold">{toastMessage}</span>
           </div>
         )}
 
         {/* ========================================================================= */}
-        {/* ABA 1: DESAFIOS CLÍNICOS & CASOS PRÁTICOS                                */}
+        {/* ABA 1: DESAFIOS CLÍNICOS & CASOS PRÁTICOS (Páginas 17 e 18 do PDF)        */}
         {/* ========================================================================= */}
         {activeTab === "desafios" && (
-          <div className="space-y-6 animate-in fade-in">
-            {/* Banner de Acesso Rápido ao Histórico de Cálculos & Doses */}
-            <div
-              onClick={() => setIsHistoryOpen(true)}
-              className="p-4 sm:p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-teal-600 dark:text-teal-400 group-hover:scale-105 transition-transform shadow-2xs">
-                  <History className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <span>Consultar Histórico de Cálculos & Doses</span>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                      Retomar Atividades
-                    </span>
-                  </h4>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Veja os cálculos que você já resolveu, notas de acurácia matemática e continue desafios em andamento.
-                  </p>
-                </div>
-              </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsHistoryOpen(true);
-                }}
-                className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-white dark:hover:bg-slate-900 shrink-0"
-              >
-                <span>Abrir Histórico</span>
-                <ArrowRight className="h-3.5 w-3.5 ml-1 text-teal-600" />
-              </Button>
-            </div>
-            {/* Cabeçalho Limpo: Identificação e Ação de Sorteio */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-              <div>
-                <div className="flex items-center gap-2 flex-wrap">
-                  <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wide">
-                    {problem.category}
-                  </span>
-                  <span className="text-xs text-slate-400 font-medium">
-                    Desafio Clínico {selectedIdx + 1} de {DOSAGE_PROBLEMS.length}
-                  </span>
-                </div>
-                <h2 className="text-base sm:text-lg font-black text-slate-900 dark:text-slate-100 mt-1 tracking-tight">
-                  {problem.title}
-                </h2>
-                <div className="flex items-center gap-2 pt-1 flex-wrap">
-                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Selecionar desafio:</span>
-                  <select
-                    value={selectedIdx}
-                    onChange={(e) => handleSelectProblem(Number(e.target.value))}
-                    className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 font-medium cursor-pointer"
-                  >
-                    {DOSAGE_PROBLEMS.map((p, i) => (
-                      <option key={p.id || i} value={i}>
-                        #{i + 1} - {p.category}: {p.title}
-                      </option>
-                    ))}
-                  </select>
-                </div>
-              </div>
-
-              <Button
-                onClick={handleRandomProblem}
-                variant="outline"
-                className="rounded-xl border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-xs font-bold flex items-center gap-2 shadow-2xs self-start sm:self-auto shrink-0 py-2.5 px-4 tap-press hover-lift"
-              >
-                <Shuffle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                <span>🎲 Sortear Novo Desafio</span>
-              </Button>
+          <div className="space-y-5 animate-in fade-in">
+            {/* Badges de Categoria (Página 17 do PDF) */}
+            <div className="flex items-center gap-2 flex-wrap">
+              <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
+                {problem.category?.toUpperCase() || "MACROGOTAS / HORAS"}
+              </span>
+              <span className="text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
+                Segurança do Paciente
+              </span>
             </div>
 
-            {/* Dica e Suporte do Goti */}
-            <div className="rounded-2xl border border-teal-200/80 dark:border-teal-800/80 bg-teal-50/70 dark:bg-slate-900/90 p-4 sm:p-5 shadow-xs flex flex-col sm:flex-row items-center gap-4 sm:gap-6">
-              <div className="shrink-0 flex items-center justify-center">
-                <GotiAnimated
-                  animation={evaluating ? "thinking" : feedback?.isCorrect ? "jumping" : feedback ? "angry" : "pointing"}
-                  size="feedback"
-                  className="w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 lg:w-56 lg:h-56 shrink-0"
+            {/* Título do Desafio */}
+            <h1 className="text-xl sm:text-2xl font-black text-white leading-tight">
+              {problem.title}
+            </h1>
+
+            {/* Card "Registro de prescrição" (Página 17 do PDF) */}
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 space-y-4 shadow-xs">
+              <div className="flex items-center gap-2 text-xs font-black text-[#20D5B5]">
+                <FileText className="w-4 h-4 text-[#20D5B5]" />
+                <span className="uppercase tracking-wider">Registro de prescrição</span>
+              </div>
+
+              <p className="text-xs sm:text-sm text-[#EAF2F8] leading-relaxed font-medium">
+                {problem.description}
+              </p>
+
+              {/* Grid 2x2 com os 4 Quadrantes */}
+              <div className="grid grid-cols-2 gap-3 pt-2 border-t border-[#1F3045] text-xs">
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-[#9FB3C6] font-bold block uppercase">Solução</span>
+                  <strong className="text-white font-bold text-xs sm:text-sm block">
+                    {problem.solutionName || "Soro Fisiológico 0,9%"}
+                  </strong>
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-[#9FB3C6] font-bold block uppercase">Volume</span>
+                  <strong className="text-white font-bold text-xs sm:text-sm block">
+                    {problem.volume || "1000 mL"}
+                  </strong>
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-[#9FB3C6] font-bold block uppercase">Via / tempo</span>
+                  <strong className="text-white font-bold text-xs sm:text-sm block">
+                    {problem.route || "IV"} · {problem.time || "8 horas"}
+                  </strong>
+                </div>
+                <div className="space-y-0.5">
+                  <span className="text-[10px] text-[#9FB3C6] font-bold block uppercase">Equipo</span>
+                  <strong className="text-white font-bold text-xs sm:text-sm block">
+                    {problem.device || "Macrogotas"}
+                  </strong>
+                </div>
+              </div>
+            </div>
+
+            {/* Pergunta do Desafio */}
+            <div className="space-y-3 pt-1">
+              <h2 className="text-base sm:text-lg font-black text-white">
+                {problem.question || "Quantas gotas por minuto?"}
+              </h2>
+
+              {/* Campo de Resposta com Sufixo Integrado (Página 17 do PDF) */}
+              <div className="bg-[#0E1722] rounded-2xl border-2 border-[#20D5B5] p-4 flex items-center justify-between gap-3 shadow-inner">
+                <input
+                  type="text"
+                  value={studentInput}
+                  onChange={(e) => {
+                    setStudentInput(e.target.value);
+                    setSelectedOption(null);
+                  }}
+                  onKeyDown={(e) => e.key === "Enter" && handleEvaluate()}
+                  placeholder="Sua resposta"
+                  className="bg-transparent border-none text-white text-base sm:text-lg font-black placeholder:text-[#9FB3C6]/60 focus:outline-none focus:ring-0 flex-1 w-full"
                 />
+                <span className="text-xs sm:text-sm font-bold text-[#9FB3C6] shrink-0">
+                  gotas/min
+                </span>
               </div>
-              <div className="flex-1 text-center sm:text-left space-y-2">
-                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-teal-100 dark:bg-teal-900/60 text-teal-800 dark:text-teal-300 text-[11px] font-bold uppercase tracking-wider">
-                  <Sparkles className="w-3 h-3 text-amber-500" />
-                  Goti
-                </div>
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-200 leading-snug">
-                  {feedback?.isCorrect
-                    ? "Incrível! Dosagem perfeita e cálculo validado com rigor de segurança!"
-                    : evaluating
-                    ? "Deixe-me conferir as etapas do seu cálculo clínico..."
-                    : feedback
-                    ? "Atenção à margem terapêutica! Vamos recalcular juntos?"
-                    : "Resolva este desafio! A dosagem correta protege o paciente contra iatrogenias."}
-                </p>
-                <div className="flex flex-wrap items-center justify-center sm:justify-start gap-2 pt-1">
-                  <Button
-                    type="button"
-                    size="sm"
-                    onClick={() => {
-                      if (typeof window !== "undefined") {
-                        window.dispatchEvent(
-                          new CustomEvent("open-goti-chat", {
-                            detail: {
-                              prompt: `Olá Goti! Estou resolvendo uma prescrição de ${problem.category}: "${problem.description}". Como devo raciocinar para montar a fórmula passo a passo? Pode me dar um exemplo didático modelo similar sem me dar a resposta final?`
-                            }
-                          })
-                        );
-                      }
-                    }}
-                    className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs py-2 px-3.5 tap-press"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                    <span>Dúvidas? Fale com o Goti!</span>
-                  </Button>
-                  <span className="text-[11px] text-slate-500 dark:text-slate-400">
-                    O Goti te guia na fórmula com um exemplo didático modelo.
-                  </span>
-                </div>
-              </div>
-            </div>
 
-            {/* Bancada Principal Limpa de Cálculo Clínico (Sem ruído lateral - CLT / Sweller) */}
-            <div className="max-w-4xl mx-auto space-y-5">
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5">
-                {/* Cabeçalho da Ordem com Ações Sob Demanda (Progressive Disclosure) */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-3">
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-slate-700 dark:text-slate-200 bg-slate-100 dark:bg-slate-800 px-2.5 py-1 rounded-lg">
-                      Ordem Médica #{selectedIdx + 1}
-                    </span>
-                    <span className="text-xs text-slate-400 font-medium">
-                      {problem.category}
-                    </span>
-                  </div>
-
-                  <div className="flex items-center gap-2 flex-wrap">
+              {/* 4 Alternativas Rápidas (Toque para preencher) */}
+              {problem.options && problem.options.length > 0 && (
+                <div className="grid grid-cols-2 gap-2 pt-1">
+                  {problem.options.map((opt) => (
                     <button
-                      onClick={() => setShowFormula(!showFormula)}
-                      className={`text-xs font-medium px-2.5 py-1 rounded-lg border transition flex items-center gap-1.5 ${
-                        showFormula
-                          ? "bg-amber-50 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-300"
-                          : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
+                      key={opt.id || opt.letter}
+                      type="button"
+                      onClick={() => handleSelectOption(opt)}
+                      className={`p-2.5 rounded-xl border text-left text-xs font-semibold transition-all flex items-center gap-2 ${
+                        studentInput.trim() === opt.value || selectedOption === opt.id
+                          ? "bg-[#20D5B5]/15 border-[#20D5B5] text-[#20D5B5]"
+                          : "bg-[#0E1722] border-[#1F3045] text-[#9FB3C6] hover:text-white"
                       }`}
                     >
-                      <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-                      <span>{showFormula ? "Ocultar Fórmula" : "💡 Ver Fórmula"}</span>
-                    </button>
-
-                    <button
-                      onClick={() => setShowConversions(!showConversions)}
-                      className={`text-xs font-medium px-2.5 py-1 rounded-lg border transition flex items-center gap-1.5 ${
-                        showConversions
-                          ? "bg-teal-50 dark:bg-teal-950/40 border-teal-300 dark:border-teal-800 text-teal-900 dark:text-teal-300"
-                          : "border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800"
-                      }`}
-                    >
-                      <BookOpen className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-                      <span>{showConversions ? "Ocultar Conversões" : "📊 Tabela de Conversão"}</span>
-                    </button>
-
-                    <button
-                      onClick={() => {
-                        setActiveTab("calculadora");
-                        runFreeCalculate();
-                      }}
-                      className="text-xs font-medium px-2.5 py-1 rounded-lg border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 transition flex items-center gap-1.5"
-                    >
-                      <Calculator className="h-3.5 w-3.5 text-slate-500" />
-                      <span>Calculadora Livre</span>
-                    </button>
-                  </div>
-                </div>
-
-                {/* Tabela de Conversões Sob Demanda (Divulgação Progressiva) */}
-                {showConversions && (
-                  <div className="p-4 rounded-xl bg-teal-50/70 dark:bg-teal-950/30 border border-teal-200 dark:border-teal-800 text-xs text-teal-950 dark:text-teal-200 space-y-2.5 animate-in fade-in">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold flex items-center gap-1.5 uppercase tracking-wide text-[11px] text-teal-900 dark:text-teal-300">
-                        <BookOpen className="h-3.5 w-3.5" />
-                        Tabela de Conversões & Equivalências Hospitalares
+                      <span className="w-5 h-5 rounded-md bg-[#131F2E] border border-[#1F3045] text-[10px] font-black flex items-center justify-center shrink-0">
+                        {opt.letter}
                       </span>
-                      <button
-                        onClick={() => setShowConversions(false)}
-                        className="text-[10px] font-bold text-teal-700 dark:text-teal-400 hover:underline"
-                      >
-                        Fechar
-                      </button>
-                    </div>
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
-                      <div className="p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-teal-200/80 dark:border-teal-800/60">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Gotas</span>
-                        <strong className="text-teal-900 dark:text-teal-200">1 mL = 20 gotas</strong>
-                      </div>
-                      <div className="p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-teal-200/80 dark:border-teal-800/60">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Microgotas</span>
-                        <strong className="text-teal-900 dark:text-teal-200">1 mL = 60 microgotas</strong>
-                      </div>
-                      <div className="p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-teal-200/80 dark:border-teal-800/60">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Massa / Gramas</span>
-                        <strong className="text-teal-900 dark:text-teal-200">1 g = 1.000 mg</strong>
-                      </div>
-                      <div className="p-2 rounded-lg bg-white/80 dark:bg-slate-900/80 border border-teal-200/80 dark:border-teal-800/60">
-                        <span className="text-[10px] text-slate-500 dark:text-slate-400 block">Miligramas</span>
-                        <strong className="text-teal-900 dark:text-teal-200">1 mg = 1.000 mcg</strong>
-                      </div>
-                    </div>
-                  </div>
-                )}
-
-                {/* Fórmula Orientadora Sob Demanda (Divulgação Progressiva) */}
-                {showFormula && (
-                  <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-900 dark:text-amber-200 flex items-start justify-between gap-2.5 animate-in fade-in">
-                    <div className="flex items-start gap-2.5">
-                      <Lightbulb className="h-4 w-4 shrink-0 text-amber-600 dark:text-amber-400 mt-0.5" />
-                      <div>
-                        <span className="font-bold">Fórmula de Referência Orientadora:</span>
-                        <p className="mt-0.5 font-mono text-slate-800 dark:text-slate-200 font-semibold">{problem.formulaHint}</p>
-                      </div>
-                    </div>
-                    <button
-                      onClick={() => setShowFormula(false)}
-                      className="text-[10px] font-bold text-amber-700 dark:text-amber-400 hover:underline shrink-0"
-                    >
-                      Ocultar
+                      <span className="truncate">{opt.text}</span>
                     </button>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            {/* Linha de Ações Auxiliares (Página 17 do PDF) */}
+            <div className="flex items-center gap-2 pt-1 flex-wrap">
+              <button
+                type="button"
+                onClick={() => setShowFormula(!showFormula)}
+                className={`rounded-2xl border px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  showFormula
+                    ? "bg-[#FFC247]/15 border-[#FFC247] text-[#FFC247]"
+                    : "bg-[#0E1722] border-[#1F3045] text-white hover:bg-[#16222E]"
+                }`}
+              >
+                <Lightbulb className="w-3.5 h-3.5 text-[#FFC247]" />
+                <span>Ver Fórmula</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setShowConversions(!showConversions)}
+                className={`rounded-2xl border px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-1.5 ${
+                  showConversions
+                    ? "bg-[#20D5B5]/15 border-[#20D5B5] text-[#20D5B5]"
+                    : "bg-[#0E1722] border-[#1F3045] text-white hover:bg-[#16222E]"
+                }`}
+              >
+                <BookOpen className="w-3.5 h-3.5 text-[#20D5B5]" />
+                <span>Tabela de Conversão</span>
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  window.dispatchEvent(
+                    new CustomEvent("open-goti-chat", {
+                      detail: {
+                        prompt: `Olá Goti! Estou resolvendo uma prescrição de ${problem.category}: "${problem.description}". Como devo raciocinar para montar a fórmula passo a passo? Pode me dar uma dica didática?`
+                      }
+                    })
+                  );
+                }}
+                className="rounded-2xl border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-white px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-2"
+              >
+                <GotiAnimated animation="pointing" size={24} />
+                <span>Goti</span>
+              </button>
+            </div>
+
+            {/* Tabela de Conversões Sob Demanda */}
+            {showConversions && (
+              <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] text-xs text-[#EAF2F8] space-y-2.5 animate-in fade-in">
+                <span className="font-bold flex items-center gap-1.5 uppercase tracking-wide text-[10px] text-[#20D5B5]">
+                  <BookOpen className="h-3.5 w-3.5" />
+                  Tabela de Conversões Hospitalares
+                </span>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center">
+                  <div className="p-2 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                    <span className="text-[10px] text-[#9FB3C6] block">Gotas</span>
+                    <strong className="text-white">1 mL = 20 gotas</strong>
                   </div>
-                )}
-
-                {/* Detalhes Estruturados da Prescrição */}
-                <div className="space-y-3">
-                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                    {problem.title}
-                  </h2>
-
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 space-y-3">
-                    <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400 uppercase tracking-wider font-semibold">
-                      <FileText className="h-4 w-4 text-slate-400" />
-                      <span>Registro de Prescrição</span>
-                    </div>
-                    <p className="text-xs sm:text-sm text-slate-800 dark:text-slate-200 font-medium leading-relaxed">
-                      {problem.description}
-                    </p>
-
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 border-t border-slate-200/60 dark:border-slate-700 text-xs">
-                      <div>
-                        <span className="text-[10px] text-slate-400 font-semibold block uppercase">Solução</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{problem.solutionName || "Solução"}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 font-semibold block uppercase">Volume</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{problem.volume || "—"}</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 font-semibold block uppercase">Via / Tempo</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{problem.route} ({problem.time})</span>
-                      </div>
-                      <div>
-                        <span className="text-[10px] text-slate-400 font-semibold block uppercase">Equipo</span>
-                        <span className="font-semibold text-slate-800 dark:text-slate-200">{problem.device}</span>
-                      </div>
-                    </div>
+                  <div className="p-2 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                    <span className="text-[10px] text-[#9FB3C6] block">Microgotas</span>
+                    <strong className="text-white">1 mL = 60 microgotas</strong>
+                  </div>
+                  <div className="p-2 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                    <span className="text-[10px] text-[#9FB3C6] block">Gramas</span>
+                    <strong className="text-white">1 g = 1.000 mg</strong>
+                  </div>
+                  <div className="p-2 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                    <span className="text-[10px] text-[#9FB3C6] block">Miligramas</span>
+                    <strong className="text-white">1 mg = 1.000 mcg</strong>
                   </div>
                 </div>
+              </div>
+            )}
 
-                {/* Campo de Resolução Ativa do Aluno (Miller Nível 3 - Demonstrar Como Faz) */}
-                <div className="space-y-2 pt-1">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                    {problem.question}
-                  </label>
-                  <div className="flex gap-2">
-                    <Input
-                      type="text"
-                      value={studentInput}
-                      onChange={(e) => setStudentInput(e.target.value)}
-                      placeholder="Digite o resultado do seu cálculo (valor numérico ou raciocínio)..."
-                      className="rounded-xl border-slate-300 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-100 text-sm h-10"
-                      onKeyDown={(e) => e.key === "Enter" && handleEvaluate()}
-                    />
-                    <Button
-                      onClick={handleEvaluate}
-                      disabled={evaluating || !studentInput.trim()}
-                      className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white shrink-0 px-5 h-10 font-semibold"
-                    >
-                      {evaluating ? "Verificando..." : "Conferir Cálculo"}
-                    </Button>
-                  </div>
-                </div>
+            {/* Fórmula de Referência Sob Demanda */}
+            {showFormula && (
+              <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#FFC247]/40 text-xs text-[#EAF2F8] space-y-1 animate-in fade-in">
+                <span className="font-bold text-[#FFC247] block text-[10px] uppercase">Fórmula de Referência:</span>
+                <p className="font-mono text-sm text-white font-bold">{problem.formulaHint}</p>
+              </div>
+            )}
 
-                {/* Feedback & Debriefing Clínico Imediato (PEARLS / DML pós-ação) */}
-                {feedback && (
-                  <div className="space-y-4 animate-in fade-in">
+            {/* Botão Principal "Verificar" 3D Tátil (Página 17 do PDF) */}
+            <div className="pt-3">
+              <button
+                type="button"
+                disabled={evaluating || !studentInput.trim()}
+                onClick={handleEvaluate}
+                className="w-full py-4 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none text-center text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+              >
+                {evaluating ? "Verificando..." : "Verificar"}
+              </button>
+            </div>
+
+            {/* ========================================================================= */}
+            {/* BOTTOM SHEET / MODAL DE FEEDBACK IMEDIATO (Página 18 do PDF)               */}
+            {/* ========================================================================= */}
+            {feedback && (
+              <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+                <div className="bg-[#131F2E] border-t sm:border border-[#1F3045] rounded-t-[32px] sm:rounded-3xl p-6 w-full max-w-md space-y-5 animate-in slide-in-from-bottom duration-200 shadow-2xl">
+                  {/* Cabeçalho do Resultado */}
+                  <div className="flex items-center gap-3">
                     <div
-                      className={`p-4 rounded-xl border space-y-3 transition-all ${
-                        feedback.isCorrect
-                          ? "bg-slate-50 dark:bg-slate-800/80 border-teal-600 text-slate-900 dark:text-slate-100"
-                          : "bg-amber-50/70 dark:bg-amber-950/40 border-amber-300 dark:border-amber-800 text-amber-950 dark:text-amber-200"
+                      className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
+                        feedback.isCorrect ? "bg-[#20D5B5] text-[#0B131D]" : "bg-[#FFC247] text-[#0B131D]"
                       }`}
                     >
-                      <div className="flex flex-col sm:flex-row items-center gap-4">
-                        <div
-                          className="shrink-0 flex items-center justify-center cursor-pointer transition-transform hover:scale-105 active:scale-95"
-                          onClick={() => setShowGotiEvaluationModal(true)}
-                          title="Clique para ver a comemoração do Goti!"
-                        >
-                          <GotiAnimated
-                            animation={feedback.isCorrect ? "jumping" : "angry"}
-                            size="feedback"
-                            className="w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 lg:w-56 lg:h-56 shrink-0"
-                          />
-                        </div>
-                        <div className="flex-1 space-y-1.5 text-center sm:text-left">
-                          <div className="flex items-center justify-center sm:justify-start gap-2">
-                            {feedback.isCorrect ? (
-                              <CheckCircle2 className="h-5 w-5 text-teal-700 dark:text-teal-400 shrink-0" />
-                            ) : (
-                              <AlertTriangle className="h-5 w-5 text-amber-600 dark:text-amber-400 shrink-0" />
-                            )}
-                            <h3 className="text-sm font-bold">
-                              {feedback.isCorrect ? "Cálculo Correto e Aprovado pelo Goti! 🎉" : "Atenção na Resolução:"}
-                            </h3>
+                      <CheckCircle2 className="w-7 h-7 stroke-[2.5]" />
+                    </div>
+                    <div>
+                      <h3 className="text-xl font-black text-white">
+                        {feedback.isCorrect ? "Correto!" : "Atenção ao cálculo!"}
+                      </h3>
+                      <span className="inline-block text-xs font-black text-[#20D5B5] bg-[#20D5B5]/15 border border-[#20D5B5]/30 px-2.5 py-0.5 rounded-full mt-0.5">
+                        {feedback.isCorrect ? "+25 PE" : "Revisar"}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Card "Como chegar lá" (Página 18 do PDF) */}
+                  <div className="bg-[#0E1722] rounded-2xl border border-[#1F3045] p-4 space-y-2.5">
+                    <span className="text-xs font-black text-white block">Como chegar lá</span>
+                    <div className="space-y-2 text-xs font-mono text-[#EAF2F8]">
+                      {problem.explanationSteps && problem.explanationSteps.length >= 2 ? (
+                        <>
+                          <div className="flex items-start gap-2.5">
+                            <span className="w-5 h-5 rounded-md bg-[#131F2E] border border-[#1F3045] text-white font-black text-xs flex items-center justify-center shrink-0">
+                              1
+                            </span>
+                            <span className="text-white font-bold leading-relaxed pt-0.5">
+                              {problem.explanationSteps[2] || "1000 ÷ (8 × 3) = 41,7"}
+                            </span>
                           </div>
-
-                          <p className="text-xs leading-relaxed">{feedback.feedback}</p>
-                        </div>
-                      </div>
-
-                      {feedback.questionToThink && (
-                        <div className="p-3 rounded-lg bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-xs text-slate-800 dark:text-slate-200">
-                          <span className="font-bold block text-slate-900 dark:text-slate-100 mb-0.5">Ponto de Atenção:</span>
-                          <p>{feedback.questionToThink}</p>
-                        </div>
-                      )}
-
-                      {feedback.isCorrect ? (
-                        <div className="pt-2 flex justify-end">
-                          <Button
-                            size="sm"
-                            onClick={handleRandomProblem}
-                            className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs font-semibold flex items-center gap-1.5"
-                          >
-                            <span>🎲 Próximo Desafio Aleatório</span>
-                            <ArrowRight className="h-3.5 w-3.5" />
-                          </Button>
-                        </div>
+                          <div className="flex items-start gap-2.5">
+                            <span className="w-5 h-5 rounded-md bg-[#131F2E] border border-[#1F3045] text-white font-black text-xs flex items-center justify-center shrink-0">
+                              2
+                            </span>
+                            <span className="text-white font-bold leading-relaxed pt-0.5">
+                              {problem.explanationSteps[3] || `Arredondando: ${problem.correctResult} gotas/min`}
+                            </span>
+                          </div>
+                        </>
                       ) : (
-                        <div className="pt-2 flex flex-wrap items-center justify-between gap-2 border-t border-amber-200/60 dark:border-amber-900/40">
-                          <Button
-                            size="sm"
-                            onClick={() => {
-                              setFeedback(null);
-                              setStudentInput("");
-                            }}
-                            className="rounded-xl bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold flex items-center gap-1.5"
-                          >
-                            <RotateCcw className="h-3.5 w-3.5" />
-                            <span>Tentar Novamente (Sem Spoiler)</span>
-                          </Button>
-
-                          {!showFullSolution && (
-                            <button
-                              type="button"
-                              onClick={() => setShowFullSolution(true)}
-                              className="text-[11px] font-semibold text-amber-800 dark:text-amber-400 hover:underline"
-                            >
-                              Desistir e ver resolução completa →
-                            </button>
-                          )}
-                        </div>
+                        <p className="text-xs text-[#9FB3C6] font-sans leading-relaxed">
+                          {feedback.feedback}
+                        </p>
                       )}
                     </div>
-
-                    {/* Resolução Passo a Passo Revelada Apenas Quando Correto ou Por Desistência Explícita */}
-                    {(feedback.isCorrect || showFullSolution) && (
-                      <div className="bg-slate-50 dark:bg-slate-800/60 rounded-xl border border-slate-200 dark:border-slate-700 p-4 space-y-3 animate-in fade-in">
-                        <div className="flex items-center justify-between">
-                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide flex items-center gap-1.5">
-                            <ShieldCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                            Etapas de Resolução & Dupla Checagem (Debriefing)
-                          </span>
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                            Resposta Esperada: {problem.correctResult}
-                          </span>
-                        </div>
-                        <ul className="space-y-2 text-xs text-slate-600 dark:text-slate-300">
-                          {problem.explanationSteps.map((step, idx) => (
-                            <li key={idx} className="flex items-start gap-2">
-                              <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-200 dark:bg-slate-700 text-slate-800 dark:text-slate-200 text-[10px] font-bold shrink-0 mt-0.5">
-                                {idx + 1}
-                              </span>
-                              <span className="leading-relaxed">{step}</span>
-                            </li>
-                          ))}
-                        </ul>
-                      </div>
-                    )}
                   </div>
-                )}
+
+                  {/* Botão 3D "Continuar" (Página 18 do PDF) */}
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setFeedback(null);
+                      setStudentInput("");
+                      setSelectedOption(null);
+                      setSelectedIdx((prev) => (prev + 1) % problemsList.length);
+                    }}
+                    className="w-full py-4 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none text-center text-sm transition-all cursor-pointer"
+                  >
+                    Continuar
+                  </button>
+                </div>
               </div>
-            </div>
+            )}
           </div>
         )}
 
@@ -1119,6 +871,7 @@ export default function MedicationDosageLab() {
       </main>
 
       <StudentFooter />
+      <MobileBottomDock />
     </div>
   );
 }

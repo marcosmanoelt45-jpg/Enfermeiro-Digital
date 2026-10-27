@@ -30,7 +30,6 @@ async function run() {
   await page.goto("http://localhost:5174/", { waitUntil: "networkidle0" });
   await page.waitForSelector("nav", { timeout: 10000 });
 
-  // Clica no botão Casos via evaluate na dock inferior móvel
   await page.evaluate(() => {
     const dock = document.querySelector("nav.fixed.bottom-0");
     if (dock) {
@@ -50,7 +49,7 @@ async function run() {
   await page.screenshot({ path: path.join(OUTPUT_DIR, "02-intro-real.png") });
   console.log("✅ Capturada 02-intro-real.png");
 
-  // Testa alternar paciente para Teresinha e captura
+  // Alterna paciente para Teresinha e captura
   await page.evaluate(() => {
     const btns = Array.from(document.querySelectorAll("button"));
     const terBtn = btns.find((b) => b.textContent.trim() === "Teresinha");
@@ -60,178 +59,175 @@ async function run() {
   await page.screenshot({ path: path.join(OUTPUT_DIR, "02-intro-teresinha-real.png") });
   console.log("✅ Capturada 02-intro-teresinha-real.png");
 
-  // Volta para Marcus
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const marBtn = btns.find((b) => b.textContent.trim() === "Marcus");
-    if (marBtn) marBtn.click();
-  });
-  await new Promise((r) => setTimeout(r, 400));
-
-  // Clica em Iniciar atendimento
+  // Iniciar Atendimento
   console.log("▶️ Clicando em Iniciar atendimento...");
   await page.evaluate(() => {
     const btns = Array.from(document.querySelectorAll("button"));
-    const startBtn = btns.find((b) => b.textContent.includes("Iniciar atendimento"));
-    if (startBtn) startBtn.click();
+    const iniciarBtn = btns.find((b) => b.textContent.includes("Iniciar atendimento"));
+    if (iniciarBtn) iniciarBtn.click();
   });
-
-  // 3. Tela 3: Paciente Falando
   await new Promise((r) => setTimeout(r, 800));
-  await page.screenshot({ path: path.join(OUTPUT_DIR, "03-fala-paciente-real.png") });
-  console.log("✅ Capturada 03-fala-paciente-real.png");
 
-  // Clica em Pular fala
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const pularBtn = btns.find((b) => b.textContent.includes("Pular"));
-    if (pularBtn) pularBtn.click();
-  });
-  await new Promise((r) => setTimeout(r, 400));
+  let capturedEscolha = false;
+  let capturedSelecao = false;
+  let capturedCalculo = false;
+  let capturedVoz = false;
+  let capturedFeedback = false;
+  let capturedFala = false;
 
-  // Clica em Continuar para ir para a Tela 4
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const contBtn = btns.find((b) => b.textContent.includes("Continuar"));
-    if (contBtn) contBtn.click();
-  });
+  for (let loop = 0; loop < 20; loop++) {
+    await new Promise((r) => setTimeout(r, 600));
 
-  // 4. Tela 4: Múltipla Escolha
-  await new Promise((r) => setTimeout(r, 800));
-  await page.screenshot({ path: path.join(OUTPUT_DIR, "04-questao-escolha-real.png") });
-  console.log("✅ Capturada 04-questao-escolha-real.png");
-
-  // Seleciona a primeira alternativa A
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const optA = btns.find((b) => b.textContent.includes("Avaliar a ferida"));
-    if (optA) optA.click();
-  });
-  await new Promise((r) => setTimeout(r, 400));
-
-  // Clica em Verificar
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const verifBtn = btns.find((b) => b.textContent.includes("Verificar"));
-    if (verifBtn) verifBtn.click();
-  });
-
-  // 8. Tela 8: Feedback de Acerto
-  await new Promise((r) => setTimeout(r, 600));
-  await page.screenshot({ path: path.join(OUTPUT_DIR, "08-feedback-acerto-real.png") });
-  console.log("✅ Capturada 08-feedback-acerto-real.png");
-
-  // Clica em Continuar no feedback
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const contBtn = btns.find((b) => b.textContent.includes("Continuar"));
-    if (contBtn) contBtn.click();
-  });
-
-  // 5. Tela 5: Múltipla Seleção
-  await new Promise((r) => setTimeout(r, 800));
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    btns.forEach((b) => {
-      const text = b.textContent;
-      if (
-        text.includes("Soro fisiológico") ||
-        text.includes("Luvas de procedimento") ||
-        text.includes("Gaze estéril") ||
-        text.includes("Fita hipoalergênica")
-      ) {
-        b.click();
-      }
+    // 1. Verifica se o modal de feedback está aberto
+    const isFeedbackOpen = await page.evaluate(() => {
+      const contBtn = Array.from(document.querySelectorAll("button")).find((b) =>
+        b.textContent.trim() === "Continuar"
+      );
+      return !!contBtn;
     });
-  });
-  await new Promise((r) => setTimeout(r, 400));
-  await page.screenshot({ path: path.join(OUTPUT_DIR, "05-questao-selecao-real.png") });
-  console.log("✅ Capturada 05-questao-selecao-real.png");
 
-  // Clica em Verificar
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const verifBtn = btns.find((b) => b.textContent.includes("Verificar"));
-    if (verifBtn) verifBtn.click();
-  });
-  await new Promise((r) => setTimeout(r, 600));
+    if (isFeedbackOpen) {
+      if (!capturedFeedback) {
+        await page.screenshot({ path: path.join(OUTPUT_DIR, "08-feedback-acerto-real.png") });
+        console.log("✅ Capturada 08-feedback-acerto-real.png");
+        capturedFeedback = true;
+      }
+      await page.evaluate(() => {
+        const contBtn = Array.from(document.querySelectorAll("button")).find((b) =>
+          b.textContent.trim() === "Continuar"
+        );
+        if (contBtn) contBtn.click();
+      });
+      continue;
+    }
 
-  // Clica em Continuar no feedback
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const contBtn = btns.find((b) => b.textContent.includes("Continuar"));
-    if (contBtn) contBtn.click();
-  });
+    // 2. Verifica se chegou na tela de resumo
+    const isResumo = await page.evaluate(() => {
+      return document.body.innerText.includes("Atendimento concluído");
+    });
+    if (isResumo) {
+      console.log("🎉 Tela de resumo alcançada!");
+      await page.screenshot({ path: path.join(OUTPUT_DIR, "10-resumo-real.png") });
+      console.log("✅ Capturada 10-resumo-real.png");
+      break;
+    }
 
-  // 6. Tela 6: Cálculo de Dose
-  await new Promise((r) => setTimeout(r, 800));
-  // Clica na tecla '2' do teclado virtual
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const btn2 = btns.find((b) => b.textContent.trim() === "2");
-    if (btn2) btn2.click();
-  });
-  await new Promise((r) => setTimeout(r, 400));
-  await page.screenshot({ path: path.join(OUTPUT_DIR, "06-questao-calculo-real.png") });
-  console.log("✅ Capturada 06-questao-calculo-real.png");
+    // 3. Verifica se é fala do paciente
+    const isFala = await page.evaluate(() => {
+      const btns = Array.from(document.querySelectorAll("button"));
+      return btns.some((b) => b.textContent.includes("Pular") || b.textContent.includes("Ouvir de novo"));
+    });
 
-  // Clica em Verificar
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const verifBtn = btns.find((b) => b.textContent.includes("Verificar"));
-    if (verifBtn) verifBtn.click();
-  });
-  await new Promise((r) => setTimeout(r, 600));
+    if (isFala) {
+      if (!capturedFala) {
+        await page.screenshot({ path: path.join(OUTPUT_DIR, "03-fala-paciente-real.png") });
+        console.log("✅ Capturada 03-fala-paciente-real.png");
+        capturedFala = true;
+      }
+      await page.evaluate(() => {
+        const btns = Array.from(document.querySelectorAll("button"));
+        const pular = btns.find((b) => b.textContent.includes("Pular"));
+        if (pular) pular.click();
+      });
+      await new Promise((r) => setTimeout(r, 400));
+      await page.evaluate(() => {
+        const btns = Array.from(document.querySelectorAll("button"));
+        const cont = btns.find((b) => b.textContent.includes("Continuar"));
+        if (cont) cont.click();
+      });
+      continue;
+    }
 
-  // Clica em Continuar no feedback
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const contBtn = btns.find((b) => b.textContent.includes("Continuar"));
-    if (contBtn) contBtn.click();
-  });
+    // 4. Identifica tipo de questão ativa
+    const questionType = await page.evaluate(() => {
+      if (document.querySelector(".grid.grid-cols-3")) return "calculo";
+      if (document.querySelector("button[aria-label='Gravar resposta por voz']")) return "voz";
+      const badges = Array.from(document.querySelectorAll("span")).map((s) => s.textContent.trim());
+      if (badges.includes("A") || badges.includes("B")) return "escolha";
+      const hasCheckbox = document.querySelector(".rounded-lg.border-2");
+      if (hasCheckbox) return "selecao";
+      return "desconhecido";
+    });
 
-  // 7. Tela 7: Resposta Falada
-  await new Promise((r) => setTimeout(r, 800));
-  await page.screenshot({ path: path.join(OUTPUT_DIR, "07-questao-voz-real.png") });
-  console.log("✅ Capturada 07-questao-voz-real.png");
+    console.log(`Passo ativo: tipo = ${questionType}`);
 
-  // Clica em Prefiro digitar
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const digBtn = btns.find((b) => b.textContent.includes("Prefiro digitar"));
-    if (digBtn) digBtn.click();
-  });
-  await new Promise((r) => setTimeout(r, 400));
-  await page.type("textarea", "Higienizar as mãos com água e sabão");
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const salvarBtn = btns.find((b) => b.textContent.trim() === "Salvar");
-    if (salvarBtn) salvarBtn.click();
-  });
-  await new Promise((r) => setTimeout(r, 400));
+    if (questionType === "escolha") {
+      if (!capturedEscolha) {
+        await page.screenshot({ path: path.join(OUTPUT_DIR, "04-questao-escolha-real.png") });
+        console.log("✅ Capturada 04-questao-escolha-real.png");
+        capturedEscolha = true;
+      }
+      // Seleciona primeira alternativa A
+      await page.evaluate(() => {
+        const badges = Array.from(document.querySelectorAll("span"));
+        const badgeA = badges.find((s) => s.textContent.trim() === "A");
+        if (badgeA) {
+          const btn = badgeA.closest("button");
+          if (btn) btn.click();
+        }
+      });
+    } else if (questionType === "selecao") {
+      // Seleciona duas opções
+      await page.evaluate(() => {
+        const checkBtns = Array.from(document.querySelectorAll("button")).filter((b) =>
+          b.querySelector(".rounded-lg.border-2")
+        );
+        if (checkBtns.length >= 2) {
+          checkBtns[0].click();
+          checkBtns[1].click();
+        }
+      });
+      await new Promise((r) => setTimeout(r, 300));
+      if (!capturedSelecao) {
+        await page.screenshot({ path: path.join(OUTPUT_DIR, "05-questao-selecao-real.png") });
+        console.log("✅ Capturada 05-questao-selecao-real.png");
+        capturedSelecao = true;
+      }
+    } else if (questionType === "calculo") {
+      if (!capturedCalculo) {
+        await page.screenshot({ path: path.join(OUTPUT_DIR, "06-questao-calculo-real.png") });
+        console.log("✅ Capturada 06-questao-calculo-real.png");
+        capturedCalculo = true;
+      }
+      // Pressiona a tecla '5' (ou '2')
+      await page.evaluate(() => {
+        const btns = Array.from(document.querySelectorAll("button"));
+        const btn5 = btns.find((b) => b.textContent.trim() === "5") || btns.find((b) => b.textContent.trim() === "2");
+        if (btn5) btn5.click();
+      });
+    } else if (questionType === "voz") {
+      if (!capturedVoz) {
+        await page.screenshot({ path: path.join(OUTPUT_DIR, "07-questao-voz-real.png") });
+        console.log("✅ Capturada 07-questao-voz-real.png");
+        capturedVoz = true;
+      }
+      // Prefiro digitar
+      await page.evaluate(() => {
+        const btns = Array.from(document.querySelectorAll("button"));
+        const dig = btns.find((b) => b.textContent.includes("Prefiro digitar"));
+        if (dig) dig.click();
+      });
+      await new Promise((r) => setTimeout(r, 400));
+      await page.type("textarea", "Higienizar as mãos com água e sabão");
+      await page.evaluate(() => {
+        const btns = Array.from(document.querySelectorAll("button"));
+        const sal = btns.find((b) => b.textContent.trim() === "Salvar");
+        if (sal) sal.click();
+      });
+    }
 
-  // Clica em Verificar
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const verifBtn = btns.find((b) => b.textContent.includes("Verificar"));
-    if (verifBtn) verifBtn.click();
-  });
-  await new Promise((r) => setTimeout(r, 600));
+    await new Promise((r) => setTimeout(r, 300));
 
-  // Clica em Continuar no feedback para ir ao resumo
-  await page.evaluate(() => {
-    const btns = Array.from(document.querySelectorAll("button"));
-    const contBtn = btns.find((b) => b.textContent.includes("Continuar"));
-    if (contBtn) contBtn.click();
-  });
-
-  // 10. Tela 10: Conclusão / Resumo
-  await new Promise((r) => setTimeout(r, 800));
-  await page.screenshot({ path: path.join(OUTPUT_DIR, "10-resumo-real.png") });
-  console.log("✅ Capturada 10-resumo-real.png");
+    // Clica em Verificar
+    await page.evaluate(() => {
+      const btns = Array.from(document.querySelectorAll("button"));
+      const verif = btns.find((b) => b.textContent.trim() === "Verificar" && !b.disabled);
+      if (verif) verif.click();
+    });
+  }
 
   await browser.close();
-  console.log("🎉 Teste automatizado de todas as telas concluído com sucesso!");
+  console.log("🎉 Teste dinâmico finalizado com sucesso!");
 }
 
 run().catch((err) => {

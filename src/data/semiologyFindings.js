@@ -1,7 +1,9 @@
 /**
  * semiologyFindings.js
  * Banco de dados propedêutico para Exame Físico Guiado Interativo à Beira-Leito.
- * Permite ao estudante exercitar a identificação semiológica ativa em vez de cliques passivos.
+ * Padrão Duolingo: No mínimo 4 alternativas (A, B, C, D) por parâmetro clínico,
+ * distratores de alta relevância formativa e suporte a embaralhamento dinâmico (Fisher-Yates)
+ * para eliminar qualquer vício posicional de resposta.
  */
 
 export const SEMIOLOGY_KNOWLEDGE_BASE = {
@@ -14,19 +16,25 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
         id: "opt_1",
         label: "Expansibilidade torácica simétrica em repouso, sem retração intercostal ou recrutamento de musculatura acessória cervical.",
         isCorrect: false,
-        feedback: "Incorreto: O paciente está taquipneico (FR 24 irpm) e hipoxêmico (SatO₂ 93%), o que fisiologicamente já exige sobrecarga compensatória da musculatura respiratória."
+        feedback: "Incorreto: O paciente está taquipneico (FR > 20 irpm) e hipoxêmico, o que fisiologicamente já exige sobrecarga compensatória da musculatura respiratória."
       },
       {
         id: "opt_2",
-        label: "Tiragem intercostal baixa presente com retração subcostal e discreto batimento de asa de nariz aos esforços respiratórios.",
+        label: "Tiragem intercostal baixa presente com retração subcostal e discreto batimento de asa de nariz aos esforços inspiratórios.",
         isCorrect: true,
-        feedback: "Correto! O recrutamento de músculos intercostais e o batimento de asa nasal sinalizam aumento acentuado do trabalho respiratório decorrente de secreção alveolar e consolidação (pneumonia)."
+        feedback: "Correto! O recrutamento de músculos intercostais e o batimento de asa nasal sinalizam aumento acentuado do trabalho respiratório decorrente de secreção alveolar e consolidação inflamatória."
       },
       {
         id: "opt_3",
         label: "Padrão de Kussmaul com respirações profundas, ruidosas e rápidas, sem tiragem ou estridor laríngeo.",
         isCorrect: false,
         feedback: "Incorreto: A respiração de Kussmaul é típica de acidose metabólica grave (como cetoacidose diabética ou uremia), não de consolidação infecciosa pulmonar localizada."
+      },
+      {
+        id: "opt_4",
+        label: "Padrão de Cheyne-Stokes com períodos alternados de hiperpneia crescente seguidos de apneia central prolongada.",
+        isCorrect: false,
+        feedback: "Incorreto: A respiração de Cheyne-Stokes decorre de lesão neurológica central ou insuficiência cardíaca crônica terminal com retardo circulatório cerebral, ausente neste quadro agudo."
       }
     ],
     pearl: "A tiragem intercostal e o batimento de asa nasal são sinais precoces de iminência de fadiga diafragmática. A intervenção com cabeceira elevada e oxigenoterapia precoce previne a intubação de emergência.",
@@ -59,6 +67,12 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
         label: "Hemoptise volumosa com sangue vivo rutilante e coágulos obstrutivos.",
         isCorrect: false,
         feedback: "Incorreto: A hemoptise maciça indica lesão vascular brônquica grave (caverna tuberculosa, neoplasia ou embolia pulmonar extensa), não presente neste quadro inicial."
+      },
+      {
+        id: "opt_4",
+        label: "Expectoração rósea, espumosa, abundante e fluida com saída pelas vias aéreas.",
+        isCorrect: false,
+        feedback: "Incorreto: Escarro róseo espumoso é achado patognomônico de edema agudo de pulmão cardiogênico com transudação capilar maciça, e não de secreção infecciosa espessa."
       }
     ],
     pearl: "A coloração mucopurulenta decorre da enzima mieloperoxidase dos neutrófilos em combate à infecção bacteriana. O registro da viscosidade e cor é indispensável para monitorar a resposta ao antimicrobiano.",
@@ -71,14 +85,14 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
 
   glasgow: {
     title: "Avaliação do Escore de Coma de Glasgow com Reatividade Pupilar (Glasgow-P)",
-    maneuver: "Você se aproxima do leito, chama a paciente pelo nome, testa o diálogo e solicita que aperte a sua mão, avaliando em seguida o reflexo fotomotor.",
+    maneuver: "Você se aproxima do leito, chama o paciente pelo nome, testa o diálogo e solicita que aperte a sua mão, avaliando em seguida o reflexo fotomotor.",
     prompt: "Qual combinação de respostas neurológicas você pontua?",
     options: [
       {
         id: "opt_1",
         label: "Abertura ocular espontânea (4), resposta verbal orientada (5), obedece comandos motores (6), pupilas fotorreagentes (-0). Total: 15 pontos.",
         isCorrect: false,
-        feedback: "Incorreto: A paciente tem histórico de flutuação e sonolência, com desatenção evidente na triagem matutina, impossibilitando escore 15/15 espontâneo."
+        feedback: "Incorreto: O paciente tem histórico de flutuação e sonolência, com desatenção evidente na triagem matutina, impossibilitando escore 15/15 espontâneo."
       },
       {
         id: "opt_2",
@@ -91,6 +105,12 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
         label: "Abertura ocular à dor (2), sons incompreensíveis (2), flexão anormal/decorticação (3), pupilas arreativas (-2). Total: 5 pontos.",
         isCorrect: false,
         feedback: "Incorreto: Postura de decorticação com rebaixamento grave a 5 pontos sinaliza herniação cerebral encefálica catastrófica, incompatível com o quadro da enfermaria."
+      },
+      {
+        id: "opt_4",
+        label: "Sem abertura ocular (1), nenhuma resposta verbal (1), extensão anormal/descerebração (2), pupilas reagentes (-0). Total: 4 pontos.",
+        isCorrect: false,
+        feedback: "Incorreto: Padrão comatoso profundo compatível com lesão grave de tronco encefálico (descerebração), não condizente com paciente consciente sob chamada verbal."
       }
     ],
     pearl: "A perda na resposta verbal (4/5) em paciente com CAM positivo é a chave para identificar delirium. A aplicação seriada da escala detecta precocemente a piora do sensório.",
@@ -123,6 +143,12 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
         label: "Fraqueza distal isolada em membro inferior direito com anestesia em bota, sem repercussão proximal.",
         isCorrect: false,
         feedback: "Incorreto: Padrão típico de polineuropatia periférica diabética crônica, sem relação com a queixa neurológica flutuante aguda pós-operatória."
+      },
+      {
+        id: "opt_4",
+        label: "Tetraparesia flácida arrefléxica ascendente com perda de reflexos miotáticos profundos em membros inferiores.",
+        isCorrect: false,
+        feedback: "Incorreto: Este padrão de paralisia flácida simétrica e ascendente sugere Síndrome de Guillain-Barré, descompassado com o histórico clínico avaliado."
       }
     ],
     pearl: "A constatação de força simétrica e ausência de assimetria facial é indispensável para tranquilizar a equipe quanto a eventos vasculares focais (AVC), mantendo o foco na investigação de gatilhos clínicos do delirium.",
@@ -155,6 +181,12 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
         label: "Sopro carotídeo sistólico audível na bifurcação carotídea sem pulsação venosa superficial.",
         isCorrect: false,
         feedback: "Incorreto: O sopro carotídeo é achado arterial de estenose aterosclerótica, e não avaliação do pulso venoso de retorno ao átrio direito."
+      },
+      {
+        id: "opt_4",
+        label: "Pulso jugular unidirecional de baixa frequência e colapso inspiratório completo imediato.",
+        isCorrect: false,
+        feedback: "Incorreto: O colapso inspiratório total do pulso venoso cervical reflete complacência venosa normal sem congestão sistêmica."
       }
     ],
     pearl: "A turgência jugular a 45° é o marcador físico mais confiável de sobrecarga volêmica à beira-leito. Indica que qualquer reposição líquida intravenosa causará piora imediata da congestão pulmonar.",
@@ -178,85 +210,27 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
       },
       {
         id: "opt_2",
-        label: "Tempo de enchimento capilar lentificado superior a 5 segundos, acompanhado de extremidades geladas e livedo reticular nos joelhos.",
+        label: "Tempo de enchimento capilar lentificado superior a 4,5 segundos, acompanhado de extremidades frias e livedo reticular nos joelhos.",
         isCorrect: false,
-        feedback: "Incorreto: TEC > 5s com livedo sinaliza choque descompensado com hipoperfusão grave e acidose láctica iminente, exigindo aminas vasoativas imediatas."
+        feedback: "Incorreto: TEC > 4,5s com livedo sinaliza choque descompensado com hipoperfusão grave e acidose láctica iminente, exigindo aminas vasoativas imediatas."
       },
       {
         id: "opt_3",
         label: "Ausência total de pulso e enchimento capilar impossibilitado por cianose periférica fixa irreversível.",
         isCorrect: false,
-        feedback: "Incorreto: Cianose fixa com TEC ausente indica isquemia arterial aguda grave ou óbito biológico do membro, ausente no caso."
+        feedback: "Incorreto: Cianose fixa com TEC ausente indica isquemia arterial aguda grave ou necrose tecidual periférica, ausente no caso."
+      },
+      {
+        id: "opt_4",
+        label: "Enchimento capilar instantâneo inferior a 0,3 segundo com rubor difuso associado a pulso amplo martelo d'água.",
+        isCorrect: false,
+        feedback: "Incorreto: TEC hiperdinâmico ultrarrápido com pulso célere ocorre em choque distributivo hiperdinâmico (sepse inicial) ou regurgitação aórtica severa."
       }
     ],
     pearl: "O TEC é um parâmetro hemodinâmico não invasivo de alta sensibilidade para estratificar a gravidade da perfusão sistêmica. Sua normalidade (< 2s) confirma estabilidade tecidual periférica.",
     resultingItem: {
       label: "Enchimento Capilar (TEC)",
       value: "1,5 segundos (perfusão tecidual preservada)",
-      status: "normal"
-    }
-  },
-
-  reposicionamento: {
-    title: "Conferência do Protocolo Preventivo de Lesão por Pressão",
-    maneuver: "Você audita a folha de aprazamento de cuidados de enfermagem, o relógio de decúbito no leito e a posição atual da paciente restrita ao leito.",
-    prompt: "Qual é o plano de alívio mecânico registrado e em execução?",
-    options: [
-      {
-        id: "opt_1",
-        label: "Protocolo de mudança de decúbito a cada 2 horas ativo (DLD, DLE e dorsal a 30°), com coxim sob panturrilhas para flutuação total de calcanhares.",
-        isCorrect: true,
-        feedback: "Correto! Em pacientes com Braden 11 (alto risco) e hiperemia sacra, o alívio de pressão a cada 2 horas com elevação de calcanhares é a intervenção de maior impacto para impedir a evolução para ferida aberta."
-      },
-      {
-        id: "opt_2",
-        label: "Manutenção em decúbito dorsal contínuo por 12 horas consecutivas sem manipulação para evitar queixas álgicas na coluna lombar.",
-        isCorrect: false,
-        feedback: "Incorreto: Manter o paciente imóvel sobre uma área de hiperemia não branqueável por 12 horas causa necrose isquêmica profunda e perfuração tecidual estágio 3 em menos de 24 horas."
-      },
-      {
-        id: "opt_3",
-        label: "Aplicação de massagem circular vigorosa com álcool sobre a hiperemia sacra a cada 6 horas.",
-        isCorrect: false,
-        feedback: "Incorreto: A massagem sobre proeminências ósseas hiperemiadas é contraindicada pelas diretrizes mundiais (NPUAP/EPUAP), pois esmaga a microcirculação e acelera a destruição celular."
-      }
-    ],
-    pearl: "A hiperemia não branqueável (Estágio 1) significa que o dano tecidual já começou. A flutuação de calcanhares e a rotação de decúbito a cada 2 horas reduzem a pressão abaixo do limiar capilar de 32 mmHg.",
-    resultingItem: {
-      label: "Mudança de Decúbito",
-      value: "Protocolo 2/2h ativo com flutuação de calcanhares",
-      status: "normal"
-    }
-  },
-
-  barreira_umidade: {
-    title: "Manejo da Pele Exposta à Umidade e Incontinência",
-    maneuver: "Você avalia a integridade da pele perianal e perineal, conferindo o plano de proteção tópica contra dermatite associada à incontinência (DAI).",
-    prompt: "Qual cuidado tópico preventivo é prescrito e executado pelo enfermeiro?",
-    options: [
-      {
-        id: "opt_1",
-        label: "Aplicação de creme barreira com óxido de zinco e dimeticona após cada higiene íntima suave com água morna e sabonete neutro sem fricção.",
-        isCorrect: true,
-        feedback: "Correto! O creme barreira hidrofóbico cria uma película protetora contra o pH alcalino da urina e enzimas fecais, preservando o estrato córneo e impedindo a maceração tecidual."
-      },
-      {
-        id: "opt_2",
-        label: "Uso de talco em pó perfumado diretamente sobre a região sacra para ressecar as secreções urinárias.",
-        isCorrect: false,
-        feedback: "Incorreto: Talcos formam grumos abrasivos com a umidade que causam atrito mecânico, piorando as fissuras na pele do idoso frágil."
-      },
-      {
-        id: "opt_3",
-        label: "Higienização com gaze áspera e solução degermante alcoólica a cada troca de fralda descartável.",
-        isCorrect: false,
-        feedback: "Incorreto: O degermante alcoólico e a fricção removem a camada lipídica natural da pele, causando descamação e aumentando drasticamente o risco de lesões por cisalhamento."
-      }
-    ],
-    pearl: "A dermatite associada à umidade (DAI) fragiliza a epiderme e multiplica por 4 o risco de desenvolvimento de lesões por pressão nos pacientes restritos ao leito. O creme barreira é cuidado preventivo essencial.",
-    resultingItem: {
-      label: "Proteção Cutânea",
-      value: "Creme barreira hidrofóbico a cada troca de fralda",
       status: "normal"
     }
   },
@@ -268,21 +242,27 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
     options: [
       {
         id: "opt_1",
-        label: "HGT de 54 mg/dL — Hipoglicemia severa acompanhada de sudorese fria e tremores.",
+        label: "HGT de 54 mg/dL — Hipoglicemia severa que exige bólus imediato de glicose hipertônica a 50%.",
         isCorrect: false,
-        feedback: "Incorreto: Hipoglicemia causaria rebaixamento súbito do nível de consciência, taquicardia reflexa e sudorese profusa, incompatível com a estabilidade neurológica observada."
+        feedback: "Incorreto: Hipoglicemia causaria rebaixamento agudo do sensório, sudorese fria profusa e taquicardia reflexa, achados ausentes no quadro atual."
       },
       {
         id: "opt_2",
-        label: "HGT de 148 mg/dL — Hiperglicemia pós-prandial moderada, comum em resposta ao estresse inflamatório agudo.",
+        label: "HGT de 148 mg/dL — Hiperglicemia pós-prandial moderada compatível com resposta ao estresse inflamatório agudo.",
         isCorrect: true,
-        feedback: "Correto! O valor de 148 mg/dL reflete elevação glicêmica reacional ao estresse fisiológico e liberação de cortisol/adrenalina, necessitando monitoramento sem insulina de urgência neste momento."
+        feedback: "Correto! O valor de 148 mg/dL reflete elevação glicêmica reacional ao estresse fisiológico (cortisol e adrenalina), necessitando monitoramento seriado sem insulina rápida de urgência."
       },
       {
         id: "opt_3",
-        label: "HGT de 480 mg/dL — Hiperglicemia crítica com risco iminente de cetoacidose ou estado hiperosmolar.",
+        label: "HGT de 480 mg/dL — Hiperglicemia crítica com risco iminente de cetoacidose ou estado hiperosmolar hiperglicêmico.",
         isCorrect: false,
         feedback: "Incorreto: Glicemia > 400 mg/dL exigiria protocolo institucional de bomba de infusão contínua de insulina regular e hidratação vigorosa imediata."
+      },
+      {
+        id: "opt_4",
+        label: "HGT de 85 mg/dL — Glicemia basal estritamente em jejum, sem qualquer alteração metabólica.",
+        isCorrect: false,
+        feedback: "Incorreto: Pacientes em admissão hospitalar aguda com dor e estresse fisiológico raramente mantêm glicemia de jejum estrita de 85 mg/dL sem resposta glicídica."
       }
     ],
     pearl: "A hiperglicemia de estresse é frequente em infecções agudas e internações. A antissepsia deve secar completamente antes da punção para que o álcool residual não altere quimicamente o valor da fita.",
@@ -315,6 +295,12 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
         label: "Hipersensibilidade documentada a anti-inflamatórios não esteroidais (AINEs) com broncoespasmo prévio.",
         isCorrect: false,
         feedback: "Incorreto: O paciente relata uso esporádico prévio de analgésicos e anti-inflamatórios orais comuns sem qualquer intercorrência respiratória ou cutânea."
+      },
+      {
+        id: "opt_4",
+        label: "Alergia de contato grave a fita adesiva microporosa com dermatite vesicante disseminada.",
+        isCorrect: false,
+        feedback: "Incorreto: Não foi observada ou relatada qualquer reação tópica de dermatite de contato em curativos ou fixações prévias."
       }
     ],
     pearl: "A investigação ativa de alergias no momento da admissão é barreira fundamental da Meta 1 e Meta 3 de Segurança do Paciente. Nunca presuma que 'não refere' no prontuário signifique ausência de alergia sem confirmação direta.",
@@ -340,13 +326,19 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
         id: "opt_2",
         label: "Pulsos periféricos filiformes (+1/+4), taquisfigmia acentuada e assimetria entre membros inferiores.",
         isCorrect: false,
-        feedback: "Incorreto: Pulsos filiformes seriam encontrados em choque hipovolêmico ou cardiogênico severo com colapso circulatório, o que não condiz com a PA de 160/95 mmHg e FC compensada."
+        feedback: "Incorreto: Pulsos filiformes seriam encontrados em choque hipovolêmico ou cardiogênico severo com colapso circulatório, o que não condiz com a hemodinâmica compensada."
       },
       {
         id: "opt_3",
         label: "Pulsos distais ausentes em membro inferior esquerdo com palidez cutânea e frialdade localizada.",
         isCorrect: false,
         feedback: "Incorreto: A ausência unilateral de pulso distal caracterizaria trombose arterial aguda (6 Ps de Pratt), um quadro de urgência cirúrgica vascular não presente."
+      },
+      {
+        id: "opt_4",
+        label: "Pulso paradoxal com queda acentuada da amplitude de pulso superior a 15 mmHg durante a inspiração espontânea.",
+        isCorrect: false,
+        feedback: "Incorreto: O pulso paradoxal clássico indica tamponamento cardíaco agudo, crise asmática hipeinsuflativa gravíssima ou pericardite constritiva."
       }
     ],
     pearl: "A palpação simétrica e comparativa de pulsos previne diagnósticos errôneos de hipoperfusão sistêmica quando na verdade há variação anatômica ou ateromatose segmentar.",
@@ -364,7 +356,7 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
     options: [
       {
         id: "opt_1",
-        label: "Braden = 8 pontos (Risco Altíssimo de Lesão por Pressão).",
+        label: "Braden = 8 pontos (Risco Altíssimo de Lesão por Pressão com indicação de colchão de ar alternado).",
         isCorrect: false,
         feedback: "Incorreto: 8 pontos representa paciente com paralisia total, completamente imóvel, inconsciente e com nutrição severamente deficitária."
       },
@@ -372,13 +364,19 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
         id: "opt_2",
         label: "Braden = 14 pontos (Risco Moderado) — Exige medidas preventivas ativas imediatas como alívio mecânico e proteção tópica.",
         isCorrect: true,
-        feedback: "Correto! A pontuação de 14 pontos enquadra o paciente na faixa de Risco Moderado (13 a 14 pontos), tornando mandatória a instituição imediata do pacote de prevenção de LPP (mudança de decúbito e hidratação de pele)."
+        feedback: "Correto! A pontuação de 14 pontos enquadra o paciente na faixa de Risco Moderado (13 a 14 pontos), tornando mandatória a instituição imediata do pacote de prevenção de LPP (mudança de decúbito de 2/2h e hidratação de pele)."
       },
       {
         id: "opt_3",
-        label: "Braden = 22 pontos (Sem Risco de Lesão por Pressão).",
+        label: "Braden = 22 pontos (Sem Risco de Lesão por Pressão, dispensando cuidados posturais).",
         isCorrect: false,
         feedback: "Incorreto: A pontuação de 22 indicaria paciente plenamente ativo, com mobilidade total e deambulação independente."
+      },
+      {
+        id: "opt_4",
+        label: "Braden = 18 pontos (Baixo Risco sem necessidade de registro em prontuário).",
+        isCorrect: false,
+        feedback: "Incorreto: Mesmo em baixo risco o registro é obrigatório, e as limitações observadas no paciente com restrição no leito geram pontuação inferior a 18."
       }
     ],
     pearl: "Na Escala de Braden, menor pontuação significa MAIOR risco (escala inversa de 6 a 23). Pacientes com pontuação ≤ 14 devem ter intervenções profiláticas prioritárias já na admissão.",
@@ -389,3 +387,38 @@ export const SEMIOLOGY_KNOWLEDGE_BASE = {
     }
   }
 };
+
+/**
+ * Embaralha as alternativas de um achado semiológico utilizando o algoritmo Fisher-Yates,
+ * garantindo que a resposta correta tenha 25% de probabilidade equiprovável em A, B, C ou D.
+ * Atribui letras sequenciais [A, B, C, D] a cada abertura.
+ *
+ * @param {string} gapKey
+ * @returns {object|null}
+ */
+export function getShuffledSemiologyFinding(gapKey) {
+  const base = SEMIOLOGY_KNOWLEDGE_BASE[gapKey];
+  if (!base || !Array.isArray(base.options)) return null;
+
+  const letters = ["A", "B", "C", "D", "E"];
+  // Cria cópia profunda das opções
+  const optionsCopy = base.options.map((opt) => ({ ...opt }));
+
+  // Fisher-Yates shuffle
+  for (let i = optionsCopy.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [optionsCopy[i], optionsCopy[j]] = [optionsCopy[j], optionsCopy[i]];
+  }
+
+  // Atribui nova letra A, B, C, D
+  const shuffledOptions = optionsCopy.map((opt, idx) => ({
+    ...opt,
+    letter: letters[idx] || String.fromCharCode(65 + idx),
+    id: `opt_shuffled_${idx}_${opt.id}`
+  }));
+
+  return {
+    ...base,
+    options: shuffledOptions
+  };
+}

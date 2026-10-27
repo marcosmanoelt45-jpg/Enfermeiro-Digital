@@ -72,7 +72,7 @@ export default function PacienteVideoStage({
   return (
     <div
       className={`relative overflow-hidden rounded-[18px] bg-[#16222E] border-2 border-[#27394B] border-b-[5px] border-b-[#0A1118] select-none ${
-        small ? "w-[148px] h-[112px] flex-none" : "w-full h-[270px]"
+        small ? "w-[185px] h-[140px] flex-none" : "w-full h-[270px]"
       } ${className}`}
     >
       {/* 1. Clipes Fala */}

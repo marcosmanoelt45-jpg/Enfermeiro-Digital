@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from "react";
-import { useLocation } from "react-router-dom";
+import { useLocation, useNavigate } from "react-router-dom";
 import {
   Mic,
   MicOff,
@@ -9,12 +9,9 @@ import {
   AlertTriangle,
   AlertOctagon,
   CheckCircle2,
-  HeartPulse,
-  Activity,
   Clock,
   ArrowRight,
   ArrowLeft,
-  MessageSquareQuote,
   RotateCcw,
   BookOpen,
   AlertCircle,
@@ -22,13 +19,13 @@ import {
   Radio,
   Check,
   Volume2,
-  CheckSquare,
   Loader2,
   ChevronDown,
   Shuffle,
   ArrowRightLeft,
   History,
-  BookmarkPlus
+  BookmarkPlus,
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -42,127 +39,12 @@ import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
-
-const PRESET_HANDOFF_SCENARIOS = [
-  {
-    id: "pos_op",
-    title: "1º DPO de Colectomia Parcial",
-    sector: "Clínica Cirúrgica • Leito 12-A",
-    bed: "Leito 12-A",
-    age: 58,
-    name: "M.S.L.",
-    diagnosis: "Pós-operatório imediato de colectomia por diverticulite aguda",
-    vitals: { pa_sistolica: 115, pa_diastolica: 72, fc: 84, fr: 17, sat: 98, tax: 36.6 },
-    clinicalSummary: "Paciente lúcido no 1º DPO de colectomia parcial, queixando-se de dor moderada em incisão cirúrgica. Dreno tubular ativo em flanco direito com débito serossanguinolento.",
-    goldenSbar: {
-      situation: "Paciente M.S.L., 58 anos, no Leito 12-A da Clínica Cirúrgica, no 1º DPO de colectomia parcial por diverticulite.",
-      background: "Hipertenso controlado com Losartana. Nega alergias medicamentosas e cirurgias abdominais prévias.",
-      assessment: "PA 115/72 mmHg, FC 84 bpm, afebril, SatO2 98% em ar ambiente. Abdome flácido, doloroso à palpação na incisão (EVA 4/10). Dreno de Portovac com débito serossanguinolento de 120 mL em 12h. Curativo cirúrgico limpo e seco.",
-      recommendation: "Vigiar aspecto e volume do dreno a cada 4 horas; administrar analgesia prescrita às 20h; checar resultado do hematócrito de controle colhido nesta tarde."
-    },
-    educationalPointers: {
-      situation: "Diga quem é, o leito e o motivo cirúrgico em 15 segundos.",
-      background: "Confirme categoricamente que o paciente NÃO tem alergias medicamentosas.",
-      assessment: "Fale números exatos de PA, débito do dreno e nota da dor na escala EVA.",
-      recommendation: "Deixe horários claros de analgesia e exames laboratoriais a checar."
-    }
-  },
-  {
-    id: "icc",
-    title: "ICC Descompensada & Congestão Pulmonar",
-    sector: "UTI Cardiológica • Leito 04",
-    bed: "Leito 04 - UTI",
-    age: 67,
-    name: "J.A.P.",
-    diagnosis: "Insuficiência Cardíaca Congestiva perfil B (úmido e quente)",
-    vitals: { pa_sistolica: 148, pa_diastolica: 94, fc: 96, fr: 23, sat: 92, tax: 36.4 },
-    clinicalSummary: "Admitido por piora progressiva da dispneia aos mínimos esforços e ortopneia. Estertores crepitantes bibasais em terços inferiores e turgência jugular patológica.",
-    goldenSbar: {
-      situation: "Paciente J.A.P., 67 anos, no Leito 04 da UTI Cardiológica, admitido há 6 horas por descompensação de ICC com congestão pulmonar aguda.",
-      background: "Histórico de ICC com fração de ejeção de 32%, HAS e DM2. Relata alergia severa a contraste iodado.",
-      assessment: "PA 148/94 mmHg, FC 96 bpm, FR 23 irpm, SatO2 92% em ar ambiente que subiu para 96% sob cateter nasal a 3 L/min. Estertores crepitantes finos bibasais e edema de MMII +++/4+.",
-      recommendation: "Administrar Furosemida 40 mg IV prescrita para as 20h; realizar balanço hídrico rigoroso de 6 em 6 horas e registrar peso em jejum amanhã cedo."
-    },
-    educationalPointers: {
-      situation: "Identifique o tempo de admissão (6 horas) e o motivo da descompensação.",
-      background: "Obrigatoriamente avise sobre a alergia a contraste iodado antes de qualquer tomografia.",
-      assessment: "Informe a resposta da saturação ao oxigênio (de 92% para 96% a 3 L/min).",
-      recommendation: "Prescreva o controle de diurese e o balanço hídrico rigoroso."
-    }
-  },
-  {
-    id: "delirium",
-    title: "Idoso com Delirium & Risco de Queda",
-    sector: "Enfermaria Geriátrica • Leito 21-B",
-    bed: "Leito 21-B",
-    age: 82,
-    name: "A.B.C.",
-    diagnosis: "Pneumonia Comunitária associada a Delirium Misto",
-    vitals: { pa_sistolica: 132, pa_diastolica: 78, fc: 76, fr: 19, sat: 95, tax: 37.1 },
-    clinicalSummary: "Paciente idoso com flutuação do nível de consciência, desorientação temporal e tentativa recorrente de retirada de punção venosa e evasão do leito.",
-    goldenSbar: {
-      situation: "Paciente A.B.C., 82 anos, Leito 21-B da Geriatria, no 3º dia de internação por pneumonia comunitária em antibioticoterapia venosa.",
-      background: "Diagnóstico prévio de Alzheimer leve e osteoartrose. Nega alergias medicamentosas conhecidas. Histórico de queda no domicílio há 2 meses com contusão em quadril.",
-      assessment: "Sinais vitais estáveis (PA 132/78 mmHg, FC 76 bpm, SatO2 95%). Apresenta flutuação do sensório (CAM positivo), agitou-se no início da tarde tentando levantar-se sem auxílio.",
-      recommendation: "Manter grades do leito sempre elevadas bilateralmente; orientar e apoiar o acompanhante familiar; manter acesso periférico protegido e evitar contenção física mecânica desnecessária."
-    },
-    educationalPointers: {
-      situation: "Informe o dia do antibiótico e a enfermaria geriátrica.",
-      background: "Alerte sobre a queda recente no domicílio para acionar o protocolo de quedas.",
-      assessment: "Descreva a flutuação do CAM e a tentativa de evasão do leito.",
-      recommendation: "Foque nas grades elevadas e na segurança física do paciente sem contenção abusiva."
-    }
-  },
-  {
-    id: "dpoc",
-    title: "Exacerbação de DPOC & Broncoespasmo",
-    sector: "Clínica Médica • Leito 08",
-    bed: "Leito 08",
-    age: 64,
-    name: "R.F.M.",
-    diagnosis: "Doença Pulmonar Obstrutiva Crônica agudizada por infecção traqueobrônquica",
-    vitals: { pa_sistolica: 138, pa_diastolica: 85, fc: 104, fr: 26, sat: 89, tax: 37.8 },
-    clinicalSummary: "Paciente tabagista de longa data admitido com dispneia progressiva, tosse produtiva com escarro amarelado espesso e sibilos expiratórios difusos.",
-    goldenSbar: {
-      situation: "Paciente R.F.M., 64 anos, no Leito 08 da Clínica Médica, internado há 12 horas por exacerbação de DPOC infecciosa.",
-      background: "DPOC estágio GOLD 3 com uso domiciliar de broncodilatadores. Alergia prévia a dipirona com urticária.",
-      assessment: "PA 138/85 mmHg, FC 104 bpm, FR 26 irpm com tiragem intercostal leve, SatO2 89% em ar ambiente que subiu para 92% com Venturi a 28%. Sibilos expiratórios bilaterais e roncos esparsos.",
-      recommendation: "Manter oxigenoterapia com alvo estrito de SatO2 entre 88-92% para evitar hipercapnia; realizar nebulização com broncodilatador prescrito às 22h e vigiar padrão ventilatório."
-    },
-    educationalPointers: {
-      situation: "Informe o estágio do DPOC e tempo de admissão.",
-      background: "Alerte categoricamente sobre a alergia à dipirona.",
-      assessment: "Ressalte o alvo específico de oxigênio de 88-92% no retentor de CO2.",
-      recommendation: "Prescreva a vigilância da frequência respiratória e horários da nebulização."
-    }
-  },
-  {
-    id: "sepse_urinaria",
-    title: "Sepse de Foco Urinário & Hipotensão",
-    sector: "Emergência / Sala Amarela • Leito 15",
-    bed: "Leito 15 - Emergência",
-    age: 71,
-    name: "D.M.S.",
-    diagnosis: "Sepse de foco urinário (ITU complicada) e resposta inflamatória sistêmica",
-    vitals: { pa_sistolica: 90, pa_diastolica: 55, fc: 112, fr: 24, sat: 94, tax: 38.7 },
-    clinicalSummary: "Idosa trazida pela família com rebaixamento do sensório, calafrios, febre e oligúria nas últimas 18 horas. Pele quente e ruborizada, tempo de enchimento capilar de 4 segundos.",
-    goldenSbar: {
-      situation: "Paciente D.M.S., 71 anos, Leito 15 da Sala Amarela da Emergência, admitida há 2 horas com sepse grave de provável foco urinário.",
-      background: "Diabética e com histórico de ITU de repetição. Sem alergias medicamentosas registradas.",
-      assessment: "Hipotensa (PA 90/55 mmHg, PAM 66 mmHg), taquicárdica (FC 112 bpm), taquipneica (FR 24 irpm) e febril (Tax 38,7 °C). Diurese concentrada e fétida de 40 mL nas últimas 2 horas.",
-      recommendation: "Concluir a ressuscitação volêmica com Ringer Lactato a 30 mL/kg nas próximas 2 horas; administrar ceftriaxona IV prescrita imediatamente após colheita de culturas."
-    },
-    educationalPointers: {
-      situation: "Enfatize a urgência da sepse nas primeiras horas do pacote de sobrevida.",
-      background: "Confirme a ausência de alergias a betalactâmicos.",
-      assessment: "Informe a PAM limítrofe (66 mmHg) e a oligúria crítica.",
-      recommendation: "Priorize o término rápido da hidratação venosa e início precoce do antibiótico."
-    }
-  }
-];
+import { PRESET_HANDOFF_SCENARIOS } from "@/data/sbarHandoffScenarios";
+import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 export default function SbarHandoffLab() {
   const location = useLocation();
+  const navigate = useNavigate();
   const { user } = useAuth();
 
   const passedCase = location.state?.caseData;
@@ -853,439 +735,331 @@ export default function SbarHandoffLab() {
   const currentCheckedPercent = Math.round((currentCheckedCount / currentGuided.checklistItems.length) * 100);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100">
+    <div className="min-h-screen bg-[#0B131D] text-[#EAF2F8] flex flex-col pb-28 md:pb-8">
       <StudentHeader activeTab="sbar" />
 
-      <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-6 space-y-6">
+      <main className="flex-1 mx-auto max-w-5xl w-full px-4 sm:px-6 py-6 space-y-6">
         {/* ======================================================== */}
         {/* MODO 0: ESCOLHA INICIAL LIMPA DO SBAR (IGUAL AO MONTAR) */}
         {/* ======================================================== */}
         {viewMode === "choose" ? (
-          <div className="space-y-6 animate-in fade-in max-w-4xl mx-auto pt-2 pb-8">
-            {/* Header da Escolha do SBAR */}
-            <div className="text-center space-y-3">
-              <div className="flex justify-center">
-                <div className="w-16 h-16 rounded-3xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 shadow-sm flex items-center justify-center">
-                  <ArrowRightLeft className="w-8 h-8 text-teal-600 dark:text-teal-400" />
-                </div>
-              </div>
-
-              <div>
-                <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white">
-                  Laboratório de Passagem de Plantão SBAR
-                </h2>
-                <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-lg mx-auto mt-1">
-                  Meta 2 da OMS para Segurança do Paciente. Evite perda de informações críticas entre turnos.
-                </p>
-              </div>
-            </div>
-
-            {/* As 4 Modalidades do SBAR */}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              {/* Opção 1: Passagem por Áudio */}
-              <div
-                onClick={() => {
-                  setActiveTab("free_voice");
-                  setViewMode("workspace");
-                }}
-                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 bg-white dark:bg-slate-900 p-6 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="p-3.5 rounded-2xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-400 group-hover:scale-105 transition-transform">
-                      <Mic className="h-6 w-6" />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                      Reconhecimento de Voz
+          <div className="max-w-md mx-auto pt-4 pb-8 animate-in fade-in">
+            {/* Modal / Card Principal 1:1 com Página 14 do PDF */}
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-2xl space-y-5">
+              {/* Cabeçalho do Card */}
+              <div className="flex items-start justify-between gap-3 border-b border-[#1F3045] pb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#20D5B5]/15 border border-[#20D5B5]/30 flex items-center justify-center text-[#20D5B5] shrink-0">
+                    <ArrowRightLeft className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white">Passagem de Plantão SBAR</h3>
+                    <span className="inline-block text-[10px] font-bold text-[#20D5B5] bg-[#20D5B5]/15 border border-[#20D5B5]/30 px-2 py-0.5 rounded-full mt-1">
+                      Meta 2 OMS · SBAR Multimodal
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-teal-600 dark:group-hover:text-teal-400 transition-colors">
-                    Passagem por Áudio (Voz)
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Treine falando livremente ou tópico por tópico. O Enfere transcreve sua voz em tempo real e audita menção a leito, sinais vitais e alergias.
+                </div>
+                <button
+                  type="button"
+                  onClick={() => navigate("/")}
+                  className="w-8 h-8 rounded-full border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#9FB3C6] hover:text-white flex items-center justify-center transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* DIRETRIZES DO GOTI (Página 14 do PDF) */}
+              <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#20D5B5] block">
+                  DIRETRIZES DO GOTI
+                </span>
+                <div className="flex items-start gap-3">
+                  <div className="shrink-0 -mt-1">
+                    <GotiAnimated animation="thinking" size={42} />
+                  </div>
+                  <p className="text-xs text-[#EAF2F8] leading-relaxed italic">
+                    “A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) evita 80% das falhas de comunicação. Como deseja treinar hoje?”
                   </p>
                 </div>
+              </div>
 
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
+              {/* SELECIONE COMO DESEJA PRATICAR */}
+              <div className="space-y-3">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#9FB3C6] block">
+                  SELECIONE COMO DESEJA PRATICAR:
+                </span>
+
+                {/* Card 1: Passagem por Áudio (Voz) */}
+                <button
+                  type="button"
+                  onClick={() => {
                     setActiveTab("free_voice");
                     setViewMode("workspace");
                   }}
-                  className="w-full rounded-2xl bg-teal-700 hover:bg-teal-800 dark:bg-teal-600 dark:hover:bg-teal-500 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-xs"
+                  className="w-full p-4 rounded-2xl bg-[#0B131D] border-2 border-[#20D5B5] text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
                 >
-                  <span>Iniciar por Áudio</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Opção 2: Passagem Estruturada por Texto */}
-              <div
-                onClick={() => {
-                  setActiveTab("guided");
-                  setViewMode("workspace");
-                }}
-                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 bg-white dark:bg-slate-900 p-6 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="p-3.5 rounded-2xl bg-indigo-50 dark:bg-indigo-950/80 text-indigo-700 dark:text-indigo-400 group-hover:scale-105 transition-transform">
-                      <BookOpen className="h-6 w-6" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#20D5B5]/10 border border-[#20D5B5]/30 flex items-center justify-center text-[#20D5B5] shrink-0">
+                      <Mic className="w-5 h-5" />
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                      Passo a Passo Guiado
-                    </span>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-white">Passagem por Áudio (Voz)</h4>
+                      <p className="text-[11px] text-[#9FB3C6]">Treine falando ao microfone com transcrição e checagem de itens</p>
+                    </div>
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-indigo-600 dark:group-hover:text-indigo-400 transition-colors">
-                    Passagem Estruturada (Manual / Texto)
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Preencha cada um dos 4 pilares (Situação, Histórico, Avaliação e Recomendação) pelo teclado, com checklists assépticos e dicas padrão-ouro.
-                  </p>
-                </div>
+                  <ArrowRight className="w-4 h-4 text-[#20D5B5] group-hover:translate-x-1 transition-transform" />
+                </button>
 
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                {/* Card 2: Passagem Estruturada (Texto) */}
+                <button
+                  type="button"
+                  onClick={() => {
                     setActiveTab("guided");
                     setViewMode("workspace");
                   }}
-                  className="w-full rounded-2xl bg-indigo-700 hover:bg-indigo-800 dark:bg-indigo-600 dark:hover:bg-indigo-500 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-xs"
+                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
                 >
-                  <span>Iniciar Modo Guiado</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Opção 3: Simulação Rápida Beira-Leito */}
-              <div
-                onClick={() => {
-                  const criticalCase = PRESET_HANDOFF_SCENARIOS.find((c) => c.id === "sepse_urinaria") || PRESET_HANDOFF_SCENARIOS[1];
-                  setCurrentCase(criticalCase);
-                  setActiveTab("free_voice");
-                  setViewMode("workspace");
-                  setToastMessage("Simulação Beira-Leito iniciada! Priorize os dados de emergência do paciente.");
-                }}
-                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-amber-500 dark:hover:border-amber-500 bg-white dark:bg-slate-900 p-6 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="p-3.5 rounded-2xl bg-amber-50 dark:bg-amber-950/80 text-amber-700 dark:text-amber-400 group-hover:scale-105 transition-transform">
-                      <Clock className="h-6 w-6" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
+                      <BookOpen className="w-5 h-5" />
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-amber-100 dark:bg-amber-950 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                      Caso Crítico • 2 min
-                    </span>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-white">Passagem Estruturada (Texto)</h4>
+                      <p className="text-[11px] text-[#9FB3C6]">Preencha os 4 pilares guiados passo a passo</p>
+                    </div>
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-amber-600 dark:group-hover:text-amber-400 transition-colors">
-                    Simulação Rápida Beira-Leito
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Cenário de urgência beira-leito (Sepse com Hipotensão ou ICC Descompensada). Treine a agilidade de passar dados críticos em menos de 2 minutos.
-                  </p>
-                </div>
+                  <ArrowRight className="w-4 h-4 text-[#9FB3C6] group-hover:text-white group-hover:translate-x-1 transition-all" />
+                </button>
 
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
+                {/* Card 3: Simulação Rápida Beira-Leito */}
+                <button
+                  type="button"
+                  onClick={() => {
                     const criticalCase = PRESET_HANDOFF_SCENARIOS.find((c) => c.id === "sepse_urinaria") || PRESET_HANDOFF_SCENARIOS[1];
                     setCurrentCase(criticalCase);
                     setActiveTab("free_voice");
                     setViewMode("workspace");
+                    setToastMessage("Simulação Beira-Leito iniciada! Priorize os dados de emergência do paciente.");
                   }}
-                  className="w-full rounded-2xl bg-amber-600 hover:bg-amber-700 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-xs"
+                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
                 >
-                  <span>Iniciar Simulação Rápida</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-
-              {/* Opção 4: Histórico & Exercícios Anteriores */}
-              <div
-                onClick={() => setIsHistoryOpen(true)}
-                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-white dark:bg-slate-900 p-6 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 group-hover:scale-105 transition-transform">
-                      <History className="h-6 w-6" />
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
+                      <Clock className="w-5 h-5" />
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                      Histórico Oficial
-                    </span>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-white">Simulação Rápida Beira-Leito</h4>
+                      <p className="text-[11px] text-[#9FB3C6]">Caso crítico com contagem regressiva de 2 minutos para priorização</p>
+                    </div>
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    Histórico de Casos & Debriefings
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Acesse o histórico das suas passagens de plantão, tempo gasto, pareceres pedagógicos e retome atividades não concluídas em 100%.
-                  </p>
-                </div>
+                  <ArrowRight className="w-4 h-4 text-[#9FB3C6] group-hover:text-white group-hover:translate-x-1 transition-all" />
+                </button>
 
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsHistoryOpen(true);
-                  }}
-                  variant="outline"
-                  className="w-full rounded-2xl border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-2xs"
+                {/* Card 4: Exercícios Anteriores & Revisão */}
+                <button
+                  type="button"
+                  onClick={() => setIsHistoryOpen(true)}
+                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
                 >
-                  <History className="h-4 w-4 mr-1 text-emerald-600" />
-                  <span>Abrir Histórico Completo</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
+                      <History className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-white">Exercícios Anteriores & Revisão</h4>
+                      <p className="text-[11px] text-[#9FB3C6]">Consultar histórico de passagens de plantão e debriefings</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-[#9FB3C6] group-hover:text-white group-hover:translate-x-1 transition-all" />
+                </button>
               </div>
             </div>
           </div>
         ) : (
           <>
-            {/* Barra Superior Limpa e Funcional com Botão de Voltar para Modos */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            {/* Barra Superior Limpa e Funcional (Página 15 do PDF) */}
+            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] px-5 py-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 flex-wrap">
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={() => setViewMode("choose")}
-                  className="rounded-xl text-xs font-bold text-teal-700 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-teal-950/40 h-8 px-2.5 -ml-1 flex items-center gap-1"
+                  className="rounded-xl text-xs font-bold text-[#20D5B5] hover:bg-[#16222E] h-8 px-2.5 -ml-1 flex items-center gap-1 transition-colors"
                 >
                   <ArrowLeft className="w-3.5 h-3.5" /> Modos SBAR
-                </Button>
-                <div className="h-4 w-px bg-slate-200 dark:bg-slate-800 hidden sm:block" />
-                <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+                </button>
+                <div className="h-4 w-px bg-[#1F3045] hidden sm:block" />
+                <h1 className="text-base sm:text-lg font-black tracking-tight text-white">
                   Passagem de Plantão SBAR
                 </h1>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
-                  Meta 2 OMS • COFEN 736/2024
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
+                  Meta 2 OMS · COFEN 736/2024
                 </span>
               </div>
 
               <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
-                <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                  <Clock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[#0E1722] text-[#9FB3C6] border border-[#1F3045]">
+                  <Clock className="h-3.5 w-3.5 text-[#20D5B5]" />
                   <span>{clinicalHistoryService.formatDuration(activitySeconds)}</span>
                 </span>
 
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={() => setIsHistoryOpen(true)}
-                  className="rounded-xl border-teal-300 dark:border-teal-800 text-teal-800 dark:text-teal-300 hover:bg-teal-50 dark:hover:bg-teal-950/60 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                  className="rounded-xl border border-[#1F3045] bg-[#0E1722] text-[#9FB3C6] hover:text-white hover:bg-[#16222E] text-xs font-semibold px-3 py-1.5 flex items-center gap-1.5 transition-all"
                 >
-                  <History className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                  <History className="h-3.5 w-3.5 text-[#20D5B5]" />
                   <span>Histórico SBAR</span>
-                </Button>
+                </button>
 
-                <Button
-                  variant="outline"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={handleSaveDraft}
-                  className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+                  className="rounded-xl border border-[#1F3045] bg-[#0E1722] text-[#9FB3C6] hover:text-white hover:bg-[#16222E] text-xs font-semibold px-3 py-1.5 flex items-center gap-1.5 transition-all"
                 >
-                  <BookmarkPlus className="h-3.5 w-3.5 text-amber-500" />
-                  <span className="hidden sm:inline">Salvar Rascunho</span>
-                </Button>
+                  <BookmarkPlus className="h-3.5 w-3.5 text-[#FFC247]" />
+                  <span className="hidden sm:inline">Salvar</span>
+                </button>
 
-                <Button
-                  variant="outline"
-                  size="sm"
-                  onClick={() => {
-                    window.dispatchEvent(
-                      new CustomEvent("open-goti-chat", {
-                        detail: {
-                          prompt: "Goti, como estruturo a passagem de plantão no método SBAR? Me dê um modelo didático de exemplo para eu aprender a fazer com minhas palavras!"
-                        }
-                      })
-                    );
-                  }}
-                  className="rounded-xl border-teal-300 dark:border-teal-700 bg-teal-50/60 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 hover:bg-teal-100 dark:hover:bg-teal-900 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
-                >
-                  <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Dúvidas? Fale com o Goti
-                </Button>
-
-                <Button
-                  variant="ghost"
-                  size="sm"
+                <button
+                  type="button"
                   onClick={handleClearFields}
-                  className="rounded-xl text-slate-500 hover:text-slate-900 dark:hover:text-slate-100 text-xs"
+                  className="rounded-xl text-[#9FB3C6] hover:text-white px-2 py-1.5 text-xs transition-colors"
                 >
-                  <RotateCcw className="h-3.5 w-3.5 mr-1" /> Limpar
-                </Button>
+                  <RotateCcw className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
 
-        {/* Notificação Toast */}
-        {toastMessage && (
-          <div className="p-3.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs flex items-center justify-between gap-2 animate-in fade-in shadow-md">
-            <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
-              <span className="font-medium">{toastMessage}</span>
-            </div>
-            {isListening && (
-              <span className="flex h-2 w-2 rounded-full bg-rose-500 animate-ping shrink-0" />
+            {/* Notificação Toast */}
+            {toastMessage && (
+              <div className="p-3.5 rounded-2xl bg-[#16222E] border border-[#20D5B5]/40 text-white text-xs flex items-center justify-between gap-2 animate-in fade-in shadow-md">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="h-4 w-4 text-[#20D5B5] shrink-0" />
+                  <span className="font-bold">{toastMessage}</span>
+                </div>
+                {isListening && (
+                  <span className="flex h-2 w-2 rounded-full bg-[#F0645F] animate-ping shrink-0" />
+                )}
+              </div>
             )}
-          </div>
-        )}
 
-        {/* Alerta de Erro de Microfone */}
-        {voiceError && (
-          <div className="p-3.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-900 dark:text-rose-200 text-xs flex items-center gap-2.5 shadow-2xs animate-in fade-in">
-            <AlertCircle className="h-4 w-4 text-rose-600 shrink-0" />
-            <div className="flex-1 font-medium">{voiceError}</div>
-            <button
-              onClick={() => setVoiceError("")}
-              className="text-xs font-bold text-rose-700 dark:text-rose-300 hover:underline shrink-0"
-            >
-              Fechar
-            </button>
-          </div>
-        )}
+            {/* Alerta de Erro de Microfone */}
+            {voiceError && (
+              <div className="p-3.5 rounded-2xl bg-[#F0645F]/15 border border-[#F0645F]/30 text-white text-xs flex items-center gap-2.5 animate-in fade-in">
+                <AlertCircle className="h-4 w-4 text-[#F0645F] shrink-0" />
+                <div className="flex-1 font-medium">{voiceError}</div>
+                <button
+                  onClick={() => setVoiceError("")}
+                  className="text-xs font-bold text-[#F0645F] hover:underline shrink-0"
+                >
+                  Fechar
+                </button>
+              </div>
+            )}
 
-        {/* Banner de Acesso Rápido ao Histórico SBAR */}
-        <div
-          onClick={() => setIsHistoryOpen(true)}
-          className="p-4 sm:p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 hover:border-teal-500 dark:hover:border-teal-500 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
-        >
-          <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-teal-600 dark:text-teal-400 group-hover:scale-105 transition-transform shadow-2xs">
-              <History className="h-5 w-5" />
-            </div>
-            <div>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>Consultar Histórico de Passagens de Plantão & Rascunhos</span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                  Retomar Atividades
-                </span>
-              </h4>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                Veja as passagens de plantão que você já realizou, o feedback do Goti e continue treinos em andamento.
-              </p>
-            </div>
-          </div>
+            {/* Painel do Caso Clínico Ativo (Página 15 do PDF) */}
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1F3045]">
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-[#20D5B5] uppercase tracking-wider">
+                    CASO SIMULADO À BEIRA-LEITO · {currentCase.sector || "Clínica Cirúrgica"} · {currentCase.bed || "Leito 12-A"}
+                  </span>
+                </div>
 
-          <Button
-            variant="outline"
-            size="sm"
-            onClick={(e) => {
-              e.stopPropagation();
-              setIsHistoryOpen(true);
-            }}
-            className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-white dark:hover:bg-slate-900 shrink-0"
-          >
-            <span>Abrir Histórico</span>
-            <ArrowRight className="h-3.5 w-3.5 ml-1 text-teal-600" />
-          </Button>
-        </div>
+                <button
+                  type="button"
+                  onClick={handleGenerateRandomScenario}
+                  className="rounded-xl border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#20D5B5] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 transition-all self-start sm:self-auto"
+                >
+                  <Shuffle className="h-3.5 w-3.5" />
+                  <span>Sortear Novo Caso</span>
+                </button>
+              </div>
 
-        {/* Painel do Caso Clínico Ativo: 1 Caso por Vez (Design Focado & Despoluído) */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-4">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-100 dark:border-slate-800">
-            <div className="flex items-center gap-2">
-              <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase tracking-wider bg-emerald-50 dark:bg-emerald-950/60 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                Caso Simulado à Beira-Leito
-              </span>
-              <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                {currentCase.sector || currentCase.bed}
-              </span>
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+                <div className="space-y-1 flex-1">
+                  <h2 className="text-base sm:text-lg font-black text-white">
+                    {currentCase.name || "M.S.L."} ({currentCase.age || 58}a)
+                  </h2>
+                  <p className="text-xs text-[#20D5B5] font-semibold">
+                    {currentCase.diagnosis || currentCase.title || "Pós-operatório imediato de colectomia por diverticulite aguda"}
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2 shrink-0">
+                  <div className="p-2.5 rounded-xl bg-[#0E1722] border border-[#1F3045] text-center min-w-[90px]">
+                    <span className="text-[10px] text-[#9FB3C6] font-bold block">PA</span>
+                    <strong className="text-xs sm:text-sm font-black text-white">{currentCase.vitals?.pa_sistolica || 115}/{currentCase.vitals?.pa_diastolica || 72} <span className="text-[9px] text-[#9FB3C6]">mmHg</span></strong>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#0E1722] border border-[#1F3045] text-center min-w-[70px]">
+                    <span className="text-[10px] text-[#9FB3C6] font-bold block">SatO₂</span>
+                    <strong className="text-xs sm:text-sm font-black text-white">{currentCase.vitals?.sat || 98} <span className="text-[9px] text-[#9FB3C6]">%</span></strong>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#0E1722] border border-[#1F3045] text-center min-w-[70px]">
+                    <span className="text-[10px] text-[#9FB3C6] font-bold block">FC</span>
+                    <strong className="text-xs sm:text-sm font-black text-white">{currentCase.vitals?.fc || 84} <span className="text-[9px] text-[#9FB3C6]">bpm</span></strong>
+                  </div>
+                </div>
+              </div>
             </div>
 
-            <Button
-              type="button"
-              onClick={handleGenerateRandomScenario}
-              className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold px-4 py-2 flex items-center gap-2 shadow-xs transition-all active:scale-98 self-start sm:self-auto"
-              title="Sortear aleatoriamente outro caso clínico"
-            >
-              <Shuffle className="h-4 w-4" />
-              <span>Sortear Novo Caso Aleatório</span>
-            </Button>
-          </div>
+            {/* NAVEGAÇÃO DE MODOS PEDAGÓGICOS (Página 15 do PDF) */}
+            <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar select-none text-xs font-bold">
+              <button
+                type="button"
+                onClick={() => setActiveTab("guided")}
+                className={`px-4 py-2 rounded-xl border whitespace-nowrap transition-all ${
+                  activeTab === "guided"
+                    ? "bg-[#20D5B5] text-[#0B131D] font-black shadow-[0_2px_0_0_#148A76]"
+                    : "bg-[#0E1722] border-[#1F3045] text-[#9FB3C6] hover:text-white"
+                }`}
+              >
+                1. Trilha Guiada
+              </button>
 
-          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4">
-            <div className="space-y-1.5 flex-1">
-              <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-                <span>{currentCase.name} ({currentCase.age}a)</span>
-                <span className="text-slate-400 font-normal">•</span>
-                <span className="text-emerald-800 dark:text-emerald-400 font-semibold text-sm">{currentCase.diagnosis || currentCase.title}</span>
-              </h2>
-              <p className="text-xs text-slate-600 dark:text-slate-300 max-w-3xl leading-relaxed">
-                {currentCase.clinicalSummary || currentCase.description}
-              </p>
+              <button
+                type="button"
+                onClick={() => setActiveTab("free_voice")}
+                className={`px-4 py-2 rounded-xl border whitespace-nowrap transition-all ${
+                  activeTab === "free_voice"
+                    ? "bg-[#20D5B5] text-[#0B131D] font-black shadow-[0_2px_0_0_#148A76]"
+                    : "bg-[#0E1722] border-[#1F3045] text-[#9FB3C6] hover:text-white"
+                }`}
+              >
+                2. Simulação Rápida (Voz & Timer)
+              </button>
+
+              <button
+                type="button"
+                onClick={() => setActiveTab("confirm")}
+                className={`px-4 py-2 rounded-xl border whitespace-nowrap transition-all ${
+                  activeTab === "confirm"
+                    ? "bg-[#20D5B5] text-[#0B131D] font-black shadow-[0_2px_0_0_#148A76]"
+                    : "bg-[#0E1722] border-[#1F3045] text-[#9FB3C6] hover:text-white"
+                }`}
+              >
+                3. Resumo & Confirmação
+              </button>
+
+              {tutorEvaluation && (
+                <button
+                  type="button"
+                  onClick={() => setActiveTab("debriefing")}
+                  className={`px-4 py-2 rounded-xl border whitespace-nowrap transition-all ${
+                    activeTab === "debriefing"
+                      ? "bg-[#20D5B5] text-[#0B131D] font-black shadow-[0_2px_0_0_#148A76]"
+                      : "bg-[#0E1722] border-[#1F3045] text-[#9FB3C6] hover:text-white"
+                  }`}
+                >
+                  4. Conclusão & Parecer Goti ({tutorEvaluation.safetyScore}%)
+                </button>
+              )}
             </div>
 
-            <div className="flex flex-wrap items-center gap-2.5 text-xs bg-slate-50 dark:bg-slate-800/60 p-3 rounded-xl border border-slate-100 dark:border-slate-700 shrink-0">
-              <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                <HeartPulse className="h-3.5 w-3.5 text-rose-500" />
-                PA: {currentCase.vitals?.pa_sistolica}/{currentCase.vitals?.pa_diastolica} mmHg
-              </span>
-              <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                <Activity className="h-3.5 w-3.5 text-emerald-500" />
-                SatO2: {currentCase.vitals?.sat}%
-              </span>
-              <span className="flex items-center gap-1 font-semibold text-slate-700 dark:text-slate-300">
-                <Clock className="h-3.5 w-3.5 text-sky-500" />
-                FC: {currentCase.vitals?.fc} bpm
-              </span>
-            </div>
-          </div>
-        </div>
-
-        {/* NAVEGAÇÃO DE MODOS PEDAGÓGICOS */}
-        <div className="flex border-b border-slate-200 dark:border-slate-800 gap-4 text-xs font-bold overflow-x-auto no-scrollbar">
-          <button
-            onClick={() => setActiveTab("guided")}
-            className={`pb-3 px-1 border-b-2 whitespace-nowrap transition-all flex items-center gap-1.5 ${
-              activeTab === "guided"
-                ? "border-teal-700 text-teal-900 dark:border-teal-400 dark:text-teal-300 font-extrabold"
-                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-            }`}
-          >
-            <BookOpen className="h-4 w-4" />
-            <span>1. Trilha Guiada Passo a Passo (Aprendizagem)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("free_voice")}
-            className={`pb-3 px-1 border-b-2 whitespace-nowrap transition-all flex items-center gap-1.5 ${
-              activeTab === "free_voice"
-                ? "border-teal-700 text-teal-900 dark:border-teal-400 dark:text-teal-300 font-extrabold"
-                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-            }`}
-          >
-            <Mic className="h-4 w-4" />
-            <span>2. Simulação Rápida à Beira-Leito (Voz & Timer)</span>
-          </button>
-
-          <button
-            onClick={() => setActiveTab("confirm")}
-            className={`pb-3 px-1 border-b-2 whitespace-nowrap transition-all flex items-center gap-1.5 ${
-              activeTab === "confirm"
-                ? "border-teal-700 text-teal-900 dark:border-teal-400 dark:text-teal-300 font-extrabold"
-                : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-            }`}
-          >
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-            <span>3. Confirmar Envio & Resumo SBAR (100%)</span>
-          </button>
-
-          {tutorEvaluation && (
-            <button
-              onClick={() => setActiveTab("debriefing")}
-              className={`pb-3 px-1 border-b-2 whitespace-nowrap transition-all flex items-center gap-1.5 ${
-                activeTab === "debriefing"
-                  ? "border-teal-700 text-teal-900 dark:border-teal-400 dark:text-teal-300 font-extrabold"
-                  : "border-transparent text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200"
-              }`}
-            >
-              <MessageSquareQuote className="h-4 w-4 text-teal-700 dark:text-teal-400" />
-              <span>4. Conclusão & Parecer do Goti (Score: {tutorEvaluation.safetyScore}/100)</span>
-            </button>
-          )}
-        </div>
-
-        {/* CONTEÚDO DA ABA 1: TRILHA GUIADA PASSO A PASSO */}
+        {/* CONTEÚDO DA ABA 1: TRILHA GUIADA PASSO A PASSO (Página 15 do PDF) */}
         {activeTab === "guided" && (
-          <div className="space-y-6">
-            {/* Stepper Visual dos 4 Passos do SBAR */}
+          <div className="space-y-5">
+            {/* Stepper Visual dos 4 Passos do SBAR (S, B, A, R) */}
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
               {guidedStepsMeta.map((step, idx) => {
                 const isCurrent = activeGuidedStep === idx;
@@ -1293,27 +1067,32 @@ export default function SbarHandoffLab() {
                 return (
                   <button
                     key={step.key}
+                    type="button"
                     onClick={() => setActiveGuidedStep(idx)}
-                    className={`p-3.5 rounded-xl border text-left transition-all ${
+                    className={`p-3.5 rounded-2xl border text-left transition-all ${
                       isCurrent
-                        ? `bg-white dark:bg-slate-900 ${step.activeBorder} ring-2 shadow-xs`
-                        : "bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                        ? "bg-[#16222E] border-2 border-[#20D5B5] shadow-xs"
+                        : "bg-[#0E1722] border-[#1F3045] hover:border-[#20D5B5]/40"
                     }`}
                   >
                     <div className="flex items-center justify-between">
-                      <span className={`flex h-6 w-6 items-center justify-center rounded-lg text-xs font-extrabold ${
-                        isCurrent ? step.accentBg : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300"
-                      }`}>
+                      <span
+                        className={`flex h-7 w-7 items-center justify-center rounded-xl text-xs font-black ${
+                          isCurrent
+                            ? "bg-[#20D5B5] text-[#0B131D]"
+                            : "bg-[#131F2E] text-[#9FB3C6] border border-[#1F3045]"
+                        }`}
+                      >
                         {step.letter}
                       </span>
                       {hasContent && (
-                        <CheckCircle2 className="h-4 w-4 text-emerald-500" />
+                        <CheckCircle2 className="h-4 w-4 text-[#20D5B5]" />
                       )}
                     </div>
-                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block mt-2.5 truncate">
+                    <span className="text-xs font-bold text-white block mt-2.5 truncate">
                       {step.title}
                     </span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400 block truncate mt-0.5">
+                    <span className="text-[10px] text-[#9FB3C6] block truncate mt-0.5">
                       {step.subtitle}
                     </span>
                   </button>
@@ -1321,41 +1100,36 @@ export default function SbarHandoffLab() {
               })}
             </div>
 
-            {/* Painel Central de Ensino e Formulação */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200/90 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-5">
+            {/* Painel Central de Ensino e Formulação (Página 15 do PDF) */}
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-5">
               {/* Topo do Passo */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1F3045] pb-4">
                 <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <span className={`text-[11px] font-bold px-2 py-0.5 rounded-md border ${currentGuided.badgeColor}`}>
-                      Passo {activeGuidedStep + 1} de 4 • Pilar {currentGuided.letter}
-                    </span>
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Checklist: {currentCheckedCount}/3 ({currentCheckedPercent}%)
+                  <div className="flex items-center gap-2 flex-wrap">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
+                      Passo {activeGuidedStep + 1} de 4 · Pilar {currentGuided.letter} · Checklist {currentCheckedCount}/3 ({currentCheckedPercent}%)
                     </span>
                   </div>
-                  <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
+                  <h3 className="text-sm sm:text-base font-black text-white">
                     {currentGuided.title} — {currentGuided.subtitle}
                   </h3>
-                  <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+                  <p className="text-xs text-[#9FB3C6] max-w-2xl leading-relaxed">
                     {currentGuided.goal}
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 flex-wrap">
-                  <Button
-                    size="sm"
-                    variant="outline"
+                  <button
+                    type="button"
                     onClick={() => setShowGoldComparison((v) => !v)}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold shrink-0 shadow-2xs flex items-center gap-1.5"
+                    className="rounded-xl border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#9FB3C6] hover:text-white text-xs font-semibold px-3 py-1.5 flex items-center gap-1.5 transition-all"
                   >
-                    <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-                    <span>{showGoldComparison ? "Ocultar Comparativo" : "Ver Exemplo & Comparativo"}</span>
+                    <Lightbulb className="h-3.5 w-3.5 text-[#FFC247]" />
+                    <span>{showGoldComparison ? "Ocultar Exemplo" : "Ver Exemplo & Comparativo"}</span>
                     <ChevronDown className={`h-3.5 w-3.5 transition-transform ${showGoldComparison ? "rotate-180" : ""}`} />
-                  </Button>
-                  <Button
-                    size="sm"
-                    variant="outline"
+                  </button>
+                  <button
+                    type="button"
                     onClick={() => {
                       window.dispatchEvent(
                         new CustomEvent("open-goti-chat", {
@@ -1365,164 +1139,158 @@ export default function SbarHandoffLab() {
                         })
                       );
                     }}
-                    className="rounded-xl border-teal-300 dark:border-teal-800 bg-teal-50/80 dark:bg-teal-950/40 text-teal-900 dark:text-teal-200 hover:bg-teal-100 text-xs font-bold shrink-0 shadow-2xs flex items-center gap-1.5"
+                    className="rounded-xl border border-[#20D5B5]/40 bg-[#20D5B5]/10 hover:bg-[#20D5B5]/20 text-[#20D5B5] text-xs font-bold px-3 py-1.5 flex items-center gap-1.5 transition-all"
                   >
-                    <Sparkles className="h-3.5 w-3.5 text-amber-500" /> Dúvidas? Fale com o Goti
-                  </Button>
+                    <GotiAnimated animation="thinking" size={20} />
+                    <span>Fale com o Goti</span>
+                  </button>
                 </div>
               </div>
 
-              {/* Comparador Didático Opcional (Divulgação Progressiva - sem poluir o fluxo) */}
+              {/* Comparador Didático Opcional */}
               {showGoldComparison && (
                 <div className="grid sm:grid-cols-2 gap-3.5 text-xs animate-in fade-in">
                   {/* ❌ Como NÃO falar */}
-                  <div className="p-4 rounded-xl bg-rose-50/70 dark:bg-rose-950/30 border border-rose-200/80 dark:border-rose-900 text-rose-950 dark:text-rose-200 space-y-2 flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl bg-[#F0645F]/10 border border-[#F0645F]/30 text-white space-y-2 flex flex-col justify-between">
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 font-bold text-rose-800 dark:text-rose-300 text-[11px] uppercase tracking-wide">
-                        <AlertOctagon className="h-3.5 w-3.5 text-rose-600 dark:text-rose-400 shrink-0" />
+                      <div className="flex items-center gap-1.5 font-bold text-[#F0645F] text-[10px] uppercase tracking-wide">
+                        <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
                         <span>Comunicação Ineficaz (Causa de Erros Clínicos)</span>
                       </div>
-                      <p className="italic leading-relaxed font-medium">
+                      <p className="italic leading-relaxed font-medium text-xs text-[#EAF2F8]">
                         "{currentGuided.badExample}"
                       </p>
                     </div>
-                    <p className="text-[11px] text-rose-700 dark:text-rose-300 pt-2 border-t border-rose-200/60 dark:border-rose-900/60 leading-normal">
+                    <p className="text-[11px] text-[#F0645F] pt-2 border-t border-[#F0645F]/30 leading-normal">
                       <strong>Por que falha:</strong> {currentGuided.badReason}
                     </p>
                   </div>
 
                   {/* ✅ Padrão Ouro */}
-                  <div className="p-4 rounded-xl bg-emerald-50/70 dark:bg-emerald-950/30 border border-emerald-200/80 dark:border-emerald-900 text-emerald-950 dark:text-emerald-200 space-y-2 flex flex-col justify-between">
+                  <div className="p-4 rounded-2xl bg-[#20D5B5]/10 border border-[#20D5B5]/30 text-white space-y-2 flex flex-col justify-between">
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300 text-[11px] uppercase tracking-wide">
-                          <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                        <div className="flex items-center gap-1.5 font-bold text-[#20D5B5] text-[10px] uppercase tracking-wide">
+                          <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                           <span>Comunicação Efetiva (Padrão Ouro COFEN/OMS)</span>
                         </div>
                         <button
+                          type="button"
                           onClick={() => handleInsertFieldExample(currentGuided.key)}
-                          className="text-[10px] font-bold text-emerald-700 dark:text-emerald-400 hover:underline"
+                          className="text-[10px] font-bold text-[#20D5B5] hover:underline"
                         >
                           Copiar texto
                         </button>
                       </div>
-                      <p className="leading-relaxed font-semibold">
+                      <p className="leading-relaxed font-semibold text-xs text-[#EAF2F8]">
                         "{currentGuided.goodExample}"
                       </p>
                     </div>
-                    <p className="text-[11px] text-emerald-800 dark:text-emerald-300 pt-2 border-t border-emerald-200/60 dark:border-emerald-900/60 leading-normal">
+                    <p className="text-[11px] text-[#20D5B5] pt-2 border-t border-[#20D5B5]/30 leading-normal">
                       <strong>Vantagem assistencial:</strong> {currentGuided.goodReason}
                     </p>
                   </div>
                 </div>
               )}
 
-              {/* Checklist Dinâmico de Segurança */}
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200/80 dark:border-slate-700 space-y-3">
+              {/* CHECKLIST DINÂMICO DE SEGURANÇA (Página 15 do PDF) */}
+              <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wide flex items-center gap-1.5">
-                    <CheckSquare className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    Checklist Dinâmico de Segurança:
+                  <span className="text-[10px] font-black uppercase tracking-wider text-[#20D5B5] flex items-center gap-1.5">
+                    CHECKLIST DINÂMICO DE SEGURANÇA · {currentCheckedCount} DE 3
                   </span>
-                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400">
-                    {currentCheckedCount} de 3 ({currentCheckedPercent}%)
+                  <span className="text-[10px] font-bold text-[#9FB3C6]">
+                    {currentCheckedPercent}% concluído
                   </span>
                 </div>
 
-                {/* Barra de Progresso Suave */}
-                <div className="w-full h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
-                  <div
-                    className="h-full bg-emerald-600 dark:bg-emerald-500 transition-all duration-300 rounded-full"
-                    style={{ width: `${currentCheckedPercent}%` }}
-                  />
-                </div>
-
-                <div className="grid sm:grid-cols-3 gap-2.5 pt-1">
+                {/* Itens do Checklist com círculo de seleção */}
+                <div className="space-y-2 pt-1">
                   {currentGuided.checklistItems.map((item, i) => (
                     <div
                       key={i}
                       onClick={() => handleToggleChecklistItem(currentGuided.key, item.key)}
-                      className={`flex items-center gap-2.5 p-2.5 rounded-xl text-xs font-semibold border transition-all cursor-pointer select-none ${
+                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
                         item.done
-                          ? "bg-white dark:bg-slate-800 border-emerald-600 dark:border-emerald-500 text-emerald-950 dark:text-emerald-100 shadow-2xs"
-                          : "bg-white/70 dark:bg-slate-800/40 border-slate-200 dark:border-slate-700 text-slate-500 dark:text-slate-400 hover:border-slate-300 hover:bg-white dark:hover:bg-slate-800"
+                          ? "bg-[#16222E] border-[#20D5B5] text-white"
+                          : "bg-[#131F2E]/60 border-[#1F3045] text-[#9FB3C6] hover:border-[#20D5B5]/40 hover:text-white"
                       }`}
-                      title="Clique para marcar/desmarcar este item"
                     >
-                      <div className={`flex h-4 w-4 items-center justify-center rounded-md shrink-0 transition-colors ${
-                        item.done ? "bg-emerald-600 text-white" : "border border-slate-300 dark:border-slate-600 bg-white dark:bg-slate-900"
-                      }`}>
-                        {item.done ? <Check className="h-3 w-3 stroke-[3]" /> : null}
+                      <div
+                        className={`w-5 h-5 rounded-full flex items-center justify-center shrink-0 transition-colors ${
+                          item.done
+                            ? "bg-[#20D5B5] text-[#0B131D]"
+                            : "border border-[#1F3045] bg-[#0E1722]"
+                        }`}
+                      >
+                        {item.done ? <Check className="w-3.5 h-3.5 stroke-[3]" /> : null}
                       </div>
-                      <span className="line-clamp-2 leading-tight">{item.label}</span>
+                      <span className="text-xs font-medium leading-tight">{item.label}</span>
                     </div>
                   ))}
                 </div>
               </div>
 
               {/* Área de Digitação & Gravação por Microfone */}
-              <div className="space-y-2.5">
+              <div className="space-y-3">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                  <label className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2 flex-wrap">
+                  <label className="text-xs font-bold text-white flex items-center gap-2 flex-wrap">
                     <span>Sua formulação para o pilar {currentGuided.letter}:</span>
                     {isListening && activeListeningField === currentGuided.key && (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-rose-600 animate-pulse bg-rose-50 dark:bg-rose-950/40 px-2.5 py-0.5 rounded-full border border-rose-200 dark:border-rose-800 shadow-2xs">
-                        <Radio className="h-3 w-3 text-rose-600 animate-ping" />
-                        <span>Ouvindo sua voz ({formatSeconds(recordingSeconds)})... Fale com clareza</span>
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-[#F0645F] animate-pulse bg-[#F0645F]/15 px-2 py-0.5 rounded-full border border-[#F0645F]/30">
+                        <Radio className="h-3 w-3 text-[#F0645F] animate-ping" />
+                        <span>Ouvindo sua voz ({formatSeconds(recordingSeconds)})...</span>
                       </span>
                     )}
                     {(isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key && (
-                      <span className="inline-flex items-center gap-1.5 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 animate-pulse bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800 shadow-2xs">
-                        <Loader2 className="h-3.5 w-3.5 text-emerald-600 animate-spin" />
-                        <span>Áudio recebido! Transcrevendo...</span>
+                      <span className="inline-flex items-center gap-1.5 text-[10px] font-bold text-[#20D5B5] animate-pulse bg-[#20D5B5]/15 px-2 py-0.5 rounded-full border border-[#20D5B5]/30">
+                        <Loader2 className="h-3 w-3 animate-spin" />
+                        <span>Transcrevendo áudio...</span>
                       </span>
                     )}
                   </label>
 
                   {/* Botão de Ditar por Voz */}
-                  <Button
-                    size="sm"
+                  <button
+                    type="button"
                     disabled={(isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key}
-                    variant={isListening && activeListeningField === currentGuided.key ? "destructive" : "outline"}
                     onClick={() => toggleVoiceInput(currentGuided.key)}
-                    className={`rounded-xl h-9 px-3.5 text-xs font-semibold flex items-center gap-2 transition-all cursor-pointer ${
+                    className={`rounded-xl px-3 py-1.5 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
                       isListening && activeListeningField === currentGuided.key
-                        ? "bg-rose-600 hover:bg-rose-700 text-white shadow-md ring-2 ring-rose-400 ring-offset-2 animate-pulse"
-                        : (isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key
-                        ? "bg-emerald-50 dark:bg-emerald-950/40 border-emerald-600 text-emerald-900 dark:text-emerald-200"
-                        : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+                        ? "bg-[#F0645F] text-white shadow-md animate-pulse"
+                        : "border border-[#20D5B5]/40 bg-transparent text-[#20D5B5] hover:bg-[#20D5B5]/10"
                     }`}
                   >
                     {isListening && activeListeningField === currentGuided.key ? (
                       voiceStarting ? (
                         <>
-                          <Loader2 className="h-4 w-4 animate-spin text-white" />
+                          <Loader2 className="h-3.5 w-3.5 animate-spin" />
                           <span>Ligando Mic...</span>
                         </>
                       ) : (
                         <>
-                          <MicOff className="h-4 w-4 text-white animate-bounce" />
+                          <MicOff className="h-3.5 w-3.5" />
                           <span>Parar Ditado ({formatSeconds(recordingSeconds)})</span>
                         </>
                       )
                     ) : (isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key ? (
                       <>
-                        <Loader2 className="h-4 w-4 animate-spin text-emerald-600" />
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
                         <span>Transcrevendo...</span>
                       </>
                     ) : (
                       <>
-                        <Mic className="h-4 w-4 text-emerald-600" />
+                        <Mic className="h-3.5 w-3.5" />
                         <span>Ditar por Voz</span>
                       </>
                     )}
-                  </Button>
+                  </button>
                 </div>
 
                 {/* Balão de Fala Interina ao Vivo */}
                 {isListening && activeListeningField === currentGuided.key && interimTranscript && (
-                  <div className="p-2.5 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 text-xs flex items-center gap-2 animate-in fade-in">
-                    <Volume2 className="h-4 w-4 text-emerald-600 shrink-0 animate-bounce" />
+                  <div className="p-2.5 rounded-xl bg-[#20D5B5]/15 border border-[#20D5B5]/30 text-[#20D5B5] text-xs flex items-center gap-2 animate-in fade-in">
+                    <Volume2 className="h-4 w-4 shrink-0 animate-bounce" />
                     <span className="italic font-medium">"{interimTranscript}"</span>
                   </div>
                 )}
@@ -1531,60 +1299,59 @@ export default function SbarHandoffLab() {
                   rows={4}
                   value={sbarData[currentGuided.key]}
                   onChange={(e) => setSbarData({ ...sbarData, [currentGuided.key]: e.target.value })}
-                  placeholder={`Formule o ${currentGuided.title} deste paciente com clareza clínica e dados objetivos...`}
-                  className="text-xs sm:text-sm rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 text-slate-900 dark:text-slate-100 resize-none focus:border-emerald-600 focus:ring-1 focus:ring-emerald-600 leading-relaxed shadow-2xs"
+                  placeholder={`Formule a ${currentGuided.title} deste paciente com clareza clínica e dados objetivos...`}
+                  className="text-xs sm:text-sm rounded-2xl border-[#1F3045] bg-[#0E1722] text-white placeholder:text-[#9FB3C6]/60 resize-none focus:border-[#20D5B5] focus:ring-0 leading-relaxed p-3.5"
                 />
 
-                <div className="flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
-                  <span>Dica: Use dados numéricos e cite horário específico de medicações.</span>
+                <div className="flex items-center justify-between text-[11px] text-[#9FB3C6]">
+                  <span>Dica: use dados numéricos e cite horário específico de medicações.</span>
                   <span>{sbarData[currentGuided.key]?.length || 0} caracteres</span>
                 </div>
               </div>
 
-              {/* Navegação entre Passos */}
-              <div className="flex items-center justify-between pt-3 border-t border-slate-100 dark:border-slate-800">
-                <Button
-                  size="sm"
-                  variant="outline"
+              {/* Navegação entre Passos (Página 15 do PDF) */}
+              <div className="flex items-center justify-between pt-3 border-t border-[#1F3045]">
+                <button
+                  type="button"
                   disabled={activeGuidedStep === 0}
                   onClick={() => {
                     if (isListening) stopListening();
                     setActiveGuidedStep((prev) => Math.max(0, prev - 1));
                   }}
-                  className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="rounded-2xl border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#9FB3C6] hover:text-white px-5 py-3 text-xs font-bold transition-all disabled:opacity-40 disabled:cursor-not-allowed"
                 >
-                  <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Passo Anterior
-                </Button>
+                  Passo anterior
+                </button>
 
                 {activeGuidedStep < 3 ? (
-                  <Button
-                    size="sm"
+                  <button
+                    type="button"
                     onClick={() => {
                       if (isListening) stopListening();
                       setActiveGuidedStep((prev) => Math.min(3, prev + 1));
                     }}
-                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold flex items-center gap-1.5 shadow-xs"
+                    className="rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none px-6 py-3 text-xs transition-all flex items-center gap-1.5"
                   >
-                    <span>Próximo Passo: {guidedStepsMeta[activeGuidedStep + 1]?.letter} ({guidedStepsMeta[activeGuidedStep + 1]?.title.split(" ")[0]})</span>
+                    <span>Próximo passo: {guidedStepsMeta[activeGuidedStep + 1]?.letter}</span>
                     <ArrowRight className="h-3.5 w-3.5" />
-                  </Button>
+                  </button>
                 ) : (
-                  <Button
-                    size="sm"
+                  <button
+                    type="button"
                     disabled={isEvaluating}
                     onClick={handleEvaluateSbar}
-                    className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-2 shadow-xs"
+                    className="rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none px-6 py-3 text-xs transition-all flex items-center gap-2"
                   >
                     {isEvaluating ? (
                       <>
-                        <Sparkles className="h-3.5 w-3.5 animate-spin text-white" /> Goti analisando...
+                        <Sparkles className="h-3.5 w-3.5 animate-spin" /> Goti analisando...
                       </>
                     ) : (
                       <>
-                        <Send className="h-3.5 w-3.5 text-white" /> Concluir e Transmitir para o Goti IA
+                        <Send className="h-3.5 w-3.5" /> Concluir e Transmitir
                       </>
                     )}
-                  </Button>
+                  </button>
                 )}
               </div>
             </div>
@@ -2054,6 +1821,7 @@ export default function SbarHandoffLab() {
       </main>
 
       <StudentFooter />
+      <MobileBottomDock />
     </div>
   );
 }

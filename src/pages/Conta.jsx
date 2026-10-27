@@ -4,9 +4,8 @@ import { useTheme } from "@/lib/ThemeContext";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import {
-  ArrowLeft,
   LogOut,
-  UserCircle,
+  User,
   ShieldCheck,
   Loader2,
   Camera,
@@ -15,20 +14,22 @@ import {
   Mic,
   Sun,
   Moon,
-  Sliders,
-  BarChart3,
   Flame,
   Snowflake,
+  ChevronDown,
+  ChevronUp,
+  Award,
+  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Image as ImageComponent } from "@/components/ui/image";
 import { toast } from "@/components/ui/use-toast";
 import PhotoCropper from "@/components/PhotoCropper";
+import StudentHeader from "@/components/StudentHeader";
+import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 // Componentes de Estatísticas Clínicas Formativas
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
-import ClinicalStatsGrid from "@/components/profile/ClinicalStatsGrid";
 import WeeklyActivityChart from "@/components/profile/WeeklyActivityChart";
 import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 
@@ -41,12 +42,26 @@ export default function Conta() {
   const { theme, setTheme, triggerHaptic } = useTheme();
   const navigate = useNavigate();
 
-  // Controle de Abas: 'stats' (Perfil & Estatísticas) | 'social' (Comunidade & Liga) | 'settings' (Ajustes & IA)
+  // Controle de Abas: 'stats' (Estatísticas Clínicas) | 'settings' (Ajustes & IA)
   const [activeTab, setActiveTab] = useState("stats");
 
   // Estado da Gamificação Clínica
   const [gameState, setGameState] = useState(() => clinicalGamificationService.getState());
   const [showPeModal, setShowPeModal] = useState(false);
+
+  // Controle de accordions expansíveis
+  const [openSections, setOpenSections] = useState({
+    dedication: false,
+    league: false,
+    mission: false,
+    achievements: false,
+    team: false,
+  });
+
+  const toggleSection = (section) => {
+    triggerHaptic(15);
+    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
+  };
 
   const refreshGameState = () => {
     setGameState(clinicalGamificationService.getState());
@@ -75,7 +90,6 @@ export default function Conta() {
   }
 
   const [busy, setBusy] = useState(false);
-  const [switching, setSwitching] = useState(false);
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(user?.full_name || "");
   const [savingName, setSavingName] = useState(false);
@@ -276,13 +290,6 @@ export default function Conta() {
     navigate("/splash");
   }
 
-  const profileLabel = "Estudante de Enfermagem";
-
-  function handleLogout() {
-    setBusy(true);
-    logout(true);
-  }
-
   async function saveName() {
     if (!nameValue.trim() || nameValue.trim() === user?.full_name) {
       setEditingName(false);
@@ -292,18 +299,8 @@ export default function Conta() {
     try {
       const newName = nameValue.trim();
       await base44.auth.updateMe({ full_name: newName });
-      try {
-        await base44.entities.TurmaMember.updateMany(
-          { user_id: user.id },
-          { $set: { user_name: newName } }
-        );
-        await base44.entities.Turma.updateMany(
-          { teacher_id: user.id },
-          { $set: { teacher_name: newName } }
-        );
-      } catch {}
       await checkUserAuth();
-      toast({ title: "Nome atualizado", description: "Seu nome foi atualizado em todas as turmas." });
+      toast({ title: "Nome atualizado", description: "Seu nome foi atualizado com sucesso." });
       setEditingName(false);
     } catch (err) {
       toast({ title: "Erro ao salvar nome", description: err.message || "Tente novamente.", variant: "destructive" });
@@ -329,12 +326,6 @@ export default function Conta() {
     try {
       const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
       await base44.auth.updateMe({ photo_url: file_url });
-      try {
-        await base44.entities.TurmaMember.updateMany(
-          { user_id: user.id },
-          { $set: { photo_url: file_url } }
-        );
-      } catch {}
       await checkUserAuth();
       toast({ title: "Foto atualizada com sucesso!" });
     } catch (err) {
@@ -345,188 +336,345 @@ export default function Conta() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors pb-12">
-      {/* Header Sticky */}
-      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
-        <div className="mx-auto max-w-2xl px-4 py-3 flex items-center justify-between">
-          <button
-            onClick={() => navigate("/")}
-            className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-slate-800 dark:text-slate-400 dark:hover:text-slate-200 transition"
-          >
-            <ArrowLeft className="h-4 w-4" /> Voltar ao Início
-          </button>
+    <div className="min-h-screen bg-[#0B131D] text-[#EAF2F8] pb-28 md:pb-8 flex flex-col">
+      {/* Header Desktop */}
+      <div className="hidden md:block">
+        <StudentHeader activeTab="perfil" />
+      </div>
 
-          {/* Indicador no Header */}
-          <div className="flex items-center gap-2">
-            <span className="text-xs font-semibold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-200 dark:border-emerald-800">
-              Enfere · Desempenho Clínico
-            </span>
+      <main className="flex-1 mx-auto max-w-xl md:max-w-2xl w-full px-4 sm:px-6 py-4 space-y-4">
+        {/* Título "Perfil" (Página 21 do PDF) */}
+        <h1 className="text-xl sm:text-2xl font-black text-white pt-1">
+          Perfil
+        </h1>
+
+        {/* Card do Perfil do Estudante (Página 21 do PDF) */}
+        <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-4 flex items-center gap-3.5">
+          <div className="relative shrink-0">
+            <div className="w-14 h-14 rounded-2xl bg-[#20D5B5] flex items-center justify-center text-[#0B131D] shadow-xs overflow-hidden">
+              {user?.photo_url ? (
+                <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
+              ) : (
+                <User className="w-7 h-7 text-[#0B131D]" />
+              )}
+            </div>
+            <button
+              type="button"
+              onClick={() => fileRef.current?.click()}
+              disabled={uploadingPhoto}
+              className="absolute -bottom-1 -right-1 flex h-6 w-6 items-center justify-center rounded-full border border-[#1F3045] bg-[#131F2E] text-white hover:text-[#20D5B5] transition disabled:opacity-50"
+              title="Alterar foto"
+            >
+              {uploadingPhoto ? <Loader2 className="h-3 w-3 animate-spin" /> : <Camera className="h-3 w-3" />}
+            </button>
+            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+          </div>
+
+          <div className="flex-1 min-w-0">
+            {editingName ? (
+              <div className="flex items-center gap-2">
+                <Input
+                  value={nameValue}
+                  onChange={(e) => setNameValue(e.target.value)}
+                  onKeyDown={(e) => e.key === "Enter" && saveName()}
+                  className="rounded-xl text-xs bg-[#131F2E] border-[#1F3045] text-white"
+                  autoFocus
+                />
+                <Button type="button" size="sm" onClick={saveName} disabled={savingName || !nameValue.trim()} className="bg-[#20D5B5] text-[#0B131D] font-bold text-xs">
+                  {savingName ? <Loader2 className="h-3 w-3 animate-spin" /> : <Check className="h-3 w-3" />}
+                </Button>
+              </div>
+            ) : (
+              <div className="flex items-center justify-between gap-2">
+                <div className="min-w-0">
+                  <h2 className="text-base font-black text-white truncate">
+                    {user?.full_name || "Estudante de Enfermagem"}
+                  </h2>
+                  <p className="text-xs text-[#9FB3C6] truncate">
+                    Membro desde {new Date(user?.created_at || Date.now()).getFullYear()}
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNameValue(user?.full_name || "");
+                    setEditingName(true);
+                  }}
+                  className="text-xs font-bold text-[#20D5B5] hover:underline shrink-0"
+                >
+                  Editar
+                </button>
+              </div>
+            )}
           </div>
         </div>
-      </header>
 
-      <main className="mx-auto max-w-2xl px-4 py-4 space-y-4">
-        {/* Card do Perfil do Usuário com Foto, Nome e Status */}
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
-          <div className="flex items-center gap-4">
-            <div className="relative shrink-0">
-              <div className="h-16 w-16 overflow-hidden rounded-2xl bg-teal-600 shadow-sm">
-                {user?.photo_url ? (
-                  <ImageComponent src={user.photo_url} fittingType="fill" className="h-full w-full" />
-                ) : (
-                  <div className="flex h-full w-full items-center justify-center text-white">
-                    <UserCircle className="h-8 w-8" />
-                  </div>
-                )}
+        {/* Pílulas de Alternância de Abas (Página 21 do PDF) */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic(15);
+              setActiveTab("stats");
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+              activeTab === "stats"
+                ? "bg-[#20D5B5] text-[#0B131D] shadow-xs"
+                : "bg-[#131F2E] text-[#9FB3C6] hover:text-white border border-[#1F3045]"
+            }`}
+          >
+            Estatísticas Clínicas
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic(15);
+              setActiveTab("settings");
+            }}
+            className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
+              activeTab === "settings"
+                ? "bg-[#20D5B5] text-[#0B131D] shadow-xs"
+                : "bg-[#131F2E] text-[#9FB3C6] hover:text-white border border-[#1F3045]"
+            }`}
+          >
+            Ajustes & IA
+          </button>
+        </div>
+
+        {/* CONTEÚDO DA ABA 1: ESTATÍSTICAS CLÍNICAS (Página 21 do PDF) */}
+        {activeTab === "stats" && (
+          <div className="space-y-3.5 animate-in fade-in duration-200">
+            {/* Card de Dias Seguidos (Streak) 1:1 com a Página 21 */}
+            <div className="rounded-2xl border border-[#FFC247]/40 bg-[#0E1722] p-4 flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <Flame className="w-7 h-7 text-[#FFC247] shrink-0 fill-[#FFC247]" />
+                <div>
+                  <h3 className="text-sm font-black text-[#FFC247]">
+                    {gameState.streak || 3} dias seguidos
+                  </h3>
+                  <p className="text-[11px] text-[#9FB3C6]">
+                    Recorde: {gameState.bestStreak || 12} dias · {gameState.streakFreezeAvailable ?? 5} congelamentos disponíveis
+                  </p>
+                </div>
               </div>
               <button
                 type="button"
-                onClick={() => fileRef.current?.click()}
-                disabled={uploadingPhoto}
-                className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border-2 border-white dark:border-slate-800 bg-teal-600 text-white shadow-sm transition hover:bg-teal-700 disabled:opacity-50"
-                title="Alterar foto"
+                onClick={() => {
+                  triggerHaptic(15);
+                  setShowPeModal(true);
+                }}
+                className="px-3 py-1.5 rounded-xl bg-[#131F2E] border border-[#1F3045] text-xs font-black text-[#FFC247] hover:border-[#FFC247]/50 transition cursor-pointer"
               >
-                {uploadingPhoto ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
+                {gameState.studyPoints ?? gameState.totalXp ?? 120} PE
               </button>
-              <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
             </div>
 
-            <div className="min-w-0 flex-1">
-              {editingName ? (
-                <div className="flex items-center gap-2">
-                  <Input
-                    value={nameValue}
-                    onChange={(e) => setNameValue(e.target.value)}
-                    onKeyDown={(e) => e.key === "Enter" && saveName()}
-                    className="rounded-lg text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
-                    autoFocus
-                  />
-                  <Button type="button" size="icon" variant="outline" onClick={() => setEditingName(false)} disabled={savingName} className="shrink-0 rounded-lg dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">
-                    <ArrowLeft className="h-3.5 w-3.5" />
-                  </Button>
-                  <Button type="button" size="icon" onClick={saveName} disabled={savingName || !nameValue.trim()} className="shrink-0 rounded-lg bg-teal-600 hover:bg-teal-700 text-white">
-                    {savingName ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Check className="h-3.5 w-3.5" />}
-                  </Button>
+            {/* Grid 2x2 com as Métricas Formativas (Página 21 do PDF) */}
+            <div className="grid grid-cols-2 gap-3">
+              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+                <div className="text-2xl font-black text-[#20D5B5]">
+                  {gameState.solvedCases ?? 7}
                 </div>
-              ) : (
-                <div className="flex items-center gap-2">
-                  <div className="min-w-0">
-                    <h2 className="truncate font-bold text-base text-slate-900 dark:text-slate-100">
-                      {user?.full_name || "Estudante de Enfermagem"}
-                    </h2>
-                    <p className="truncate text-xs text-slate-500 dark:text-slate-400">{user?.email}</p>
-                  </div>
-                  <Button type="button" variant="ghost" size="sm" onClick={() => { setNameValue(user?.full_name || ""); setEditingName(true); }} className="shrink-0 text-teal-600 dark:text-teal-400 hover:bg-teal-50 dark:hover:bg-slate-800 text-xs font-semibold">
-                    Editar
-                  </Button>
+                <div className="text-xs font-semibold text-[#9FB3C6]">
+                  Casos resolvidos
                 </div>
-              )}
+              </div>
 
-              <div className="mt-2 flex flex-wrap items-center gap-2">
-                <span className="inline-flex items-center gap-1 rounded-full bg-teal-50 dark:bg-teal-950/60 px-2.5 py-0.5 text-[11px] font-bold text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                  <ShieldCheck className="h-3 w-3 text-teal-600 dark:text-teal-400" />
-                  {profileLabel}
-                </span>
+              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+                <div className="text-2xl font-black text-[#20D5B5]">
+                  {gameState.accuracyRate ? `${gameState.accuracyRate}%` : "88%"}
+                </div>
+                <div className="text-xs font-semibold text-[#9FB3C6]">
+                  Acurácia diagnóstica
+                </div>
+              </div>
 
-                <span className="text-[11px] text-slate-400 dark:text-slate-400">
-                  Membro desde {new Date(user?.created_at || Date.now()).getFullYear()}
-                </span>
+              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+                <div className="text-2xl font-black text-[#20D5B5]">
+                  {gameState.safeDosagesCount ?? 14}
+                </div>
+                <div className="text-xs font-semibold text-[#9FB3C6]">
+                  Cálculos seguros
+                </div>
+              </div>
+
+              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+                <div className="text-2xl font-black text-[#20D5B5]">
+                  {gameState.sbarHandoffsCount ?? 4}
+                </div>
+                <div className="text-xs font-semibold text-[#9FB3C6]">
+                  Plantões SBAR
+                </div>
               </div>
             </div>
-          </div>
-        </div>
 
-        {/* Abas Superiores de Navegação do Perfil */}
-        <div className="flex items-center gap-1.5 p-1 rounded-2xl bg-slate-200/80 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700/80">
-          <button
-            type="button"
-            onClick={() => {
-              triggerHaptic(20);
-              setActiveTab("stats");
-            }}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "stats"
-                ? "bg-white dark:bg-slate-900 text-emerald-800 dark:text-emerald-300 shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-            }`}
-          >
-            <BarChart3 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-            <span>Estatísticas Clínicas</span>
-          </button>
+            {/* Card de Nível do Estudante (Página 21 do PDF) */}
+            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-2.5">
+              <div className="text-xs font-black text-[#20D5B5] uppercase tracking-wide">
+                NÍVEL 1 · Recruta de Enfermagem
+              </div>
+              <div className="w-full h-2 rounded-full bg-[#0E1722] overflow-hidden">
+                <div className="h-full bg-[#20D5B5] rounded-full w-[60%]" />
+              </div>
+            </div>
 
-          <button
-            type="button"
-            onClick={() => {
-              triggerHaptic(20);
-              setActiveTab("settings");
-            }}
-            className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl text-xs font-bold transition-all ${
-              activeTab === "settings"
-                ? "bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-200 shadow-sm"
-                : "text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-200"
-            }`}
-          >
-            <Sliders className="h-4 w-4 text-slate-500 dark:text-slate-400" />
-            <span>Ajustes & IA</span>
-          </button>
-        </div>
-
-        {/* ABA 1: PERFIL & ESTATÍSTICAS CLÍNICAS */}
-        {activeTab === "stats" && (
-          <div className="space-y-4">
-            {/* Card de Ofensiva & Congelamento de Plantão */}
-            <div className="rounded-2xl border-2 border-amber-200 dark:border-amber-900/60 bg-gradient-to-r from-amber-50/70 via-orange-50/40 to-white dark:from-amber-950/30 dark:via-slate-900 dark:to-slate-900 p-5 shadow-xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div className="flex items-center gap-3.5">
-                  <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-amber-500 to-orange-500 flex items-center justify-center text-white shadow-md shrink-0">
-                    <Flame className="w-7 h-7 animate-flame-subtle" />
-                  </div>
+            {/* Lista de Acordeões Expansíveis (Página 21 do PDF) */}
+            <div className="space-y-2 pt-1">
+              {/* 1. Dedicação semanal */}
+              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('dedication')}
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
+                >
                   <div>
-                    <div className="flex items-center gap-2">
-                      <span className="text-2xl font-black text-amber-900 dark:text-amber-300 leading-none">
-                        {gameState.streak || 0} dias seguidos
-                      </span>
-                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-100 dark:bg-amber-900/60 text-amber-800 dark:text-amber-300 border border-amber-300 dark:border-amber-800">
-                        Ofensiva Ativa 🔥
-                      </span>
+                    <div className="text-xs sm:text-sm font-bold text-white">
+                      Dedicação semanal
                     </div>
-                    <p className="text-xs text-slate-600 dark:text-slate-400 mt-1">
-                      Você está praticando raciocínio clínico sem interrupções! Recorde: <strong>{gameState.bestStreak || gameState.streak || 0} dias</strong>.
-                    </p>
+                    <div className="text-[11px] text-[#9FB3C6]">
+                      290 PE nos últimos 7 dias
+                    </div>
                   </div>
-                </div>
-
-                <div className="flex items-center gap-2 self-start sm:self-auto shrink-0">
-                  <Button
-                    type="button"
-                    size="sm"
-                    variant="outline"
-                    onClick={() => {
-                      triggerHaptic(15);
-                      setShowPeModal(true);
-                    }}
-                    className="rounded-xl border-amber-300 dark:border-amber-800 text-amber-800 dark:text-amber-300 bg-white/80 dark:bg-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
-                  >
-                    <Sparkles className="w-3.5 h-3.5 text-amber-500" />
-                    <span>{gameState.studyPoints ?? gameState.totalXp ?? 0} PE</span>
-                  </Button>
-                </div>
+                  {openSections.dedication ? (
+                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
+                  )}
+                </button>
+                {openSections.dedication && (
+                  <div className="p-4 pt-0 border-t border-[#1F3045]/60">
+                    <WeeklyActivityChart weeklyDays={gameState.weeklyDays} />
+                  </div>
+                )}
               </div>
 
-              {/* Módulo de Congelamento de Plantão */}
-              <div className="pt-3 border-t border-amber-200/60 dark:border-slate-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 bg-white/60 dark:bg-slate-900/60 p-3.5 rounded-xl border">
+              {/* 2. Liga semanal */}
+              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('league')}
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
+                >
+                  <div className="text-xs sm:text-sm font-bold text-white">
+                    Liga semanal
+                  </div>
+                  {openSections.league ? (
+                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
+                  )}
+                </button>
+                {openSections.league && (
+                  <div className="p-4 pt-2 border-t border-[#1F3045]/60 text-xs text-[#9FB3C6] space-y-2">
+                    <div className="flex items-center justify-between font-bold text-white">
+                      <span>Divisão Prata · Grupo 4</span>
+                      <span className="text-[#20D5B5]">Top 5 Avançam</span>
+                    </div>
+                    <p className="text-[11px]">Você está na 3ª posição com 290 PE acumulados nesta rodada.</p>
+                  </div>
+                )}
+              </div>
+
+              {/* 3. Missão: Mãos Dadas no Plantão */}
+              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('mission')}
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
+                >
+                  <div className="text-xs sm:text-sm font-bold text-white">
+                    Missão: Mãos Dadas no Plantão
+                  </div>
+                  {openSections.mission ? (
+                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
+                  )}
+                </button>
+                {openSections.mission && (
+                  <div className="p-4 pt-2 border-t border-[#1F3045]/60 text-xs text-[#9FB3C6] space-y-2">
+                    <p className="text-[11px]">Conclua 3 passagens de plantão SBAR com precisão para desbloquear a insígnia de Comunicação Interprofissional da OMS.</p>
+                    <div className="w-full h-1.5 rounded-full bg-[#0E1722] overflow-hidden">
+                      <div className="h-full bg-[#20D5B5] rounded-full w-[33%]" />
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 4. Conquistas */}
+              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('achievements')}
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
+                >
+                  <div className="text-xs sm:text-sm font-bold text-white">
+                    Conquistas
+                  </div>
+                  {openSections.achievements ? (
+                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
+                  )}
+                </button>
+                {openSections.achievements && (
+                  <div className="p-4 pt-2 border-t border-[#1F3045]/60 text-xs text-[#9FB3C6] space-y-2">
+                    <div className="grid grid-cols-2 gap-2">
+                      <div className="p-2.5 rounded-xl bg-[#0E1722] border border-[#1F3045] flex items-center gap-2">
+                        <Award className="w-4 h-4 text-[#FFC247]" />
+                        <span className="text-[11px] font-bold text-white">Primeiro Plantão</span>
+                      </div>
+                      <div className="p-2.5 rounded-xl bg-[#0E1722] border border-[#1F3045] flex items-center gap-2">
+                        <ShieldCheck className="w-4 h-4 text-[#20D5B5]" />
+                        <span className="text-[11px] font-bold text-white">Dose Exata</span>
+                      </div>
+                    </div>
+                  </div>
+                )}
+              </div>
+
+              {/* 5. Colegas e atividade da equipe */}
+              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
+                <button
+                  type="button"
+                  onClick={() => toggleSection('team')}
+                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
+                >
+                  <div className="text-xs sm:text-sm font-bold text-white">
+                    Colegas e atividade da equipe
+                  </div>
+                  {openSections.team ? (
+                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
+                  ) : (
+                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
+                  )}
+                </button>
+                {openSections.team && (
+                  <div className="p-4 pt-2 border-t border-[#1F3045]/60 text-xs text-[#9FB3C6] space-y-2">
+                    <div className="flex items-center gap-2">
+                      <Users className="w-4 h-4 text-[#20D5B5]" />
+                      <span className="text-[11px] text-white">12 colegas praticando neste turno</span>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Módulo de Congelamento de Plantão */}
+            <div className="pt-2">
+              <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-sky-100 dark:bg-sky-950/60 border border-sky-300 dark:border-sky-800 text-sky-600 dark:text-sky-400 flex items-center justify-center shrink-0">
+                  <div className="w-9 h-9 rounded-xl bg-sky-950/60 border border-sky-800 text-sky-400 flex items-center justify-center shrink-0">
                     <Snowflake className="w-5 h-5 animate-pulse" />
                   </div>
                   <div>
-                    <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+                    <h5 className="text-xs font-bold text-white flex items-center gap-2">
                       Congelamento de Plantão
-                      <span className="text-[10px] font-extrabold px-2 py-0.2 rounded-full bg-sky-100 dark:bg-sky-900/60 text-sky-800 dark:text-sky-300">
+                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-sky-900/60 text-sky-300">
                         {gameState.streakFreezeAvailable || 0} disponível{(gameState.streakFreezeAvailable || 0) !== 1 ? "is" : ""}
                       </span>
                     </h5>
-                    <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                    <p className="text-[11px] text-[#9FB3C6]">
                       Fique 1 dia sem atividade sem perder sua contagem de dias seguidos na escala clínica.
                     </p>
                   </div>
@@ -537,38 +685,26 @@ export default function Conta() {
                   size="sm"
                   onClick={handleBuyStreakFreeze}
                   disabled={(gameState.studyPoints ?? gameState.totalXp ?? 0) < 30}
-                  className="rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs shrink-0 self-start sm:self-auto py-2 px-3 tap-press disabled:opacity-50"
+                  className="rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs shrink-0 self-start sm:self-auto py-2 px-3 disabled:opacity-50"
                 >
                   <Snowflake className="w-3.5 h-3.5" />
                   <span>Comprar (+1) por 30 PE</span>
                 </Button>
               </div>
             </div>
-
-            {/* Grid 2x2 de Métricas Vitais de Desempenho Clínico */}
-            <ClinicalStatsGrid
-              solvedCases={gameState.solvedCases}
-              accuracyRate={gameState.accuracyRate}
-              safeDosagesCount={gameState.safeDosagesCount}
-              sbarHandoffsCount={gameState.sbarHandoffsCount}
-            />
-
-            {/* Gráfico Semanal de Atividade */}
-            <WeeklyActivityChart weeklyDays={gameState.weeklyDays} />
           </div>
         )}
 
-        {/* ABA 2: AJUSTES, TEMAS & CHAVES DE INTELIGÊNCIA ARTIFICIAL */}
+        {/* CONTEÚDO DA ABA 2: AJUSTES & IA */}
         {activeTab === "settings" && (
-          <div className="space-y-4">
-
+          <div className="space-y-4 animate-in fade-in duration-200">
             {/* Card de Configuração de Aparência e Tema */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-4 shadow-xs">
+            <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-5 space-y-4 shadow-xs">
               <div>
-                <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                  <Sun className="h-4 w-4 text-amber-500" /> Aparência & Tema Visual
+                <p className="text-sm font-bold text-white flex items-center gap-1.5">
+                  <Sun className="h-4 w-4 text-[#FFC247]" /> Aparência & Tema Visual
                 </p>
-                <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                <p className="mt-0.5 text-xs text-[#9FB3C6]">
                   Personalize o contraste da interface para estudos diurnos ou plantão noturno em enfermarias.
                 </p>
               </div>
@@ -582,16 +718,16 @@ export default function Conta() {
                   }}
                   className={`p-3.5 rounded-xl border text-left transition flex items-center gap-3 ${
                     theme === 'light'
-                      ? 'bg-emerald-50 border-emerald-600 text-emerald-950 font-bold ring-2 ring-emerald-600/20'
-                      : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                      ? 'bg-[#131F2E] border-[#20D5B5] text-white font-bold ring-2 ring-[#20D5B5]/20'
+                      : 'bg-[#131F2E] border-[#1F3045] text-[#9FB3C6] hover:border-slate-500'
                   }`}
                 >
                   <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-700 shrink-0">
                     <Sun className="h-5 w-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold block">Modo Claro</span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Visual clássico & branco</span>
+                    <span className="text-xs font-bold block text-white">Modo Claro</span>
+                    <span className="text-[10px] text-[#9FB3C6]">Visual clássico</span>
                   </div>
                 </button>
 
@@ -603,38 +739,38 @@ export default function Conta() {
                   }}
                   className={`p-3.5 rounded-xl border text-left transition flex items-center gap-3 ${
                     theme === 'dark'
-                      ? 'bg-slate-800 border-emerald-500 text-emerald-400 font-bold ring-2 ring-emerald-500/20'
-                      : 'bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:border-slate-300'
+                      ? 'bg-[#131F2E] border-[#20D5B5] text-[#20D5B5] font-bold ring-2 ring-[#20D5B5]/20'
+                      : 'bg-[#131F2E] border-[#1F3045] text-[#9FB3C6] hover:border-slate-500'
                   }`}
                 >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-slate-900 text-amber-400 shrink-0 border border-slate-700">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0B131D] text-[#FFC247] shrink-0 border border-[#1F3045]">
                     <Moon className="h-5 w-5" />
                   </div>
                   <div>
-                    <span className="text-xs font-bold block">Modo Escuro</span>
-                    <span className="text-[10px] text-slate-500 dark:text-slate-400">Padrão relaxante p/ olhos</span>
+                    <span className="text-xs font-bold block text-white">Modo Escuro</span>
+                    <span className="text-[10px] text-[#9FB3C6]">Padrão relaxante</span>
                   </div>
                 </button>
               </div>
             </div>
 
             {/* Card do Google Gemini AI */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3 shadow-xs">
+            <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-5 space-y-3 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Inteligência Artificial Clínica (Google Gemini)
+                  <p className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <Sparkles className="h-4 w-4 text-[#20D5B5]" /> Inteligência Artificial Clínica (Google Gemini)
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+                  <p className="mt-0.5 text-xs text-[#9FB3C6]">
                     Conecte sua chave de API para raciocínio diagnóstico avançado e ilimitado com o Google Gemini.
                   </p>
                 </div>
                 {geminiKey ? (
-                  <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <span className="rounded-full bg-[#20D5B5]/15 px-2 py-0.5 text-[11px] font-bold text-[#20D5B5] border border-[#20D5B5]/30">
                     Chave Ativa
                   </span>
                 ) : (
-                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                  <span className="rounded-full bg-[#131F2E] px-2 py-0.5 text-[11px] font-medium text-[#9FB3C6] border border-[#1F3045]">
                     Motor Local Ativo
                   </span>
                 )}
@@ -647,13 +783,13 @@ export default function Conta() {
                     placeholder="Cole sua chave de API (AIzaSy...)"
                     value={geminiKeyInput}
                     onChange={(e) => setGeminiKeyInput(e.target.value)}
-                    className="rounded-xl text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                    className="rounded-xl text-xs bg-[#131F2E] border-[#1F3045] text-white"
                   />
                   <Button
                     type="button"
                     onClick={handleSaveGeminiKey}
                     disabled={testingGemini || (!geminiKeyInput.trim() && !geminiKey)}
-                    className="shrink-0 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs px-3 font-semibold"
+                    className="shrink-0 rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-3 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-0.5 active:shadow-none"
                   >
                     {testingGemini ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Salvar & Testar"}
                   </Button>
@@ -661,51 +797,38 @@ export default function Conta() {
 
                 {geminiKey && (
                   <div className="flex items-center justify-between text-[11px] pt-1">
-                    <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
+                    <span className="text-[#20D5B5] font-medium flex items-center gap-1">
                       <Check className="h-3 w-3" /> Chave configurada com sucesso
                     </span>
                     <button
                       type="button"
                       onClick={handleRemoveGeminiKey}
-                      className="text-rose-500 hover:underline"
+                      className="text-rose-400 hover:underline"
                     >
                       Remover chave
                     </button>
                   </div>
                 )}
-
-                <p className="text-[11px] text-slate-400">
-                  Não tem uma chave? Crie gratuitamente em segundos no{" "}
-                  <a
-                    href="https://aistudio.google.com/app/apikey"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-teal-600 dark:text-teal-400 hover:underline font-medium"
-                  >
-                    Google AI Studio ↗
-                  </a>
-                  . Se preferir não configurar, o Enfere usará o super motor clínico local.
-                </p>
               </div>
             </div>
 
             {/* Card do AssemblyAI */}
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 space-y-3 shadow-xs">
+            <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-5 space-y-3 shadow-xs">
               <div className="flex items-center justify-between">
                 <div>
-                  <p className="text-sm font-semibold text-slate-800 dark:text-slate-100 flex items-center gap-1.5">
-                    <Mic className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Transcrição de Voz (AssemblyAI)
+                  <p className="text-sm font-bold text-white flex items-center gap-1.5">
+                    <Mic className="h-4 w-4 text-[#20D5B5]" /> Transcrição de Voz (AssemblyAI)
                   </p>
-                  <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
-                    Modelo dedicado de reconhecimento de fala em português (pt-BR) para gravação de áudios longos e relatos à beira-leito.
+                  <p className="mt-0.5 text-xs text-[#9FB3C6]">
+                    Modelo dedicado de reconhecimento de fala em português (pt-BR) para gravação de áudios longos à beira-leito.
                   </p>
                 </div>
                 {assemblyAIKey ? (
-                  <span className="rounded-full bg-emerald-50 dark:bg-emerald-950/60 px-2 py-0.5 text-[11px] font-medium text-emerald-700 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                  <span className="rounded-full bg-[#20D5B5]/15 px-2 py-0.5 text-[11px] font-bold text-[#20D5B5] border border-[#20D5B5]/30">
                     Chave Ativa
                   </span>
                 ) : (
-                  <span className="rounded-full bg-slate-100 dark:bg-slate-800 px-2 py-0.5 text-[11px] font-medium text-slate-600 dark:text-slate-300">
+                  <span className="rounded-full bg-[#131F2E] px-2 py-0.5 text-[11px] font-medium text-[#9FB3C6] border border-[#1F3045]">
                     Não configurada
                   </span>
                 )}
@@ -718,13 +841,13 @@ export default function Conta() {
                     placeholder="Cole sua chave de API do AssemblyAI"
                     value={assemblyAIKeyInput}
                     onChange={(e) => setAssemblyAIKeyInput(e.target.value)}
-                    className="rounded-xl text-xs dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                    className="rounded-xl text-xs bg-[#131F2E] border-[#1F3045] text-white"
                   />
                   <Button
                     type="button"
                     onClick={handleSaveAssemblyAIKey}
                     disabled={testingAssemblyAI || (!assemblyAIKeyInput.trim() && !assemblyAIKey)}
-                    className="shrink-0 rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs px-3 font-semibold"
+                    className="shrink-0 rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-3 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-0.5 active:shadow-none"
                   >
                     {testingAssemblyAI ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Salvar & Testar"}
                   </Button>
@@ -732,66 +855,53 @@ export default function Conta() {
 
                 {assemblyAIKey && (
                   <div className="flex items-center justify-between text-[11px] pt-1">
-                    <span className="text-emerald-600 dark:text-emerald-400 font-medium flex items-center gap-1">
-                      <Check className="h-3 w-3" /> Transcrição AssemblyAI conectada com sucesso
+                    <span className="text-[#20D5B5] font-medium flex items-center gap-1">
+                      <Check className="h-3 w-3" /> Transcrição AssemblyAI conectada
                     </span>
                     <button
                       type="button"
                       onClick={handleRemoveAssemblyAIKey}
-                      className="text-rose-500 hover:underline"
+                      className="text-rose-400 hover:underline"
                     >
                       Remover chave
                     </button>
                   </div>
                 )}
-
-                <p className="text-[11px] text-slate-400">
-                  Obtenha sua chave gratuita em{" "}
-                  <a
-                    href="https://www.assemblyai.com/dashboard/signup"
-                    target="_blank"
-                    rel="noreferrer"
-                    className="text-teal-600 dark:text-teal-400 hover:underline font-medium"
-                  >
-                    AssemblyAI Dashboard ↗
-                  </a>
-                  . Se não configurar, a gravação utilizará o Google Gemini Multimodal Audio ou o reconhecimento nativo do navegador.
-                </p>
               </div>
             </div>
 
-            {/* Ações Rápidas: Rever Apresentação (Splash) & Logout */}
+            {/* Ações Rápidas: Rever Tela de Splash & Sair da Conta */}
             <div className="space-y-3 pt-2">
               <button
                 type="button"
                 onClick={handleViewSplash}
-                className="w-full rounded-2xl bg-teal-50 dark:bg-teal-950/80 border-2 border-teal-200 dark:border-teal-800 border-b-4 border-b-teal-300 dark:border-b-teal-900 text-teal-900 dark:text-teal-200 hover:bg-teal-100 font-black text-xs sm:text-sm py-3 px-4 flex items-center justify-center gap-2 select-none active:translate-y-1 active:border-b-2 transition-all cursor-pointer shadow-2xs"
+                className="w-full rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#20D5B5]/50 text-white font-bold text-xs sm:text-sm py-3.5 px-4 flex items-center justify-center gap-2 select-none active:translate-y-0.5 transition-all cursor-pointer shadow-xs"
               >
-                <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+                <Sparkles className="h-4 w-4 text-[#20D5B5]" />
                 <span>Rever Tela de Abertura (Splash / Boas-Vindas)</span>
               </button>
 
-              <Button
+              <button
+                type="button"
                 onClick={handleLogout}
                 disabled={busy}
-                variant="destructive"
-                className="w-full rounded-2xl font-bold py-3.5 border-b-4 border-b-rose-900 active:translate-y-1 active:border-b-2"
+                className="w-full rounded-2xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-bold py-3.5 flex items-center justify-center gap-2 active:translate-y-0.5 transition cursor-pointer"
               >
                 {busy ? (
                   "Saindo..."
                 ) : (
                   <>
-                    <LogOut className="h-4 w-4 mr-2" /> Sair da conta e Ir para a Tela Inicial
+                    <LogOut className="h-4 w-4" /> Sair da conta
                   </>
                 )}
-              </Button>
+              </button>
             </div>
           </div>
         )}
       </main>
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
-        <p className="text-[11px] text-slate-400 dark:text-slate-400">
+        <p className="text-[11px] text-[#9FB3C6]/60">
           © 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfere
         </p>
       </footer>
@@ -811,6 +921,8 @@ export default function Conta() {
           refreshGameState();
         }}
       />
+
+      <MobileBottomDock activeTab="perfil" />
     </div>
   );
 }

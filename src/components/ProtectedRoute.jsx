@@ -29,7 +29,9 @@ export default function ProtectedRoute({ fallback = <DefaultFallback />, unauthe
     return unauthenticatedElement;
   }
 
-  if (!isAuthenticated) {
+  const hasLocalUser = typeof localStorage !== 'undefined' && Boolean(localStorage.getItem('enfermeiro_digital_local_user'));
+
+  if (!isAuthenticated && !hasLocalUser) {
     return unauthenticatedElement;
   }
 

@@ -3,27 +3,23 @@ import { useNavigate } from "react-router-dom";
 import {
   BookOpen,
   Calculator,
-  Users,
   PlusCircle,
-  Mic,
+  Video,
   ArrowRightLeft,
+  Stethoscope,
+  ChevronRight,
+  Flame,
+  Zap,
+  Sparkles,
   Search,
-  FolderPlus,
-  X,
-  Video
+  X
 } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import { useAuth } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/ThemeContext";
 
-// Componentes Móveis Estilo Orizon Verde e Branco / Dark Mode
-import MobileHeader from "@/components/mobile/MobileHeader";
 import EnfereVivoTrail from "@/components/mobile/EnfereVivoTrail";
-import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
-import ClinicalModuleCard from "@/components/mobile/ClinicalModuleCard";
-import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 
 export default function StudentDashboard() {
@@ -32,345 +28,406 @@ export default function StudentDashboard() {
   const { triggerHaptic } = useTheme();
 
   const [searchQuery, setSearchQuery] = useState("");
-  const [selectedCategory, setSelectedCategory] = useState("all");
-  const [isOptionsModalOpen, setIsOptionsModalOpen] = useState(false);
-  const [briefingModuleId, setBriefingModuleId] = useState(null);
-  const [isBriefingOpen, setIsBriefingOpen] = useState(false);
-  const cleanUserName = user?.name ? user.name.split(" ")[0] : (user?.full_name ? user.full_name.split(" ")[0] : "");
-  const isGeneric = !cleanUserName || ['estudante', 'enfermeiro', 'aluno'].includes(cleanUserName.toLowerCase());
-  const greetingName = isGeneric ? '' : cleanUserName;
+  const cleanUserName = user?.name ? user.name.split(" ")[0] : (user?.full_name ? user.full_name.split(" ")[0] : "Marcos");
 
-  // Configuração Automática do Hero Card (Foco 100% no Aluno e Prática Clínica)
-  const heroCardConfig = useMemo(() => ({
-    title: "Processo de Enfermagem Completo",
-    subtitle: "5 Etapas • Raciocínio Diagnóstico & Taxonomias Clínicas",
-    progressPercent: 75,
-    actionText: "Iniciar Caso Clínico",
-    actionTo: "/simulador-casos",
-    timeEstimate: "15 min",
-    competencyTag: "Raciocínio Clínico • NANDA-I / NIC / NOC",
-    badgeText: "Trilha Principal",
-    desktopSub: "Painel do Aluno • Prática Baseada em Evidências",
-    desktopDesc: "Monte casos clínicos com escores validados (Braden, CAM, CALOI, SAK) ou explore simulações formativas com o Processo de Enfermagem em 5 etapas e taxonomias NANDA-I/NIC/NOC.",
-  }), []);
-
-  // Definição Completa dos Módulos Clínicos (Cada um com sua diretriz metodológica nativa automática)
-  const learningModules = useMemo(() => [
+  // Módulos sugeridos para a lateral no desktop (Página 2 do PDF)
+  const desktopSuggestions = useMemo(() => [
     {
-      id: "casos",
-      category: "cofen",
-      title: "Simulador de Casos Clínicos",
-      subtitle: "Processo de Enfermagem & Raciocínio Clínico",
-      description: "Pratique o raciocínio diagnóstico nas 5 etapas do Processo de Enfermagem com taxonomias NANDA-I, NIC e NOC e julgamento clínico.",
-      icon: BookOpen,
-      path: "/simulador-casos",
-      tag: "Processo de Enfermagem • NANDA-I",
-      time: "15 min",
-      badgeText: "5 Etapas",
-      stats: "Avaliação, Diagnóstico e Metas",
-      featured: true
+      id: "doses",
+      title: "Laboratório de Cálculo de Doses",
+      subtitle: "5 min · 4 Modos",
+      icon: Calculator,
+      action: () => {
+        triggerHaptic(15);
+        navigate("/laboratorio-calculos");
+      }
     },
     {
       id: "sbar",
-      category: "sbar",
       title: "Passagem de Plantão SBAR",
-      subtitle: "Comunicação Segura & Treino SBAR",
-      description: "Treine a técnica SBAR (Situação, Breve Histórico, Avaliação, Recomendação) por voz ou texto, com debriefing e devolutiva do Goti IA.",
+      subtitle: "8 min · Preceptoria IA",
       icon: ArrowRightLeft,
-      path: "/passagem-plantao",
-      tag: "Meta 2 OMS • SBAR Áudio",
-      time: "8 min",
-      badgeText: "Goti IA",
-      stats: "Áudio • Conclusão • PDF",
-      featured: true
+      action: () => {
+        triggerHaptic(15);
+        navigate("/passagem-plantao");
+      }
     },
     {
-      id: "calculos",
-      category: "doses",
-      title: "Laboratório de Cálculo de Doses",
-      subtitle: "Farmacologia Clínica",
-      description: "Domine gotejamento de macrogotas, microgotas, infusões em minutos e diluição de antibióticos com feedback estruturado.",
-      icon: Calculator,
-      path: "/laboratorio-calculos",
-      tag: "Segurança Medicamentosa",
-      time: "5 min",
-      badgeText: "4 Modos",
-      stats: "Macrogotas • Microgotas • Diluições"
-    },
-    {
-      id: "montar",
-      category: "cofen",
-      title: "Montador de Casos Clínicos",
-      subtitle: "Estúdio de Casos & Desafio",
-      description: "Construa o perfil do paciente do zero com escores clínicos validados (Braden, CAM, AUDIT, SAK, CALOI) e resolva o desafio diagnóstico.",
-      icon: PlusCircle,
-      path: "/montar-caso",
-      tag: "Estúdio Clínico",
-      time: "12 min",
-      badgeText: "Escores + Áudio",
-      stats: "Braden • CAM • CALOI • SAK"
-    },
-    {
-      id: "procedimentos",
-      category: "procedimentos",
+      id: "pops",
       title: "Videoteca de Procedimentos & POPs",
-      subtitle: "Laboratório de Habilidades (Skills Lab)",
-      description: "Aprenda e treine punção venosa, sondagem vesical SVD/SVA, SNG/SNE, curativos e injeções com vídeos didáticos, checklists de técnica asséptica e IA.",
+      subtitle: "8 min · Vídeos + Checklists",
       icon: Video,
-      path: "/procedimentos",
-      tag: "Habilidades Práticas",
-      time: "8 min",
-      badgeText: "Vídeos + Checklists",
-      stats: "Punção • SVD • SNG • Injeções • IA",
-      featured: true
+      action: () => {
+        triggerHaptic(15);
+        navigate("/procedimentos");
+      }
     }
-  ], []);
+  ], [navigate, triggerHaptic]);
 
-  // Categorias para os Chips Deslizáveis
-  const categories = useMemo(() => [
-    { id: "all", label: "Todos", count: learningModules.length },
-    { id: "cofen", label: "Processo de Enfermagem", count: learningModules.filter(m => m.category === 'cofen').length },
-    { id: "sbar", label: "Plantão SBAR", count: learningModules.filter(m => m.category === 'sbar').length },
-    { id: "doses", label: "Cálculo de Doses", count: learningModules.filter(m => m.category === 'doses').length },
-    { id: "procedimentos", label: "Procedimentos & POPs", count: learningModules.filter(m => m.category === 'procedimentos').length },
-  ], [learningModules]);
+  // Grade de 6 cards oficiais "Praticar" (Página 2 do PDF)
+  const practiceCards = useMemo(() => [
+    {
+      id: "pe_cases",
+      title: "Simulador de Casos Clínicos",
+      desc: "5 etapas do Processo de Enfermagem com NANDA/NIC/NOC e debriefing formativo.",
+      badge: "5 Etapas",
+      icon: BookOpen,
+      action: () => {
+        triggerHaptic(15);
+        navigate("/simulador-casos");
+      }
+    },
+    {
+      id: "sbar_handoff",
+      title: "Passagem de Plantão SBAR",
+      desc: "Comunicação interprofissional estruturada com gravação de áudio e feedback.",
+      badge: "Preceptoria IA",
+      icon: ArrowRightLeft,
+      action: () => {
+        triggerHaptic(15);
+        navigate("/passagem-plantao");
+      }
+    },
+    {
+      id: "calc_doses",
+      title: "Laboratório de Cálculo de Doses",
+      desc: "Gotejamento macrogotas, microgotas, BIC em mL/h e diluições críticas.",
+      badge: "4 Modos",
+      icon: Calculator,
+      action: () => {
+        triggerHaptic(15);
+        navigate("/laboratorio-calculos");
+      }
+    },
+    {
+      id: "case_maker",
+      title: "Montador de Casos Clínicos",
+      desc: "Construção de pacientes com escores validados (Braden, CAM, CALOI, SAK) e áudio.",
+      badge: "Escores + Áudio",
+      icon: PlusCircle,
+      action: () => {
+        triggerHaptic(15);
+        navigate("/montar-caso");
+      }
+    },
+    {
+      id: "pops_library",
+      title: "Videoteca de Procedimentos & POPs",
+      desc: "Skills Lab com checklists operacionais, técnica asséptica e chancela hospitalar.",
+      badge: "Vídeos + Checklists",
+      icon: Video,
+      action: () => {
+        triggerHaptic(15);
+        navigate("/procedimentos");
+      }
+    },
+    {
+      id: "semiology",
+      title: "Semiologia por Sistemas Orgânicos",
+      desc: "Exame físico céfalo-caudal direcionado por radar semiológico (Neuro, Resp, Cardio, Pele).",
+      badge: "4 Sistemas",
+      icon: Stethoscope,
+      action: () => {
+        triggerHaptic(15);
+        navigate("/simulador-casos?mode=semiology");
+      }
+    }
+  ], [navigate, triggerHaptic]);
 
   const isSearching = searchQuery.trim().length > 0;
-
-  // Filtragem Dinâmica Global
-  const filteredModules = useMemo(() => {
-    return learningModules.filter(module => {
-      // Quando houver texto na busca, pesquisa GLOBALMENTE em todos os módulos
-      const matchesSearch = !isSearching ||
-        module.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        module.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        module.tag.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        module.stats.toLowerCase().includes(searchQuery.toLowerCase());
-
-      // Se não estiver pesquisando, aplica o filtro da categoria clicada
-      const matchesCategory = isSearching || selectedCategory === "all" || module.category === selectedCategory;
-
-      return matchesCategory && matchesSearch;
-    });
-  }, [learningModules, selectedCategory, searchQuery, isSearching]);
+  const filteredPracticeCards = useMemo(() => {
+    if (!isSearching) return practiceCards;
+    const q = searchQuery.toLowerCase().trim();
+    return practiceCards.filter(c => c.title.toLowerCase().includes(q) || c.desc.toLowerCase().includes(q) || c.badge.toLowerCase().includes(q));
+  }, [practiceCards, searchQuery, isSearching]);
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 pb-24 md:pb-0 transition-colors">
-      {/* Header Clássico no Desktop (controlado internamente por desktopOnly para não ocultar modais no mobile) */}
+    <div className="min-h-screen bg-[#0B131D] flex flex-col text-[#EAF2F8] pb-24 md:pb-12 transition-colors select-none">
+      {/* Header Clássico no Desktop */}
       <StudentHeader activeTab="hub" desktopOnly={true} />
 
-      {/* Header Móvel de Busca (Exibido apenas em busca ativa) */}
-      {isSearching && (
+      <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 py-4 sm:py-6 space-y-6">
+        {/* ========================================================================= */}
+        {/* VISUALIZAÇÃO MOBILE (1:1 com a Página 2 do PDF)                            */}
+        {/* ========================================================================= */}
         <div className="md:hidden">
-          <MobileHeader
-            userName={greetingName}
-            userType="aluno"
-            searchQuery={searchQuery}
-            onSearchChange={setSearchQuery}
-            selectedCategory={selectedCategory}
-            onSelectCategory={(catId) => {
-              triggerHaptic(20);
-              setSelectedCategory(catId);
-            }}
-            categories={categories}
-            onOpenOptions={() => setIsOptionsModalOpen(true)}
+          <EnfereVivoTrail
+            userName={cleanUserName}
             onOpenAIChat={() => {
               triggerHaptic(20);
               window.dispatchEvent(new CustomEvent("open-goti-chat"));
             }}
           />
         </div>
-      )}
 
-      <main className="flex-1 mx-auto max-w-7xl w-full px-4 sm:px-6 py-4 sm:py-8 space-y-5">
+        {/* ========================================================================= */}
+        {/* VISUALIZAÇÃO COMPUTADOR (PC / Telas Médias e Grandes)                     */}
+        {/* ========================================================================= */}
+        <div className="hidden md:block space-y-6">
+          {/* Header Superior do Painel PC: Saudação, Mascote Goti, Ofensiva e PE */}
+          <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-4 bg-[#131F2E] border border-[#1F3045] rounded-3xl p-6 shadow-xl relative overflow-hidden">
+            {/* Brilho de fundo sutil */}
+            <div className="absolute -top-16 -right-16 w-64 h-64 bg-[#20D5B5]/10 rounded-full blur-3xl pointer-events-none" />
 
-        {/* Banner Hero no Desktop e Tablet/Landscape (md:block) com Plantão de Simulação */}
-        <div className="hidden md:block rounded-3xl border-2 border-emerald-600/40 dark:border-emerald-700/50 border-b-4 border-b-emerald-950/80 dark:border-b-black bg-gradient-to-r from-emerald-900 via-teal-900 to-slate-900 dark:from-emerald-950 dark:via-teal-950 dark:to-slate-950 p-6 lg:p-8 shadow-xl text-white relative overflow-hidden">
-          {/* Luz difusa de fundo */}
-          <div className="absolute top-0 right-0 w-80 h-80 bg-teal-500/10 rounded-full blur-3xl pointer-events-none" />
-
-          <div className="relative z-10 flex flex-row items-center justify-between gap-4 lg:gap-8">
-            <div className="space-y-3 lg:space-y-4 max-w-xl">
-              <span className="text-[11px] font-black text-emerald-300 uppercase tracking-widest block drop-shadow-xs">
-                {heroCardConfig.desktopSub}
-              </span>
-              <h1 className="text-xl sm:text-2xl lg:text-4xl font-black tracking-tight text-white leading-tight drop-shadow-sm">
-                {greetingName ? `Olá, ${greetingName}! Pronto para a prática clínica hoje?` : "Olá! Pronto para a prática clínica hoje?"}
-              </h1>
-              <p className="text-xs lg:text-sm font-medium text-emerald-50/95 leading-relaxed drop-shadow-xs line-clamp-2 lg:line-clamp-none">
-                {heroCardConfig.desktopDesc}
-              </p>
-
-              <div className="flex flex-wrap gap-2.5 pt-2">
-                <button
-                  onClick={() => navigate("/montar-caso")}
-                  className="rounded-2xl bg-white text-emerald-950 hover:bg-emerald-50 font-black text-xs lg:text-sm px-5 h-10 lg:h-12 border-b-4 border-emerald-200 dark:border-emerald-400/80 shadow-md flex items-center gap-2 select-none active:translate-y-1 active:border-b-0 transition-all cursor-pointer"
-                >
-                  <PlusCircle className="h-4 w-4 text-emerald-700 stroke-[2.5]" /> Montar Meu Caso
-                </button>
-                <button
-                  onClick={() => navigate("/montar-caso?mode=audio")}
-                  className="rounded-2xl border-2 border-teal-300/40 border-b-4 border-b-teal-500/80 bg-teal-950/70 text-white hover:bg-teal-900/90 font-extrabold text-xs lg:text-sm px-4 h-10 lg:h-12 flex items-center gap-2 select-none active:translate-y-1 active:border-b-2 transition-all shadow-sm cursor-pointer"
-                >
-                  <Mic className="h-4 w-4 text-teal-300 stroke-[2.5]" /> Áudio
-                </button>
-                <button
-                  onClick={() => navigate(heroCardConfig.actionTo)}
-                  className="rounded-2xl border-2 border-white/20 border-b-4 border-b-emerald-700/80 bg-white/10 text-white hover:bg-white/20 font-extrabold text-xs lg:text-sm px-4 h-10 lg:h-12 flex items-center gap-2 select-none active:translate-y-1 active:border-b-2 transition-all cursor-pointer"
-                >
-                  <BookOpen className="h-4 w-4 text-emerald-300 stroke-[2.5]" /> {heroCardConfig.actionText}
-                </button>
-              </div>
-            </div>
-
-            {/* Mascote Goti em Destaque Imponente (Sem balão de texto e sem card lateral COFEN) */}
-            <div className="shrink-0 flex items-center justify-center">
+            <div className="flex items-center gap-5 z-10">
+              {/* Mascote Goti Animado em Proporção Elegante */}
               <div
                 onClick={() => {
                   triggerHaptic(20);
                   window.dispatchEvent(new CustomEvent("open-goti-chat"));
                 }}
-                className="cursor-pointer group flex items-center justify-center p-1 transition-transform hover:scale-105 active:scale-95 select-none"
-                title="Clique para conversar com o Goti"
+                className="cursor-pointer group shrink-0 transition-transform hover:scale-105 active:scale-95"
+                title="Conversar com o Goti"
               >
-                {/* Goti em pose de boas-vindas com proporção cinematográfica */}
                 <GotiAnimated
                   animation="wave"
-                  size="hero"
-                  className="w-52 h-64 sm:w-64 sm:h-76 md:w-80 md:h-96 lg:w-96 lg:h-[26rem] xl:w-[26rem] xl:h-[30rem] shrink-0"
+                  size="md"
+                  className="w-20 h-20 lg:w-24 lg:h-24 shrink-0 drop-shadow-[0_4px_16px_rgba(32,213,181,0.25)]"
                 />
               </div>
-            </div>
-          </div>
-        </div>
 
-        {/* MODO BUSCA ATIVA: Oculta o Hero Card para colocar os resultados no topo imediato do celular */}
-        {isSearching ? (
-          <div className="p-3.5 rounded-2xl bg-emerald-50/80 dark:bg-emerald-950/40 border border-emerald-100 dark:border-emerald-800/60 flex items-center justify-between text-xs animate-in fade-in slide-in-from-top-1">
-            <div className="flex items-center gap-2 text-emerald-800 dark:text-emerald-300 font-semibold">
-              <Search className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
-              <span>
-                Resultados para: <strong>"{searchQuery}"</strong> ({filteredModules.length} encontrados)
-              </span>
-            </div>
-            <button
-              onClick={() => setSearchQuery("")}
-              className="text-xs text-slate-500 hover:text-emerald-700 dark:text-slate-400 dark:hover:text-emerald-300 flex items-center gap-1 font-bold"
-            >
-              <X className="w-3.5 h-3.5" /> Limpar
-            </button>
-          </div>
-        ) : (
-          <>
-            {/* Trilha Tátil Vertical do Plantão de Hoje - Especificação 1:1 do PDF Enfere Vivo */}
-            <div className="md:hidden">
-              <EnfereVivoTrail
-                userName={greetingName}
-                onOpenAIChat={() => {
-                  triggerHaptic(20);
-                  window.dispatchEvent(new CustomEvent("open-goti-chat"));
-                }}
-              />
-            </div>
-          </>
-        )}
-
-        {/* Grade de Módulos Clínicos */}
-        <div className="space-y-3">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="text-base font-bold text-slate-900 dark:text-white tracking-tight flex items-center gap-1.5">
-                <span>{isSearching ? "Módulos Encontrados" : "Módulos de Formação & Simulação"}</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-100 dark:border-emerald-800">
-                  {filteredModules.length}
-                </span>
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {isSearching
-                  ? "Toque no módulo para acessar diretamente"
-                  : "Prática assistencial orientada por evidências científicas"}
-              </p>
-            </div>
-          </div>
-
-          {/* Estado Vazio de Busca */}
-          {filteredModules.length === 0 ? (
-            <div className="p-8 text-center bg-white dark:bg-slate-900 rounded-3xl border border-dashed border-emerald-200 dark:border-slate-800 space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-emerald-50 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400 flex items-center justify-center mx-auto">
-                <Search className="w-6 h-6" />
+              <div>
+                <h1 className="text-2xl lg:text-3xl font-black text-[#EAF2F8] tracking-tight">
+                  Olá, {cleanUserName}
+                </h1>
+                <p className="text-sm font-semibold text-[#9FB3C6] mt-0.5">
+                  Pronto para a prática clínica hoje?
+                </p>
+                {/* Meta do Dia no Desktop */}
+                <div className="flex items-center gap-3 mt-3">
+                  <span className="text-xs font-black text-[#EAF2F8]">Meta do dia:</span>
+                  <div className="h-2.5 w-48 bg-[#16222E] border border-[#27394B] rounded-full overflow-hidden p-0.5">
+                    <div
+                      className="h-full bg-gradient-to-r from-[#1FC7B6] to-[#20D5B5] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(32,213,181,0.4)]"
+                      style={{ width: "35%" }}
+                    />
+                  </div>
+                  <span className="text-xs font-bold text-[#9FB3C6]">1 de 3 atividades</span>
+                </div>
               </div>
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                Nenhum módulo encontrado
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-xs mx-auto">
-                Não encontramos nenhum módulo para "{searchQuery}". Tente outro termo clínico ou limpe os filtros.
-              </p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => {
-                  setSearchQuery("");
-                  setSelectedCategory("all");
-                }}
-                className="rounded-full border-emerald-200 dark:border-slate-700 text-emerald-700 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-slate-800 text-xs font-semibold"
-              >
-                Limpar Busca & Filtros
-              </Button>
             </div>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3.5 sm:gap-5">
-              {filteredModules.map((mod) => (
-                <ClinicalModuleCard
-                  key={mod.id}
-                  title={mod.title}
-                  description={mod.description}
-                  tag={mod.tag}
-                  time={mod.time}
-                  icon={mod.icon}
-                  to={mod.path}
-                  featured={mod.featured}
-                  badgeText={mod.badgeText}
+
+            {/* Badges de Ofensiva e Pontos de Estudo (PE) */}
+            <div className="flex items-center gap-3 z-10 self-start lg:self-center">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-sm font-black shadow-sm">
+                <Flame className="w-5 h-5 fill-current text-[#FFC247]" />
+                <span>3 dias seguidos</span>
+              </div>
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-sm font-black shadow-sm">
+                <Zap className="w-5 h-5 fill-current text-[#20D5B5]" />
+                <span>120 PE</span>
+              </div>
+            </div>
+          </div>
+
+          {/* Grid Principal do PC (2 Colunas: 65% Conteúdo Principal e 35% Lateral) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+            {/* Coluna Principal da Esquerda (8 Colunas no Desktop) */}
+            <div className="lg:col-span-8 space-y-6">
+              {/* Card "Continuar de Onde Parou" (Idoso com Insuficiência Cardíaca) */}
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-xl space-y-4 relative overflow-hidden">
+                <div className="flex items-center justify-between">
+                  <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#1E2640] border border-[#2F3E66] text-[#A5B4FC] text-xs font-black tracking-wide">
+                    Simulador de Casos Clínicos (PE)
+                  </div>
+                  <span className="text-xs font-bold text-[#9FB3C6]">Etapa 2 de 5 · 40% concluído</span>
+                </div>
+
+                <div className="space-y-1">
+                  <span className="text-xs font-black text-[#20D5B5] uppercase tracking-wider block">
+                    CONTINUAR DE ONDE PAROU
+                  </span>
+                  <h2 className="text-xl font-black text-[#EAF2F8] leading-snug">
+                    Idoso com Insuficiência Cardíaca Descompensada
+                  </h2>
+                  <p className="text-xs font-medium text-[#9FB3C6]">
+                    Paciente S. S. (Caso Simulado #101) · 76 anos · M • Leito Enfermaria
+                  </p>
+                </div>
+
+                {/* Barra de Progresso */}
+                <div className="h-2.5 w-full bg-[#16222E] rounded-full overflow-hidden">
+                  <div
+                    className="h-full bg-[#20D5B5] rounded-full transition-all duration-300"
+                    style={{ width: "40%" }}
+                  />
+                </div>
+
+                {/* Botão de Ação Primária em Ciano 3D */}
+                <div className="pt-1 flex gap-3">
+                  <button
+                    onClick={() => {
+                      triggerHaptic(20);
+                      navigate("/simulador-casos");
+                    }}
+                    className="flex-1 h-12 rounded-2xl bg-[#20D5B5] hover:bg-[#1bc4a6] text-[#06302E] font-black text-sm tracking-wide border-0 border-b-4 border-b-[#149F86] active:translate-y-1 active:border-b-2 transition-all flex items-center justify-center gap-2 select-none shadow-[0_4px_14px_rgba(32,213,181,0.25)] cursor-pointer"
+                  >
+                    <span>Continuar Simulação</span>
+                    <ChevronRight className="w-4 h-4 stroke-[3]" />
+                  </button>
+                  <button
+                    onClick={() => {
+                      triggerHaptic(15);
+                      navigate("/montar-caso");
+                    }}
+                    className="px-5 h-12 rounded-2xl bg-[#16222E] hover:bg-[#1b2b3a] text-[#EAF2F8] font-bold text-sm border border-[#27394B] border-b-4 border-b-[#0A1118] active:translate-y-1 active:border-b-2 transition-all flex items-center gap-2 cursor-pointer select-none"
+                  >
+                    <PlusCircle className="w-4 h-4 text-[#20D5B5]" />
+                    <span>Montar Caso</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Seção "Praticar" em Grid 3x2 no PC */}
+              <div className="space-y-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-black text-[#EAF2F8] tracking-tight">
+                      Praticar Módulos Clínicos
+                    </h3>
+                    <p className="text-xs font-semibold text-[#9FB3C6]">
+                      Formação prática orientada por diretrizes COFEN e evidências científicas
+                    </p>
+                  </div>
+                  {/* Busca Rápida no Desktop */}
+                  <div className="relative w-64">
+                    <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-[#52667A]" />
+                    <input
+                      type="text"
+                      value={searchQuery}
+                      onChange={(e) => setSearchQuery(e.target.value)}
+                      placeholder="Buscar módulo..."
+                      className="w-full h-9 pl-9 pr-3 rounded-xl bg-[#131F2E] border border-[#1F3045] text-xs text-[#EAF2F8] placeholder-[#52667A] focus:outline-hidden focus:border-[#20D5B5]"
+                    />
+                    {isSearching && (
+                      <button
+                        onClick={() => setSearchQuery("")}
+                        className="absolute right-2.5 top-1/2 -translate-y-1/2 text-[#52667A] hover:text-white"
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    )}
+                  </div>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                  {filteredPracticeCards.map((card) => {
+                    const Icon = card.icon;
+                    return (
+                      <button
+                        key={card.id}
+                        onClick={card.action}
+                        className="flex flex-col justify-between p-4 min-h-[160px] rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#20D5B5] text-left hover:-translate-y-1 active:translate-y-0.5 transition-all group cursor-pointer shadow-md"
+                      >
+                        <div className="flex items-center justify-between w-full mb-3">
+                          <div className="w-10 h-10 rounded-xl bg-[#162838] border border-[#20D5B5]/30 text-[#20D5B5] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <Icon className="w-5 h-5 stroke-[2.2]" />
+                          </div>
+                          <span className="text-[10px] font-black text-[#20D5B5] bg-[#20D5B5]/10 border border-[#20D5B5]/20 px-2 py-0.5 rounded-lg">
+                            {card.badge}
+                          </span>
+                        </div>
+
+                        <div className="space-y-1.5">
+                          <strong className="block text-sm font-black text-[#EAF2F8] leading-snug group-hover:text-[#20D5B5] transition-colors">
+                            {card.title}
+                          </strong>
+                          <p className="text-xs text-[#9FB3C6] font-medium line-clamp-2 leading-relaxed">
+                            {card.desc}
+                          </p>
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+            </div>
+
+            {/* Coluna Lateral da Direita (4 Colunas no Desktop) */}
+            <div className="lg:col-span-4 space-y-6">
+              {/* Card "Sugestões de Hoje" */}
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 shadow-xl space-y-4">
+                <div>
+                  <h3 className="text-sm font-black text-[#EAF2F8] tracking-tight">
+                    Sugestões de hoje
+                  </h3>
+                  <p className="text-xs font-medium text-[#9FB3C6]">
+                    Módulos que você praticou menos nos últimos 7 dias
+                  </p>
+                </div>
+
+                <div className="space-y-2.5">
+                  {desktopSuggestions.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <button
+                        key={item.id}
+                        onClick={item.action}
+                        className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-[#16222E] border border-[#1F3045] hover:border-[#20D5B5]/60 text-left active:translate-y-0.5 transition-all group cursor-pointer"
+                      >
+                        <div className="flex items-center gap-3 min-w-0 pr-2">
+                          <div className="w-10 h-10 rounded-xl bg-[#162838] border border-[#20D5B5]/30 text-[#20D5B5] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
+                            <Icon className="w-5 h-5 stroke-[2.2]" />
+                          </div>
+                          <div className="min-w-0">
+                            <strong className="block text-xs font-black text-[#EAF2F8] truncate group-hover:text-[#20D5B5] transition-colors">
+                              {item.title}
+                            </strong>
+                            <span className="block text-[11px] font-medium text-[#9FB3C6] truncate mt-0.5">
+                              {item.subtitle}
+                            </span>
+                          </div>
+                        </div>
+                        <ChevronRight className="w-4 h-4 text-[#52667A] group-hover:text-[#20D5B5] group-hover:translate-x-0.5 transition-all shrink-0" />
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* Card Preceptor Goti IA - Tutoria Socrática no Desktop */}
+              <div className="bg-gradient-to-br from-[#131F2E] to-[#101A24] rounded-3xl border border-[#20D5B5]/30 p-5 shadow-xl space-y-3 relative overflow-hidden">
+                <div className="flex items-center gap-3">
+                  <div className="w-9 h-9 rounded-xl bg-[#20D5B5]/15 border border-[#20D5B5]/30 flex items-center justify-center text-[#20D5B5]">
+                    <Sparkles className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <strong className="block text-sm font-black text-[#EAF2F8]">
+                      Preceptor Goti IA
+                    </strong>
+                    <span className="text-[11px] font-medium text-[#20D5B5]">
+                      Tutor Socrático de Plantão
+                    </span>
+                  </div>
+                </div>
+
+                <p className="text-xs text-[#9FB3C6] leading-relaxed">
+                  "Lembre-se: antes de titular qualquer vasodilatador ou anti-hipertensivo no idoso, avalie a presença de dor aguda e congestão volêmica!"
+                </p>
+
+                <button
                   onClick={() => {
-                    triggerHaptic(15);
-                    if (mod.id === "procedimentos") {
-                      navigate(mod.path);
-                    } else {
-                      setBriefingModuleId(mod.id);
-                      setIsBriefingOpen(true);
-                    }
+                    triggerHaptic(20);
+                    window.dispatchEvent(new CustomEvent("open-goti-chat"));
                   }}
-                />
-              ))}
+                  className="w-full h-10 rounded-xl bg-[#16222E] hover:bg-[#1b2b3a] text-[#20D5B5] font-black text-xs border border-[#20D5B5]/40 hover:border-[#20D5B5] transition-all flex items-center justify-center gap-2 cursor-pointer"
+                >
+                  <span>Abrir Conversa Clínica com o Goti</span>
+                  <ChevronRight className="w-3.5 h-3.5" />
+                </button>
+              </div>
             </div>
-          )}
+          </div>
         </div>
 
-        {/* Assinatura de Autoria e Direitos Autorais */}
-        <div className="text-center py-2 text-[11px] text-slate-500 dark:text-slate-400 font-medium">
-          Criado e desenvolvido por <strong className="text-slate-700 dark:text-slate-300">Marcos Manoel Tavares Neumann</strong> • Detentor de todos os direitos autorais
+        {/* Rodapé com Direitos Autorais Oficiais */}
+        <div className="text-center pt-6 pb-2 text-[11px] text-[#52667A] font-medium">
+          Criado e desenvolvido por <strong className="text-[#9FB3C6]">Marcos Manoel Tavares Neumann</strong>
         </div>
       </main>
 
-      {/* Footer Unificado (Desktop com Links e Mobile com Dock Orizon + Bottom Sheet Vaul) */}
-      <StudentFooter onOpenOptions={() => setIsOptionsModalOpen(true)} />
-
-      {/* Central de Opções & Preferências Clínicas */}
-      <ClinicalOptionsModal
-        isOpen={isOptionsModalOpen}
-        onClose={() => setIsOptionsModalOpen(false)}
-      />
-
-      {/* Modal de Briefing Pedagógico do Módulo */}
-      <ModuleBriefingModal
-        isOpen={isBriefingOpen}
-        moduleId={briefingModuleId}
-        onClose={() => setIsBriefingOpen(false)}
-        onSelectAction={(action, targetPath) => {
-          setIsBriefingOpen(false);
-          const destination = action.query ? `${targetPath}${action.query}` : targetPath;
-          navigate(destination);
-        }}
-      />
+      {/* Footer Unificado com Bottom Dock no Mobile */}
+      <StudentFooter />
     </div>
   );
 }

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   X,
@@ -11,7 +11,7 @@ import {
   Volume1,
   Check
 } from "lucide-react";
-import { CASOS_SIMULADOR, PACIENTES } from "@/data/simuladorCasosData";
+import { PACIENTES, gerarCasoAleatorio } from "@/data/simuladorCasosData";
 import {
   falar,
   pararFala,
@@ -69,9 +69,25 @@ export default function Videochamada() {
   const [inputDigitarManual, setInputDigitarManual] = useState("");
   const [modalOpcoesAberto, setModalOpcoesAberto] = useState(false);
 
-  const caso = CASOS_SIMULADOR[pacienteId] || CASOS_SIMULADOR.marcus;
+  // Caso dinâmico com 8+ questões e alternativas embaralhadas
+  const [caso, setCaso] = useState(() =>
+    gerarCasoAleatorio("marcus", { shuffleQuestions: true, minQuestions: 8 })
+  );
   const paciente = PACIENTES[pacienteId] || PACIENTES.marcus;
   const passoAtual = caso.passos[stepIndex] || caso.passos[0];
+  const totalQuestoes = useMemo(
+    () => caso.passos.filter((p) => p.tipo !== "fala_paciente").length || 1,
+    [caso]
+  );
+
+  function handleSelectPaciente(novoId) {
+    pararFala();
+    setPacienteId(novoId);
+    setCaso(gerarCasoAleatorio(novoId, { shuffleQuestions: true, minQuestions: 8 }));
+    setIsSpeaking(false);
+    setFalaConcluida(false);
+    resetRespostasPasso();
+  }
 
   // Limpeza de timers e fala ao desmontar
   useEffect(() => {
@@ -105,6 +121,8 @@ export default function Videochamada() {
 
   // Abertura do Atendimento (Gesto que destrava áudio no navegador)
   function handleIniciarAtendimento() {
+    const novoCaso = gerarCasoAleatorio(pacienteId, { shuffleQuestions: true, minQuestions: 8 });
+    setCaso(novoCaso);
     setTela("fala");
     setStepIndex(0);
     setVidas(3);
@@ -115,7 +133,7 @@ export default function Videochamada() {
     setClipeAtivo("fala");
 
     // Executa a fala de abertura do paciente
-    const aberturaTexto = caso.passos[0].texto;
+    const aberturaTexto = novoCaso.passos[0].texto;
     executarFala(aberturaTexto);
   }
 
@@ -185,13 +203,14 @@ export default function Videochamada() {
         activeRecognizerRef.current.stop();
       }
       setIsRecording(false);
-      setMicStatusLabel("Transcrito");
+      setMicStatusLabel(textoVoz ? "Fala gravada com sucesso" : "Gravação concluída");
       return;
     }
 
     pararFala();
+    setTextoVoz("");
     setIsRecording(true);
-    setMicStatusLabel("Ouvindo…");
+    setMicStatusLabel("Gravando... Fale a sua resposta");
 
     const recognizer = iniciarReconhecimentoVoz({
       onInterim: (interim) => {
@@ -199,12 +218,11 @@ export default function Videochamada() {
       },
       onFinal: (final) => {
         setTextoVoz(final);
-        setIsRecording(false);
-        setMicStatusLabel("Transcrito automaticamente");
+        setMicStatusLabel("Transcrição concluída");
       },
       onError: (erro) => {
         setIsRecording(false);
-        setMicStatusLabel("Transcrição manual disponível");
+        setMicStatusLabel(typeof erro === "string" ? erro : "Microfone indisponível");
         console.warn("Erro no microfone:", erro);
       },
       onEnd: () => {
@@ -260,7 +278,7 @@ export default function Videochamada() {
       gabarito = `${passoAtual.respostaEsperada} ${passoAtual.unidade}`;
     } else if (passoAtual.tipo === "resposta_falada") {
       isCorrect = validarRespostaFalada(textoVoz, passoAtual.aceitas);
-      gabarito = passoAtual.respostaCertaTexto || "Higienizar as mãos";
+      gabarito = passoAtual.respostaCertaTexto || "Conduta adequada";
     }
 
     if (isCorrect) {
@@ -535,28 +553,28 @@ export default function Videochamada() {
             </div>
 
             {/* Corpo Dinâmico por Tipo de Questão */}
-            <div className="flex-1 flex flex-col justify-center gap-2.5 my-1">
+            <div className="flex-1 flex flex-col justify-center gap-2 my-1">
               {/* -----------------------------------------------------------
                   TELA 4: MÚLTIPLA ESCOLHA (04-questao-escolha.png)
               ----------------------------------------------------------- */}
               {passoAtual.tipo === "multipla_escolha" && (
-                <div className="flex flex-col gap-2.5">
+                <div className="flex flex-col gap-2">
                   {passoAtual.opcoes.map((opcao, optIdx) => {
                     const isSelected = selectedEscolha === optIdx;
-                    const letter = ["A", "B", "C", "D"][optIdx];
+                    const letter = ["A", "B", "C", "D", "E"][optIdx] || String(optIdx + 1);
                     return (
                       <button
                         key={optIdx}
                         type="button"
                         onClick={() => setSelectedEscolha(optIdx)}
-                        className={`w-full p-3.5 rounded-[18px] border-2 font-extrabold text-[15.5px] text-left flex items-center gap-3 transition-all cursor-pointer ${
+                        className={`w-full py-2.5 px-3 rounded-[14px] border-2 font-black text-[13.5px] text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                           isSelected
-                            ? "border-[#2AD3C1] border-b-[5px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
-                            : "border-[#27394B] border-b-[5px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] hover:bg-[#1E2E3E]"
+                            ? "border-[#2AD3C1] border-b-[4px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
+                            : "border-[#27394B] border-b-[4px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] hover:bg-[#1E2E3E]"
                         }`}
                       >
                         <span
-                          className={`w-7 h-7 rounded-lg border-2 flex items-center justify-center text-xs flex-none ${
+                          className={`w-6 h-6 rounded-lg border-2 flex items-center justify-center text-[11px] font-black flex-none ${
                             isSelected
                               ? "border-[#2AD3C1] text-[#2AD3C1]"
                               : "border-[#27394B] text-[#9FB3C6]"
@@ -575,7 +593,7 @@ export default function Videochamada() {
                   TELA 5: MÚLTIPLA SELEÇÃO (05-questao-selecao.png)
               ----------------------------------------------------------- */}
               {passoAtual.tipo === "multipla_selecao" && (
-                <div className="flex flex-col gap-2">
+                <div className="flex flex-col gap-1.5">
                   {passoAtual.opcoes.map((opcao, optIdx) => {
                     const isChecked = selectedMultipla.includes(optIdx);
                     return (
@@ -589,26 +607,26 @@ export default function Videochamada() {
                               : [...prev, optIdx]
                           );
                         }}
-                        className={`w-full p-3 rounded-[16px] border-2 font-extrabold text-[14.5px] text-left flex items-center gap-3 transition-all cursor-pointer ${
+                        className={`w-full py-2 px-3 rounded-[14px] border-2 font-black text-[12.5px] text-left flex items-center gap-2.5 transition-all cursor-pointer ${
                           isChecked
-                            ? "border-[#2AD3C1] border-b-[4px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
-                            : "border-[#27394B] border-b-[4px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] hover:bg-[#1E2E3E]"
+                            ? "border-[#2AD3C1] border-b-[3px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
+                            : "border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] hover:bg-[#1E2E3E]"
                         }`}
                       >
                         <div
-                          className={`w-6 h-6 rounded-md border-2 flex items-center justify-center flex-none ${
+                          className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-none ${
                             isChecked
                               ? "border-[#2AD3C1] bg-[#2AD3C1] text-[#06302E]"
                               : "border-[#27394B]"
                           }`}
                         >
-                          {isChecked && <Check className="w-4 h-4 stroke-[3]" />}
+                          {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
                         </div>
                         <span className="flex-1 leading-tight">{opcao}</span>
                       </button>
                     );
                   })}
-                  <div className="text-xs font-bold text-[#9FB3C6] px-1">
+                  <div className="text-[11px] font-bold text-[#9FB3C6] px-1">
                     Marque todas as corretas.
                   </div>
                 </div>
@@ -618,12 +636,19 @@ export default function Videochamada() {
                   TELA 6: CÁLCULO DE DOSE (06-questao-calculo.png)
               ----------------------------------------------------------- */}
               {passoAtual.tipo === "calculo" && (
-                <div className="flex flex-col gap-2.5">
-                  {/* Card Registro de Prescrição */}
-                  <div className="rounded-[18px] bg-[#16222E] border-2 border-[#27394B] border-b-[5px] border-b-[#0A1118] p-3">
-                    <div className="flex items-center gap-1.5 text-[#2AD3C1] font-black text-xs uppercase tracking-wider mb-1">
-                      <FileText className="w-4 h-4" />
-                      <span>Registro de prescrição</span>
+                <div className="flex flex-col gap-2">
+                  {/* Card Registro de Prescrição com Fórmula no Cantinho */}
+                  <div className="rounded-[18px] bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-3">
+                    <div className="flex items-center justify-between text-[#2AD3C1] font-black text-xs uppercase tracking-wider mb-1">
+                      <div className="flex items-center gap-1.5">
+                        <FileText className="w-4 h-4" />
+                        <span>Registro de prescrição</span>
+                      </div>
+                      {passoAtual.formulaGuia && (
+                        <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#0E1720] border border-[#27394B] text-[#9FB3C6] truncate max-w-[190px]">
+                          {passoAtual.formulaGuia}
+                        </span>
+                      )}
                     </div>
                     <p className="text-xs font-bold text-[#EAF2F8] leading-tight mb-2">
                       {passoAtual.prescricao}
@@ -631,7 +656,7 @@ export default function Videochamada() {
                     <div className="grid grid-cols-2 gap-2 text-xs">
                       {passoAtual.dadosTabela.map(([label, val], dIdx) => (
                         <div key={dIdx}>
-                          <div className="font-bold text-[#9FB3C6]">{label}</div>
+                          <div className="font-bold text-[#9FB3C6] text-[11px]">{label}</div>
                           <div className="font-black text-[#EAF2F8]">{val}</div>
                         </div>
                       ))}
@@ -651,47 +676,58 @@ export default function Videochamada() {
                   TELA 7: RESPOSTA FALADA (07-questao-voz.png)
               ----------------------------------------------------------- */}
               {passoAtual.tipo === "resposta_falada" && (
-                <div className="flex flex-col items-center gap-3 pt-2">
+                <div className="flex flex-col items-center gap-2.5 pt-1">
                   {/* Botão Circular Grande de Microfone */}
                   <button
                     type="button"
                     onClick={handleToggleGravacaoVoz}
-                    className={`w-24 h-24 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                    className={`w-20 h-20 rounded-full flex items-center justify-center transition-all cursor-pointer ${
                       isRecording
-                        ? "bg-[#FF6B6B] text-[#2B1619] shadow-[0_6px_0_#b84444] animate-pulse scale-105"
-                        : "bg-[#2AD3C1] text-[#06302E] shadow-[0_6px_0_#17A99A] active:translate-y-[3px]"
+                        ? "bg-[#FF6B6B] text-[#2B1619] shadow-[0_5px_0_#b84444] animate-pulse scale-105"
+                        : "bg-[#2AD3C1] text-[#06302E] shadow-[0_5px_0_#17A99A] active:translate-y-[3px]"
                     }`}
-                    aria-label="Gravar resposta por voz"
+                    aria-label={isRecording ? "Concluir gravação" : "Gravar resposta por voz"}
                   >
-                    <Mic className="w-12 h-12 stroke-[2.3]" />
+                    <Mic className="w-10 h-10 stroke-[2.3]" />
                   </button>
 
-                  <div className="text-xs font-black text-[#9FB3C6]">
+                  <div className="text-xs font-black text-[#9FB3C6] text-center px-3">
                     {micStatusLabel}
                   </div>
 
                   {/* Card com a Transcrição ao Vivo */}
-                  <div className="w-full rounded-[18px] bg-[#16222E] border-2 border-[#27394B] border-b-[5px] border-b-[#0A1118] p-3.5 min-h-[68px] flex items-center text-left">
+                  <div className="w-full rounded-[18px] bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-3 min-h-[64px] flex items-center text-left">
                     <span
-                      className={`text-[15.5px] font-extrabold ${
+                      className={`text-[14px] font-extrabold ${
                         textoVoz ? "text-[#EAF2F8]" : "text-[#9FB3C6]/60"
                       }`}
                     >
-                      {textoVoz || "A transcrição aparece aqui…"}
+                      {textoVoz || "A transcrição da sua fala aparece aqui…"}
                     </span>
                   </div>
 
-                  {/* Botão Prefiro Digitar */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setInputDigitarManual(textoVoz);
-                      setModalDigitarAberto(true);
-                    }}
-                    className="h-11 px-4 rounded-xl border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-black text-xs hover:bg-[#1E2E3E] active:translate-y-[2px] transition-all cursor-pointer"
-                  >
-                    Prefiro digitar
-                  </button>
+                  {/* Botões de Ação */}
+                  <div className="flex gap-2 w-full justify-center">
+                    {isRecording && (
+                      <button
+                        type="button"
+                        onClick={handleToggleGravacaoVoz}
+                        className="h-10 px-4 rounded-xl bg-[#FF6B6B] text-[#2B1619] font-black text-xs shadow-[0_3px_0_#b84444] active:translate-y-0.5 transition-all cursor-pointer"
+                      >
+                        Concluir fala
+                      </button>
+                    )}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setInputDigitarManual(textoVoz);
+                        setModalDigitarAberto(true);
+                      }}
+                      className="h-10 px-4 rounded-xl border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-black text-xs hover:bg-[#1E2E3E] active:translate-y-[2px] transition-all cursor-pointer"
+                    >
+                      Prefiro digitar
+                    </button>
+                  </div>
                 </div>
               )}
             </div>
@@ -744,7 +780,7 @@ export default function Videochamada() {
               </div>
               <div className="rounded-2xl bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-2.5">
                 <div className="text-xl font-black text-[#3DD68C]">
-                  {Math.round((acertos / 4) * 100)}%
+                  {Math.round((acertos / totalQuestoes) * 100)}%
                 </div>
                 <div className="text-[11px] font-extrabold text-[#9FB3C6] uppercase">
                   Precisão
@@ -809,7 +845,7 @@ export default function Videochamada() {
                 value={inputDigitarManual}
                 onChange={(e) => setInputDigitarManual(e.target.value)}
                 rows={3}
-                placeholder="Ex: Higienizar as mãos"
+                placeholder="Descreva a conduta ou procedimento com suas palavras..."
                 className="w-full rounded-xl bg-[#0E1720] border-2 border-[#27394B] p-3 text-sm font-bold text-[#EAF2F8] focus:border-[#2AD3C1] focus:outline-none mb-4 resize-none"
               />
               <div className="flex gap-2">

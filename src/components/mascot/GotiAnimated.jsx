@@ -136,7 +136,11 @@ export default function GotiAnimated({
   showShadow = false
 }) {
   const currentPose = GOTI_POSES[animation] || GOTI_POSES.idle;
-  const sizeClass = SIZE_PRESETS[size] || size;
+  const isPreset = typeof size === "string" && SIZE_PRESETS[size];
+  const sizeClass = isPreset ? SIZE_PRESETS[size] : (typeof size === "string" && !size.match(/^\d+$/) ? size : "");
+  const customStyle = typeof size === "number" || (typeof size === "string" && size.match(/^\d+$/))
+    ? { width: `${size}px`, height: `${size}px`, maxWidth: `${size}px`, maxHeight: `${size}px`, flexShrink: 0 }
+    : {};
 
   const canvasRef = useRef(null);
   const videoRef = useRef(null);
@@ -198,6 +202,7 @@ export default function GotiAnimated({
 
   return (
     <div
+      style={customStyle}
       className={`relative inline-flex flex-col items-center justify-center select-none ${sizeClass} ${className} ${
         onClick ? "cursor-pointer transition-transform hover:scale-105 active:scale-95" : ""
       }`}

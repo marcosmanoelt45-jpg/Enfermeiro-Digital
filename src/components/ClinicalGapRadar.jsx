@@ -9,7 +9,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { SEMIOLOGY_KNOWLEDGE_BASE } from "@/data/semiologyFindings";
+import { SEMIOLOGY_KNOWLEDGE_BASE, getShuffledSemiologyFinding } from "@/data/semiologyFindings";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 
 /**
@@ -27,6 +27,7 @@ export default function ClinicalGapRadar({
   completenessPercentage = 70
 }) {
   const [activeGap, setActiveGap] = useState(null);
+  const [activeFinding, setActiveFinding] = useState(null);
   const [selectedOptionId, setSelectedOptionId] = useState(null);
   const [selectedOption, setSelectedOption] = useState(null);
   const [isAnswered, setIsAnswered] = useState(false);
@@ -34,7 +35,10 @@ export default function ClinicalGapRadar({
 
   function handleOpenGap(gap, existingItem = null) {
     setActiveGap(gap);
-    const finding = SEMIOLOGY_KNOWLEDGE_BASE[gap.key];
+    // Obtém o achado com as 4 alternativas embaralhadas via Fisher-Yates
+    const finding = getShuffledSemiologyFinding(gap.key) || SEMIOLOGY_KNOWLEDGE_BASE[gap.key];
+    setActiveFinding(finding);
+
     if (existingItem) {
       setCustomValue(existingItem.value || "");
       setSelectedOptionId(null);
@@ -50,13 +54,14 @@ export default function ClinicalGapRadar({
 
   function handleCloseModal() {
     setActiveGap(null);
+    setActiveFinding(null);
     setSelectedOptionId(null);
     setSelectedOption(null);
     setIsAnswered(false);
     setCustomValue("");
   }
 
-  const findingData = activeGap ? SEMIOLOGY_KNOWLEDGE_BASE[activeGap.key] : null;
+  const findingData = activeFinding || (activeGap ? SEMIOLOGY_KNOWLEDGE_BASE[activeGap.key] : null);
 
   function handleSelectOption(opt) {
     setSelectedOptionId(opt.id);
@@ -224,8 +229,9 @@ export default function ClinicalGapRadar({
 
             {findingData?.options ? (
               <div className="space-y-2">
-                {findingData.options.map((opt) => {
+                {findingData.options.map((opt, idx) => {
                   const isSelected = selectedOptionId === opt.id;
+                  const letter = opt.letter || String.fromCharCode(65 + idx);
                   let cardStyle = "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200";
 
                   if (isAnswered) {
@@ -245,17 +251,17 @@ export default function ClinicalGapRadar({
                       onClick={() => handleSelectOption(opt)}
                       className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${cardStyle}`}
                     >
-                      <div className={`mt-0.5 h-4 w-4 rounded-full border flex items-center justify-center shrink-0 ${
+                      <div className={`mt-0.5 h-6 w-6 rounded-lg font-black text-xs border flex items-center justify-center shrink-0 transition-colors shadow-xs ${
                         isAnswered && opt.isCorrect
                           ? "bg-teal-600 border-teal-600 text-white"
                           : isAnswered && isSelected && !opt.isCorrect
                           ? "bg-rose-500 border-rose-500 text-white"
-                          : "border-slate-300 dark:border-slate-600"
+                          : "border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200"
                       }`}>
-                        {isAnswered && opt.isCorrect ? <Check className="h-2.5 w-2.5" /> : null}
+                        {isAnswered && opt.isCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
                       </div>
-                      <div className="space-y-1">
-                        <span>{opt.label}</span>
+                      <div className="space-y-1 flex-1">
+                        <span className="font-medium text-slate-900 dark:text-slate-100">{opt.label}</span>
                         {isAnswered && isSelected && (
                           <p className={`text-[11px] leading-tight mt-1 ${opt.isCorrect ? "text-teal-800 dark:text-teal-300 font-semibold" : "text-rose-700 dark:text-rose-400"}`}>
                             {opt.feedback}

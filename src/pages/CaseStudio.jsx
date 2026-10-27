@@ -17,16 +17,14 @@ import {
   RotateCcw,
   UserRound,
   ShieldCheck,
-  Check,
   Target,
   Mic,
   MicOff,
   ListChecks,
   AudioLines,
-  ArrowRightLeft,
   History,
   Clock,
-  BookmarkPlus
+  X
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -48,12 +46,14 @@ import {
   computeSakTotal,
   computeCaloiTotal
 } from "@/lib/riskEngine";
-import { generateRandomInitials, generateRandomAge, formatToInitials } from "@/lib/sampleNames";
+import { formatToInitials } from "@/lib/sampleNames";
 import { generateCaseDiagnosticChallenge } from "@/services/diagnosticChallengeService";
+import { generateProceduralClinicalCase } from "@/data/randomClinicalScenarios";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { useDragScroll } from "@/hooks/useDragScroll";
+import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 const WIZARD_STEPS = [
   { key: "profile", label: "1. Perfil & Anamnese", icon: UserRound },
@@ -108,6 +108,7 @@ export default function CaseStudio() {
   const [isAudioTranscribing, setIsAudioTranscribing] = useState(false);
   const [audioStage, setAudioStage] = useState("");
   const [audioError, setAudioError] = useState("");
+  const [batteryCycle, setBatteryCycle] = useState(0);
   const [isLiveDictatingAudio, setIsLiveDictatingAudio] = useState(false);
   const liveAudioRecRef = useRef(null);
   const isLiveDictatingRef = useRef(false);
@@ -477,41 +478,88 @@ export default function CaseStudio() {
   const caloiTotal = computeCaloiTotal(data);
   const globalRisk = computeGlobalRisk(data);
 
-  // Gerador de Caso Sintético Aleatório (Anonimizado - LGPD)
+  // Gerador de Caso Sintético Aleatório Procedural (Anonimizado - LGPD)
   function handleGenerateRandomProfile() {
-    const random = generateRandomInitials();
-    const randomAge = generateRandomAge();
-    const gender = random.gender;
-    setProfile({
-      initials: random.initials,
-      name: random.initials,
-      age: String(randomAge),
-      gender,
-      previous_diseases: "HAS estágio 2, DM tipo 2 em uso de metformina.",
-      medical_history: "Relata internação prévia há 1 ano por infecção do trato urinário. Sedentário.",
-      current_medications: "Losartana 50mg/dia, Metformina 850mg 12/12h.",
-      allergies: "Nega alergias conhecidas.",
-      previous_anamnesis: "Paciente trazido por familiares com relato de astenia importante, diminuição da ingesta hídrica e sonolência nas últimas 24 horas.",
-      notes: "Apresenta mucosas desidratadas e turgor diminuído."
-    });
+    const procedural = generateProceduralClinicalCase();
+    setProfile(procedural.profile);
     setData((prev) => ({
       ...prev,
-      pa_sistolica: 110,
-      pa_diastolica: 70,
-      fc: 104,
-      fr: 20,
-      tax: 37.8,
-      sat: 95,
-      braden_perception: 2,
-      braden_moisture: 3,
-      braden_activity: 1,
-      braden_mobility: 2,
-      braden_nutrition: 2,
-      braden_friction: 1,
-      cam_acute: true,
-      cam_inattention: true,
-      caloi_pain_intensity: 2
+      ...procedural.vitals,
+      braden_perception: procedural.braden.perception,
+      braden_moisture: procedural.braden.moisture,
+      braden_activity: procedural.braden.activity,
+      braden_mobility: procedural.braden.mobility,
+      braden_nutrition: procedural.braden.nutrition,
+      braden_friction: procedural.braden.friction,
+      cam_acute: procedural.cam.acute,
+      cam_inattention: procedural.cam.inattention,
+      cam_disorganized: procedural.cam.disorganized,
+      cam_altered_loc: procedural.cam.altered_loc,
+      sak_disorientation: procedural.sak.disorientation,
+      sak_urination: procedural.sak.urination,
+      sak_walking: procedural.sak.walking,
+      sak_caregiver: procedural.sak.caregiver,
+      sak_postop: procedural.sak.postop,
+      sak_previous_falls: procedural.sak.previous_falls,
+      sak_meds: procedural.sak.meds,
+      caloi_pain_intensity: procedural.caloi.intensity,
+      caloi_pain_location: procedural.caloi.location,
+      caloi_pain_characteristics: procedural.caloi.characteristics
     }));
+  }
+
+  // Sorteia um novo caso clínico autêntico procedural e inicia imediatamente o desafio
+  async function handleLaunchRandomNewCase() {
+    const procedural = generateProceduralClinicalCase();
+    setProfile(procedural.profile);
+    const updatedData = {
+      ...data,
+      ...procedural.vitals,
+      braden_perception: procedural.braden.perception,
+      braden_moisture: procedural.braden.moisture,
+      braden_activity: procedural.braden.activity,
+      braden_mobility: procedural.braden.mobility,
+      braden_nutrition: procedural.braden.nutrition,
+      braden_friction: procedural.braden.friction,
+      cam_acute: procedural.cam.acute,
+      cam_inattention: procedural.cam.inattention,
+      cam_disorganized: procedural.cam.disorganized,
+      cam_altered_loc: procedural.cam.altered_loc,
+      sak_disorientation: procedural.sak.disorientation,
+      sak_urination: procedural.sak.urination,
+      sak_walking: procedural.sak.walking,
+      sak_caregiver: procedural.sak.caregiver,
+      sak_postop: procedural.sak.postop,
+      sak_previous_falls: procedural.sak.previous_falls,
+      sak_meds: procedural.sak.meds,
+      caloi_pain_intensity: procedural.caloi.intensity,
+      caloi_pain_location: procedural.caloi.location,
+      caloi_pain_characteristics: procedural.caloi.characteristics
+    };
+    setData(updatedData);
+
+    setIsGeneratingChallenge(true);
+    setViewingConclusion(false);
+    setCurrentQuestionIndex(0);
+    setUserAnswers({});
+    setSubmittedQuestions({});
+    setRevealedTips({});
+    setBatteryCycle(0);
+
+    try {
+      const sanitizedInitials = formatToInitials(procedural.profile.initials || procedural.profile.name);
+      const safeProfile = {
+        ...procedural.profile,
+        initials: sanitizedInitials,
+        name: sanitizedInitials
+      };
+      const res = await generateCaseDiagnosticChallenge(safeProfile, updatedData, 0);
+      setChallenge(res);
+      setViewMode("challenge");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+    } finally {
+      setIsGeneratingChallenge(false);
+    }
   }
 
   // Captação de Voz Ambiental ("Caring out loud")
@@ -605,7 +653,7 @@ export default function CaseStudio() {
     }
   }
 
-  // Disparo da Bateria de Desafios Clínicos (Garante anonimização estrita LGPD)
+  // Disparo da Bateria de Desafios Clínicos (Garante anonimização estrita LGPD e rotação de questões)
   async function handleLaunchChallenge() {
     setIsGeneratingChallenge(true);
     setViewingConclusion(false);
@@ -615,13 +663,16 @@ export default function CaseStudio() {
     setRevealedTips({});
 
     try {
+      const nextCycle = batteryCycle + 1;
+      setBatteryCycle(nextCycle);
+
       const sanitizedInitials = formatToInitials(profile.initials || profile.name);
       const safeProfile = {
         ...profile,
         initials: sanitizedInitials,
         name: sanitizedInitials
       };
-      const res = await generateCaseDiagnosticChallenge(safeProfile, data);
+      const res = await generateCaseDiagnosticChallenge(safeProfile, data, nextCycle);
       setChallenge(res);
       setViewMode("challenge");
       window.scrollTo({ top: 0, behavior: "smooth" });
@@ -678,16 +729,16 @@ export default function CaseStudio() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 transition-colors">
+    <div className="min-h-screen bg-[#0B131D] flex flex-col text-[#EAF2F8] pb-28 md:pb-8 selection:bg-[#20D5B5]/30 selection:text-[#20D5B5]">
       <StudentHeader activeTab="montar" />
 
       <main className="flex-1 mx-auto max-w-5xl w-full px-4 sm:px-6 py-6 space-y-6">
         {/* Barra Superior Minimalista e Funcional (Responsiva no Celular) */}
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/80 dark:border-slate-800">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1F3045]">
           <div className="flex items-center gap-3 min-w-0">
             <button
               onClick={() => navigate("/")}
-              className="p-2 rounded-xl text-slate-500 hover:text-slate-900 dark:text-slate-400 dark:hover:text-white hover:bg-slate-100 dark:hover:bg-slate-900 transition-colors shrink-0"
+              className="p-2 rounded-xl text-[#9FB3C6] hover:text-white hover:bg-[#131F2E] transition-colors shrink-0"
               aria-label="Voltar ao Painel"
               title="Voltar ao Painel"
             >
@@ -695,18 +746,18 @@ export default function CaseStudio() {
             </button>
             <div className="min-w-0">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wider whitespace-nowrap inline-flex items-center">
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30 uppercase tracking-wider whitespace-nowrap inline-flex items-center">
                   Prática Baseada em Evidências
                 </span>
-                <span className="text-xs font-semibold text-slate-400 dark:text-slate-400 hidden sm:inline">
+                <span className="text-xs font-semibold text-[#9FB3C6] hidden sm:inline">
                   • Julgamento Clínico
                 </span>
               </div>
-              <h1 className="text-base sm:text-xl font-bold tracking-tight text-slate-900 dark:text-white leading-tight mt-0.5 truncate">
-                {viewMode === "choose" && "Novo Caso Clínico"}
+              <h1 className="text-base sm:text-xl font-bold tracking-tight text-white leading-tight mt-0.5 truncate">
+                {viewMode === "choose" && "Montar Caso Clínico"}
                 {viewMode === "builder" && "Montar Caso Clínico"}
                 {viewMode === "audio" && "Avaliação por Áudio & Fala"}
-                {viewMode === "challenge" && "Desafio Diagnóstico Interativo"}
+                {viewMode === "challenge" && "Bateria de Julgamento Clínico Avançado"}
               </h1>
             </div>
           </div>
@@ -716,9 +767,9 @@ export default function CaseStudio() {
               variant="outline"
               size="sm"
               onClick={() => setIsHistoryModalOpen(true)}
-              className="rounded-xl border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-xs flex items-center gap-1.5 shadow-2xs font-semibold"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs flex items-center gap-1.5 shadow-2xs font-semibold"
             >
-              <History className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+              <History className="h-3.5 w-3.5 text-[#20D5B5]" />
               <span>Histórico de Casos</span>
             </Button>
 
@@ -727,7 +778,7 @@ export default function CaseStudio() {
                 variant="ghost"
                 size="sm"
                 onClick={() => navigate("/")}
-                className="rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-white text-xs flex items-center gap-1.5"
+                className="rounded-xl text-[#9FB3C6] hover:text-white text-xs flex items-center gap-1.5"
               >
                 <span>Voltar ao Painel</span>
               </Button>
@@ -739,16 +790,16 @@ export default function CaseStudio() {
                   variant="outline"
                   size="sm"
                   onClick={() => setViewMode("audio")}
-                  className="rounded-xl border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-xs flex items-center gap-1.5"
+                  className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs flex items-center gap-1.5"
                 >
-                  <AudioLines className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <AudioLines className="h-3.5 w-3.5 text-[#20D5B5]" />
                   <span className="hidden sm:inline">Modo</span> Áudio
                 </Button>
                 <Button
                   variant="outline"
                   size="sm"
                   onClick={handleGenerateRandomProfile}
-                  className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
+                  className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white text-xs flex items-center gap-1.5"
                 >
                   <Shuffle className="h-3.5 w-3.5" />
                   <span className="hidden sm:inline">Gerar</span> Aleatório
@@ -757,7 +808,7 @@ export default function CaseStudio() {
                   variant="ghost"
                   size="sm"
                   onClick={() => setViewMode("choose")}
-                  className="rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-xs"
+                  className="rounded-xl text-[#9FB3C6] hover:text-white text-xs"
                 >
                   Trocar Modo
                 </Button>
@@ -770,16 +821,16 @@ export default function CaseStudio() {
                   variant="outline"
                   size="sm"
                   onClick={() => setViewMode("builder")}
-                  className="rounded-xl border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-xs flex items-center gap-1.5"
+                  className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs flex items-center gap-1.5"
                 >
-                  <ClipboardCheck className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                  <ClipboardCheck className="h-3.5 w-3.5 text-[#20D5B5]" />
                   <span>Modo Manual</span>
                 </Button>
                 <Button
                   variant="ghost"
                   size="sm"
                   onClick={() => setViewMode("choose")}
-                  className="rounded-xl text-slate-500 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 text-xs"
+                  className="rounded-xl text-[#9FB3C6] hover:text-white text-xs"
                 >
                   Trocar Modo
                 </Button>
@@ -791,7 +842,7 @@ export default function CaseStudio() {
                 variant="outline"
                 size="sm"
                 onClick={() => setViewMode("builder")}
-                className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
+                className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white text-xs flex items-center gap-1.5"
               >
                 <RotateCcw className="h-3.5 w-3.5" />
                 <span>Ajustar Parâmetros</span>
@@ -801,124 +852,106 @@ export default function CaseStudio() {
         </div>
 
         {/* ======================================================== */}
-        {/* MODO 0: ESCOLHA INICIAL LIMPA (MANUAL OU ÁUDIO)          */}
+        {/* MODO 0: ESCOLHA INICIAL (1:1 COM A PÁGINA 8 DO PDF)      */}
         {/* ======================================================== */}
         {viewMode === "choose" && (
-          <div className="space-y-6 animate-in fade-in max-w-3xl mx-auto pt-4">
-            <div className="text-center space-y-1.5">
-              <h2 className="text-xl sm:text-2xl font-bold text-slate-900 dark:text-white">
-                Como deseja iniciar a avaliação do paciente?
-              </h2>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 max-w-md mx-auto">
-                Escolha o método mais adequado ao seu momento de aprendizagem. Você poderá alternar a qualquer momento.
-              </p>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2">
-              {/* Opção 1: Avaliação Manual Guiada */}
-              <div
-                onClick={() => setViewMode("builder")}
-                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-white dark:bg-slate-900 p-6 sm:p-7 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="p-3.5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/80 text-emerald-700 dark:text-emerald-400 group-hover:scale-105 transition-transform">
-                      <ClipboardCheck className="h-6 w-6" />
-                    </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                      Passo a Passo
+          <div className="max-w-md mx-auto w-full pt-2 pb-6 animate-in fade-in">
+            <div className="bg-[#0E1722] border border-[#1F3045] rounded-3xl p-5 sm:p-6 shadow-2xl space-y-5">
+              {/* Topo do Modal (Página 8 do PDF) */}
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-2xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5]">
+                    <ClipboardCheck className="w-5 h-5 text-[#20D5B5]" />
+                  </div>
+                  <div>
+                    <h3 className="text-base font-black text-white">Montador de Casos Clínicos</h3>
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
+                      Escores Clínicos + Áudio
                     </span>
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    Avaliação Manual Guiada
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Preencha sinais vitais, histórico e escalas validadas (Braden, CAM, SAK e Dor) com sliders de precisão clínica.
-                  </p>
                 </div>
-
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setViewMode("builder");
-                  }}
-                  className="w-full rounded-2xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-xs"
+                <button
+                  type="button"
+                  onClick={() => navigate("/")}
+                  className="p-1.5 rounded-xl text-[#9FB3C6] hover:text-white hover:bg-[#131F2E] transition"
                 >
-                  <span>Iniciar Avaliação Manual</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
+                  <X className="w-5 h-5" />
+                </button>
               </div>
 
-              {/* Opção 2: Avaliação por Voz */}
-              <div
-                onClick={() => setViewMode("audio")}
-                className="rounded-3xl border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 bg-white dark:bg-slate-900 p-6 sm:p-7 transition-all shadow-xs hover:shadow-lg cursor-pointer flex flex-col justify-between space-y-5 group"
-              >
-                <div className="space-y-3">
-                  <div className="flex items-center justify-between">
-                    <div className="p-3.5 rounded-2xl bg-teal-50 dark:bg-teal-950/80 text-teal-700 dark:text-teal-400 group-hover:scale-105 transition-transform">
-                      <AudioLines className="h-6 w-6" />
+              {/* DIRETRIZES DO GOTI (Página 8 do PDF) */}
+              <div className="p-4 rounded-2xl bg-[#131F2E] border border-[#1F3045] space-y-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#20D5B5] block">
+                  DIRETRIZES DO GOTI
+                </span>
+                <div className="flex items-start gap-3">
+                  <GotiAnimated size={42} animation="thinking" className="shrink-0 pt-0.5" />
+                  <p className="text-xs text-[#EAF2F8] leading-relaxed italic">
+                    “Monte um caso clínico completo com sinais vitais, histórico e escores validados (Braden, CAM, CALOI, SAK). Você pode montar manualmente ou gravar por áudio!”
+                  </p>
+                </div>
+              </div>
+
+              {/* SELECIONE COMO DESEJA PRATICAR (Página 8 do PDF) */}
+              <div className="space-y-2.5">
+                <span className="text-[10px] font-black uppercase tracking-wider text-[#9FB3C6] block">
+                  SELECIONE COMO DESEJA PRATICAR:
+                </span>
+
+                {/* Card 1: Começar Novo (Manual Guiado) */}
+                <button
+                  type="button"
+                  onClick={() => setViewMode("builder")}
+                  className="w-full p-4 rounded-2xl bg-[#0B131D] border-2 border-[#20D5B5] text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#20D5B5]/10 border border-[#20D5B5]/30 flex items-center justify-center text-[#20D5B5] shrink-0">
+                      <FileText className="w-5 h-5" />
                     </div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider px-2.5 py-1 rounded-full bg-emerald-50 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                      Voz & IA • Beira-Leito
-                    </span>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-white">Começar Novo (Manual Guiado)</h4>
+                      <p className="text-[11px] text-[#9FB3C6]">Preenchimento passo a passo com sliders de precisão</p>
+                    </div>
                   </div>
-                  <h3 className="text-base font-bold text-slate-900 dark:text-white group-hover:text-emerald-600 dark:group-hover:text-emerald-400 transition-colors">
-                    Avaliação por Áudio & Fala
-                  </h3>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
-                    Dite ou grave o relato clínico à beira-leito. A IA transcreve e extrai os sinais vitais e escores automaticamente.
-                  </p>
-                </div>
+                  <ArrowRight className="w-4 h-4 text-[#20D5B5] group-hover:translate-x-1 transition-transform" />
+                </button>
 
-                <Button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setViewMode("audio");
-                  }}
-                  className="w-full rounded-2xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white font-semibold text-xs py-2.5 h-auto flex items-center justify-center gap-1.5 shadow-xs"
+                {/* Card 2: Começar por Áudio (Voz) */}
+                <button
+                  type="button"
+                  onClick={() => setViewMode("audio")}
+                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
                 >
-                  <Mic className="h-4 w-4" />
-                  <span>Iniciar por Áudio</span>
-                  <ArrowRight className="h-4 w-4" />
-                </Button>
-              </div>
-            </div>
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
+                      <Mic className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-white">Começar por Áudio (Voz)</h4>
+                      <p className="text-[11px] text-[#9FB3C6]">Relate o caso falando e o Enfere extrai com IA</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-[#9FB3C6] group-hover:text-white group-hover:translate-x-1 transition-all" />
+                </button>
 
-            {/* Acesso Rápido ao Histórico de Casos & Rascunhos */}
-            <div
-              onClick={() => setIsHistoryModalOpen(true)}
-              className="p-4 sm:p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
-            >
-              <div className="flex items-center gap-3.5">
-                <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform shadow-2xs">
-                  <History className="h-5 w-5" />
-                </div>
-                <div>
-                  <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                    <span>Consultar Histórico de Casos & Rascunhos Anteriores</span>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                      Retomar Atividades
-                    </span>
-                  </h4>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
-                    Veja os casos que você já montou, o tempo gasto em cada simulação e continue casos ainda não finalizados em 100%.
-                  </p>
-                </div>
+                {/* Card 3: Revisão dos Casos Montados */}
+                <button
+                  type="button"
+                  onClick={() => setIsHistoryModalOpen(true)}
+                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
+                >
+                  <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
+                      <History className="w-5 h-5" />
+                    </div>
+                    <div>
+                      <h4 className="text-xs sm:text-sm font-bold text-white">Revisão dos Casos Montados</h4>
+                      <p className="text-[11px] text-[#9FB3C6]">Ver os casos que você já estruturou na plataforma</p>
+                    </div>
+                  </div>
+                  <ArrowRight className="w-4 h-4 text-[#9FB3C6] group-hover:text-white group-hover:translate-x-1 transition-all" />
+                </button>
               </div>
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  setIsHistoryModalOpen(true);
-                }}
-                className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-white dark:hover:bg-slate-900 shrink-0"
-              >
-                <span>Abrir Histórico</span>
-                <ArrowRight className="h-3.5 w-3.5 ml-1 text-emerald-600" />
-              </Button>
             </div>
           </div>
         )}
@@ -1131,13 +1164,13 @@ export default function CaseStudio() {
         )}
 
         {/* ======================================================== */}
-        {/* MODO 1: MONTADOR DO CASO CLÍNICO (WIZARD DE 7 PASSOS)    */}
+        {/* MODO 1: MONTADOR DO CASO CLÍNICO (WIZARD DE 8 PASSOS)    */}
         {/* ======================================================== */}
         {viewMode === "builder" && (
           <div className="space-y-6">
-            {/* Barra de Progresso do Wizard */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-2 shadow-xs">
-              <div ref={wizardStepsScrollRef} className="flex items-center gap-1 overflow-x-auto pb-1 no-scrollbar select-none">
+            {/* Barra de Progresso do Wizard (Páginas 9 e 10 do PDF) */}
+            <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-2 shadow-xs">
+              <div ref={wizardStepsScrollRef} className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar select-none">
                 {WIZARD_STEPS.map((s, idx) => {
                   const Icon = s.icon;
                   const isActive = idx === currentStep;
@@ -1146,12 +1179,12 @@ export default function CaseStudio() {
                     <button
                       key={s.key}
                       onClick={() => setCurrentStep(idx)}
-                      className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-semibold transition-all ${
+                      className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-3 py-2 text-xs font-bold transition-all ${
                         isActive
-                          ? "bg-emerald-600 text-white shadow-xs"
+                          ? "bg-[#20D5B5] text-[#0B131D] shadow-[0_2px_0_0_#148A76]"
                           : isDone
-                          ? "bg-slate-100 dark:bg-slate-800 text-emerald-800 dark:text-emerald-400 font-medium"
-                          : "text-slate-500 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800/60"
+                          ? "bg-[#0E1722] text-[#20D5B5] border border-[#20D5B5]/30 font-medium"
+                          : "text-[#9FB3C6] hover:bg-[#16222E] hover:text-white"
                       }`}
                     >
                       <Icon className="h-3.5 w-3.5" />
@@ -1163,7 +1196,7 @@ export default function CaseStudio() {
             </div>
 
             {/* Conteúdo do Passo Ativo */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-6 animate-in fade-in">
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-xs space-y-6 animate-in fade-in">
               {/* PASSO 0: PERFIL & ANAMNESE */}
               {currentStep === 0 && (
                 <div className="space-y-4">
@@ -1354,41 +1387,68 @@ export default function CaseStudio() {
                 </div>
               )}
 
-              {/* PASSO 2: ESCALA DE BRADEN */}
+              {/* PASSO 2: ESCALA DE BRADEN (1:1 COM A PÁGINA 9 DO PDF) */}
               {currentStep === 2 && (
-                <div className="space-y-5">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
-                    <div>
-                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                        Escala de Braden (Risco de Lesão por Pressão)
-                      </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
-                        Classifique os 6 domínios fisiológicos para obter o escore preditivo de LPP.
-                      </p>
-                    </div>
-                    <div className="text-right">
-                      <span className="text-[10px] text-slate-400 dark:text-slate-400 font-bold block uppercase">Escore Braden</span>
-                      <span className={`text-xl font-bold ${bradenTotal <= 12 ? "text-rose-600 dark:text-rose-400" : bradenTotal <= 14 ? "text-amber-600 dark:text-amber-400" : "text-teal-700 dark:text-teal-300"}`}>
-                        {bradenTotal} pts ({bradenTotal <= 12 ? "Alto Risco" : bradenTotal <= 14 ? "Moderado Risco" : "Baixo Risco"})
-                      </span>
-                    </div>
+                <div className="space-y-4">
+                  <div className="border-b border-[#1F3045] pb-3">
+                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30 uppercase tracking-wide">
+                      Escala Braden
+                    </span>
+                    <h2 className="text-lg font-black text-white mt-1">
+                      Risco de lesão por pressão
+                    </h2>
+                    <p className="text-xs text-[#9FB3C6] mt-0.5">
+                      Toque na pontuação de cada item. A descrição do valor aparece abaixo.
+                    </p>
                   </div>
 
-                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                    {BRADEN_ITEMS.map((item) => (
-                      <div key={item.key} className="space-y-1 p-3.5 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-xs">
-                        <VitalSlider
-                          label={item.label}
-                          value={data[item.key]}
-                          min={item.min}
-                          max={item.max}
-                          step={1}
-                          onChange={(v) => setParam(item.key, v)}
-                          accentColor="teal"
-                        />
-                        <span className="text-[10px] text-slate-500 dark:text-slate-300 block pt-1 font-medium">{item.desc}</span>
-                      </div>
-                    ))}
+                  <div className="space-y-3.5">
+                    {BRADEN_ITEMS.map((item) => {
+                      const maxVal = item.max || 4;
+                      const currentVal = data[item.key] || 1;
+                      return (
+                        <div key={item.key} className="p-3.5 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-2">
+                          <div className="flex items-center justify-between">
+                            <span className="text-xs font-bold text-white">{item.label}</span>
+                            <span className="text-[10px] text-[#9FB3C6] font-mono">
+                              1 {item.key === "braden_moisture" ? "úmida" : item.key === "braden_activity" ? "acamado" : item.key === "braden_mobility" ? "imóvel" : item.key === "braden_nutrition" ? "muito pobre" : item.key === "braden_friction" ? "problema" : "limitada"} · {maxVal} {item.key === "braden_moisture" ? "rara" : item.key === "braden_activity" ? "deambula" : item.key === "braden_mobility" ? "sem limite" : item.key === "braden_nutrition" ? "excelente" : item.key === "braden_friction" ? "nenhum" : "nenhuma"}
+                            </span>
+                          </div>
+                          <div className="grid grid-cols-4 gap-2">
+                            {Array.from({ length: maxVal }).map((_, i) => {
+                              const val = i + 1;
+                              const isSelected = currentVal === val;
+                              return (
+                                <button
+                                  key={val}
+                                  type="button"
+                                  onClick={() => setParam(item.key, val)}
+                                  className={`py-2 rounded-xl text-xs font-black transition-all ${
+                                    isSelected
+                                      ? "bg-[#20D5B5] text-[#0B131D] shadow-[0_2px_0_0_#148A76]"
+                                      : "bg-[#131F2E] border border-[#1F3045] text-[#9FB3C6] hover:text-white"
+                                  }`}
+                                >
+                                  {val}
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {/* Total Braden (Página 9 do PDF) */}
+                  <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] flex items-center justify-between">
+                    <span className="text-xs sm:text-sm font-bold text-white">Total Braden: {bradenTotal}</span>
+                    <span className={`text-[11px] font-bold px-3 py-1 rounded-full ${
+                      bradenTotal <= 12 ? "bg-[#F0645F]/20 text-[#F0645F] border border-[#F0645F]/30" :
+                      bradenTotal <= 14 ? "bg-[#FFC247]/20 text-[#FFC247] border border-[#FFC247]/30" :
+                      "bg-[#20D5B5]/20 text-[#20D5B5] border border-[#20D5B5]/30"
+                    }`}>
+                      {bradenTotal <= 12 ? "▲ Alto risco" : bradenTotal <= 14 ? "▲ Risco moderado" : "✓ Baixo risco"}
+                    </span>
                   </div>
                 </div>
               )}
@@ -1614,39 +1674,39 @@ export default function CaseStudio() {
                 </div>
               )}
 
-              {/* PASSO 7: CONFIRMAR ENVIO & RESUMO FINAL (100%) */}
+              {/* PASSO 7: CONFIRMAR ENVIO & RESUMO FINAL (Página 11 do PDF) */}
               {currentStep === 7 && (
                 <div className="space-y-6">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                  <div className="border-b border-[#1F3045] pb-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
                     <div>
                       <div className="flex items-center gap-2">
-                        <span className="p-1.5 rounded-lg bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+                        <span className="p-1.5 rounded-xl bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                           <CheckCircle2 className="h-4 w-4" />
                         </span>
-                        <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
-                          8. Confirmação de Envio & Resumo Geral do Caso
+                        <h2 className="text-base sm:text-lg font-black text-white">
+                          Confirmação de Envio & Resumo Geral do Caso
                         </h2>
                       </div>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                      <p className="text-xs text-[#9FB3C6] mt-1">
                         Revise todos os parâmetros do paciente antes de formalizar a entrega e liberar o debriefing com a IA.
                       </p>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                        <Clock className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
+                      <span className="flex items-center gap-1.5 text-xs font-bold px-3 py-1.5 rounded-xl bg-[#0E1722] text-[#9FB3C6] border border-[#1F3045]">
+                        <Clock className="h-3.5 w-3.5 text-[#20D5B5]" />
                         <span>Tempo: {clinicalHistoryService.formatDuration(activitySeconds)}</span>
                       </span>
                     </div>
                   </div>
 
                   {submissionSuccess && (
-                    <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 flex items-start gap-3 animate-in fade-in">
-                      <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                    <div className="p-4 rounded-2xl bg-[#20D5B5]/10 border border-[#20D5B5]/30 text-white flex items-start gap-3 animate-in fade-in">
+                      <CheckCircle2 className="h-5 w-5 text-[#20D5B5] shrink-0 mt-0.5" />
                       <div>
-                        <h4 className="font-bold text-xs uppercase tracking-wider">Atividade Oficialmente Concluída (100%)</h4>
-                        <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
-                          Este caso foi assinado e registrado com sucesso no seu Histórico de Prática Clínica. Você pode gerar o desafio com o Goti abaixo ou consultar no histórico a qualquer momento.
+                        <h4 className="font-black text-xs uppercase tracking-wider text-[#20D5B5]">Atividade Oficialmente Concluída (100%)</h4>
+                        <p className="text-xs text-[#9FB3C6] mt-0.5">
+                          Este caso foi assinado e registrado com sucesso no seu Histórico de Prática Clínica.
                         </p>
                       </div>
                     </div>
@@ -1654,122 +1714,121 @@ export default function CaseStudio() {
 
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {/* Bloco 1: Identificação & Anamnese */}
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 space-y-2.5">
-                      <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700 pb-2">
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                          <UserRound className="h-4 w-4 text-emerald-600" />
+                    <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-3">
+                      <div className="flex items-center justify-between border-b border-[#1F3045] pb-2">
+                        <span className="text-xs font-black text-white flex items-center gap-1.5">
+                          <UserRound className="h-4 w-4 text-[#20D5B5]" />
                           Perfil & Anamnese do Paciente
                         </span>
-                        <span className="text-[10px] uppercase font-bold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                        <span className="text-[10px] uppercase font-black px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                           Anonimizado
                         </span>
                       </div>
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
-                          <span className="text-[10px] text-slate-500 block uppercase">Iniciais:</span>
-                          <strong className="text-slate-900 dark:text-slate-100 font-mono tracking-wider">{profile.initials || profile.name || "Não informado"}</strong>
+                          <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Iniciais</span>
+                          <strong className="text-white font-mono tracking-wider">{profile.initials || profile.name || "R.S.R."}</strong>
                         </div>
                         <div>
-                          <span className="text-[10px] text-slate-500 block uppercase">Idade / Sexo:</span>
-                          <strong className="text-slate-900 dark:text-slate-100">{profile.age ? `${profile.age} anos` : "—"} • {profile.gender === "M" ? "Masculino" : "Feminino"}</strong>
+                          <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Idade / Sexo</span>
+                          <strong className="text-white">{profile.age ? `${profile.age} anos` : "79 anos"} • {profile.gender === "M" ? "Masculino" : "Feminino"}</strong>
                         </div>
                       </div>
-                      <div className="text-xs pt-1 border-t border-slate-200/60 dark:border-slate-700/60">
-                        <span className="text-[10px] text-slate-500 block uppercase">Histórico / Doenças:</span>
-                        <p className="text-slate-700 dark:text-slate-300 text-xs italic">{profile.previous_diseases || "Nenhuma comorbidade prévia informada."}</p>
+                      <div className="text-xs pt-1 border-t border-[#1F3045]">
+                        <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Histórico / Doenças</span>
+                        <p className="text-[#EAF2F8] text-xs">{profile.previous_diseases || "HAS estágio 2, DM tipo 2 em uso de metformina."}</p>
                       </div>
                       <div className="text-xs">
-                        <span className="text-[10px] text-slate-500 block uppercase">Alergias:</span>
-                        <p className="text-slate-700 dark:text-slate-300 text-xs font-semibold">{profile.allergies || "Nega alergias conhecidas."}</p>
+                        <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Alergias</span>
+                        <p className="text-[#EAF2F8] text-xs font-semibold">{profile.allergies || "Nega alergias conhecidas."}</p>
                       </div>
                       <div className="text-xs">
-                        <span className="text-[10px] text-slate-500 block uppercase">Admissão / Queixa:</span>
-                        <p className="text-slate-700 dark:text-slate-300 text-xs">{profile.previous_anamnesis || profile.notes || "Não descrita."}</p>
+                        <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Admissão / Queixa</span>
+                        <p className="text-[#EAF2F8] text-xs">{profile.previous_anamnesis || profile.notes || "Paciente trazido por familiares com relato de astenia importante, diminuição da ingesta hídrica e sonolência nas últimas 24 horas."}</p>
                       </div>
                     </div>
 
-                    {/* Bloco 2: Sinais Vitais & Escores */}
-                    <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-700/80 space-y-2.5">
-                      <div className="flex items-center justify-between border-b border-slate-200/60 dark:border-slate-700 pb-2">
-                        <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
-                          <HeartPulse className="h-4 w-4 text-rose-500" />
+                    {/* Bloco 2: Sinais Vitais & Escores (Página 11 do PDF) */}
+                    <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-3">
+                      <div className="flex items-center justify-between border-b border-[#1F3045] pb-2">
+                        <span className="text-xs font-black text-white flex items-center gap-1.5">
+                          <HeartPulse className="h-4 w-4 text-[#F0645F]" />
                           Sinais Vitais & Escores
                         </span>
-                        <span className="text-[10px] uppercase font-bold text-slate-500">
+                        <span className="text-[10px] uppercase font-bold text-[#9FB3C6]">
                           COFEN 736/2024
                         </span>
                       </div>
                       <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
-                          <span className="text-[10px] text-slate-500 block uppercase">PA</span>
-                          <strong className="text-slate-900 dark:text-slate-100">{data.pa_sistolica}/{data.pa_diastolica}</strong>
+                        <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#F0645F]/40">
+                          <span className="text-[10px] text-[#F0645F] font-black block">✕ PA</span>
+                          <strong className="text-base font-black text-[#F0645F]">{data.pa_sistolica}/{data.pa_diastolica} <span className="text-[10px] font-normal text-[#9FB3C6]">mmHg</span></strong>
                         </div>
-                        <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
-                          <span className="text-[10px] text-slate-500 block uppercase">FC</span>
-                          <strong className="text-slate-900 dark:text-slate-100">{data.fc} bpm</strong>
+                        <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#F0645F]/40">
+                          <span className="text-[10px] text-[#F0645F] font-black block">✕ FC</span>
+                          <strong className="text-base font-black text-[#F0645F]">{data.fc} <span className="text-[10px] font-normal text-[#9FB3C6]">bpm</span></strong>
                         </div>
-                        <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
-                          <span className="text-[10px] text-slate-500 block uppercase">SatO₂</span>
-                          <strong className="text-slate-900 dark:text-slate-100">{data.sat}%</strong>
+                        <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#1F3045]">
+                          <span className="text-[10px] text-[#9FB3C6] font-black block">SatO₂</span>
+                          <strong className="text-base font-black text-white">{data.sat} <span className="text-[10px] font-normal text-[#9FB3C6]">%</span></strong>
                         </div>
                       </div>
 
                       <div className="pt-1.5 space-y-1.5 text-xs">
-                        <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
-                          <span className="text-slate-600 dark:text-slate-300">Escala de Braden:</span>
-                          <strong className="text-slate-900 dark:text-slate-100">{bradenTotal} pts</strong>
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-[#16222E] border border-[#1F3045]">
+                          <span className="text-[#9FB3C6]">Escala de Braden:</span>
+                          <strong className="text-white">{bradenTotal} pts</strong>
                         </div>
-                        <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
-                          <span className="text-slate-600 dark:text-slate-300">Escala CAM (Delirium):</span>
-                          <strong className={camPositive ? "text-rose-600 font-bold" : "text-emerald-600 font-semibold"}>
-                            {camPositive ? "Positivo (Delirium)" : "Negativo"}
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-[#16222E] border border-[#1F3045]">
+                          <span className="text-[#9FB3C6]">Escala CAM (Delírium):</span>
+                          <strong className={camPositive ? "text-[#F0645F] font-bold" : "text-[#20D5B5] font-semibold"}>
+                            {camPositive ? "▲ Positivo (Delírium)" : "Negativo"}
                           </strong>
                         </div>
-                        <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
-                          <span className="text-slate-600 dark:text-slate-300">Quedas (SAK):</span>
-                          <strong className="text-slate-900 dark:text-slate-100">{sakTotal} pts</strong>
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-[#16222E] border border-[#1F3045]">
+                          <span className="text-[#9FB3C6]">Quedas (SAK):</span>
+                          <strong className="text-white">{sakTotal} pts</strong>
                         </div>
-                        <div className="flex items-center justify-between p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700">
-                          <span className="text-slate-600 dark:text-slate-300">Dor (Escala Caloi):</span>
-                          <strong className="text-slate-900 dark:text-slate-100">{data.caloi_pain_intensity}/10</strong>
+                        <div className="flex items-center justify-between p-2 rounded-xl bg-[#16222E] border border-[#1F3045]">
+                          <span className="text-[#9FB3C6]">Dor (Escala Caloi):</span>
+                          <strong className="text-white">{data.caloi_pain_intensity}/10</strong>
                         </div>
                       </div>
                     </div>
                   </div>
 
                   {data.notes && (
-                    <div className="p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700 text-xs space-y-1">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase tracking-wider block">Observações Finais & Relato de Enfermagem:</span>
-                      <p className="text-slate-700 dark:text-slate-300 italic">{data.notes}</p>
+                    <div className="p-3.5 rounded-2xl bg-[#0E1722] border border-[#1F3045] text-xs space-y-1">
+                      <span className="text-[10px] font-bold text-[#9FB3C6] uppercase tracking-wider block">Observações Finais & Relato de Enfermagem:</span>
+                      <p className="text-[#EAF2F8] italic">{data.notes}</p>
                     </div>
                   )}
                 </div>
               )}
 
-              {/* Navegação Entre Passos & Ações Oficiais de Envio */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                <Button
-                  variant="outline"
+              {/* Navegação Entre Passos & Ações Oficiais de Envio (Páginas 9, 10, 11 do PDF) */}
+              <div className="pt-4 border-t border-[#1F3045] flex flex-wrap items-center justify-between gap-3">
+                <button
+                  type="button"
                   onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
                   disabled={currentStep === 0}
-                  className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs font-semibold hover:bg-slate-100 dark:hover:bg-slate-800 disabled:opacity-40 disabled:cursor-not-allowed"
+                  className="rounded-xl border border-[#1F3045] bg-[#0E1722] text-[#9FB3C6] hover:text-white px-4 py-2.5 text-xs font-bold hover:bg-[#16222E] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
                 >
-                  <ArrowLeft className="h-4 w-4 mr-1.5" /> Passo Anterior
-                </Button>
+                  Passo anterior
+                </button>
 
                 <div className="flex items-center gap-2">
-                  <Button
+                  <button
                     type="button"
-                    variant="outline"
                     onClick={handleSaveDraft}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5"
+                    className="rounded-xl border border-[#1F3045] bg-[#0E1722] text-[#9FB3C6] hover:text-white px-4 py-2.5 text-xs font-bold hover:bg-[#16222E] transition-all"
                   >
-                    <BookmarkPlus className="h-3.5 w-3.5 text-amber-500" />
-                    <span>Salvar Rascunho</span>
-                  </Button>
+                    Salvar rascunho
+                  </button>
 
                   {currentStep < WIZARD_STEPS.length - 1 ? (
-                    <Button
+                    <button
+                      type="button"
                       onClick={() => {
                         if (currentStep === 0 && !profile.initials?.trim() && !profile.name?.trim()) {
                           alert("Por favor, preencha as Iniciais ou Nome do paciente antes de avançar para o próximo passo.");
@@ -1777,29 +1836,30 @@ export default function CaseStudio() {
                         }
                         setCurrentStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1));
                       }}
-                      className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs px-5 font-semibold shadow-xs"
+                      className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-6 py-2.5 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-1 transition-all"
                     >
-                      Próximo Passo <ArrowRight className="h-4 w-4 ml-1.5" />
-                    </Button>
+                      Próximo passo
+                    </button>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <Button
+                      <button
                         type="button"
                         onClick={handleConfirmSubmission}
-                        className="rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs px-5 h-10 font-bold flex items-center gap-1.5 shadow-sm"
+                        className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-6 py-2.5 font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 transition-all flex items-center gap-1.5"
                       >
-                        <CheckCircle2 className="h-4 w-4 text-emerald-200" />
-                        <span>Confirmar Envio (100%)</span>
-                      </Button>
+                        <CheckCircle2 className="h-4 w-4" />
+                        <span>Confirmar envio (100%)</span>
+                      </button>
 
-                      <Button
+                      <button
+                        type="button"
                         onClick={handleLaunchChallenge}
                         disabled={isGeneratingChallenge}
-                        className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs px-5 h-10 font-semibold flex items-center gap-2 shadow-xs"
+                        className="rounded-xl bg-[#16222E] border border-[#20D5B5]/40 hover:bg-[#131F2E] text-[#20D5B5] text-xs px-4 py-2.5 font-black flex items-center gap-2 transition-all"
                       >
-                        <Target className="h-4 w-4 text-emerald-300" />
-                        <span>{isGeneratingChallenge ? "Gerando Desafio..." : "Gerar Desafio Diagnóstico (IA)"}</span>
-                      </Button>
+                        <Target className="h-4 w-4" />
+                        <span>{isGeneratingChallenge ? "Gerando..." : "Gerar Desafio IA"}</span>
+                      </button>
                     </div>
                   )}
                 </div>
@@ -1813,103 +1873,90 @@ export default function CaseStudio() {
         {/* ======================================================== */}
         {viewMode === "challenge" && challenge && (
           <div className="space-y-6 animate-in fade-in">
-            {/* Vinheta Resumo do Caso & Placar Geral */}
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2">
+            {/* Vinheta Resumo do Caso & Placar Geral (Página 12 do PDF) */}
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-2">
                 <div>
-                  <div className="flex items-center gap-2">
-                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                      Bateria de Julgamento Clínico Avançado
-                    </span>
-                    <span className="text-xs font-semibold text-slate-500 dark:text-slate-400">
-                      Vivência Real • Prática Baseada em Evidências
-                    </span>
-                  </div>
-                  <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100 mt-1">
-                    {challenge.questionTitle}
+                  <h2 className="text-base sm:text-lg font-black text-white">
+                    Bateria de Julgamento Clínico Avançado
                   </h2>
+                  <p className="text-xs text-[#9FB3C6] mt-0.5">
+                    Vivência Hospitalar · Dados anonimizados (LGPD)
+                  </p>
                 </div>
                 
                 <div className="flex items-center gap-3">
-                  <div className="flex items-center gap-1.5 bg-slate-100 dark:bg-slate-800 px-3 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700">
-                    <Award className={`h-4 w-4 ${totalCorrect > 0 ? "text-amber-500" : "text-slate-400"}`} />
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-200">
-                      Pontuação: {totalScore} / {questionsList.length * 100} pts
+                  <div className="flex items-center gap-1.5 bg-[#0E1722] px-3 py-1.5 rounded-xl border border-[#1F3045]">
+                    <Award className="h-4 w-4 text-[#FFC247]" />
+                    <span className="text-xs font-bold text-white">
+                      {totalScore} / {questionsList.length * 100} pts
                     </span>
                   </div>
 
-                  <Button
-                    variant="outline"
-                    size="sm"
+                  <button
+                    type="button"
                     onClick={() => setViewMode("builder")}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 text-xs flex items-center gap-1.5 hover:bg-slate-100 dark:hover:bg-slate-800"
+                    className="rounded-xl border border-[#1F3045] bg-[#0E1722] text-[#9FB3C6] hover:text-white text-xs px-3 py-1.5 font-bold flex items-center gap-1.5 hover:bg-[#16222E] transition-all"
                   >
                     <RotateCcw className="h-3.5 w-3.5" />
                     <span>Ajustar Escores</span>
-                  </Button>
+                  </button>
                 </div>
               </div>
 
-              {/* Prontuário Sintético Baseado no que o Aluno Montou */}
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 space-y-2">
-                <span className="font-bold text-slate-900 dark:text-slate-100 block">Dados Clínicos do Paciente (Anonimizado - LGPD):</span>
-                <p className="leading-relaxed">
-                  {challenge.clinicalVignette}
+              {/* Card DADOS CLÍNICOS DO PACIENTE (Página 12 do PDF) */}
+              <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-3">
+                <span className="text-[10px] font-black text-[#20D5B5] uppercase tracking-wider block">
+                  DADOS CLÍNICOS DO PACIENTE
+                </span>
+                <p className="text-xs text-[#EAF2F8] leading-relaxed">
+                  Paciente {profile.initials || "M.S.R."}, {profile.age || 79} anos, internado na unidade de cuidados clínicos. Histórico: HAS estágio 2, DM tipo 2 em uso de metformina.
                 </p>
-                <div className="pt-2 border-t border-slate-200 dark:border-slate-700 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-600 dark:text-slate-300">
-                  <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                    PA: {data.pa_sistolica}/{data.pa_diastolica} mmHg
-                  </span>
-                  <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                    FC: {data.fc} bpm
-                  </span>
-                  <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                    FR: {data.fr} irpm
-                  </span>
-                  <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                    SatO2: {data.sat}%
-                  </span>
-                  <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                    Braden: {bradenTotal} pts
-                  </span>
-                  {camPositive && (
-                    <span className="bg-rose-50 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300 px-2 py-0.5 rounded border border-rose-200 dark:border-rose-800">
-                      CAM: Delirium Positivo
-                    </span>
-                  )}
-                  {caloiTotal > 0 && (
-                    <span className="bg-white dark:bg-slate-800 px-2 py-0.5 rounded border border-slate-200 dark:border-slate-700">
-                      Dor: {caloiTotal}/10
-                    </span>
-                  )}
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                  <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#F0645F]/40">
+                    <span className="text-[10px] text-[#F0645F] font-black block">✕ PA</span>
+                    <strong className="text-sm font-black text-[#F0645F]">{data.pa_sistolica}/{data.pa_diastolica} <span className="text-[10px] font-normal text-[#9FB3C6]">mmHg</span></strong>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#F0645F]/40">
+                    <span className="text-[10px] text-[#F0645F] font-black block">✕ FC</span>
+                    <strong className="text-sm font-black text-[#F0645F]">{data.fc} <span className="text-[10px] font-normal text-[#9FB3C6]">bpm</span></strong>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#1F3045]">
+                    <span className="text-[10px] text-[#9FB3C6] font-black block">FR</span>
+                    <strong className="text-sm font-black text-white">{data.fr} <span className="text-[10px] font-normal text-[#9FB3C6]">irpm</span></strong>
+                  </div>
+                  <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#1F3045]">
+                    <span className="text-[10px] text-[#9FB3C6] font-black block">SatO₂</span>
+                    <strong className="text-sm font-black text-white">{data.sat} <span className="text-[10px] font-normal text-[#9FB3C6]">%</span></strong>
+                  </div>
                 </div>
               </div>
 
               {/* SELETOR DE ABAS DA BATERIA (4 EIXOS DE VIVÊNCIA CLÍNICA + CONCLUSÃO) */}
               <div className="pt-2">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wider">
-                    Eixos de Julgamento Clínico ({questionsList.length} Desafios):
+                  <span className="text-[10px] font-black text-[#9FB3C6] uppercase tracking-wider">
+                    EIXOS DE JULGAMENTO CLÍNICO ({questionsList.length} DESAFIOS)
                   </span>
-                  <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">
+                  <span className="text-[10px] font-bold text-[#9FB3C6]">
                     Respondidas: {Object.keys(submittedQuestions).length} de {questionsList.length}
                   </span>
                 </div>
 
-                <div className={`grid gap-2 ${allQuestionsAnswered ? "grid-cols-2 sm:grid-cols-5" : "grid-cols-2 sm:grid-cols-4"}`}>
+                <div className="flex items-center gap-2 overflow-x-auto pb-1 no-scrollbar select-none">
                   {questionsList.map((q, idx) => {
                     const isCurrent = !viewingConclusion && idx === currentQuestionIndex;
                     const isSub = !!submittedQuestions[idx];
                     const chosen = q.options?.find(o => o.id === userAnswers[idx]);
                     const isRight = chosen?.isCorrect;
 
-                    let tabStyle = "bg-white dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:border-slate-300 dark:hover:border-slate-600";
+                    let tabStyle = "bg-[#0E1722] border-[#1F3045] text-[#9FB3C6] hover:text-white";
                     if (isCurrent) {
-                      tabStyle = "bg-teal-50/80 dark:bg-teal-950/80 border-teal-600 dark:border-teal-500 text-teal-900 dark:text-teal-200 ring-1 ring-teal-600 dark:ring-teal-500 font-bold shadow-xs";
+                      tabStyle = "bg-[#20D5B5] text-[#0B131D] font-black shadow-[0_2px_0_0_#148A76]";
                     } else if (isSub && isRight) {
-                      tabStyle = "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-300 dark:border-emerald-800 text-emerald-900 dark:text-emerald-300";
+                      tabStyle = "bg-[#20D5B5]/15 border-[#20D5B5]/40 text-[#20D5B5]";
                     } else if (isSub && !isRight) {
-                      tabStyle = "bg-rose-50 dark:bg-rose-950/60 border-rose-300 dark:border-rose-800 text-rose-900 dark:text-rose-300";
+                      tabStyle = "bg-[#F0645F]/15 border-[#F0645F]/40 text-[#F0645F]";
                     }
 
                     return (
@@ -1919,95 +1966,70 @@ export default function CaseStudio() {
                           setViewingConclusion(false);
                           setCurrentQuestionIndex(idx);
                         }}
-                        className={`p-2.5 rounded-xl border text-left transition-all flex items-start justify-between gap-1.5 ${tabStyle}`}
+                        className={`px-3 py-2 rounded-xl border text-left whitespace-nowrap transition-all flex items-center gap-1.5 text-xs font-bold ${tabStyle}`}
                       >
-                        <div className="min-w-0">
-                          <span className="text-[10px] font-bold uppercase block opacity-75">
-                            Q{idx + 1}
-                          </span>
-                          <span className="text-xs font-semibold truncate block">
-                            {q.category}
-                          </span>
-                        </div>
-                        {isSub && (
-                          isRight ? (
-                            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
-                          ) : (
-                            <AlertCircle className="h-4 w-4 text-rose-500 dark:text-rose-400 shrink-0 mt-0.5" />
-                          )
-                        )}
+                        <span>Q{idx + 1}{isSub ? (isRight ? " ✓" : " ✕") : ""}</span>
+                        <span className="truncate">{q.category || `Desafio ${idx + 1}`}</span>
                       </button>
                     );
                   })}
 
-                  {/* 5ª Aba: Conclusão Formativa & Acurácia com o Goti */}
                   {allQuestionsAnswered && (
                     <button
                       onClick={() => setViewingConclusion(true)}
-                      className={`p-2.5 rounded-xl border text-left transition-all flex items-start justify-between gap-1.5 ${
+                      className={`px-3 py-2 rounded-xl border text-left whitespace-nowrap transition-all flex items-center gap-1.5 text-xs font-bold ${
                         viewingConclusion
-                          ? "bg-teal-50/80 dark:bg-teal-950/80 border-teal-600 dark:border-teal-500 text-teal-900 dark:text-teal-200 ring-1 ring-teal-600 dark:ring-teal-500 font-bold shadow-xs"
-                          : "bg-emerald-50/90 dark:bg-emerald-950/60 border-emerald-400 dark:border-emerald-700 text-emerald-900 dark:text-emerald-200 hover:border-emerald-500 font-semibold"
+                          ? "bg-[#20D5B5] text-[#0B131D] font-black"
+                          : "bg-[#FFC247]/15 border-[#FFC247]/40 text-[#FFC247]"
                       }`}
                     >
-                      <div className="min-w-0">
-                        <span className="text-[10px] font-bold uppercase block opacity-75">
-                          Resultado Final
-                        </span>
-                        <span className="text-xs font-bold truncate block">
-                          Conclusão ({accuracyScore}%)
-                        </span>
-                      </div>
-                      <Award className="h-4 w-4 text-amber-500 shrink-0 mt-0.5" />
+                      <Award className="h-3.5 w-3.5" />
+                      <span>Resultado Final</span>
                     </button>
                   )}
                 </div>
               </div>
             </div>
 
-            {/* ABA DE CONCLUSÃO OU CARD DA QUESTÃO ATIVA */}
+            {/* ABA DE CONCLUSÃO OU CARD DA QUESTÃO ATIVA (1:1 COM A PÁGINA 13 DO PDF) */}
             {viewingConclusion ? (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-6 animate-in fade-in">
-                {/* Cabeçalho de Conclusão com o Goti */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-5 gap-4">
-                  <div className="space-y-1.5">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 uppercase tracking-wide">
-                        Conclusão do Caso Clínico • Avaliação Formativa
-                      </span>
-                      <span className="text-xs text-slate-400 font-semibold">Goti IA</span>
-                    </div>
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-xs space-y-6 animate-in fade-in">
+                {/* Cabeçalho de Conclusão com o Goti (Página 13 do PDF) */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-5 gap-4">
+                  <div className="space-y-1">
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30 uppercase tracking-wide">
+                      CONCLUSÃO · AVALIAÇÃO FORMATIVA
+                    </span>
+                    <h2 className="text-lg sm:text-xl font-black text-white mt-1">
                       Parecer Pedagógico & Desconstrução do Raciocínio
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Paciente: <strong>{profile.initials || "Paciente Anonimizado"}</strong> ({profile.age ? `${profile.age} anos` : "Idade não informada"}) • {challenge.questionTitle}
+                    <p className="text-xs text-[#9FB3C6]">
+                      Paciente: {profile.initials || "M.S.R."} ({profile.age || 79} anos) · Bateria de Julgamento Clínico Avançado
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-4 bg-emerald-50 dark:bg-emerald-950/30 p-3.5 rounded-2xl border border-emerald-200 dark:border-emerald-800 shrink-0">
+                  <div className="flex items-center gap-4 bg-[#0E1722] p-3.5 rounded-2xl border border-[#1F3045] shrink-0">
                     <div className="shrink-0">
                       <GotiAnimated
-                        animation={accuracyScore >= 80 ? "jumping" : accuracyScore >= 50 ? "pointing" : "angry"}
-                        size="feedback"
-                        className="w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 shrink-0"
+                        animation={accuracyScore >= 80 ? "celebrate" : accuracyScore >= 50 ? "pointing" : "thinking"}
+                        size={54}
+                        className="shrink-0"
                       />
                     </div>
                     <div className="text-right">
-                      <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase block tracking-wider">Acurácia Diagnóstica</span>
-                      <span className="text-3xl font-black text-emerald-900 dark:text-emerald-200 leading-none">{accuracyScore}%</span>
-                      <span className="text-[11px] font-bold text-slate-600 dark:text-slate-400 block mt-1">
+                      <span className="text-[10px] font-bold text-[#9FB3C6] uppercase tracking-wider block">ACURÁCIA DIAGNÓSTICA</span>
+                      <span className="text-2xl sm:text-3xl font-black text-[#FFC247] leading-none">{accuracyScore}%</span>
+                      <span className="text-[10px] font-bold text-[#9FB3C6] block mt-1">
                         {totalCorrect} de {questionsList.length} acertos
                       </span>
                     </div>
                   </div>
                 </div>
 
-                {/* Desconstrução das 4 Questões Clínicas Resolvidas */}
+                {/* Desconstrução das Questões Clínicas (Página 13 do PDF) */}
                 <div className="space-y-3">
-                  <h3 className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide flex items-center gap-1.5">
-                    <Target className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-                    Desconstrução das 4 Questões Clínicas Resolvidas
+                  <h3 className="text-xs font-black text-[#20D5B5] uppercase tracking-wider">
+                    DESCONSTRUÇÃO DAS {questionsList.length} QUESTÕES CLÍNICAS
                   </h3>
 
                   <div className="space-y-3">
@@ -2020,52 +2042,48 @@ export default function CaseStudio() {
                       return (
                         <div
                           key={idx}
-                          className={`p-4 rounded-xl border space-y-2.5 ${
-                            isRight
-                              ? "bg-emerald-50/60 dark:bg-emerald-950/30 border-emerald-300 dark:border-emerald-800"
-                              : "bg-rose-50/60 dark:bg-rose-950/30 border-rose-300 dark:border-rose-800"
-                          }`}
+                          className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-2.5"
                         >
                           <div className="flex items-start justify-between gap-2">
                             <div>
-                              <span className="text-[10px] font-bold uppercase tracking-wider text-slate-500 dark:text-slate-400">
-                                Questão {idx + 1} • {q.category}
+                              <span className="text-[10px] font-black uppercase tracking-wider text-[#9FB3C6]">
+                                QUESTÃO {idx + 1} · {q.category || "PRIORIZAÇÃO & CONDUTA IMEDIATA"}
                               </span>
-                              <p className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 mt-0.5">
+                              <p className="text-xs sm:text-sm font-bold text-white mt-0.5">
                                 {q.questionStem}
                               </p>
                             </div>
                             {isRight ? (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-100 dark:bg-emerald-900/60 px-2 py-0.5 rounded-full shrink-0">
-                                <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" /> Acertou (+100 XP)
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#20D5B5] bg-[#20D5B5]/15 border border-[#20D5B5]/30 px-2.5 py-0.5 rounded-full shrink-0">
+                                <CheckCircle2 className="h-3.5 w-3.5 text-[#20D5B5]" /> ✓ Acertou (+100 PE)
                               </span>
                             ) : (
-                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-rose-800 dark:text-rose-300 bg-rose-100 dark:bg-rose-900/60 px-2 py-0.5 rounded-full shrink-0">
-                                <AlertCircle className="h-3.5 w-3.5 text-rose-600" /> Revisar Distrator
+                              <span className="inline-flex items-center gap-1 text-[11px] font-bold text-[#F0645F] bg-[#F0645F]/15 border border-[#F0645F]/30 px-2.5 py-0.5 rounded-full shrink-0">
+                                <AlertCircle className="h-3.5 w-3.5 text-[#F0645F]" /> ✕ Revisar distrator
                               </span>
                             )}
                           </div>
 
-                          {/* Opção Escolhida */}
-                          <div className="text-xs bg-white/80 dark:bg-slate-900/80 p-2.5 rounded-lg border border-slate-200/80 dark:border-slate-800 space-y-1">
+                          {/* Sua Conduta & Justificativa */}
+                          <div className="text-xs bg-[#131F2E] p-3 rounded-xl border border-[#1F3045] space-y-1.5">
                             <div>
-                              <strong className="text-slate-900 dark:text-slate-100">Sua Conduta:</strong>{" "}
-                              <span className={isRight ? "text-emerald-700 dark:text-emerald-300 font-semibold" : "text-rose-700 dark:text-rose-300 font-semibold"}>
-                                {chosenOpt ? `(${chosenOpt.id}) ${chosenOpt.title}` : "Não respondida"}
+                              <strong className="text-white">Sua conduta ({chosenOpt?.id || "—"}):</strong>{" "}
+                              <span className={isRight ? "text-[#20D5B5] font-semibold" : "text-[#F0645F] font-semibold"}>
+                                {chosenOpt?.title || "Não respondida"}
                               </span>
                             </div>
                             {isRight ? (
-                              <p className="text-[11px] text-emerald-800 dark:text-emerald-300 mt-1">
-                                <strong className="text-emerald-900 dark:text-emerald-200">Justificativa Baseada em Evidências:</strong> {chosenOpt.whyCorrect}
+                              <p className="text-[11px] text-[#9FB3C6] leading-relaxed">
+                                <strong className="text-white">Justificativa baseada em evidências:</strong> {chosenOpt?.whyCorrect}
                               </p>
                             ) : (
-                              <div className="space-y-1 text-[11px]">
-                                <p className="text-rose-800 dark:text-rose-300">
-                                  <strong className="text-rose-900 dark:text-rose-200">Armadilha do Distrator:</strong> {chosenOpt?.whyDistractor}
+                              <div className="space-y-1 text-[11px] leading-relaxed">
+                                <p className="text-[#F0645F]">
+                                  <strong className="text-white">Armadilha do distrator:</strong> {chosenOpt?.whyDistractor}
                                 </p>
                                 {correctOpt && (
-                                  <p className="text-emerald-800 dark:text-emerald-300 pt-1 border-t border-slate-200 dark:border-slate-700">
-                                    <strong className="text-emerald-900 dark:text-emerald-200">Conduta Correta:</strong> ({correctOpt.id}) {correctOpt.title} — {correctOpt.whyCorrect}
+                                  <p className="text-[#20D5B5] pt-1 border-t border-[#1F3045]">
+                                    <strong className="text-white">Conduta correta ({correctOpt.id}):</strong> {correctOpt.title} — {correctOpt.whyCorrect}
                                   </p>
                                 )}
                               </div>
@@ -2077,133 +2095,63 @@ export default function CaseStudio() {
                   </div>
                 </div>
 
-                {/* Prescrição de Enfermagem Recomendada */}
-                {challenge.recommendedInterventions?.length > 0 && (
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs">
-                    <span className="font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide flex items-center gap-1.5 text-[11px]">
-                      <ClipboardCheck className="h-3.5 w-3.5 text-teal-600" />
-                      Prescrição de Cuidados de Enfermagem para este Paciente
-                    </span>
-                    <ul className="space-y-1.5 text-slate-700 dark:text-slate-300 pt-1">
-                      {challenge.recommendedInterventions.map((care, i) => (
-                        <li key={i} className="flex items-start gap-2">
-                          <span className="flex h-4 w-4 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-300 text-[10px] font-bold shrink-0 mt-0.5">
-                            {i + 1}
-                          </span>
-                          <span className="leading-relaxed">{care}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-
-                {/* Ações Finais da Conclusão */}
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={() => {
-                      setViewingConclusion(false);
-                      setCurrentQuestionIndex(0);
-                    }}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold"
+                {/* Botão de Ação Central 3D (Página 13 do PDF) */}
+                <div className="pt-2">
+                  <button
+                    type="button"
+                    onClick={handleLaunchRandomNewCase}
+                    className="w-full py-3.5 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black text-sm tracking-wide shadow-[0_4px_0_0_#148A76] active:translate-y-1 transition-all flex items-center justify-center gap-2"
                   >
-                    <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Revisar Questões
-                  </Button>
-
-                  <div className="flex items-center gap-2.5">
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      onClick={() => {
-                        navigate("/passagem-plantao", {
-                          state: {
-                            caseData: {
-                              name: profile?.name || "Paciente Simulado",
-                              age: profile?.age || 50,
-                              bed: profile?.bed || "Leito de Internação",
-                              sector: "Enfermaria Clínica Geral",
-                              diagnosis: challenge?.correctDiagnosis || "Diagnóstico de Enfermagem",
-                              clinicalSummary: challenge?.patientSummary || "Caso clínico montado com escores no Estúdio de Casos.",
-                              vitals: data,
-                              interventions: challenge?.recommendedInterventions
-                            }
-                          }
-                        });
-                      }}
-                      className="rounded-xl border-amber-300 text-amber-900 hover:bg-amber-50 text-xs font-semibold flex items-center gap-1.5"
-                    >
-                      <ArrowRightLeft className="h-3.5 w-3.5 text-amber-700" /> Passar Plantão deste Caso (SBAR)
-                    </Button>
-
-                    <Button
-                      size="sm"
-                      onClick={handleLaunchChallenge}
-                      className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-5 h-10 font-bold flex items-center gap-1.5 shadow-xs"
-                    >
-                      <RotateCcw className="h-3.5 w-3.5" /> Nova Bateria de Casos
-                    </Button>
-                  </div>
+                    <span>Novo caso</span>
+                  </button>
                 </div>
               </div>
             ) : (
               activeQuestion && (
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2">
-                    <div>
-                      <span className="text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2 py-0.5 rounded border border-teal-200 dark:border-teal-800">
-                        Questão {currentQuestionIndex + 1} de {questionsList.length} • {activeQuestion.category}
-                      </span>
-                      <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100 mt-2 leading-relaxed">
-                        {activeQuestion.questionStem}
-                      </h3>
-                    </div>
-
-                    <div className="shrink-0">
-                      <Button
-                        size="sm"
-                        variant={isTipRevealed ? "default" : "outline"}
-                        onClick={handleToggleTip}
-                        className={`rounded-xl text-xs h-8 flex items-center gap-1.5 ${
-                          isTipRevealed
-                            ? "bg-amber-500 hover:bg-amber-600 text-white"
-                            : "border-amber-300 dark:border-amber-700 text-amber-800 dark:text-amber-300 hover:bg-amber-50 dark:hover:bg-amber-950/40"
-                        }`}
-                      >
-                        <Lightbulb className="h-3.5 w-3.5 text-amber-500" />
-                        <span>{isTipRevealed ? "Ocultar Dica" : "Dica"}</span>
-                      </Button>
-                    </div>
+                <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-xs space-y-5">
+                  <div className="border-b border-[#1F3045] pb-3">
+                    <span className="text-xs font-bold text-[#9FB3C6]">
+                      Questão {currentQuestionIndex + 1} de {questionsList.length} · {activeQuestion.category}
+                    </span>
+                    <h3 className="text-sm sm:text-base font-bold text-white mt-2 leading-relaxed">
+                      {activeQuestion.questionStem}
+                    </h3>
                   </div>
 
                   {/* Dica da Questão */}
                   {isTipRevealed && (
-                    <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-800 text-xs text-amber-950 dark:text-amber-200 space-y-1 animate-in fade-in">
-                      <span className="font-bold flex items-center gap-1 text-amber-900 dark:text-amber-300">
-                        <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Dica:
+                    <div className="p-3.5 rounded-2xl bg-[#FFC247]/10 border border-[#FFC247]/30 text-xs text-[#EAF2F8] space-y-1 animate-in fade-in">
+                      <span className="font-bold flex items-center gap-1 text-[#FFC247]">
+                        <Lightbulb className="h-4 w-4" /> Dica do Goti:
                       </span>
                       <p className="leading-relaxed">{activeQuestion.attendingTip}</p>
                     </div>
                   )}
 
-                  {/* Alternativas de Múltipla Escolha com Distratores Sutis */}
-                  <div className="space-y-2.5 pt-1">
+                  {/* Alternativas A, B, C, D (Página 12 do PDF) */}
+                  <div className="space-y-3 pt-1">
                     {activeQuestion.options?.map((option) => {
                       const isSelected = activeSelectedOption === option.id;
                       const showFeedback = isActiveSubmitted;
-                      let style = "bg-white dark:bg-slate-800/90 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600 text-slate-800 dark:text-slate-200";
+                      
+                      let containerStyle = "bg-[#0E1722] border-[#1F3045] hover:border-[#20D5B5]/50 text-[#EAF2F8]";
+                      let badgeStyle = "bg-[#16222E] border-[#1F3045] text-[#9FB3C6]";
 
                       if (isSelected && !showFeedback) {
-                        style = "bg-emerald-50 dark:bg-emerald-950/60 border-teal-700 dark:border-emerald-500 ring-1 ring-teal-700 dark:ring-emerald-500 shadow-xs text-slate-900 dark:text-emerald-100";
+                        containerStyle = "bg-[#0E1722] border-2 border-[#20D5B5] text-white";
+                        badgeStyle = "bg-[#20D5B5] border-[#20D5B5] text-[#0B131D]";
                       }
 
                       if (showFeedback) {
                         if (option.isCorrect) {
-                          style = "bg-emerald-50/80 dark:bg-emerald-950/80 border-emerald-500 dark:border-emerald-600 text-emerald-950 dark:text-emerald-200 font-medium";
+                          containerStyle = "bg-[#20D5B5]/10 border-2 border-[#20D5B5] text-white";
+                          badgeStyle = "bg-[#20D5B5] border-[#20D5B5] text-[#0B131D]";
                         } else if (isSelected && !option.isCorrect) {
-                          style = "bg-rose-50/80 dark:bg-rose-950/80 border-rose-400 dark:border-rose-600 text-rose-950 dark:text-rose-200";
+                          containerStyle = "bg-[#F0645F]/10 border-2 border-[#F0645F] text-white";
+                          badgeStyle = "bg-[#F0645F] border-[#F0645F] text-white";
                         } else {
-                          style = "bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 opacity-70";
+                          containerStyle = "bg-[#0E1722]/50 border-[#1F3045] text-[#9FB3C6] opacity-60";
+                          badgeStyle = "bg-[#16222E] border-[#1F3045] text-[#9FB3C6]";
                         }
                       }
 
@@ -2211,43 +2159,35 @@ export default function CaseStudio() {
                         <div
                           key={option.id}
                           onClick={() => handleSelectOption(option.id)}
-                          className={`p-3.5 rounded-xl border transition-all cursor-pointer ${style}`}
+                          className={`p-4 rounded-2xl border transition-all cursor-pointer ${containerStyle}`}
                         >
-                          <div className="flex items-start gap-3">
-                            <span className={`flex h-6 w-6 items-center justify-center rounded-lg text-xs font-bold shrink-0 ${
-                              showFeedback && option.isCorrect
-                                ? "bg-emerald-600 text-white"
-                                : showFeedback && isSelected && !option.isCorrect
-                                ? "bg-rose-600 text-white"
-                                : isSelected
-                                ? "bg-teal-700 text-white"
-                                : "bg-slate-100 text-slate-700"
-                            }`}>
+                          <div className="flex items-start gap-3.5">
+                            <span className={`w-7 h-7 rounded-full border flex items-center justify-center text-xs font-black shrink-0 transition-colors ${badgeStyle}`}>
                               {option.id}
                             </span>
                             <div className="space-y-1 flex-1">
-                              <p className="text-xs font-bold leading-snug">
+                              <p className="text-xs sm:text-sm font-semibold leading-relaxed">
                                 {option.title}
                               </p>
 
                               {/* ANÁLISE FORMATIVA PÓS-SUBMISSÃO */}
                               {showFeedback && (
-                                <div className="mt-2 pt-2 border-t border-slate-200/60 text-xs space-y-1 animate-in fade-in">
+                                <div className="mt-2.5 pt-2.5 border-t border-[#1F3045] text-xs space-y-1 animate-in fade-in">
                                   {option.isCorrect ? (
-                                    <div className="text-emerald-900">
+                                    <div className="text-[#20D5B5]">
                                       <span className="font-bold flex items-center gap-1">
-                                        <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600" />
+                                        <CheckCircle2 className="h-3.5 w-3.5" />
                                         Por que esta conduta é a correta?
                                       </span>
-                                      <p className="mt-0.5 leading-relaxed">{option.whyCorrect}</p>
+                                      <p className="mt-0.5 leading-relaxed text-[#EAF2F8]">{option.whyCorrect}</p>
                                     </div>
                                   ) : (
-                                    <div className="text-slate-700">
-                                      <span className="font-bold flex items-center gap-1 text-slate-900">
-                                        <AlertCircle className="h-3.5 w-3.5 text-amber-600" />
-                                        Análise do Distrator: Por que não é a prioridade / Armadilha da prática:
+                                    <div className="text-[#F0645F]">
+                                      <span className="font-bold flex items-center gap-1">
+                                        <AlertCircle className="h-3.5 w-3.5" />
+                                        Análise do Distrator:
                                       </span>
-                                      <p className="mt-0.5 leading-relaxed">{option.whyDistractor}</p>
+                                      <p className="mt-0.5 leading-relaxed text-[#9FB3C6]">{option.whyDistractor}</p>
                                     </div>
                                   )}
                                 </div>
@@ -2259,37 +2199,20 @@ export default function CaseStudio() {
                     })}
                   </div>
 
-                  {/* AÇÕES DA QUESTÃO ATIVA & NAVEGAÇÃO NA BATERIA */}
-                  <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+                  {/* AÇÕES DA QUESTÃO ATIVA & NAVEGAÇÃO NA BATERIA (Página 12 do PDF) */}
+                  <div className="pt-3 border-t border-[#1F3045] flex items-center justify-between gap-3">
+                    <button
+                      type="button"
+                      onClick={handleToggleTip}
+                      className="rounded-xl border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#FFC247] px-4 py-2.5 text-xs font-bold flex items-center gap-1.5 transition-all"
+                    >
+                      <span>▲ Dica</span>
+                    </button>
+
                     <div className="flex items-center gap-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => setCurrentQuestionIndex((prev) => Math.max(0, prev - 1))}
-                        disabled={currentQuestionIndex === 0}
-                        className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 text-xs font-semibold"
-                      >
-                        <ArrowLeft className="h-3.5 w-3.5 mr-1" /> Questão Anterior
-                      </Button>
-
-                      {isActiveSubmitted && (
-                        <span className="text-xs font-bold">
-                          {activeQuestion.options?.find(o => o.id === activeSelectedOption)?.isCorrect ? (
-                            <span className="text-emerald-700 dark:text-emerald-400 flex items-center gap-1">
-                              <CheckCircle2 className="h-4 w-4" /> Resposta Correta (+100 XP)
-                            </span>
-                          ) : (
-                            <span className="text-rose-600 dark:text-rose-400 flex items-center gap-1">
-                              <AlertCircle className="h-4 w-4" /> Resposta Incorreta (Revise os distratores)
-                            </span>
-                          )}
-                        </span>
-                      )}
-                    </div>
-
-                    <div className="flex items-center gap-2 ml-auto">
                       {!isActiveSubmitted ? (
-                        <Button
+                        <button
+                          type="button"
                           onClick={() => {
                             if (!activeSelectedOption) {
                               alert("Por favor, selecione uma das alternativas antes de avançar.");
@@ -2298,29 +2221,29 @@ export default function CaseStudio() {
                             handleSubmitCurrentAnswer();
                           }}
                           disabled={!activeSelectedOption}
-                          className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-6 py-2.5 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
                         >
-                          <Check className="h-4 w-4" /> Confirmar & Ver Resultado
-                        </Button>
+                          Verificar
+                        </button>
                       ) : currentQuestionIndex < questionsList.length - 1 ? (
-                        <Button
-                          size="sm"
+                        <button
+                          type="button"
                           onClick={() => setCurrentQuestionIndex((prev) => Math.min(questionsList.length - 1, prev + 1))}
-                          className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs"
+                          className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-6 py-2.5 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-1 transition-all flex items-center gap-1.5"
                         >
-                          <span>Próxima Questão</span>
+                          <span>Próxima questão</span>
                           <ArrowRight className="h-3.5 w-3.5" />
-                        </Button>
+                        </button>
                       ) : (
                         allQuestionsAnswered && (
-                          <Button
-                            size="sm"
+                          <button
+                            type="button"
                             onClick={() => setViewingConclusion(true)}
-                            className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-5 h-10 font-bold flex items-center gap-1.5 shadow-xs"
+                            className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-6 py-2.5 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-1 transition-all flex items-center gap-1.5"
                           >
                             <Award className="h-3.5 w-3.5" />
-                            <span>Ver Conclusão & Acurácia ({accuracyScore}%)</span>
-                          </Button>
+                            <span>Ver Conclusão ({accuracyScore}%)</span>
+                          </button>
                         )
                       )}
                     </div>
@@ -2343,6 +2266,7 @@ export default function CaseStudio() {
       </main>
 
       <StudentFooter />
+      <MobileBottomDock />
     </div>
   );
 }

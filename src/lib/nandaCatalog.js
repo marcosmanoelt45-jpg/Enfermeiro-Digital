@@ -799,34 +799,165 @@ export function getNandaContextualSuggestions(diagnosisNameOrCode) {
   };
 }
 
-// Banco Canônico de Etiologias e Fatores Relacionados Frequentes (NANDA-I 2024-2026)
-export const COMMON_ETIOLOGIES = [
-  "Fadiga da musculatura respiratória",
-  "Hipervolemia e congestão pulmonar secundária",
-  "Mobilidade física prejudicada",
-  "Idade avançada (senescência e fragilidade fisiológica)",
-  "Mecanismos reguladores hemodinâmicos comprometidos",
-  "Fraqueza muscular generalizada e instabilidade motora",
-  "Efeitos adversos de sedativos, diuréticos ou hipotensores",
-  "Trauma mecânico penetrante ou cirúrgico recente",
-  "Fricção e forças de cisalhamento sobre a pele",
-  "Imobilidade prolongada no leito hospitalar",
-  "Exposição contínua da pele à umidade e efluentes",
-  "Processo inflamatório ou infeccioso sistêmico"
+// Banco Canônico Ampliado de Todas as Possíveis Causas e Fatores Relacionados (NANDA-I 2024-2026)
+export const COMPREHENSIVE_ETIOLOGIES = [
+  // Fisiopatologia Respiratória e Ventilatória
+  { id: "e1", category: "Ventilação & Oxigenação", label: "Fadiga da musculatura respiratória acessória" },
+  { id: "e2", category: "Ventilação & Oxigenação", label: "Hipervolemia e congestão alveolar secundária" },
+  { id: "e3", category: "Ventilação & Oxigenação", label: "Desequilíbrio na relação ventilação-perfusão (V/Q)" },
+  { id: "e4", category: "Ventilação & Oxigenação", label: "Obstrução de vias aéreas por acúmulo de secreções" },
+  { id: "e5", category: "Ventilação & Oxigenação", label: "Broncoespasmo agudo e hiper-reatividade brônquica" },
+  { id: "e6", category: "Ventilação & Oxigenação", label: "Hipoventilação alveolar por dor torácica restritiva" },
+  { id: "e7", category: "Ventilação & Oxigenação", label: "Disfunção neurológica central do centro respiratório" },
+  { id: "e8", category: "Ventilação & Oxigenação", label: "Depressão respiratória induzida por sedativos ou opioides" },
+
+  // Hemodinâmica e Cardiovascular
+  { id: "e9", category: "Circulação & Hemodinâmica", label: "Diminuição do débito cardíaco por disfunção ventricular" },
+  { id: "e10", category: "Circulação & Hemodinâmica", label: "Sobrecarga de volume intravascular e retenção hidrossalina" },
+  { id: "e11", category: "Circulação & Hemodinâmica", label: "Perda aguda de fluidos intravascular (hipovolemia/desidratação)" },
+  { id: "e12", category: "Circulação & Hemodinâmica", label: "Vasodilatação sistêmica severa secundária a processo infeccioso" },
+  { id: "e13", category: "Circulação & Hemodinâmica", label: "Resistência vascular sistêmica aumentada (crise hipertensiva)" },
+  { id: "e14", category: "Circulação & Hemodinâmica", label: "Comprometimento dos mecanismos barorreceptores reguladores" },
+  { id: "e15", category: "Circulação & Hemodinâmica", label: "Arritmias cardíacas com instabilidade de perfusão tecidual" },
+
+  // Segurança, Quedas & Mobilidade
+  { id: "e16", category: "Segurança & Mobilidade", label: "Instabilidade postural, marcha claudicante e fraqueza muscular" },
+  { id: "e17", category: "Segurança & Mobilidade", label: "Disfunção cognitiva, desorientação temporal ou estado confusional" },
+  { id: "e18", category: "Segurança & Mobilidade", label: "Idade avançada (senescência e fragilidade osteomuscular)" },
+  { id: "e19", category: "Segurança & Mobilidade", label: "Uso de medicamentos com efeito sobre o SNC (sedativos/hipotensores)" },
+  { id: "e20", category: "Segurança & Mobilidade", label: "Histórico recente de quedas e medo de nova queda" },
+  { id: "e21", category: "Segurança & Mobilidade", label: "Equilíbrio corporal prejudicado durante transferências" },
+
+  // Integridade Cutânea & Tecidual
+  { id: "e22", category: "Tegumentar & Lesões", label: "Fricção mecânica e forças de cisalhamento sobre a derme" },
+  { id: "e23", category: "Tegumentar & Lesões", label: "Pressão contínua sobre proeminências ósseas por imobilidade" },
+  { id: "e24", category: "Tegumentar & Lesões", label: "Exposição contínua da pele à umidade e efluentes corporais" },
+  { id: "e25", category: "Tegumentar & Lesões", label: "Edema periférico severo com estiramento e fragilidade cutânea" },
+  { id: "e26", category: "Tegumentar & Lesões", label: "Perfusão periférica comprometida e hipóxia celular tecidual" },
+  { id: "e27", category: "Tegumentar & Lesões", label: "Trauma cirúrgico ou solução de continuidade cutânea recente" },
+
+  // Inflamatório, Infeccioso & Metabólico
+  { id: "e28", category: "Inflamação & Infecção", label: "Resposta inflamatória sistêmica desencadeada por patógeno bacteriano" },
+  { id: "e29", category: "Inflamação & Infecção", label: "Defesa primária rompida por dispositivos invasivos hospitalares" },
+  { id: "e30", category: "Inflamação & Infecção", label: "Desregulação metabólica aguda com descompensação hidroeletrolítica" },
+  { id: "e31", category: "Inflamação & Infecção", label: "Estresse cirúrgico ou metabólico com catabolismo acentuado" },
+  { id: "e32", category: "Inflamação & Infecção", label: "Dor aguda intensa e não controlada gerando sobrecarga simpática" }
 ];
 
-// Banco Canônico de Características Definidoras e Evidências Clínicas (NANDA-I 2024-2026)
-export const COMMON_EVIDENCES = [
-  "Taquipneia (FR > 24 irpm) com respiração superficial",
-  "SpO2 < 90% em ar ambiente com dessaturação ao repouso",
-  "Uso de musculatura acessória (tiragem intercostal/supraclavicular)",
-  "Estertores crepitantes bibasais à ausculta pulmonar",
-  "Edema periférico de membros inferiores (+2/+3/4+)",
-  "Turgência jugular patológica a 45 graus",
-  "Dor aguda de forte intensidade relatada à avaliação",
-  "Tempo de enchimento capilar periférico lentificado (> 3 segundos)",
-  "Pele pálida, fria, diaforética ou com má perfusão",
-  "Instabilidade postural, marcha claudicante ou tremores"
-];
+/**
+ * Constrói dinamicamente todas as possíveis evidências clínicas para um caso,
+ * incluindo achados reais do prontuário, evidências gerais e distratores opostos.
+ */
+export function buildCaseEvidences(caseData) {
+  const v = caseData?.vitals || {};
+  const evidences = [];
+
+  // 1. Evidências dos Sinais Vitais Reais do Caso
+  if (v.fr !== undefined) {
+    if (v.fr > 20) {
+      evidences.push({ id: "v_fr", label: `Taquipneia acentuada (FR: ${v.fr} irpm com taquipneia)`, type: "vital", isContradiction: false });
+    } else if (v.fr < 12) {
+      evidences.push({ id: "v_fr", label: `Bradipneia com ventilação lenta (FR: ${v.fr} irpm)`, type: "vital", isContradiction: false });
+    } else {
+      evidences.push({ id: "v_fr", label: `Padrão eupneico mantido (FR: ${v.fr} irpm)`, type: "vital", isContradiction: false });
+    }
+  }
+
+  if (v.sat !== undefined) {
+    if (v.sat < 92) {
+      evidences.push({ id: "v_sat", label: `Dessaturação periférica / Hipoxemia em ar ambiente (SatO2: ${v.sat}%)`, type: "vital", isContradiction: false });
+    } else {
+      evidences.push({ id: "v_sat", label: `Saturação periférica de O2 adequada em ar ambiente (SatO2: ${v.sat}%)`, type: "vital", isContradiction: false });
+    }
+  }
+
+  if (v.pa_sistolica !== undefined) {
+    if (v.pa_sistolica >= 140) {
+      evidences.push({ id: "v_pa", label: `Nível pressórico elevado / Hipertensão aferida: ${v.pa_sistolica}/${v.pa_diastolica} mmHg`, type: "vital", isContradiction: false });
+    } else if (v.pa_sistolica < 90) {
+      evidences.push({ id: "v_pa", label: `Hipotensão arterial sistêmica evidente: ${v.pa_sistolica}/${v.pa_diastolica} mmHg`, type: "vital", isContradiction: false });
+    } else {
+      evidences.push({ id: "v_pa", label: `Pressão arterial normotensa aferida: ${v.pa_sistolica}/${v.pa_diastolica} mmHg`, type: "vital", isContradiction: false });
+    }
+  }
+
+  if (v.fc !== undefined) {
+    if (v.fc > 100) {
+      evidences.push({ id: "v_fc", label: `Taquicardia sinusal à beira-leito (FC: ${v.fc} bpm)`, type: "vital", isContradiction: false });
+    } else if (v.fc < 60) {
+      evidences.push({ id: "v_fc", label: `Bradicardia aferida à beira-leito (FC: ${v.fc} bpm)`, type: "vital", isContradiction: false });
+    } else {
+      evidences.push({ id: "v_fc", label: `Frequência cardíaca dentro da faixa esperada (FC: ${v.fc} bpm)`, type: "vital", isContradiction: false });
+    }
+  }
+
+  if (v.tax !== undefined) {
+    if (v.tax >= 37.8) {
+      evidences.push({ id: "v_tax", label: `Hipertermia / Febre constatada (Tax: ${v.tax} °C)`, type: "vital", isContradiction: false });
+    } else {
+      evidences.push({ id: "v_tax", label: `Paciente afebril ao termômetro axilar (Tax: ${v.tax} °C)`, type: "vital", isContradiction: false });
+    }
+  }
+
+  // 2. Achados Fisiopatológicos Reais do Exame e Anamnese
+  evidences.push(
+    { id: "e_ausculta", label: "Estertores crepitantes bibasais em terço inferior à ausculta", type: "exam", isContradiction: false },
+    { id: "e_edema", label: "Edema bilateral simétrico de membros inferiores com cacifo (+2/+3 em 4+)", type: "exam", isContradiction: false },
+    { id: "e_musc", label: "Uso de musculatura acessória ventilatória e tiragem intercostal", type: "exam", isContradiction: false },
+    { id: "e_dispneia", label: "Dispneia paroxística noturna e ortopneia com necessidade de cabeceira elevada", type: "exam", isContradiction: false },
+    { id: "e_tec", label: "Tempo de enchimento capilar periférico lentificado (> 3 segundos)", type: "exam", isContradiction: false },
+    { id: "e_turgencia", label: "Turgência patológica das veias jugulares externas visível a 45 graus", type: "exam", isContradiction: false },
+    { id: "e_sacro", label: "Hiperemia cutânea não branqueável em proeminência sacra (LPP Estágio 1)", type: "exam", isContradiction: false },
+    { id: "e_dor", label: "Dor aguda moderada a intensa relatada em região torácica/lombar", type: "exam", isContradiction: false }
+  );
+
+  // 3. Distratores Clínicos e Contradições Opostas (para calibrar o julgamento clínico)
+  if (v.fr && v.fr > 20) {
+    evidences.push({
+      id: "d_bradi",
+      label: "Bradipneia com ventilação lenta (FR < 10 irpm) e padrão de apneia",
+      type: "distractor",
+      isContradiction: true,
+      reason: `Contradição: O paciente apresenta taquipneia (FR ${v.fr} irpm), e não bradipneia.`
+    });
+    evidences.push({
+      id: "d_eupneia",
+      label: "Eupneico em ar ambiente (sem nenhum desconforto ou esforço ventilatório)",
+      type: "distractor",
+      isContradiction: true,
+      reason: `Contradição: O paciente apresenta hipoxemia e taquipneia evidenciada no prontuário.`
+    });
+  }
+
+  if (v.pa_sistolica && v.pa_sistolica >= 140) {
+    evidences.push({
+      id: "d_hipo",
+      label: "Hipotensão severa com choque hipovolêmico manifesto (PAS < 85 mmHg)",
+      type: "distractor",
+      isContradiction: true,
+      reason: `Contradição: O paciente está com pressão elevada (${v.pa_sistolica}/${v.pa_diastolica} mmHg), e não em hipotensão.`
+    });
+  }
+
+  evidences.push(
+    {
+      id: "d_pulm_limpo",
+      label: "Campos pleuropulmonares limpos com murmúrio universal sem ruídos adventícios",
+      type: "distractor",
+      isContradiction: true,
+      reason: "Contradição: A ausculta do paciente registra ruídos adventícios / congestão."
+    },
+    {
+      id: "d_perfusao_otima",
+      label: "Perfusão periférica rápida com TEC < 2s e extremidades aquecidas",
+      type: "distractor",
+      isContradiction: true,
+      reason: "Contradição: O paciente apresenta perfusão periférica lentificada."
+    }
+  );
+
+  return evidences;
+}
+
 
 

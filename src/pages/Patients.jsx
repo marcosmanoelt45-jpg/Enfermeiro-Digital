@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
-import { Plus, Search, Activity, Loader2, Wand2, Shuffle, Library, BookOpen, Users, UserCircle, LogOut } from "lucide-react";
+import { Plus, Search, Activity, Loader2, Wand2, Shuffle, Library, BookOpen, UserCircle, LogOut } from "lucide-react";
 import PatientCard from "@/components/PatientCard";
 import { generateRandomName, generateRandomAge, formatToInitials } from "@/lib/sampleNames";
 import { Button } from "@/components/ui/button";

@@ -25,11 +25,13 @@ import {
   Sparkles,
   AlertTriangle,
   HelpCircle,
-  CheckCircle
+  CheckCircle,
+  Lock,
+  Search,
+  ChevronDown
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
-import { Input } from "@/components/ui/input";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
@@ -37,14 +39,19 @@ import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
-import { searchNandaCatalog, getNandaContextualSuggestions, COMMON_ETIOLOGIES } from "@/lib/nandaCatalog";
+import {
+  NANDA_COMPLETE_CATALOG,
+  COMPREHENSIVE_ETIOLOGIES,
+  buildCaseEvidences
+} from "@/lib/nandaCatalog";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
-import { useDragScroll } from "@/hooks/useDragScroll";
+import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 export default function CaseStudySimulator() {
   const navigate = useNavigate();
-  const [selectedCaseIdx, setSelectedCaseIdx] = useState(0);
+  // Inicialização 100% aleatória do caso clínico (desafio cego)
+  const [selectedCaseIdx, setSelectedCaseIdx] = useState(() => Math.floor(Math.random() * CASE_LIBRARY.length));
   const [activeStep, setActiveStep] = useState(1); // 1: Avaliação, 2: Diagnóstico, 3: Planejamento, 4: Implementação, 5: Evolução
   const [cases, setCases] = useState(CASE_LIBRARY);
 
@@ -57,118 +64,137 @@ export default function CaseStudySimulator() {
   const [studentInterventions, setStudentInterventions] = useState("");
   const [studentEvolutionNotes, setStudentEvolutionNotes] = useState("");
 
-  // Sugestões de Diagnósticos NANDA-I / CIPE em Tempo Real
-  const [showDiagnosisSuggestions, setShowDiagnosisSuggestions] = useState(false);
-  const diagnosisSuggestions = useMemo(() => {
-    if (!studentHypothesis || studentHypothesis.trim().length < 2) return [];
-    return searchNandaCatalog(studentHypothesis).slice(0, 6);
-  }, [studentHypothesis]);
+  // Trava de Confirmação Definitiva da Hipótese (sem spoiler prévio)
+  const [isDiagnosisConfirmed, setIsDiagnosisConfirmed] = useState(false);
 
-  // Sugestões contextuais inteligentes de Fatores Relacionados e Evidências baseadas no diagnóstico ativo
-  const contextualData = useMemo(() => {
-    return getNandaContextualSuggestions(studentHypothesis);
-  }, [studentHypothesis]);
+  // Estados dos Seletores Internos dentro da aba de escrita
+  const [isDiagnosisComboboxOpen, setIsDiagnosisComboboxOpen] = useState(false);
+  const [diagnosisSearchTerm, setDiagnosisSearchTerm] = useState("");
+  const [isEtiologySelectorOpen, setIsEtiologySelectorOpen] = useState(false);
+  const [etiologySearchTerm, setEtiologySearchTerm] = useState("");
+  const [selectedEtiologiesList, setSelectedEtiologiesList] = useState([]);
+  const [isEvidenceSelectorOpen, setIsEvidenceSelectorOpen] = useState(false);
+  const [evidenceSearchTerm, setEvidenceSearchTerm] = useState("");
+  const [selectedEvidencesList, setSelectedEvidencesList] = useState([]);
 
-  // Drag-to-scroll refs para atalhos de diagnóstico, etiologias e evidências
-  const quickDiagsScrollRef = useDragScroll();
-  const etiologiesScrollRef = useDragScroll();
-  const evidencesScrollRef = useDragScroll();
-
-  // Feedback pedagógico e socrático do Goti (Detetive Clínico)
+  // Feedback pedagógico e socrático do Goti (Detetive Clínico) - emitido somente após a confirmação
   const [detectiveFeedback, setDetectiveFeedback] = useState(null);
 
-  function handleExamineDiagnosis(quickDiag) {
-    const v = currentCase?.vitals || {};
-    const isRespiratoryDistress = (v.fr && v.fr > 22) || (v.sat && v.sat < 93);
+  const currentCase = cases[selectedCaseIdx] || CASE_LIBRARY[0];
 
-    if (quickDiag === "Padrão respiratório ineficaz" || quickDiag === "Troca de gases prejudicada") {
-      if (isRespiratoryDistress) {
-        setStudentHypothesis(quickDiag);
-        setShowDiagnosisSuggestions(false);
-        setDetectiveFeedback({
-          type: "success",
-          title: "🎯 Pista Confirmada pelo Detetive Goti!",
-          text: `Excelente julgamento clínico! Com FR de ${v.fr} irpm e SpO₂ de ${v.sat}%, a ventilação/oxigenação é a resposta humana mais urgente (Regra do ABC).`,
-          question: "Agora pense: qual fator causal (etiologia) e quais evidências do exame físico sustentam essa hipótese?"
-        });
-        return;
+  // Catálogo de Evidências construído para o caso atual (reais + distratores)
+  const allCaseEvidences = useMemo(() => {
+    return buildCaseEvidences(currentCase);
+  }, [currentCase]);
+
+  // Filtro de Diagnósticos NANDA-I para o Combobox Interno
+  const filteredDiagnoses = useMemo(() => {
+    if (!diagnosisSearchTerm.trim()) {
+      return NANDA_COMPLETE_CATALOG.slice(0, 50);
+    }
+    const q = diagnosisSearchTerm.toLowerCase().trim();
+    return NANDA_COMPLETE_CATALOG.filter(
+      (d) =>
+        d.title.toLowerCase().includes(q) ||
+        (d.code && d.code.includes(q)) ||
+        (d.domain && d.domain.toLowerCase().includes(q))
+    ).slice(0, 50);
+  }, [diagnosisSearchTerm]);
+
+  // Filtro de Causas / Etiologias para o Seletor Interno
+  const filteredEtiologies = useMemo(() => {
+    if (!etiologySearchTerm.trim()) return COMPREHENSIVE_ETIOLOGIES;
+    const q = etiologySearchTerm.toLowerCase().trim();
+    return COMPREHENSIVE_ETIOLOGIES.filter(
+      (item) => item.label.toLowerCase().includes(q) || item.category.toLowerCase().includes(q)
+    );
+  }, [etiologySearchTerm]);
+
+  // Filtro de Evidências Clínicas para o Seletor Interno
+  const filteredEvidences = useMemo(() => {
+    if (!evidenceSearchTerm.trim()) return allCaseEvidences;
+    const q = evidenceSearchTerm.toLowerCase().trim();
+    return allCaseEvidences.filter((item) => item.label.toLowerCase().includes(q));
+  }, [evidenceSearchTerm, allCaseEvidences]);
+
+  // Ações de seleção de Etiologia dentro da caixa de escrita
+  function handleToggleEtiology(term) {
+    if (isDiagnosisConfirmed) return;
+    setSelectedEtiologiesList((prev) => {
+      let updated;
+      if (prev.includes(term)) {
+        updated = prev.filter((t) => t !== term);
+      } else {
+        updated = [...prev, term];
       }
-    }
-
-    if (quickDiag === "Risco de quedas" || quickDiag === "Integridade da pele prejudicada") {
-      if (isRespiratoryDistress) {
-        setDetectiveFeedback({
-          type: "challenge",
-          title: "🤔 Alto lá, Detetive Clínico!",
-          text: `Atenção à priorização de Maslow! O paciente está com FR de ${v.fr} irpm e SatO₂ de ${v.sat}%. Prevenção de quedas ou lesão de pele é relevante, mas a insuficiência ventilatória é risco iminente de vida.`,
-          question: "Deseja realmente priorizar este diagnóstico ou prefere focar na queixa respiratória aguda?",
-          actionLabel: "Quero manter este mesmo",
-          onConfirm: () => {
-            setStudentHypothesis(quickDiag);
-            setShowDiagnosisSuggestions(false);
-            setDetectiveFeedback(null);
-          }
-        });
-        return;
-      }
-    }
-
-    if (quickDiag === "Volume de líquidos excessivo") {
-      setStudentHypothesis(quickDiag);
-      setShowDiagnosisSuggestions(false);
-      setDetectiveFeedback({
-        type: "success",
-        title: "💡 Raciocínio Fisiopatológico Preciso!",
-        text: `Muito bom! A hipervolemia é a etiologia central da congestão pulmonar observada na ausculta.`,
-        question: "Quais achados da anamnese ou da ausculta comprovam a sobrecarga hídrica?"
-      });
-      return;
-    }
-
-    // Padrão para outros diagnósticos
-    setStudentHypothesis(quickDiag);
-    setShowDiagnosisSuggestions(false);
-    setDetectiveFeedback({
-      type: "info",
-      title: "🧐 Hipótese Selecionada para Investigação:",
-      text: `Você escolheu "${quickDiag}". Lembre-se: diagnósticos com foco no problema exigem etiologia (causa) e características definidoras observadas no exame físico.`,
-      question: "Consulte o prontuário na aba de Avaliação para extrair as evidências correspondentes."
+      setStudentEtiology(updated.join(", "));
+      return updated;
     });
   }
 
-  function handleExamineEvidence(evidenceItem, isContradictory = false, contradictionReason = "") {
-    if (isContradictory) {
+  // Ações de seleção de Evidências dentro da caixa de escrita
+  function handleToggleEvidence(term) {
+    if (isDiagnosisConfirmed) return;
+    setSelectedEvidencesList((prev) => {
+      let updated;
+      if (prev.includes(term)) {
+        updated = prev.filter((t) => t !== term);
+      } else {
+        updated = [...prev, term];
+      }
+      setStudentEvidences(updated.join(", "));
+      return updated;
+    });
+  }
+
+  // Confirmação Definitiva da Hipótese: trava as escolhas e emite o parecer do Goti
+  function handleConfirmDiagnosis() {
+    if (!studentHypothesis.trim() || !studentEtiology.trim() || !studentEvidences.trim()) {
+      alert("Por favor, preencha o Título do Diagnóstico, as Causas (Etiologia) e as Evidências antes de confirmar.");
+      return;
+    }
+
+    setIsDiagnosisConfirmed(true);
+    setIsDiagnosisComboboxOpen(false);
+    setIsEtiologySelectorOpen(false);
+    setIsEvidenceSelectorOpen(false);
+
+    // Auditoria clínica do Goti após a confirmação definitiva
+    const v = currentCase?.vitals || {};
+    const hasTaquipneia = v.fr && v.fr > 20;
+    const studentText = (studentEvidences + " " + studentEtiology).toLowerCase();
+
+    // Checagem de contradição grave (ex: marcou bradipneia em taquipneico)
+    if (hasTaquipneia && (studentText.includes("bradipneia") || studentText.includes("fr < 10") || studentText.includes("sem esforço"))) {
       setDetectiveFeedback({
         type: "warning",
-        title: "🧐 Incoerência Clínica com o Prontuário",
-        text: contradictionReason || `Esta evidência não condiz com os dados reais do prontuário deste paciente!`,
-        question: "Revise a régua de sinais vitais e os achados da Etapa 1 antes de selecionar."
+        title: "⚠️ Auditoria do Preceptor Goti: Incoerência Clínica Grave Travada",
+        text: `Atenção crítica: Você confirmou evidências que contradizem os sinais vitais reais do caso (ex: citou bradipneia ou ausência de desconforto em paciente com taquipneia real de ${v.fr} irpm e hipoxemia). Pela Resolução COFEN nº 736/2024, erros diagnósticos desse porte geram dedução severa na pontuação de acurácia.`,
+        question: "Como você corrigirá o impacto dessa contradição no planejamento das metas (Etapa 3)?"
       });
       return;
     }
 
-    handleSelectEvidence(evidenceItem);
-    setDetectiveFeedback({
-      type: "success",
-      title: "✅ Evidência Adicionada ao Diagnóstico!",
-      text: `Você vinculou "${evidenceItem}" ao quadro do paciente.`,
-      question: "Mais alguma evidência do prontuário confirma este diagnóstico?"
-    });
-  }
+    // Diagnósticos prioritários esperados para pacientes com acometimento ventilatório/hemodinâmico
+    const isRespiratoryFocus = studentHypothesis.toLowerCase().includes("respirat") ||
+      studentHypothesis.toLowerCase().includes("gases") ||
+      studentHypothesis.toLowerCase().includes("liquido") ||
+      studentHypothesis.toLowerCase().includes("debito");
 
-  function handleSelectEtiology(term) {
-    if (!studentEtiology.trim()) {
-      setStudentEtiology(term);
-    } else if (!studentEtiology.includes(term)) {
-      setStudentEtiology(`${studentEtiology}, ${term}`);
-    }
-  }
-
-  function handleSelectEvidence(term) {
-    if (!studentEvidences.trim()) {
-      setStudentEvidences(term);
-    } else if (!studentEvidences.includes(term)) {
-      setStudentEvidences(`${studentEvidences}, ${term}`);
+    if (isRespiratoryFocus) {
+      setDetectiveFeedback({
+        type: "success",
+        title: "🔒 Hipótese Prioritária Confirmada e Registrada no Prontuário!",
+        text: `Excelente priorização clínica! Você formulou "${studentHypothesis}" alinhado às necessidades vitais mais imediatas (Regra do ABC). A etapa de diagnóstico está travada definitivamente. Siga para o Planejamento das Metas.`,
+        question: "Quais metas quantitativas com aprazamento de horário você definirá para reverter este quadro?"
+      });
+    } else {
+      setDetectiveFeedback({
+        type: "challenge",
+        title: "🔒 Hipótese Travada • Alerta de Priorização (Maslow / ABC)",
+        text: `Você confirmou "${studentHypothesis}". Embora possa ser um diagnóstico secundário plausível, atente-se para contemplar os riscos ventilatórios e hemodinâmicos prioritários nas etapas de Metas e Prescrição para não comprometer a segurança do paciente.`,
+        question: "Como você garantirá a estabilização respiratória e hemodinâmica durante a execução dos cuidados?"
+      });
     }
   }
 
@@ -190,9 +216,6 @@ export default function CaseStudySimulator() {
   // Estado de Parâmetros Adicionados
   const [addedGaps, setAddedGaps] = useState([]);
   const [toastMessage, setToastMessage] = useState("");
-
-  const currentCase = cases[selectedCaseIdx];
-
   // Ações de Exame Físico à beira-leito
   const physicalExamActions = [
     {
@@ -305,6 +328,10 @@ export default function CaseStudySimulator() {
     setStudentGoals("");
     setStudentInterventions("");
     setStudentEvolutionNotes("");
+    setIsDiagnosisConfirmed(false);
+    setSelectedEtiologiesList([]);
+    setSelectedEvidencesList([]);
+    setDetectiveFeedback(null);
     setTutorEvaluation(null);
     setCurrentHint(null);
     setAddedGaps([]);
@@ -327,6 +354,10 @@ export default function CaseStudySimulator() {
     setStudentGoals("");
     setStudentInterventions("");
     setStudentEvolutionNotes("");
+    setIsDiagnosisConfirmed(false);
+    setSelectedEtiologiesList([]);
+    setSelectedEvidencesList([]);
+    setDetectiveFeedback(null);
     setTutorEvaluation(null);
     setCurrentHint(null);
     setAddedGaps([]);
@@ -335,7 +366,7 @@ export default function CaseStudySimulator() {
     setShowClinicalNotes(false);
     setViewingDebriefing(false);
     setShowCofenGuideline(false);
-    setToastMessage("Novo caso clínico gerado com dados sintéticos.");
+    setToastMessage("🎲 Novo caso clínico simulado e randomizado sorteado!");
     setTimeout(() => setToastMessage(""), 3500);
   }
 
@@ -448,9 +479,16 @@ export default function CaseStudySimulator() {
       const res = await evaluateClinicalReasoning({
         caseData: currentCase,
         studentHypothesis: studentHypothesis.trim(),
-        studentJustification: `${studentEtiology || "Não informada"} | Evidências Clínicas: ${studentEvidences || "Não informadas"} | Coleta de Dados: ${studentAssessmentNotes || "Não informada"}`,
-        studentInterventions: `${studentInterventions || "Não prescritas"} | Metas e Resultados Esperados: ${studentGoals || "Não informadas"}`,
-        studentEvolution: studentEvolutionNotes || "Evolução não registrada."
+        studentJustification: [
+          studentEtiology ? `Etiologia: ${studentEtiology}` : "",
+          studentEvidences ? `Evidências: ${studentEvidences}` : "",
+          studentAssessmentNotes ? `Avaliação: ${studentAssessmentNotes}` : ""
+        ].filter(Boolean).join(" | "),
+        studentInterventions: [
+          studentInterventions ? `Prescrição: ${studentInterventions}` : "",
+          studentGoals ? `Metas: ${studentGoals}` : ""
+        ].filter(Boolean).join(" | "),
+        studentEvolution: studentEvolutionNotes || ""
       });
 
       setTutorEvaluation(res);
@@ -488,43 +526,42 @@ export default function CaseStudySimulator() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex flex-col text-slate-800 dark:text-slate-100 pb-28 md:pb-0">
+    <div className="min-h-screen bg-[#0B131D] flex flex-col text-[#EAF2F8] pb-28 md:pb-8 selection:bg-[#20D5B5]/30 selection:text-[#20D5B5]">
       <StudentHeader activeTab="casos" />
 
       <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-6 space-y-6">
-        {/* Barra Superior Limpa e Funcional */}
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 px-5 py-3.5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <h1 className="text-base sm:text-lg font-bold tracking-tight text-slate-900 dark:text-slate-100">
+        {/* Barra Superior Oficial (Páginas 4 a 7 do PDF) */}
+        <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] px-5 py-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+          <div className="space-y-1">
+            <div className="flex items-center gap-2.5 flex-wrap">
+              <h1 className="text-lg sm:text-xl font-black tracking-tight text-white">
                 Simulador de Casos Clínicos
               </h1>
-              <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800">
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30 uppercase tracking-wide">
                 COFEN 736/2024
               </span>
+              {/* Cronômetro */}
+              <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-0.5 rounded-xl bg-[#0E1722] text-[#9FB3C6] border border-[#1F3045]">
+                <Clock className="h-3.5 w-3.5 text-[#20D5B5]" />
+                <span>{clinicalHistoryService.formatDuration(activitySeconds)}</span>
+              </span>
             </div>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-[#9FB3C6]">
               Pratique as 5 etapas do Processo de Enfermagem com debriefing e suporte à beira-leito.
             </p>
           </div>
 
           <div className="flex items-center gap-2 self-start md:self-auto shrink-0 flex-wrap">
-            {/* Cronômetro */}
-            <span className="flex items-center gap-1.5 text-xs font-semibold px-2.5 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-              <Clock className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>{clinicalHistoryService.formatDuration(activitySeconds)}</span>
-            </span>
-
             {/* Salvar Rascunho */}
             <Button
               variant="outline"
               size="sm"
               onClick={handleSaveDraft}
-              className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
               title="Salvar rascunho do caso clínico no Histórico"
             >
-              <BookmarkPlus className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Salvar Rascunho</span>
+              <BookmarkPlus className="h-3.5 w-3.5 text-[#20D5B5]" />
+              <span className="hidden sm:inline">Salvar Rascunho</span>
             </Button>
 
             {/* Histórico do Módulo */}
@@ -532,25 +569,24 @@ export default function CaseStudySimulator() {
               variant="outline"
               size="sm"
               onClick={() => setIsHistoryOpen(true)}
-              className="rounded-xl border-emerald-300 dark:border-emerald-800 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/60 text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
             >
-              <History className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-              <span>Histórico de Casos</span>
+              <History className="h-3.5 w-3.5 text-[#20D5B5]" />
+              <span className="hidden sm:inline">Histórico</span>
             </Button>
 
             <Button
               onClick={() => navigate('/passagem-plantao', { state: { caseData: currentCase } })}
               variant="outline"
-              className="rounded-xl border-emerald-300 dark:border-emerald-800 bg-emerald-50/60 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-950/70 text-xs flex items-center gap-2 font-semibold shadow-2xs"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs flex items-center gap-2 font-semibold shadow-2xs"
               title="Pratique a passagem de plantão deste paciente na metodologia SBAR"
             >
-              <ArrowRightLeft className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <ArrowRightLeft className="h-4 w-4 text-[#20D5B5]" />
               <span>Passar Plantão (SBAR)</span>
             </Button>
             <Button
               onClick={handleGenerateRandom}
-              variant="outline"
-              className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs flex items-center gap-2 font-semibold shadow-2xs"
+              className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs flex items-center gap-2 font-bold shadow-[0_3px_0_0_#148A76] active:translate-y-0.5"
             >
               <Shuffle className="h-4 w-4" />
               <span>Novo Caso</span>
@@ -560,29 +596,29 @@ export default function CaseStudySimulator() {
 
         {/* Notificação Toast */}
         {toastMessage && (
-          <div className="p-3.5 rounded-xl bg-slate-900 dark:bg-slate-800 text-white text-xs flex items-center gap-2 animate-in fade-in shadow-sm">
-            <CheckCircle2 className="h-4 w-4 text-emerald-400 shrink-0" />
+          <div className="p-3.5 rounded-2xl bg-[#131F2E] border border-[#20D5B5]/40 text-white text-xs flex items-center gap-2 animate-in fade-in shadow-lg">
+            <CheckCircle2 className="h-4 w-4 text-[#20D5B5] shrink-0" />
             <span className="font-medium">{toastMessage}</span>
           </div>
         )}
 
-        {/* Banner de Acesso Rápido ao Histórico de Casos & Rascunhos */}
+        {/* Card de Acesso Rápido ao Histórico de Casos & Rascunhos (Página 4 do PDF) */}
         <div
           onClick={() => setIsHistoryOpen(true)}
-          className="p-4 sm:p-5 rounded-3xl bg-slate-50 dark:bg-slate-800/50 border border-slate-200 dark:border-slate-800 hover:border-emerald-500 dark:hover:border-emerald-500 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
+          className="p-4 sm:p-5 rounded-3xl bg-[#131F2E] border border-[#1F3045] hover:border-[#20D5B5]/50 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
         >
           <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-700 text-emerald-600 dark:text-emerald-400 group-hover:scale-105 transition-transform shadow-2xs">
+            <div className="p-3 rounded-2xl bg-[#0E1722] border border-[#1F3045] text-[#20D5B5] group-hover:scale-105 transition-transform shadow-2xs">
               <History className="h-5 w-5" />
             </div>
             <div>
-              <h4 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-white flex items-center gap-2">
+              <h4 className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
                 <span>Consultar Histórico de Casos & Rascunhos Anteriores</span>
-                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
+                <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                   Retomar Atividades
                 </span>
               </h4>
-              <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+              <p className="text-[11px] text-[#9FB3C6] mt-0.5">
                 Veja as simulações que você já realizou, o tempo gasto em cada etapa do PE e continue simulações em andamento.
               </p>
             </div>
@@ -595,63 +631,57 @@ export default function CaseStudySimulator() {
               e.stopPropagation();
               setIsHistoryOpen(true);
             }}
-            className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold hover:bg-white dark:hover:bg-slate-900 shrink-0"
+            className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] text-xs font-semibold hover:text-white hover:bg-[#1E2E3E] shrink-0"
           >
             <span>Abrir Histórico</span>
-            <ArrowRight className="h-3.5 w-3.5 ml-1 text-emerald-600" />
+            <ArrowRight className="h-3.5 w-3.5 ml-1 text-[#20D5B5]" />
           </Button>
         </div>
 
-        {/* Apresentação Focada: 1 Caso por Vez + Sorteio Aleatório */}
-        <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        {/* Card do Paciente e Caso Clínico (Página 4 do PDF) */}
+        <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-4">
-            <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 flex items-center justify-center shrink-0">
-              <Stethoscope className="w-6 h-6 text-teal-600 dark:text-teal-400" />
+            <div className="w-12 h-12 rounded-2xl bg-[#0E1722] border border-[#1F3045] flex items-center justify-center shrink-0 text-[#20D5B5]">
+              <Stethoscope className="w-6 h-6" />
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/40 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-800 uppercase tracking-wide">
-                  {currentCase.category}
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30 uppercase tracking-wide">
+                  {viewingDebriefing ? currentCase.category : (currentCase.category || "Cardiologia")}
                 </span>
-                <span className="text-xs text-slate-400 font-medium">
-                  Leito {currentCase.patient?.bed || "Enfermaria"} • Caso Clínico Simulado
+                <span className="text-xs text-[#9FB3C6] font-medium">
+                  Leito {currentCase.patient?.bed || "Enfermaria"} · Caso Clínico Simulado
                 </span>
               </div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
-                {currentCase.title}
+              <h2 className="text-base sm:text-lg font-bold text-white flex items-center gap-2 flex-wrap">
+                {viewingDebriefing ? (
+                  <>
+                    <span className="text-[#20D5B5]">Diagnóstico Revelado:</span> {currentCase.title}
+                  </>
+                ) : (
+                  <>
+                    <span>{currentCase.title || `Caso Clínico Simulado #${currentCase.id || selectedCaseIdx + 1}`}</span>
+                  </>
+                )}
               </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                Paciente: <strong className="text-slate-800 dark:text-slate-200">{currentCase.patient?.name}</strong> ({currentCase.patient?.age} anos, {currentCase.patient?.gender})
+              <p className="text-xs text-[#9FB3C6]">
+                Paciente <strong className="text-[#EAF2F8]">{currentCase.patient?.name || "S. S."}</strong> (Caso Simulado #{currentCase.id || selectedCaseIdx + 101}) · {currentCase.patient?.age || "76"} anos · {currentCase.patient?.gender || "M"}
               </p>
-              <div className="flex items-center gap-2 pt-1 flex-wrap">
-                <span className="text-[11px] font-semibold text-slate-500 dark:text-slate-400">Selecionar caso:</span>
-                <select
-                  value={selectedCaseIdx}
-                  onChange={(e) => handleSelectCase(Number(e.target.value))}
-                  className="text-xs bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-lg px-2.5 py-1 text-slate-800 dark:text-slate-200 font-medium cursor-pointer"
-                >
-                  {cases.map((c, i) => (
-                    <option key={c.id || i} value={i}>
-                      Caso {i + 1}: {c.title}
-                    </option>
-                  ))}
-                </select>
-              </div>
             </div>
           </div>
 
           <Button
             onClick={handleGenerateRandom}
             variant="outline"
-            className="rounded-xl border-emerald-300 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/30 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-100 dark:hover:bg-emerald-900/50 text-xs font-bold flex items-center gap-2 shadow-2xs self-start md:self-auto shrink-0 py-2.5 px-4"
+            className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs font-bold flex items-center gap-2 shadow-2xs self-start md:self-auto shrink-0 py-2.5 px-4"
           >
-            <Shuffle className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-            <span>🎲 Sortear Novo Caso Clínico</span>
+            <Shuffle className="h-4 w-4 text-[#20D5B5]" />
+            <span>Sortear Novo Caso Clínico</span>
           </Button>
         </div>
 
-        {/* BARRA DAS 5 ETAPAS DO PROCESSO DE ENFERMAGEM (COFEN 736/2024) + AÇÕES DE APOIO */}
-        <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-2.5 shadow-xs space-y-2.5">
+        {/* BARRA HORIZONTAL DAS 5 ETAPAS DO PROCESSO DE ENFERMAGEM (Página 4 do PDF) */}
+        <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-1.5 shadow-xs">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="grid grid-cols-5 gap-1.5 flex-1 text-center">
               {[
@@ -669,10 +699,10 @@ export default function CaseStudySimulator() {
                       setActiveStep(step.num);
                       setViewingDebriefing(false);
                     }}
-                    className={`py-2 px-1.5 rounded-xl text-xs font-bold transition-all ${
+                    className={`py-2 px-1.5 rounded-xl text-xs font-black transition-all ${
                       isCurrent
-                        ? "bg-emerald-600 text-white shadow-xs"
-                        : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
+                        ? "bg-[#20D5B5] text-[#0B131D] shadow-sm"
+                        : "text-[#9FB3C6] hover:bg-[#16222E] hover:text-[#EAF2F8]"
                     }`}
                   >
                     <span className="hidden sm:inline">{step.label}</span>
@@ -686,10 +716,10 @@ export default function CaseStudySimulator() {
               {tutorEvaluation && (
                 <button
                   onClick={() => setViewingDebriefing(!viewingDebriefing)}
-                  className={`py-1.5 px-3 rounded-xl text-xs font-extrabold flex items-center gap-1.5 transition ${
+                  className={`py-1.5 px-3 rounded-xl text-xs font-black flex items-center gap-1.5 transition ${
                     viewingDebriefing
-                      ? "bg-teal-700 text-white shadow-xs"
-                      : "bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 hover:bg-teal-100 dark:hover:bg-teal-950/70"
+                      ? "bg-[#20D5B5] text-[#0B131D] shadow-xs"
+                      : "bg-[#16222E] text-[#20D5B5] border border-[#1F3045] hover:bg-[#1E2E3E]"
                   }`}
                 >
                   <Award className="h-3.5 w-3.5" />
@@ -707,154 +737,126 @@ export default function CaseStudySimulator() {
             /* DEBRIEFING CLÍNICO COM O GOTI (FRAMEWORK PEARLS / DML - Miller Nível 3)  */
             /* ========================================================================= */
             <div className="space-y-6 animate-in fade-in">
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5">
-                {/* Cabeçalho da Conclusão */}
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-4 gap-3">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-xs space-y-5">
+                {/* Cabeçalho da Conclusão (Página 7 do PDF) */}
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-4 gap-4">
                   <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-extrabold px-2.5 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/40 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800 uppercase tracking-wide">
-                        Conclusão do Caso Clínico • Avaliação Formativa
-                      </span>
-                      <span className="text-xs text-slate-400 font-semibold">Goti IA</span>
-                    </div>
-                    <h2 className="text-lg font-bold text-slate-900 dark:text-slate-100">
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30 uppercase tracking-wide">
+                      CONCLUSÃO · AVALIAÇÃO FORMATIVA
+                    </span>
+                    <h2 className="text-xl font-black text-white mt-1">
                       Parecer Pedagógico & Desconstrução do Raciocínio
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
-                      Paciente: <strong>{currentCase.patient.name}</strong> • Diagnóstico Clínico: {currentCase.title}
+                    <p className="text-xs text-[#9FB3C6]">
+                      Goti IA · {currentCase.title}
                     </p>
                   </div>
 
-                  <div className="flex items-center gap-3 bg-emerald-50 dark:bg-emerald-950/30 p-3 rounded-2xl border border-emerald-200 dark:border-emerald-800 shrink-0">
+                  <div className="flex items-center gap-4 bg-[#0E1722] p-3.5 rounded-2xl border border-[#1F3045] shrink-0">
                     <div
                       className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
                       onClick={() => setShowGotiEvaluationModal(true)}
                       title="Clique para ver a comemoração e parecer completo do Goti!"
                     >
                       <GotiAnimated
-                        animation={tutorEvaluation.score >= 80 ? "jumping" : tutorEvaluation.score >= 50 ? "pointing" : "angry"}
-                        size="feedback"
-                        className="w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 shrink-0"
+                        animation={tutorEvaluation.score >= 80 ? "celebrate" : tutorEvaluation.score >= 50 ? "pointing" : "thinking"}
+                        size={64}
+                        className="shrink-0"
                       />
                     </div>
                     <div className="text-right">
-                      <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-400 uppercase block">Acurácia Diagnóstica</span>
-                      <span className="text-2xl font-black text-emerald-900 dark:text-emerald-200 leading-none">{tutorEvaluation.score}%</span>
+                      <span className="text-[10px] font-bold text-[#9FB3C6] uppercase tracking-wider block">Acurácia Diagnóstica</span>
+                      <span className="text-3xl font-black text-[#FFC247] leading-none">{tutorEvaluation.score}%</span>
                     </div>
                   </div>
                 </div>
 
-                {/* Resumo Transparente das Respostas Submetidas pelo Estudante */}
-                <div className="p-4 rounded-xl bg-teal-50/60 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 space-y-2 text-xs">
+                {/* Resumo Transparente das Respostas Submetidas pelo Estudante (Página 7 do PDF) */}
+                <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-3 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1.5 uppercase tracking-wide text-[11px]">
-                      <ClipboardList className="h-3.5 w-3.5 text-teal-600" />
-                      Respostas Enviadas para Auditoria do Goti:
+                    <span className="font-bold text-[#20D5B5] flex items-center gap-1.5 uppercase tracking-wide text-[11px]">
+                      <ClipboardList className="h-3.5 w-3.5 text-[#20D5B5]" />
+                      RESPOSTAS ENVIADAS PARA AUDITORIA DO GOTI
                     </span>
-                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-300 dark:border-emerald-800">
+                    <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                       Registrado no Prontuário
                     </span>
                   </div>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-2 text-slate-700 dark:text-slate-300 pt-1">
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-[#9FB3C6] pt-1">
                     <div>
-                      <strong className="text-slate-900 dark:text-slate-100">Diagnóstico Prioritário:</strong>{" "}
-                      <span className="text-teal-800 dark:text-teal-300 font-semibold">{studentHypothesis || "Não preenchido"}</span>
+                      <strong className="text-white block text-xs">Diagnóstico Prioritário</strong>
+                      <span className="text-[#20D5B5] font-semibold">{studentHypothesis || "Volume de líquidos excessivo"}</span>
                     </div>
                     <div>
-                      <strong className="text-slate-900 dark:text-slate-100">Etiologia / Causa:</strong>{" "}
-                      <span>{studentEtiology || "Não informada"}</span>
+                      <strong className="text-white block text-xs">Etiologia / Causa</strong>
+                      <span>{studentEtiology || "Hipervolemia e congestão pulmonar secundária, idade avançada"}</span>
                     </div>
                     <div className="md:col-span-2">
-                      <strong className="text-slate-900 dark:text-slate-100">Evidências / Sinais Clínicos:</strong>{" "}
-                      <span>{studentEvidences || "Não informadas"}</span>
+                      <strong className="text-white block text-xs">Evidências / Sinais Clínicos</strong>
+                      <span>{studentEvidences || "Dessaturação (SpO2: 89%), PA 160/95 mmHg, taquipneia acentuada (FR: 26 irpm)"}</span>
                     </div>
-                    {studentInterventions && (
-                      <div className="md:col-span-2 pt-1 border-t border-teal-200/50 dark:border-teal-800/40">
-                        <strong className="text-slate-900 dark:text-slate-100">Prescrição de Cuidados:</strong>{" "}
-                        <span>{studentInterventions}</span>
-                      </div>
-                    )}
                   </div>
                 </div>
 
-                {/* Fase 1: Análise da Decisão Clínica & Lacunas */}
+                {/* Fase 1: Análise da Decisão Clínica */}
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide flex items-center gap-1.5">
-                    <ClipboardList className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    1. Análise do Julgamento Clínico (Diagnosis & Evidence Gap)
+                  <span className="text-xs font-bold text-white uppercase tracking-wide flex items-center gap-1.5">
+                    <ClipboardList className="h-4 w-4 text-[#20D5B5]" />
+                    Análise do Julgamento Clínico
                   </span>
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed space-y-2">
-                    <p>{tutorEvaluation.reasoningAnalysis || tutorEvaluation.feedbackTitle || `Você formulou a hipótese de ${studentHypothesis}. O raciocínio clínico demonstrou correlação com os achados do paciente.`}</p>
+                  <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] text-xs sm:text-sm text-[#EAF2F8] leading-relaxed">
+                    <p>{tutorEvaluation.reasoningAnalysis || tutorEvaluation.feedbackTitle || `Você formulou a hipótese de ${studentHypothesis || "Volume de líquidos excessivo"}. O raciocínio clínico demonstrou correlação fisiopatológica com a sobrecarga de volume.`}</p>
                   </div>
                 </div>
 
-                {/* Fase 2: Provocação Socrática para Reflexão Profunda */}
+                {/* Fase 2: Provocação Socrática */}
                 {tutorEvaluation.reflectiveQuestion && (
                   <div className="space-y-2">
-                    <span className="text-xs font-bold text-amber-900 dark:text-amber-300 uppercase tracking-wide flex items-center gap-1.5">
-                      <MessageSquareQuote className="h-4 w-4 text-amber-500" />
-                      2. Pergunta do Goti para Investigação Reflexiva
+                    <span className="text-xs font-bold text-[#FFC247] uppercase tracking-wide flex items-center gap-1.5">
+                      <MessageSquareQuote className="h-4 w-4 text-[#FFC247]" />
+                      Pergunta do Goti para Reflexão
                     </span>
-                    <div className="p-4 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs sm:text-sm text-amber-950 dark:text-amber-200 leading-relaxed space-y-2">
-                      <p className="font-semibold italic">"{tutorEvaluation.reflectiveQuestion}"</p>
-                      <p className="text-[11px] text-amber-800 dark:text-amber-300/80 pt-1 border-t border-amber-200/60 dark:border-amber-900/40">
+                    <div className="p-4 rounded-2xl bg-[#FFC247]/10 border border-[#FFC247]/30 text-xs sm:text-sm text-[#EAF2F8] leading-relaxed space-y-1">
+                      <p className="font-semibold italic text-[#FFC247]">"{tutorEvaluation.reflectiveQuestion}"</p>
+                      <p className="text-[11px] text-[#9FB3C6] pt-1 border-t border-[#FFC247]/20">
                         Ponto de Aprendizagem: Esta pergunta visa consolidar o raciocínio dedutivo para evitar eventos sentinela na prática beira-leito.
                       </p>
                     </div>
                   </div>
                 )}
 
-                {/* Fase 3: Pontos Críticos para a Prática Hospitalar Segura */}
-                {tutorEvaluation.pointsToConsider?.length > 0 && (
-                  <div className="space-y-2">
-                    <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide flex items-center gap-1.5">
-                      <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                      3. Pontos-Chave para a Tomada de Decisão Beira-Leito
-                    </span>
-                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2">
-                      <ul className="space-y-2 text-xs text-slate-700 dark:text-slate-300 list-disc list-inside">
-                        {tutorEvaluation.pointsToConsider.map((pt, i) => (
-                          <li key={i} className="leading-relaxed font-medium">{pt}</li>
-                        ))}
-                      </ul>
-                    </div>
-                  </div>
-                )}
-
-                {/* Ações Finais do Debriefing */}
-                <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+                {/* Ações Finais do Debriefing (Página 7 do PDF) */}
+                <div className="pt-4 border-t border-[#1F3045] flex flex-col sm:flex-row items-center justify-between gap-3">
                   <Button
                     variant="outline"
                     onClick={() => setViewingDebriefing(false)}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 w-full sm:w-auto shadow-2xs"
+                    className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-bold flex items-center gap-1.5 w-full sm:w-auto h-11"
                   >
                     <ArrowLeft className="h-4 w-4" /> Revisar Etapas do Caso
                   </Button>
 
-                  <div className="flex items-center gap-2 w-full sm:w-auto">
-                    <Button
-                      onClick={handleGenerateRandom}
-                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs font-bold flex items-center justify-center gap-1.5 flex-1 sm:flex-none shadow-xs h-10 px-4"
-                    >
-                      <Shuffle className="h-4 w-4" /> <span>🎲 Próximo Caso Aleatório</span>
-                    </Button>
-                  </div>
+                  <Button
+                    onClick={handleGenerateRandom}
+                    className="w-full sm:w-auto rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs font-black flex items-center justify-center gap-2 shadow-[0_4px_0_0_#148A76] active:translate-y-1 h-11 px-8"
+                  >
+                    <Shuffle className="h-4 w-4" /> <span>Novo Caso</span>
+                  </Button>
                 </div>
               </div>
             </div>
           ) : (
             <div className="space-y-6">
-              {/* ETAPA 1: AVALIAÇÃO / COLETA DE DADOS */}
+              {/* ETAPA 1: AVALIAÇÃO / COLETA DE DADOS (Página 4 do PDF) */}
               {activeStep === 1 && (
               <div className="space-y-5 animate-in fade-in">
                 {/* Prontuário do Paciente */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-4">
-                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-2">
+                <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-4">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-2">
                     <div>
-                      <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-md border border-emerald-200 dark:border-emerald-800">
-                        {currentCase.category}
+                      <span className="text-xs font-bold text-[#20D5B5] bg-[#20D5B5]/15 px-2.5 py-0.5 rounded-full border border-[#20D5B5]/30">
+                        {currentCase.category || "Cardiologia"}
                       </span>
-                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
+                      <h2 className="text-base font-bold text-white mt-1.5">
                         {currentCase.title}
                       </h2>
                     </div>
@@ -865,126 +867,127 @@ export default function CaseStudySimulator() {
                         onClick={() => setShowClinicalNotes(!showClinicalNotes)}
                         className={`rounded-xl text-xs h-8 flex items-center gap-1.5 ${
                           showClinicalNotes
-                            ? "bg-slate-800 dark:bg-slate-700 text-white"
-                            : "border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                            ? "bg-[#20D5B5] text-[#0B131D] font-bold"
+                            : "border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E]"
                         }`}
                       >
-                        <Eye className="h-3.5 w-3.5" />
+                        <Eye className="h-3.5 w-3.5 text-[#20D5B5]" />
                         <span>{showClinicalNotes ? "Ocultar Pistas" : "Anotações Clínicas"}</span>
                       </Button>
-                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                        {currentCase.patient.name} • {currentCase.patient.age}a • {currentCase.patient.gender}
+                      <span className="text-xs font-semibold px-2.5 py-1 rounded-full bg-[#0E1722] border border-[#1F3045] text-[#9FB3C6]">
+                        {currentCase.patient.name} · {currentCase.patient.age}a · {currentCase.patient.gender}
                       </span>
                     </div>
                   </div>
 
                   {/* Anamnese & Resumo Clínico */}
-                  <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-2 text-xs text-slate-700 dark:text-slate-300">
-                    <span className="font-bold text-slate-900 dark:text-slate-100 block">Histórico & Motivo de Admissão:</span>
-                    <p className="leading-relaxed">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-2.5 text-xs text-[#EAF2F8]">
+                    <div className="flex items-center justify-between">
+                      <span className="font-bold text-white text-xs block">Histórico & Motivo de Admissão</span>
+                      <span className="text-[10px] text-[#9FB3C6] font-medium">Anotações Clínicas</span>
+                    </div>
+                    <p className="leading-relaxed text-[#9FB3C6]">
                       {currentCase.patient.previous_anamnesis}
                     </p>
 
                     {showClinicalNotes && (
-                      <div className="mt-2 pt-2 border-t border-slate-200 dark:border-slate-700 flex flex-wrap gap-2 text-[11px]">
-                        <span className="bg-amber-100 dark:bg-amber-950/40 text-amber-900 dark:text-amber-300 px-2.5 py-1 rounded-md font-semibold border border-amber-200 dark:border-amber-900/60">
+                      <div className="mt-2 pt-2 border-t border-[#1F3045] flex flex-wrap gap-2 text-[11px]">
+                        <span className="bg-[#FFC247]/15 text-[#FFC247] px-2.5 py-1 rounded-md font-semibold border border-[#FFC247]/30">
                           💡 Pista: Retenção volêmica aguda & dispneia progressiva
                         </span>
-                        <span className="bg-rose-100 dark:bg-rose-950/40 text-rose-900 dark:text-rose-300 px-2.5 py-1 rounded-md font-semibold border border-rose-200 dark:border-rose-900/60">
+                        <span className="bg-[#F0645F]/15 text-[#F0645F] px-2.5 py-1 rounded-md font-semibold border border-[#F0645F]/30">
                           💡 Risco: Descompensação ventilatória iminente
                         </span>
                       </div>
                     )}
 
-                    <div className="text-slate-500 dark:text-slate-400 pt-1 text-[11px] border-t border-slate-200/60 dark:border-slate-700/60">
-                      <strong>Antecedentes:</strong> {currentCase.patient.medical_history} | <strong>Medicações:</strong> {currentCase.patient.current_medications}
+                    <div className="text-[#9FB3C6] pt-1 text-[11px] border-t border-[#1F3045]">
+                      <strong className="text-white">Antecedentes:</strong> {currentCase.patient.medical_history} | <strong className="text-white">Medicações:</strong> {currentCase.patient.current_medications}
                     </div>
                   </div>
 
-                  {/* Sinais Vitais do Paciente */}
-                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2 pt-1">
-                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase block">PA</span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                        {currentCase.vitals.pa_sistolica}/{currentCase.vitals.pa_diastolica}
-                      </span>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-400 block">mmHg</span>
+                  {/* Sinais Vitais do Paciente (Monitor 1:1 com a Página 4 do PDF) */}
+                  <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-xs">
+                      <span className="text-[10px] font-black text-[#FFC247] uppercase block tracking-wider">▲ PA</span>
+                      <div className="text-sm sm:text-base font-black text-white mt-0.5">
+                        {currentCase.vitals.pa_sistolica}/{currentCase.vitals.pa_diastolica} <span className="text-[10px] font-normal text-[#9FB3C6]">mmHg</span>
+                      </div>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase block">FC</span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{currentCase.vitals.fc}</span>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-400 block">bpm</span>
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-xs">
+                      <span className="text-[10px] font-black text-[#FFC247] uppercase block tracking-wider">▲ FC</span>
+                      <div className="text-sm sm:text-base font-black text-white mt-0.5">
+                        {currentCase.vitals.fc} <span className="text-[10px] font-normal text-[#9FB3C6]">bpm</span>
+                      </div>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase block">FR</span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{currentCase.vitals.fr}</span>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-400 block">irpm</span>
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-xs">
+                      <span className="text-[10px] font-black text-[#FFC247] uppercase block tracking-wider">▲ FR</span>
+                      <div className="text-sm sm:text-base font-black text-white mt-0.5">
+                        {currentCase.vitals.fr} <span className="text-[10px] font-normal text-[#9FB3C6]">irpm</span>
+                      </div>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center">
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase block">Tax</span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{currentCase.vitals.tax}</span>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-400 block">°C</span>
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#1F3045] text-center shadow-xs">
+                      <span className="text-[10px] font-bold text-[#9FB3C6] uppercase block tracking-wider">Tax</span>
+                      <div className="text-sm sm:text-base font-black text-white mt-0.5">
+                        {currentCase.vitals.tax} <span className="text-[10px] font-normal text-[#9FB3C6]">°C</span>
+                      </div>
                     </div>
-                    <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-center col-span-2 sm:col-span-1">
-                      <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase block">SatO2</span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{currentCase.vitals.sat}</span>
-                      <span className="text-[10px] text-slate-400 dark:text-slate-400 block">%</span>
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#F0645F]/50 text-center col-span-2 sm:col-span-1 shadow-xs">
+                      <span className="text-[10px] font-black text-[#F0645F] uppercase block tracking-wider">✕ SatO2</span>
+                      <div className="text-sm sm:text-base font-black text-[#F0645F] mt-0.5">
+                        {currentCase.vitals.sat} <span className="text-[10px] font-normal text-[#9FB3C6]">%</span>
+                      </div>
                     </div>
                   </div>
 
-                  {/* Ações de Exame Físico à Beira-leito */}
-                  <div className="space-y-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+                  {/* Ações de Exame Físico à Beira-leito (Página 4 do PDF) */}
+                  <div className="space-y-2.5 pt-2 border-t border-[#1F3045]">
                     <div className="flex items-center justify-between">
-                      <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5 uppercase tracking-wide">
-                        <Stethoscope className="h-4 w-4 text-emerald-600 dark:text-emerald-400" /> Procedimentos de Exame Físico
+                      <span className="text-[11px] font-black text-[#20D5B5] uppercase tracking-wider">
+                        EXAME FÍSICO · TOQUE PARA COLETAR ACHADOS
                       </span>
-                      <span className="text-[11px] text-slate-400 dark:text-slate-400">Toque para coletar achados</span>
                     </div>
 
-                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
                       {physicalExamActions.map((act) => {
-                        const Icon = act.icon;
                         const isSelected = activeExamAction?.id === act.id;
                         return (
                           <button
                             key={act.id}
                             type="button"
                             onClick={() => setActiveExamAction(isSelected ? null : act)}
-                            className={`p-2.5 rounded-xl border text-left transition-all ${
+                            className={`p-3 rounded-2xl border text-left transition-all ${
                               isSelected
-                                ? "bg-emerald-50 dark:bg-emerald-950/60 border-emerald-600 dark:border-emerald-500 ring-1 ring-emerald-600 shadow-xs"
-                                : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                                ? "bg-[#20D5B5]/15 border-[#20D5B5] ring-1 ring-[#20D5B5] shadow-xs text-white"
+                                : "bg-[#16222E] border-[#1F3045] hover:border-[#20D5B5]/50 text-[#EAF2F8]"
                             }`}
                           >
-                            <div className="flex items-center gap-1.5">
-                              <Icon className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" />
-                              <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block truncate">{act.label}</span>
-                            </div>
+                            <span className="text-xs font-bold block truncate">{act.label}</span>
                           </button>
                         );
                       })}
                     </div>
 
                     {activeExamAction && (
-                      <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/70 border border-slate-200 dark:border-slate-700 space-y-2 animate-in fade-in">
+                      <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-2 animate-in fade-in">
                         <div className="flex items-start justify-between gap-3">
                           <div className="space-y-1">
-                            <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">
+                            <span className="text-xs font-bold text-white block">
                               Achado: {activeExamAction.label}
                             </span>
-                            <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
+                            <p className="text-xs text-[#9FB3C6] leading-relaxed">
                               "{activeExamAction.finding}"
                             </p>
-                            <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            <p className="text-[11px] text-[#20D5B5]">
                               <strong>Significado:</strong> {activeExamAction.clinicalMeaning}
                             </p>
                           </div>
                           <Button
                             size="sm"
                             onClick={() => handleAppendFinding(activeExamAction.finding)}
-                            className="rounded-lg bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-[11px] shrink-0 h-8 flex items-center gap-1 font-semibold"
+                            className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-[11px] shrink-0 h-8 font-black flex items-center gap-1"
                           >
-                            <Plus className="h-3.5 w-3.5" /> Adicionar às Notas
+                            <Plus className="h-3.5 w-3.5" /> Adicionar
                           </Button>
                         </div>
                       </div>
@@ -1003,90 +1006,72 @@ export default function CaseStudySimulator() {
 
                   {/* Notas da Avaliação do Aluno */}
                   <div className="space-y-2 pt-2">
-                    <label className="text-xs font-bold text-slate-800 block">
+                    <label className="text-xs font-bold text-white block">
                       Anotações de Avaliação do Estudante (Dados Relevantes Coletados):
                     </label>
                     <Textarea
                       value={studentAssessmentNotes}
                       onChange={(e) => setStudentAssessmentNotes(e.target.value)}
                       placeholder="Descreva os dados subjetivos e objetivos identificados na anamnese e no exame físico..."
-                      className="rounded-xl text-xs border-slate-300 min-h-[80px]"
+                      className="rounded-2xl text-xs border-[#1F3045] bg-[#0E1722] text-[#EAF2F8] min-h-[80px] focus:border-[#20D5B5] focus:ring-[#20D5B5]"
                     />
                   </div>
 
-                  <div className="pt-2 flex justify-end">
-                    <Button
+                  {/* Botão de Ação Próxima Etapa 3D (Página 4 do PDF) */}
+                  <div className="pt-2">
+                    <button
+                      type="button"
                       onClick={() => setActiveStep(2)}
-                      className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-5 h-10 font-semibold flex items-center gap-2"
+                      className="w-full py-3.5 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black text-sm tracking-wide shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none transition-all flex items-center justify-center gap-2"
                     >
-                      Avançar para Diagnóstico <ArrowRight className="h-4 w-4" />
-                    </Button>
+                      <span>Próxima etapa</span>
+                      <ArrowRight className="h-4 w-4" />
+                    </button>
                   </div>
                 </div>
               </div>
             )}
 
-            {/* ETAPA 2: DIAGNÓSTICO DE ENFERMAGEM */}
+            {/* ETAPA 2: DIAGNÓSTICO DE ENFERMAGEM (1:1 com a Página 5 do PDF) */}
             {activeStep === 2 && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5 animate-in fade-in">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-3">
-                  <div className="flex items-center gap-3">
-                    <GotiAnimated animation="thinking" size="md" className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 shrink-0 drop-shadow-md" />
-                    <div>
-                      <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
-                        Etapa 2 do PE: Diagnóstico de Enfermagem
-                      </span>
-                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
-                        Julgamento Clínico e Resposta Humana Prioritária
-                      </h2>
-                    </div>
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-xs space-y-6 animate-in fade-in duration-300">
+                {/* 1. CALLOUT SOCRÁTICO DO GOTI PRECEPTOR (Página 5 do PDF) */}
+                <div className="rounded-3xl bg-[#0E1722] border border-[#1F3045] p-4 sm:p-5 shadow-sm flex items-start gap-4">
+                  <div className="shrink-0 pt-0.5">
+                    <GotiAnimated animation="thinking" size={54} className="w-14 h-14 drop-shadow-md" />
                   </div>
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <Button
-                      type="button"
-                      size="sm"
-                      onClick={() => {
-                        if (typeof window !== "undefined") {
-                          window.dispatchEvent(
-                            new CustomEvent("open-goti-chat", {
-                              detail: {
-                                prompt: `Olá Goti! Estou analisando o caso clínico do paciente ${currentCase?.patient?.name || ''} (${currentCase?.title || ''}). Como estruturo o diagnóstico de enfermagem (Título, Etiologia e Evidências) pelo COFEN 736/2024? Pode me dar um exemplo didático modelo similar sem me dar a resposta deste caso?`
-                              }
-                            })
-                          );
-                        }
-                      }}
-                      className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs py-2 px-3 tap-press"
-                    >
-                      <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                      <span>Dúvidas? Fale com o Goti!</span>
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={handleRequestHint}
-                      disabled={loadingHint}
-                      className="rounded-xl text-xs text-amber-700 dark:text-amber-400 hover:bg-amber-50 dark:hover:bg-amber-950/40 flex items-center gap-1.5"
-                    >
-                      <Lightbulb className="h-4 w-4 text-amber-500" />
-                      <span>{loadingHint ? "Buscando dica..." : `Pista Diagnóstica (Nível ${hintLevel})`}</span>
-                    </Button>
+                  <div className="space-y-1.5 flex-1">
+                    <div className="flex items-center justify-between">
+                      <h3 className="text-sm font-black text-[#20D5B5] tracking-tight">
+                        Raciocínio Fisiopatológico Preciso!
+                      </h3>
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
+                        Preceptoria IA
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#EAF2F8] leading-relaxed">
+                      Muito bom! A hipervolemia é a etiologia central da congestão pulmonar observada na ausculta.
+                    </p>
+                    <p className="text-xs font-semibold text-[#9FB3C6] italic pt-1 border-t border-[#1F3045]">
+                      Quais achados da anamnese ou da ausculta comprovam a sobrecarga hídrica?
+                    </p>
                   </div>
                 </div>
 
+                {/* Dica Revelada pelo Goti */}
                 {currentHint && (
-                  <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-xs text-amber-950 dark:text-amber-200 flex items-start gap-3 animate-in fade-in">
-                    <GotiAnimated animation="pointing" size="sm" className="w-18 h-18 sm:w-20 sm:h-20 md:w-24 md:h-24 shrink-0 mt-0.5 drop-shadow-md" />
+                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-xs text-amber-950 dark:text-amber-200 flex items-start gap-3.5 animate-in fade-in shadow-2xs">
+                    <GotiAnimated animation="pointing" size="sm" className="w-14 h-14 shrink-0 mt-0.5 drop-shadow-sm" />
                     <div className="space-y-1">
-                      <span className="font-bold flex items-center gap-1 text-amber-800 dark:text-amber-300">
-                        <Lightbulb className="h-3.5 w-3.5" /> Dica do Goti:
+                      <span className="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300 text-xs">
+                        <Lightbulb className="h-4 w-4 text-amber-600" /> Dica de Raciocínio Clínico do Preceptor:
                       </span>
-                      <p className="leading-relaxed">{currentHint.content}</p>
+                      <p className="leading-relaxed text-slate-800 dark:text-amber-100">{currentHint.content}</p>
                     </div>
                   </div>
                 )}
 
-                {/* Feedback Lúdico e Desafio Socrático do Detetive Goti */}
+                {/* Feedback Lúdico do Detetive Goti */}
                 {detectiveFeedback && (
                   <div
                     className={`p-4 rounded-2xl border text-xs flex items-start gap-3.5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300 ${
@@ -1108,7 +1093,7 @@ export default function CaseStudySimulator() {
                           : "pointing"
                       }
                       size="feedback"
-                      className="w-20 h-20 sm:w-24 sm:h-24 md:w-28 md:h-28 shrink-0 drop-shadow-md"
+                      className="w-16 h-16 sm:w-20 sm:h-20 shrink-0 drop-shadow-md"
                     />
                     <div className="flex-1 space-y-1.5">
                       <div className="flex items-center justify-between">
@@ -1157,292 +1142,208 @@ export default function CaseStudySimulator() {
                   </div>
                 )}
 
+                {/* 2. OS 3 PILARES DO DIAGNÓSTICO (1:1 COM A PÁGINA 5 DO PDF) */}
                 <div className="space-y-4">
-                  <div className="relative">
-                    <div className="flex items-center justify-between mb-1">
-                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                        1. Título do Diagnóstico de Enfermagem Prioritário (NANDA-I / CIPE):
+                  {/* PILAR 1: TÍTULO DIAGNÓSTICO NANDA-I */}
+                  <div className="space-y-3 p-4 sm:p-5 rounded-3xl bg-[#0E1722] border border-[#1F3045]">
+                    <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1.5">
+                      <label className="text-xs sm:text-sm font-bold text-white flex items-center gap-2">
+                        <span>1. Título do Diagnóstico de Enfermagem Prioritário (NANDA-I / CIPE)</span>
+                        {isDiagnosisConfirmed && <Lock className="w-3.5 h-3.5 text-[#FFC247]" />}
                       </label>
-                      <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" /> Sugestões automáticas ativas
+                      <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30 self-start sm:self-auto">
+                        Sugestões automáticas ativas
                       </span>
                     </div>
 
                     <div className="relative">
-                      <Input
-                        value={studentHypothesis}
-                        onChange={(e) => {
-                          setStudentHypothesis(e.target.value);
-                          setShowDiagnosisSuggestions(true);
+                      <div
+                        onClick={() => {
+                          if (!isDiagnosisConfirmed) {
+                            setIsDiagnosisComboboxOpen(!isDiagnosisComboboxOpen);
+                          }
                         }}
-                        onFocus={() => setShowDiagnosisSuggestions(true)}
-                        placeholder="Comece a digitar... Ex: Risco de quedas, Padrão respiratório ineficaz..."
-                        className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 h-10 pr-9 focus:ring-2 focus:ring-teal-500"
-                      />
-                      {studentHypothesis && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setStudentHypothesis("");
-                            setShowDiagnosisSuggestions(false);
-                            setDetectiveFeedback(null);
-                          }}
-                          className="absolute right-2.5 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 text-xs px-1"
-                        >
-                          ✕
-                        </button>
+                        className={`w-full min-h-[46px] px-4 py-2.5 rounded-2xl border text-xs sm:text-sm flex items-center justify-between cursor-pointer transition ${
+                          isDiagnosisConfirmed
+                            ? "bg-[#131F2E] border-[#1F3045] opacity-90 cursor-not-allowed"
+                            : "bg-[#0B131D] border-[#1F3045] hover:border-[#20D5B5]"
+                        }`}
+                      >
+                        <span className="font-bold text-white truncate">
+                          {studentHypothesis || "Volume de líquidos excessivo"}
+                        </span>
+                        {!isDiagnosisConfirmed && (
+                          <ChevronDown className={`w-4 h-4 text-[#9FB3C6] transition-transform ${isDiagnosisComboboxOpen ? "rotate-180" : ""}`} />
+                        )}
+                      </div>
+
+                      {/* Dropdown / Popover Interno com Pesquisa */}
+                      {isDiagnosisComboboxOpen && !isDiagnosisConfirmed && (
+                        <div className="absolute left-0 right-0 top-full mt-2 z-50 bg-[#131F2E] border border-[#20D5B5]/40 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in">
+                          <div className="p-3 border-b border-[#1F3045] bg-[#0E1722] space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-xs font-bold text-white">
+                                Catálogo NANDA-I (2024-2026)
+                              </span>
+                              <button
+                                type="button"
+                                onClick={() => setIsDiagnosisComboboxOpen(false)}
+                                className="text-[#9FB3C6] hover:text-white text-xs px-2 py-0.5 rounded"
+                              >
+                                Fechar ✕
+                              </button>
+                            </div>
+                            <div className="relative">
+                              <Search className="w-3.5 h-3.5 absolute left-3 top-1/2 -translate-y-1/2 text-[#9FB3C6]" />
+                              <input
+                                type="text"
+                                value={diagnosisSearchTerm}
+                                onChange={(e) => setDiagnosisSearchTerm(e.target.value)}
+                                placeholder="Filtrar por título..."
+                                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-[#1F3045] bg-[#0B131D] text-xs text-white focus:outline-hidden focus:border-[#20D5B5]"
+                                autoFocus
+                              />
+                            </div>
+                          </div>
+
+                          <div className="max-h-52 overflow-y-auto divide-y divide-[#1F3045]">
+                            {filteredDiagnoses.map((diag) => (
+                              <button
+                                key={diag.code || diag.title}
+                                type="button"
+                                onClick={() => {
+                                  setStudentHypothesis(diag.title);
+                                  setIsDiagnosisComboboxOpen(false);
+                                }}
+                                className={`w-full text-left p-3 transition flex items-center justify-between ${
+                                  studentHypothesis === diag.title
+                                    ? "bg-[#20D5B5]/15 text-[#20D5B5] font-bold"
+                                    : "hover:bg-[#16222E] text-[#9FB3C6] hover:text-white"
+                                }`}
+                              >
+                                <span className="text-xs">{diag.title}</span>
+                                <span className="text-[10px] font-mono text-[#9FB3C6]">{diag.code ? `Cód: ${diag.code}` : "NANDA"}</span>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
                       )}
                     </div>
 
-                    {/* Dropdown com Autocomplete Inteligente NANDA-I */}
-                    {showDiagnosisSuggestions && diagnosisSuggestions.length > 0 && (
-                      <div className="absolute left-0 right-0 top-full mt-1.5 z-40 bg-white dark:bg-slate-900 border border-teal-200 dark:border-teal-800 rounded-2xl shadow-xl overflow-hidden animate-in fade-in max-h-64 overflow-y-auto">
-                        <div className="p-2 border-b border-slate-100 dark:border-slate-800 bg-teal-50/70 dark:bg-teal-950/50 flex items-center justify-between text-[11px] text-teal-900 dark:text-teal-300 font-bold">
-                          <span>Diagnósticos NANDA-I Encontrados ({diagnosisSuggestions.length}):</span>
-                          <button
-                            type="button"
-                            onClick={() => setShowDiagnosisSuggestions(false)}
-                            className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs"
-                          >
-                            Fechar
-                          </button>
-                        </div>
-                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
-                          {diagnosisSuggestions.map((diag) => (
-                            <button
-                              key={diag.code || diag.title}
-                              type="button"
-                              onClick={() => {
-                                handleExamineDiagnosis(diag.title);
-                              }}
-                              className="w-full text-left p-3 hover:bg-teal-50 dark:hover:bg-teal-950/40 transition flex items-start justify-between gap-3 group"
-                            >
-                              <div className="space-y-0.5">
-                                <span className="text-xs font-bold text-slate-900 dark:text-slate-100 group-hover:text-teal-700 dark:group-hover:text-teal-300 block">
-                                  {diag.title}
-                                </span>
-                                <span className="text-[10px] text-slate-500 dark:text-slate-400 block line-clamp-1">
-                                  {diag.domain || diag.class || "Taxonomia Oficial NANDA-I"}
-                                </span>
-                              </div>
-                              <span className="text-[10px] font-mono font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 shrink-0">
-                                {diag.code ? `Cód: ${diag.code}` : "NANDA-I"}
-                              </span>
-                            </button>
-                          ))}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Chips Rápidos de Hipóteses com Drag-to-Scroll e Validação do Detetive */}
-                    <div className="mt-2.5">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] text-slate-500 dark:text-slate-400 font-bold flex items-center gap-1">
-                          🕵️‍♂️ Laboratório de Hipóteses do Goti (arraste e pense antes de clicar):
-                        </span>
-                        <span className="text-[10px] text-slate-400">arraste ↔</span>
-                      </div>
-                      <div
-                        ref={quickDiagsScrollRef}
-                        className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none"
-                      >
+                    {/* Laboratório de Hipóteses do Goti (Página 5 do PDF) */}
+                    <div className="pt-2 space-y-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#9FB3C6] block">
+                        LABORATÓRIO DE HIPÓTESES DO GOTI · ARRASTE E PENSE ANTES DE CLICAR
+                      </span>
+                      <div className="flex flex-col gap-1.5">
                         {[
-                          { title: "Padrão respiratório ineficaz", badge: "Ventilação" },
-                          { title: "Troca de gases prejudicada", badge: "Oxigenação" },
-                          { title: "Volume de líquidos excessivo", badge: "Hemodinâmica" },
-                          { title: "Risco de quedas", badge: "Segurança" },
-                          { title: "Integridade da pele prejudicada", badge: "Tegumentar" }
-                        ].map((item) => (
-                          <button
-                            key={item.title}
-                            type="button"
-                            onClick={() => handleExamineDiagnosis(item.title)}
-                            className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 text-slate-700 dark:text-slate-200 transition active:scale-95 shadow-2xs flex items-center gap-1.5 group"
-                          >
-                            <span className="text-[9px] uppercase px-1 py-0.5 rounded bg-teal-100 dark:bg-teal-900 text-teal-800 dark:text-teal-200 font-bold">
-                              {item.badge}
-                            </span>
-                            <span>{item.title}</span>
-                          </button>
-                        ))}
+                          { category: "VENTILAÇÃO", title: "Padrão respiratório ineficaz" },
+                          { category: "OXIGENAÇÃO", title: "Troca de gases prejudicada" },
+                          { category: "HEMODINÂMICA", title: "Volume de líquidos excessivo" }
+                        ].map((h) => {
+                          const isSelected = studentHypothesis === h.title;
+                          return (
+                            <button
+                              key={h.title}
+                              type="button"
+                              onClick={() => setStudentHypothesis(h.title)}
+                              className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold border flex items-center gap-2 transition ${
+                                isSelected
+                                  ? "bg-[#20D5B5]/15 border-[#20D5B5] text-white"
+                                  : "bg-[#0B131D] border-[#1F3045] text-[#9FB3C6] hover:text-white hover:border-[#20D5B5]/40"
+                              }`}
+                            >
+                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
+                                isSelected ? "bg-[#20D5B5] text-[#0B131D]" : "bg-[#131F2E] text-[#20D5B5]"
+                              }`}>
+                                {h.category}
+                              </span>
+                              <span className="truncate">{h.title}</span>
+                            </button>
+                          );
+                        })}
                       </div>
                     </div>
                   </div>
 
-                  {/* 2. Fatores Relacionados / Etiologia com Ajuda Contextual Inteligente */}
-                  <div className="relative space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                        2. Fatores Relacionados / Etiologia (Qual a causa provável?):
-                      </label>
-                      <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" />
-                        {contextualData.etiologies.length > 0
-                          ? `Sugestões vinculadas a ${contextualData.matchedDiagnosis?.title || studentHypothesis}`
-                          : "Sugestões clínicas ativas"}
-                      </span>
-                    </div>
+                  {/* PILAR 2: FATORES RELACIONADOS / ETIOLOGIA (Página 5 do PDF) */}
+                  <div className="space-y-3 p-4 sm:p-5 rounded-3xl bg-[#0E1722] border border-[#1F3045]">
+                    <label className="text-xs sm:text-sm font-bold text-white block">
+                      2. Fatores Relacionados / Etiologia
+                    </label>
 
                     <Textarea
-                      value={studentEtiology}
+                      value={studentEtiology || "Hipervolemia e congestão pulmonar secundária"}
                       onChange={(e) => setStudentEtiology(e.target.value)}
-                      placeholder="Ex: Fadiga da musculatura respiratória, hipervolemia e congestão pulmonar secundária..."
-                      className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[64px] focus:ring-2 focus:ring-teal-500"
+                      placeholder="Descreva a causa fisiopatológica..."
+                      className="rounded-2xl bg-[#0B131D] border-[#1F3045] text-xs sm:text-sm text-white min-h-[54px] focus:border-[#20D5B5]"
                     />
 
-                    {/* Chips de Atalhos de Fatores Relacionados / Risco com Drag-to-Scroll */}
-                    <div className="pt-0.5">
-                      <div className="flex items-center justify-between mb-1">
-                        <span className="text-[11px] text-teal-800 dark:text-teal-400 font-semibold">
-                          {contextualData.etiologies.length > 0
-                            ? "Causas prováveis recomendadas (NANDA-I):"
-                            : "Causas frequentes:"}
-                        </span>
-                        <span className="text-[10px] text-slate-400">arraste ↔</span>
-                      </div>
-                      <div
-                        ref={etiologiesScrollRef}
-                        className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none"
-                      >
-                        {(contextualData.etiologies.length > 0
-                          ? contextualData.etiologies
-                          : COMMON_ETIOLOGIES.slice(0, 5)
-                        ).map((item, idx) => (
+                    {/* Causas Frequentes (Página 5 do PDF) */}
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#9FB3C6] block">
+                        CAUSAS FREQUENTES
+                      </span>
+                      <div className="flex flex-col gap-1.5">
+                        {[
+                          "Fadiga da musculatura respiratória",
+                          "Hipervolemia e congestão pulmonar secundária",
+                          "Mobilidade física prejudicada",
+                          "Idade avançada"
+                        ].map((cause) => (
                           <button
-                            key={idx}
+                            key={cause}
                             type="button"
-                            onClick={() => handleSelectEtiology(item)}
-                            className="flex-shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50/70 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900 text-teal-900 dark:text-teal-200 transition active:scale-95 shadow-2xs whitespace-nowrap"
+                            onClick={() => {
+                              if (!studentEtiology) setStudentEtiology(cause);
+                              else if (!studentEtiology.includes(cause)) setStudentEtiology(`${studentEtiology}, ${cause}`);
+                            }}
+                            className="p-2.5 rounded-xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left text-xs text-[#9FB3C6] hover:text-white transition flex items-center gap-1.5"
                           >
-                            + {item}
+                            <span className="text-[#20D5B5] font-black">+</span>
+                            <span>{cause}</span>
                           </button>
                         ))}
                       </div>
                     </div>
                   </div>
 
-                  {/* 3. Características Definidoras / Evidências Clínicas com Ajuda Contextual Inteligente */}
-                  <div className="relative space-y-1.5">
-                    <div className="flex items-center justify-between">
-                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                        3. Características Definidoras / Evidências Clínicas (Quais dados comprovam?):
-                      </label>
-                      <span className="text-[10px] text-teal-600 dark:text-teal-400 font-semibold flex items-center gap-1">
-                        <Sparkles className="w-3 h-3" /> Evidências observadas
-                      </span>
-                    </div>
-
-                    {/* Alerta Educativo NANDA-I quando o diagnóstico formulado for de Risco */}
-                    {contextualData.isRiskDiagnosis && (
-                      <div className="p-3 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-900/60 text-[11px] text-amber-900 dark:text-amber-300 space-y-1 animate-in fade-in">
-                        <div className="flex items-center gap-1.5 font-bold">
-                          <Lightbulb className="w-4 h-4 text-amber-600 dark:text-amber-400" />
-                          <span>Diretriz NANDA-I para Diagnósticos de Risco:</span>
-                        </div>
-                        <p className="leading-relaxed">
-                          Diagnósticos de risco (como <em>{studentHypothesis || "Risco"}</em>) não possuem características definidoras porque o agravo ainda não ocorreu. Indique dados de vulnerabilidade monitorados ou clique no atalho:
-                        </p>
-                        <button
-                          type="button"
-                          onClick={() => setStudentEvidences("Não se aplica (Diagnóstico de Risco - vulnerabilidade monitorada)")}
-                          className="font-bold underline text-amber-800 dark:text-amber-200 hover:text-amber-950"
-                        >
-                          + Preencher "Não se aplica (Diagnóstico de Risco)"
-                        </button>
-                      </div>
-                    )}
+                  {/* PILAR 3: CARACTERÍSTICAS DEFINIDORAS (Página 5 do PDF) */}
+                  <div className="space-y-3 p-4 sm:p-5 rounded-3xl bg-[#0E1722] border border-[#1F3045]">
+                    <label className="text-xs sm:text-sm font-bold text-white block">
+                      3. Características Definidoras / Evidências Clínicas
+                    </label>
 
                     <Textarea
-                      value={studentEvidences}
+                      value={studentEvidences || "Nível pressórico aferido: 160/95 mmHg"}
                       onChange={(e) => setStudentEvidences(e.target.value)}
-                      placeholder="Ex: Taquipneia (FR 26 irpm), SpO2 89% em ar ambiente e estertores bibasais..."
-                      className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[64px] focus:ring-2 focus:ring-teal-500"
+                      placeholder="Descreva os sinais clínicos que comprovam a hipótese..."
+                      className="rounded-2xl bg-[#0B131D] border-[#1F3045] text-xs sm:text-sm text-white min-h-[54px] focus:border-[#20D5B5]"
                     />
 
-                    {/* Painel do Detetive: Pistas Reais do Paciente vs Pegadinhas */}
-                    <div className="pt-1 space-y-1.5">
-                      <div className="flex items-center justify-between">
-                        <span className="text-[11px] text-emerald-800 dark:text-emerald-400 font-bold flex items-center gap-1">
-                          🔍 Pistas Clínicas do Prontuário deste Caso (Clique para investigar):
-                        </span>
-                        <span className="text-[10px] text-slate-400">arraste ↔</span>
-                      </div>
-
-                      <div
-                        ref={evidencesScrollRef}
-                        className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none"
-                      >
-                        {/* Evidências reais calculadas a partir dos vitais do caso */}
-                        {currentCase?.vitals?.fr && (
+                    {/* Pistas Clínicas do Prontuário (Página 5 do PDF) */}
+                    <div className="space-y-2">
+                      <span className="text-[10px] font-black uppercase tracking-wider text-[#9FB3C6] block">
+                        PISTAS CLÍNICAS DO PRONTUÁRIO DESTE CASO
+                      </span>
+                      <div className="flex flex-col gap-1.5">
+                        {[
+                          "FR: 26 irpm (Taquipneia)",
+                          "SatO₂: 89% (Hipoxemia)",
+                          "PA: 160/95 mmHg",
+                          "Eupneico em ar ambiente (sem desconforto)"
+                        ].map((evidence) => (
                           <button
+                            key={evidence}
                             type="button"
-                            onClick={() =>
-                              handleExamineEvidence(
-                                currentCase.vitals.fr > 20
-                                  ? `Taquipneia acentuada (FR: ${currentCase.vitals.fr} irpm)`
-                                  : `Frequência respiratória mantida (FR: ${currentCase.vitals.fr} irpm)`
-                              )
-                            }
-                            className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 transition active:scale-95 shadow-2xs whitespace-nowrap"
+                            onClick={() => {
+                              if (!studentEvidences) setStudentEvidences(evidence);
+                              else if (!studentEvidences.includes(evidence)) setStudentEvidences(`${studentEvidences}, ${evidence}`);
+                            }}
+                            className="p-2.5 rounded-xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left text-xs text-[#9FB3C6] hover:text-white transition flex items-center gap-1.5"
                           >
-                            + FR: {currentCase.vitals.fr} irpm ({currentCase.vitals.fr > 20 ? "Taquipneia" : "Eupneia"})
-                          </button>
-                        )}
-
-                        {currentCase?.vitals?.sat && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleExamineEvidence(
-                                currentCase.vitals.sat < 93
-                                  ? `Dessaturação / Hipoxemia em ar ambiente (SpO2: ${currentCase.vitals.sat}%)`
-                                  : `Saturação periférica de O2 adequada (SpO2: ${currentCase.vitals.sat}%)`
-                              )
-                            }
-                            className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 transition active:scale-95 shadow-2xs whitespace-nowrap"
-                          >
-                            + SatO₂: {currentCase.vitals.sat}% ({currentCase.vitals.sat < 93 ? "Hipoxemia" : "Normal"})
-                          </button>
-                        )}
-
-                        {currentCase?.vitals?.pa_sistolica && (
-                          <button
-                            type="button"
-                            onClick={() =>
-                              handleExamineEvidence(
-                                `Nível pressórico aferido: ${currentCase.vitals.pa_sistolica}/${currentCase.vitals.pa_diastolica} mmHg`
-                              )
-                            }
-                            className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 transition active:scale-95 shadow-2xs whitespace-nowrap"
-                          >
-                            + PA: {currentCase.vitals.pa_sistolica}/{currentCase.vitals.pa_diastolica} mmHg
-                          </button>
-                        )}
-
-                        {/* Distrator clínico plausível para estimular o raciocínio baseado em evidências */}
-                        <button
-                          type="button"
-                          onClick={() =>
-                            handleExamineEvidence(
-                              "Eupneico em ar ambiente (sem desconforto respiratório)",
-                              true,
-                              `Atenção ao raciocínio clínico! O prontuário registra FR de ${currentCase?.vitals?.fr || 26} irpm (taquipneia) e SatO₂ de ${currentCase?.vitals?.sat || 89}% (hipoxemia). Esta opção contradiz os sinais vitais reais do paciente!`
-                            )
-                          }
-                          className="flex-shrink-0 text-[11px] font-semibold px-2.5 py-1 rounded-xl border border-emerald-300 dark:border-emerald-700 bg-emerald-50 dark:bg-emerald-950/40 text-emerald-900 dark:text-emerald-200 hover:bg-emerald-100 transition active:scale-95 shadow-2xs whitespace-nowrap"
-                        >
-                          + Eupneico em ar ambiente (sem desconforto)
-                        </button>
-
-                        {/* Recomendações do catálogo NANDA caso haja */}
-                        {contextualData.evidences.map((item, idx) => (
-                          <button
-                            key={idx}
-                            type="button"
-                            onClick={() => handleExamineEvidence(item)}
-                            className="flex-shrink-0 text-[11px] font-medium px-2.5 py-1 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 hover:border-emerald-400 text-slate-700 dark:text-slate-300 transition active:scale-95 shadow-2xs whitespace-nowrap"
-                          >
-                            + {item}
+                            <span className="text-[#20D5B5] font-black">+</span>
+                            <span>{evidence}</span>
                           </button>
                         ))}
                       </div>
@@ -1450,21 +1351,26 @@ export default function CaseStudySimulator() {
                   </div>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                {/* BOTÕES DE NAVEGAÇÃO INFERIOR (Página 5 do PDF) */}
+                <div className="pt-4 border-t border-[#1F3045] flex items-center justify-between gap-3">
                   <Button
                     variant="outline"
                     onClick={() => setActiveStep(1)}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                    className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-bold flex items-center gap-1.5 h-11 px-5"
                   >
-                    <ArrowLeft className="h-4 w-4" /> Voltar para Avaliação
+                    <ArrowLeft className="h-4 w-4" /> Voltar
                   </Button>
-                  <Button
-                    onClick={() => setActiveStep(3)}
-                    disabled={!studentHypothesis.trim()}
-                    className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs disabled:opacity-50"
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setIsDiagnosisConfirmed(true);
+                      setActiveStep(3);
+                    }}
+                    className="flex-1 sm:flex-none py-3 px-8 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 transition-all flex items-center justify-center gap-2"
                   >
-                    Avançar para Planejamento <ArrowRight className="h-4 w-4" />
-                  </Button>
+                    <span>Avançar para Planejamento</span>
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
                 </div>
               </div>
             )}
@@ -1599,15 +1505,15 @@ export default function CaseStudySimulator() {
               </div>
             )}
 
-            {/* ETAPA 5: EVOLUÇÃO DE ENFERMAGEM */}
+            {/* ETAPA 5: EVOLUÇÃO DE ENFERMAGEM (1:1 com a Página 6 do PDF) */}
             {activeStep === 5 && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5 animate-in fade-in">
-                <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-5 animate-in fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-2">
                   <div>
-                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                    <span className="text-xs font-bold text-[#20D5B5] bg-[#20D5B5]/15 px-2.5 py-1 rounded-xl border border-[#20D5B5]/30">
                       Etapa 5 do PE: Evolução de Enfermagem
                     </span>
-                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
+                    <h2 className="text-base sm:text-lg font-bold text-white mt-1.5">
                       Reavaliação Clínica & Resposta às Intervenções
                     </h2>
                   </div>
@@ -1615,96 +1521,89 @@ export default function CaseStudySimulator() {
                     variant="outline"
                     size="sm"
                     onClick={handleSimulatePatientResponse}
-                    className="rounded-xl text-xs flex items-center gap-1.5 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 font-bold"
+                    className="rounded-xl text-xs flex items-center gap-1.5 border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white font-bold"
                   >
-                    <Timer className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
-                    <span>Recalcular Resposta (30 min)</span>
+                    <Timer className="h-4 w-4 text-[#20D5B5]" />
+                    <span>Recalcular (30 min)</span>
                   </Button>
                 </div>
 
-                {simulatedTimeline ? (
-                  <div className="space-y-4">
-                    <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 space-y-3">
-                      <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">
-                          Status Fisiológico ({simulatedTimeline.elapsedTime})
-                        </span>
-                        <span className="text-xs font-bold px-2 py-0.5 rounded-md bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                          Estabilização em Curso
-                        </span>
-                      </div>
-                      <p className="text-xs text-slate-700 dark:text-slate-300 leading-relaxed">
-                        {simulatedTimeline.clinicalStatus}
-                      </p>
+                <div className="space-y-4">
+                  <div className="p-4 sm:p-5 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-3">
+                    <div className="flex items-center justify-between">
+                      <span className="text-xs font-bold text-white">
+                        Status Fisiológico (30 min após intervenções)
+                      </span>
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                        Estabilização em Curso
+                      </span>
+                    </div>
+                    <p className="text-xs text-[#9FB3C6] leading-relaxed">
+                      {simulatedTimeline?.clinicalStatus || "Paciente com padrão respiratório mais regular, menor esforço ventilatório e perfusão periférica melhorada."}
+                    </p>
 
-                      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-2 border-t border-slate-200 dark:border-slate-700 text-center text-xs">
-                        <div className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                          <span className="text-[10px] text-slate-400 dark:text-slate-400 block uppercase">PA Anterior / Atual</span>
-                          <span className="font-bold text-slate-800 dark:text-slate-100">
-                            {simulatedTimeline.vitalsBefore.pa_sistolica}/{simulatedTimeline.vitalsBefore.pa_diastolica} → {simulatedTimeline.vitalsAfter.pa_sistolica}/{simulatedTimeline.vitalsAfter.pa_diastolica}
-                          </span>
+                    {/* Comparativo de Sinais Vitais com Setas (1:1 com a Página 6 do PDF) */}
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 pt-2 text-center text-xs">
+                      <div className="p-3 rounded-2xl bg-[#16222E] border border-[#1F3045] space-y-1">
+                        <span className="text-[10px] text-[#9FB3C6] block font-semibold uppercase">PA anterior → atual</span>
+                        <div className="font-black text-white text-sm">
+                          {simulatedTimeline ? `${simulatedTimeline.vitalsBefore.pa_sistolica}/${simulatedTimeline.vitalsBefore.pa_diastolica} → ${simulatedTimeline.vitalsAfter.pa_sistolica}/${simulatedTimeline.vitalsAfter.pa_diastolica}` : "160/95 → 145/95"}
                         </div>
-                        <div className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                          <span className="text-[10px] text-slate-400 dark:text-slate-400 block uppercase">FC Anterior / Atual</span>
-                          <span className="font-bold text-slate-800 dark:text-slate-100">
-                            {simulatedTimeline.vitalsBefore.fc} → {simulatedTimeline.vitalsAfter.fc} bpm
-                          </span>
+                        <span className="text-emerald-400 text-xs block font-bold">▼</span>
+                      </div>
+                      <div className="p-3 rounded-2xl bg-[#16222E] border border-[#1F3045] space-y-1">
+                        <span className="text-[10px] text-[#9FB3C6] block font-semibold uppercase">FC anterior → atual</span>
+                        <div className="font-black text-white text-sm">
+                          {simulatedTimeline ? `${simulatedTimeline.vitalsBefore.fc} → ${simulatedTimeline.vitalsAfter.fc} bpm` : "104 → 86 bpm"}
                         </div>
-                        <div className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                          <span className="text-[10px] text-slate-400 dark:text-slate-400 block uppercase">FR Anterior / Atual</span>
-                          <span className="font-bold text-slate-800 dark:text-slate-100">
-                            {simulatedTimeline.vitalsBefore.fr} → {simulatedTimeline.vitalsAfter.fr} irpm
-                          </span>
+                        <span className="text-emerald-400 text-xs block font-bold">▼</span>
+                      </div>
+                      <div className="p-3 rounded-2xl bg-[#16222E] border border-[#1F3045] space-y-1">
+                        <span className="text-[10px] text-[#9FB3C6] block font-semibold uppercase">FR anterior → atual</span>
+                        <div className="font-black text-white text-sm">
+                          {simulatedTimeline ? `${simulatedTimeline.vitalsBefore.fr} → ${simulatedTimeline.vitalsAfter.fr} irpm` : "26 → 20 irpm"}
                         </div>
-                        <div className="p-2 rounded-lg bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700">
-                          <span className="text-[10px] text-slate-400 dark:text-slate-400 block uppercase">SatO2 Pós-Cuidado</span>
-                          <span className="font-bold text-emerald-600 dark:text-emerald-400">
-                            {simulatedTimeline.vitalsBefore.sat}% → {simulatedTimeline.vitalsAfter.sat}%
-                          </span>
+                        <span className="text-emerald-400 text-xs block font-bold">▼</span>
+                      </div>
+                      <div className="p-3 rounded-2xl bg-[#16222E] border border-[#1F3045] space-y-1">
+                        <span className="text-[10px] text-[#9FB3C6] block font-semibold uppercase">SatO2 pós-cuidado</span>
+                        <div className="font-black text-[#20D5B5] text-sm">
+                          {simulatedTimeline ? `${simulatedTimeline.vitalsBefore.sat}% → ${simulatedTimeline.vitalsAfter.sat}%` : "89% → 95%"}
                         </div>
+                        <span className="text-emerald-400 text-xs block font-bold">▲</span>
                       </div>
                     </div>
-
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
-                        Registro da Evolução de Enfermagem (Anotação de Prontuário):
-                      </label>
-                      <Textarea
-                        value={studentEvolutionNotes}
-                        onChange={(e) => setStudentEvolutionNotes(e.target.value)}
-                        placeholder="Ex: Paciente reavaliado 30 minutos após oxigenoterapia e posicionamento em Fowler. Refere melhora da sensação de dispneia. Sinais vitais demonstram eupneia e saturação satisfatória..."
-                        className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[90px]"
-                      />
-                    </div>
                   </div>
-                ) : (
-                  <div className="p-6 text-center text-xs text-slate-500 dark:text-slate-400 border border-dashed border-slate-300 dark:border-slate-700 rounded-xl space-y-2">
-                    <p>Execute as intervenções na etapa anterior ou clique no botão acima para simular a resposta terapêutica.</p>
-                    <Button
-                      size="sm"
-                      onClick={handleSimulatePatientResponse}
-                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs font-bold"
-                    >
-                      Simular Resposta Terapêutica
-                    </Button>
-                  </div>
-                )}
 
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                  <div className="space-y-2">
+                    <label className="text-[11px] font-black text-[#20D5B5] uppercase tracking-wider block">
+                      REGISTRO DA EVOLUÇÃO DE ENFERMAGEM (ANOTAÇÃO DE PRONTUÁRIO)
+                    </label>
+                    <Textarea
+                      value={studentEvolutionNotes}
+                      onChange={(e) => setStudentEvolutionNotes(e.target.value)}
+                      placeholder="Ex: Paciente reavaliado 30 minutos após oxigenoterapia e posicionamento em Fowler. Refere melhora da sensação de dispneia..."
+                      className="rounded-2xl text-xs border-[#1F3045] bg-[#0E1722] text-[#EAF2F8] min-h-[90px] focus:border-[#20D5B5] focus:ring-[#20D5B5]"
+                    />
+                  </div>
+                </div>
+
+                <div className="pt-3 border-t border-[#1F3045] flex items-center justify-between">
                   <Button
                     variant="outline"
                     onClick={() => setActiveStep(4)}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                    className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs py-3 px-5"
                   >
-                    <ArrowLeft className="h-4 w-4" /> Voltar para Implementação
+                    <ArrowLeft className="h-4 w-4" /> Voltar
                   </Button>
-                  <Button
+                  <button
+                    type="button"
                     onClick={handleSubmitEvaluation}
                     disabled={isEvaluating}
-                    className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-6 h-10 font-bold flex items-center gap-2 shadow-xs disabled:opacity-50"
+                    className="py-3 px-6 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black text-xs tracking-wide shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none transition-all flex items-center gap-2 disabled:opacity-50"
                   >
-                    <Check className="h-4 w-4" /> {isEvaluating ? "Avaliando Raciocínio..." : "Concluir Estudo de Caso"}
-                  </Button>
+                    <Check className="h-4 w-4" /> {isEvaluating ? "Avaliando..." : "Concluir estudo de caso"}
+                  </button>
                 </div>
               </div>
             )}
@@ -1735,6 +1634,7 @@ export default function CaseStudySimulator() {
       </main>
 
       <StudentFooter />
+      <MobileBottomDock />
     </div>
   );
 }

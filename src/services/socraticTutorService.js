@@ -10,7 +10,7 @@
  * 5. Conformidade com a LGPD: Sanitização de dados pré-inferência.
  */
 
-import { sanitizeTextForLGPD } from "@/lib/dlpSanitizer";
+import { sanitizeTextForLGPD } from "../lib/dlpSanitizer.js";
 
 import { callResilientAI } from "./aiCoreService.js";
 
@@ -71,19 +71,18 @@ export async function evaluateClinicalReasoning({
 
   const systemPrompt = `Você é o Goti IA, o enfermeiro digital especialista em Raciocínio Clínico e no Processo de Enfermagem (Resolução COFEN nº 736/2024 e Teoria das Necessidades Humanas Básicas) da plataforma Enfere.
 
-REGRAS PEDAGÓGICAS E DE PONTUAÇÃO CRITERIOSA:
-1. NUNCA dê a resposta final pronta de mão beijada.
-2. CRITÉRIO RIGOROSO DE NOTAS:
-   - DETECÇÃO RIGOROSA DE SPAM, GIBBERISH OU TEXTO SEM SENTIDO: Se qualquer campo enviado pelo estudante (hipótese, justificativa, evidências ou intervenções) contiver repetições de letras (ex: "aaaaa", "xxxx", "asdf"), palavras aleatórias ou texto desprovido de termos de enfermagem, ATRIBUA NOTA ZERO (0 a 10). Aponte explicitamente no feedback que a resposta não possui conteúdo assistencial válido.
-   - Resposta vazia, muito curta (menos de 20 caracteres) ou evasiva/genérica (ex: "dar remédio", "cuidar do paciente", "fazer curativo"): Atribua nota entre 0 e 25.
-   - Resposta com hipótese vaga sem justificar com sinais vitais reais do caso: Atribua nota entre 30 e 50.
-   - Resposta correta parcialmente (citou diagnóstico condizente mas esqueceu aprazamento, metas ou sinais vitais): Atribua nota entre 55 e 70.
-   - Resposta sólida (hipótese clínica correta, evidências do caso correlacionadas e cuidados seguros): Atribua nota entre 80 e 95.
-   - Nota 100% é reservada APENAS para raciocínios exemplares e completos de padrão ouro.
-   - TOLERÂNCIA ORTOGRÁFICA: Ignore pequenos erros de digitação, letras trocadas ou ausência de acentos (ex: "padrao respiratorio ineficaz" é plenamente aceito como correto). O foco é a semântica e a segurança clínica.
-3. Se o aluno acertou o foco, elogie a acurácia dos dados correlacionados e faça uma pergunta reflexiva sobre o risco futuro ou priorização de cuidados.
-4. Se o aluno errou, colocou texto sem sentido ou foi superficial, aponte explicitamente onde está o erro e por que a nota foi deduzida.
-5. Seja encorajador, ético e altamente científico com rigor didático.
+REGRAS PEDAGÓGICAS E DE PONTUAÇÃO CRITERIOSA (RESOLUÇÃO COFEN nº 736/2024):
+1. O Processo de Enfermagem é composto por 5 etapas indissociáveis (Coleta, Diagnóstico, Planejamento/Metas, Implementação/Prescrição e Evolução).
+2. REGRA MANDATÓRIA DE BLOQUEIO POR OMISSÃO DE ETAPAS:
+   - Se o estudante NÃO preencheu cuidados, metas e evolução (etapas 3, 4 e 5 ausentes ou "(Não preenchido)"), A NOTA MÁXIMA TOTAL NÃO PODE ULTRAPASSAR 25 PONTOS (Score entre 10 e 25). É TERMINANTEMENTE PROIBIDO atribuir notas como 50%, 60% ou 65% para formulações sem plano de cuidados!
+   - Se houver contradição clínica flagrante entre as evidências citadas e os sinais vitais reais do caso (ex: citar "bradipneia" quando o paciente tem FR > 20 taquipneico, ou citar "hipotensão" em paciente hipertenso), DEDUZA 10 a 15 pontos adicionais por erro iatrogênico de avaliação.
+3. CRITÉRIO RIGOROSO DE NOTAS:
+   - Spam, repetição de letras ou texto sem sentido: NOTA ZERO (0 a 10).
+   - Somente Diagnóstico e Evidências preenchidas, mas sem intervenções/metas: NOTA ENTRE 15 e 25 (Reprovado por Processo Incompleto).
+   - Diagnóstico correto com intervenções vagas sem aprazamento de horário ou metas: NOTA ENTRE 40 e 55.
+   - Diagnóstico correto, evidências coerentes e prescrições com aprazamento de horários: NOTA ENTRE 75 e 89.
+   - Excelência de padrão ouro em todas as 5 etapas com evolução e metas NOC quantificadas: NOTA ENTRE 90 e 100.
+4. Explique no campo "reasoningAnalysis" com total transparência o motivo da pontuação, detalhando a falta de intervenções e eventuais contradições encontradas.
 
 Retorne EXCLUSIVAMENTE um JSON válido com esta estrutura:
 {
@@ -247,13 +246,13 @@ function isGibberish(text) {
   if (!text || typeof text !== "string") return false;
   const clean = text.trim().toLowerCase();
   if (clean.length < 3) return false;
-  // Repetição contínua do mesmo caractere 3 ou mais vezes (ex: aaa, zzzz)
-  if (/(.)\1{2,}/i.test(clean)) return true;
-  // Baixíssima variedade de caracteres (ex: ababab, xxxx)
+  // Repetição contínua da mesma letra/número 4 ou mais vezes (ex: aaaa, zzzz, 9999)
+  if (/([a-z0-9])\1{3,}/i.test(clean)) return true;
+  // Sequência com menos de 4 caracteres únicos diferentes (ex: asdasdasd, abababab, qwqwqw)
   const lettersOnly = clean.replace(/[^a-z0-9]/g, "");
-  if (lettersOnly.length >= 5) {
+  if (lettersOnly.length >= 8) {
     const uniqueCount = new Set(lettersOnly).size;
-    if (uniqueCount <= 2 || (uniqueCount / lettersOnly.length) < 0.25) return true;
+    if (uniqueCount <= 3) return true;
   }
   return false;
 }
@@ -325,26 +324,26 @@ function generateHeuristicFeedback(caseData, hypothesis, justification, interven
   const gaps = [];
   const scoreBreakdown = [];
 
-  // EIXO 1: Diagnóstico / Taxonomia (0 a 30 pontos)
+  // EIXO 1: Diagnóstico / Taxonomia NANDA-I (Etapa 2 - até 25 pontos)
   const isGenericHypothesis = normHypothesis.length < 8 || ["dor", "doente", "ruim", "mal", "cuidar", "paciente"].includes(normHypothesis);
-  const hasTaxonomyKeywords = /risco|padrao|troca|gas|integridade|pele|perfusao|volume|liquido|glicemia|infeccao|mobilidade|ansiedade|ventilac|respirat/i.test(normHypothesis);
+  const hasTaxonomyKeywords = /risco|padrao|troca|gas|integridade|pele|perfusao|volume|liquido|glicemia|infeccao|mobilidade|ansiedade|ventilac|respirat|desobstru|choque|dor/i.test(normHypothesis);
 
   if (hasTaxonomyKeywords || normHypothesis.length >= 15) {
-    score += 30;
-    scoreBreakdown.push("Diagnóstico clínico bem delineado (+30 pts)");
+    score += 25;
+    scoreBreakdown.push("Diagnóstico clínico bem delineado (+25 pts)");
     strengths.push("Formulou uma hipótese diagnóstica coerente e contextualizada.");
   } else if (!isGenericHypothesis && normHypothesis.length >= 8) {
-    score += 18;
-    scoreBreakdown.push("Diagnóstico parcialmente estruturado (+18 pts)");
+    score += 15;
+    scoreBreakdown.push("Diagnóstico parcialmente estruturado (+15 pts)");
     strengths.push("Identificou a área clínica prioritária.");
     gaps.push("Refine o título diagnóstico utilizando termos padronizados (ex: NANDA-I ou CIPE).");
   } else {
     score += 5;
-    scoreBreakdown.push("Diagnóstico genérico (+5 pts)");
+    scoreBreakdown.push("Diagnóstico genérico ou vago (+5 pts)");
     gaps.push("O diagnóstico proposto foi excessivamente vago.");
   }
 
-  // EIXO 2: Justificativa & Correlação com Sinais Vitais (0 a 35 pontos)
+  // EIXO 2: Justificativa & Evidências Clínicas (Etapa 2 - até 25 pontos)
   const hasVitalsPa = /press[aã]o|pa|\d{2,3}\s*\/\s*\d{2,3}|normotens|hipertens/i.test(justification);
   const hasVitalsSat = /sat|satura[cç][aã]o|oxigen|spo2|hipox/i.test(justification);
   const hasVitalsFc = /fc|frequ[eê]ncia|bpm|card[ií]ac|pulso|taquicard/i.test(justification);
@@ -353,56 +352,78 @@ function generateHeuristicFeedback(caseData, hypothesis, justification, interven
   const vitalsMatches = [hasVitalsPa, hasVitalsSat, hasVitalsFc, hasExamFinding].filter(Boolean).length;
 
   if (vitalsMatches >= 3) {
-    score += 35;
-    scoreBreakdown.push("Fundamentação robusta com múltiplos sinais vitais (+35 pts)");
+    score += 25;
+    scoreBreakdown.push("Fundamentação robusta com múltiplos sinais vitais (+25 pts)");
     strengths.push("Correlacionou o raciocínio com diversos dados objetivos do exame físico.");
   } else if (vitalsMatches >= 1) {
-    score += 20;
-    scoreBreakdown.push("Fundamentação parcial de sinais vitais (+20 pts)");
+    score += 15;
+    scoreBreakdown.push("Fundamentação parcial de sinais vitais (+15 pts)");
     strengths.push("Mencionou parâmetros vitais do caso na justificativa.");
     gaps.push("Aprofunde a correlação citando outros sinais vitais alterados (ex: PA, SatO2, FC).");
   } else if (normJustification.length > 25) {
-    score += 10;
-    scoreBreakdown.push("Argumentação descritiva sem dados numéricos (+10 pts)");
+    score += 8;
+    scoreBreakdown.push("Argumentação descritiva sem dados numéricos (+8 pts)");
     gaps.push("A justificativa não citou parâmetros numéricos objetivos dos sinais vitais.");
   } else {
-    scoreBreakdown.push("Justificativa ausente ou insuficiente (0 pts)");
+    scoreBreakdown.push("Justificativa e evidências ausentes (0 pts)");
     gaps.push("Faltou fundamentar a etiologia e as características definidoras observadas.");
   }
 
-  // EIXO 3: Prescrições / Intervenções e Metas de Segurança (0 a 35 pontos)
-  const hasTiming = /h|hora|\d{1,2}:\d{2}|de \d+ em \d+|minuto|aprazamento|plantao|turno/i.test(interventions + " " + justification);
-  const hasSpecificAction = /administrar|oxigenio|posicion|decurbito|grade|balanco|glicemia|curativo|monitor|ausculta|aspirar/i.test(interventions + " " + justification);
+  // EIXO 3: Prescrição de Cuidados NIC & Metas NOC (Etapas 3 e 4 - até 50 pontos)
+  const hasTiming = /h|hora|\d{1,2}:\d{2}|de \d+ em \d+|minuto|aprazamento|plantao|turno/i.test(interventions);
+  const hasSpecificAction = /administrar|oxigenio|posicion|decurbito|grade|balanco|glicemia|curativo|monitor|ausculta|aspirar/i.test(interventions);
 
-  if (hasTiming && hasSpecificAction) {
-    score += 35;
-    scoreBreakdown.push("Intervenções com aprazamento e condutas seguras (+35 pts)");
+  if (hasTiming && hasSpecificAction && normInterventions.length >= 35) {
+    score += 50;
+    scoreBreakdown.push("Intervenções completas com aprazamento de horário e condutas seguras (+50 pts)");
     strengths.push("Prescreveu intervenções de enfermagem com aprazamento e foco preventivo.");
-  } else if (hasSpecificAction || normInterventions.length > 20) {
-    score += 20;
-    scoreBreakdown.push("Intervenções identificadas sem horários claros (+20 pts)");
+  } else if (hasSpecificAction || normInterventions.length >= 20) {
+    score += 25;
+    scoreBreakdown.push("Intervenções identificadas porém sem aprazamento de horários (+25 pts)");
     strengths.push("Definiu ações assistenciais voltadas ao problema principal.");
     gaps.push("Defina o aprazamento das condutas (ex: monitorar de 2 em 2 horas, checar saturação a cada 30 min).");
   } else {
-    scoreBreakdown.push("Prescrição de enfermagem ausente ou vaga (0 pts)");
-    gaps.push("Indique condutas prioritárias e metas terapêuticas para a equipe de enfermagem.");
+    scoreBreakdown.push("Processo de Enfermagem Incompleto: Prescrição de cuidados ausente (0 pts)");
+    gaps.push("Omissão grave: o estudante não prescreveu cuidados (NIC) nem estabeleceu metas terapêuticas (NOC).");
   }
 
-  const finalScore = Math.max(15, Math.min(100, score));
+  // TRAVA MANDATÓRIA COFEN nº 736/2024: Se não preencheu prescrição/intervenções, nota MÁXIMA é 25%
+  const hasNoInterventions = normInterventions.length < 15;
+  if (hasNoInterventions) {
+    score = Math.min(score, 25);
+    scoreBreakdown.push("Trava COFEN 736/2024: Caso sem prescrição de cuidados não pode ultrapassar 25% da nota global.");
+  }
+
+  // DETECÇÃO DE CONTRADIÇÕES CLÍNICAS GRAVES (Penalização rigorosa)
+  const caseFr = caseData.vitals?.fr || 0;
+  if (caseFr > 20 && /bradipneia|fr\s*<\s*1[02]/i.test(justification)) {
+    score = Math.max(5, score - 15);
+    scoreBreakdown.push("Contradição clínica grave: citou bradipneia para paciente com taquipneia de " + caseFr + " irpm (-15 pts)");
+    gaps.push("Atenção crítica: você selecionou 'bradipneia', mas o paciente apresenta taquipneia real.");
+  }
+
+  const casePa = caseData.vitals?.pa_sistolica || 0;
+  if (casePa >= 140 && /hipotens[aã]o|choque hipovol/i.test(justification)) {
+    score = Math.max(5, score - 10);
+    scoreBreakdown.push("Contradição clínica: citou hipotensão para paciente com PAS elevada de " + casePa + " mmHg (-10 pts)");
+    gaps.push("Incoerência pressórica: o paciente está hipertenso, e não hipotenso.");
+  }
+
+  const finalScore = Math.max(5, Math.min(100, score));
   const reasoningAnalysis = `Sua pontuação foi de ${finalScore}/100 baseada na auditoria do Goti:\n• ${scoreBreakdown.join("\n• ")}\n\n${
     finalScore >= 80
-      ? "Excelente julgamento clínico! Você demonstrou sólida capacidade de correlação fisiopatológica."
+      ? "Excelente julgamento clínico! Você demonstrou sólida capacidade de correlação fisiopatológica e completude nas 5 etapas do Processo de Enfermagem."
       : finalScore >= 50
-      ? "Bom início de raciocínio, mas há pontos cegos assistenciais que precisam ser aprimorados."
-      : "Atenção: A formulação foi superficial ou omitiu dados fundamentais de segurança do paciente."
+      ? "Bom início de raciocínio, mas há pontos cegos assistenciais ou falta de aprazamento de condutas."
+      : "Atenção: A formulação foi insuficiente, incompleta ou apresentou contradições clínicas graves perante o exame físico."
   }`;
 
   return {
     score: finalScore,
     overallScore: finalScore,
-    feedbackTitle: finalScore >= 80 ? "Julgamento Clínico Assertivo" : finalScore >= 50 ? "Julgamento Clínico em Desenvolvimento" : "Risco Assistencial Identificado",
+    feedbackTitle: finalScore >= 80 ? "Julgamento Clínico Assertivo" : finalScore >= 50 ? "Julgamento Clínico em Desenvolvimento" : "Processo de Enfermagem Incompleto / Risco Assistencial",
     reasoningAnalysis,
-    reflectiveQuestion: `Considerando o diagnóstico de "${hypothesis || 'enfermagem'}" e a fisiopatologia do caso ${caseData.title || ''}, qual intervenção imediata previne descompensação nas próximas horas?`,
+    reflectiveQuestion: `Considerando o diagnóstico de "${hypothesis || 'enfermagem'}" e a fisiopatologia deste caso, qual intervenção privativa imediata previne descompensação nas próximas horas?`,
     pointsToConsider: [
       "Verificar sinais vitais em intervalos rigorosos conforme o risco clínico",
       "Garantir a implementação das metas com prazos bem definidos de reavaliação",

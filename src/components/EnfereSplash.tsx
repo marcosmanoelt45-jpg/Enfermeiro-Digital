@@ -31,51 +31,51 @@ export interface EnfereSplashProps {
 const FONT = '"Baloo 2","Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif';
 
 const CSS = `
-.enfere-splash{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#1B6DB5;font-family:${FONT};user-select:none;-webkit-user-select:none;touch-action:manipulation;box-sizing:border-box}
+.enfere-splash{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#0B131D;font-family:${FONT};user-select:none;-webkit-user-select:none;touch-action:manipulation;box-sizing:border-box}
 .enfere-splash *{box-sizing:border-box;margin:0}
 .enfere-splash .es-bg,.enfere-splash .es-paper,.enfere-splash .es-rings{position:absolute;top:0;right:0;bottom:0;left:0}
-.enfere-splash .es-bg{background:#1B6DB5}
-.enfere-splash .es-paper{background:#F6FAFE;clip-path:circle(0% at 50% 50%)}
+.enfere-splash .es-bg{background:#0B131D}
+.enfere-splash .es-paper{background:#0E1720;clip-path:circle(0% at 50% 50%)}
 .enfere-splash .es-rings{display:grid;place-items:center;pointer-events:none}
-.enfere-splash .es-rings i{grid-area:1/1;width:130px;height:130px;border-radius:50%;border:5px solid #CFE8FB;opacity:0}
-.enfere-splash .es-mark{position:absolute;left:0;right:0;bottom:calc(2.2rem + env(safe-area-inset-bottom,0px));text-align:center;font-size:2.3rem;font-weight:800;color:#fff;opacity:.5}
+.enfere-splash .es-rings i{grid-area:1/1;width:130px;height:130px;border-radius:50%;border:4px solid #20D5B5;opacity:0}
+.enfere-splash .es-mark{position:absolute;left:0;right:0;bottom:calc(2.2rem + env(safe-area-inset-bottom,0px));text-align:center;font-size:2.3rem;font-weight:800;color:#20D5B5;opacity:.35}
 .enfere-splash .es-c1{position:absolute;top:0;right:0;bottom:0;left:0;display:grid;place-items:center;pointer-events:none}
-.enfere-splash .es-g1{width:min(68vw,290px);transform-origin:50% 50%;transform:translateY(0px) scale(.7);filter:brightness(.7)}
+.enfere-splash .es-g1{width:min(68vw,290px);transform-origin:50% 50%;transform:translateY(0px) scale(.7);filter:brightness(.8)}
 .enfere-splash .es-g1 svg{display:block;width:100%;overflow:visible}
-.enfere-splash .es-c2{position:absolute;left:0;right:0;top:34%;transform:translateY(-50%);display:flex;justify-content:center;pointer-events:none}
-.enfere-splash .es-g2{position:relative;width:min(62vw,250px,34vh);aspect-ratio:1/1;opacity:0;transform-origin:50% 92%}
+.enfere-splash .es-c2{position:absolute;left:0;right:0;top:32%;transform:translateY(-50%);display:flex;justify-content:center;pointer-events:none}
+.enfere-splash .es-g2{position:relative;width:min(64vw,260px,36vh);aspect-ratio:1/1;opacity:0;transform-origin:50% 92%}
 .enfere-splash .es-wave-canvas{display:block;width:100%;height:100%;object-fit:contain;position:relative}
 .enfere-splash .es-wave-fallback{display:none;width:100%;height:100%;object-fit:contain;position:relative}
-.enfere-splash .es-sh{position:absolute;left:12%;right:12%;bottom:1%;height:7%;border-radius:50%;background:radial-gradient(closest-side,rgba(20,80,140,.24),rgba(20,80,140,0));opacity:0}
+.enfere-splash .es-sh{position:absolute;left:14%;right:14%;bottom:1%;height:7%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.6),rgba(0,0,0,0));opacity:0}
 .enfere-splash .pu{transition:transform .22s cubic-bezier(.3,1.4,.5,1)}
 .enfere-splash .eye{transform-box:fill-box;transform-origin:center;transition:transform 110ms ease-in-out,opacity 90ms}
 .enfere-splash .blink .eye{transform:scaleY(.08)}
 .enfere-splash .arc{opacity:0;transition:opacity 90ms}
 .enfere-splash .happy .eye{opacity:0}
 .enfere-splash .happy .arc{opacity:1}
-.enfere-splash .es-ttl{position:absolute;left:0;right:0;top:55%;text-align:center;font-size:3rem;font-weight:800;color:#3AA5EE;line-height:1;opacity:0}
-.enfere-splash .es-tag{position:absolute;left:0;right:0;top:55%;margin-top:3.4rem;text-align:center;font-size:1rem;font-weight:600;color:#5B6B7B;opacity:0;padding:0 16px}
-.enfere-splash .es-btns{position:absolute;left:0;right:0;bottom:0;max-width:480px;margin:0 auto;padding:0 22px calc(22px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:10px;opacity:0;pointer-events:none}
+.enfere-splash .es-ttl{position:absolute;left:0;right:0;top:53%;text-align:center;font-size:3.2rem;font-weight:900;color:#20D5B5;letter-spacing:-0.03em;line-height:1;opacity:0;text-shadow:0 0 30px rgba(32,213,181,0.25)}
+.enfere-splash .es-tag{position:absolute;left:0;right:0;top:53%;margin-top:3.6rem;text-align:center;font-size:1.05rem;font-weight:600;color:#9FB3C6;opacity:0;padding:0 20px}
+.enfere-splash .es-btns{position:absolute;left:0;right:0;bottom:0;max-width:440px;margin:0 auto;padding:0 22px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;opacity:0;pointer-events:none}
 .enfere-splash.es-ready .es-btns{pointer-events:auto}
-.enfere-splash .es-btns button{font:800 .95rem ${FONT};letter-spacing:.04em;text-transform:uppercase;border-radius:16px;padding:14px;cursor:pointer;border:0;border-bottom:4px solid #2379BD;background:#3AA5EE;color:#fff;transition:transform 120ms ease, filter 120ms ease}
-.enfere-splash .es-btns button+button{background:#fff;color:#2379BD;border:2px solid #DCE6F0;border-bottom-width:4px}
-.enfere-splash .es-btns button:hover{filter:brightness(1.05)}
-.enfere-splash .es-btns button:active{transform:translateY(2px);border-bottom-width:2px}
-.enfere-splash .es-btns button:focus-visible{outline:3px solid #7CC4F5;outline-offset:2px}
-.enfere-splash .es-skip-hint{position:absolute;top:calc(1rem + env(safe-area-inset-top,0px));right:1rem;font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.7);background:rgba(0,0,0,0.2);padding:4px 10px;border-radius:999px;opacity:0;transition:opacity 300ms ease;cursor:pointer;pointer-events:auto}
+.enfere-splash .es-btns button{font:800 1rem ${FONT};letter-spacing:.02em;border-radius:18px;padding:15px;cursor:pointer;border:0;border-bottom:5px solid #149F86;background:#20D5B5;color:#06302E;transition:transform 120ms ease, filter 120ms ease, border-width 120ms ease;box-shadow:0 4px 14px rgba(32,213,181,0.25)}
+.enfere-splash .es-btns button+button{background:#16222E;color:#EAF2F8;border:2px solid #27394B;border-bottom:5px solid #0A1118;box-shadow:0 4px 14px rgba(0,0,0,0.3)}
+.enfere-splash .es-btns button:hover{filter:brightness(1.06)}
+.enfere-splash .es-btns button:active{transform:translateY(3px);border-bottom-width:2px}
+.enfere-splash .es-btns button:focus-visible{outline:3px solid #20D5B5;outline-offset:2px}
+.enfere-splash .es-skip-hint{position:absolute;top:calc(1rem + env(safe-area-inset-top,0px));right:1rem;font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.7);background:rgba(22,34,46,0.8);border:1px solid rgba(255,255,255,0.1);padding:4px 12px;border-radius:999px;opacity:0;transition:opacity 300ms ease;cursor:pointer;pointer-events:auto}
 .enfere-splash.es-playing .es-skip-hint{opacity:1}
 @media (min-width: 768px) {
-  .enfere-splash .es-g1 { width: min(45vw, 380px); }
-  .enfere-splash .es-c2 { top: 35%; }
-  .enfere-splash .es-g2 { width: clamp(320px, 28vw, 420px); max-height: 45vh; }
-  .enfere-splash .es-ttl { top: 58%; font-size: 3.5rem; }
-  .enfere-splash .es-tag { top: 58%; margin-top: 4.1rem; font-size: 1.2rem; }
-  .enfere-splash .es-btns { bottom: 30px; max-width: 500px; }
+  .enfere-splash .es-g1 { width: min(40vw, 360px); }
+  .enfere-splash .es-c2 { top: 34%; }
+  .enfere-splash .es-g2 { width: clamp(280px, 24vw, 380px); max-height: 44vh; }
+  .enfere-splash .es-ttl { top: 56%; font-size: 3.6rem; }
+  .enfere-splash .es-tag { top: 56%; margin-top: 4.2rem; font-size: 1.25rem; }
+  .enfere-splash .es-btns { bottom: 40px; max-width: 440px; }
   .enfere-splash .es-btns button { font-size: 1.05rem; padding: 16px; }
 }
 @media (min-width: 1280px) {
-  .enfere-splash .es-g2 { width: clamp(360px, 26vw, 460px); max-height: 48vh; }
-  .enfere-splash .es-ttl { font-size: 3.8rem; }
+  .enfere-splash .es-g2 { width: clamp(300px, 22vw, 400px); max-height: 46vh; }
+  .enfere-splash .es-ttl { font-size: 4rem; }
 }
 `;
 
@@ -276,7 +276,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   // Pular ou reduzir movimento: vai direto ao estado final com Goti pronto
   const toEnd = () => {
     clearAll();
-    bg.style.background = "#3AA5EE";
+    bg.style.background = "#0E1720";
     paper.style.clipPath = "circle(150% at 50% 50%)";
     mark.style.opacity = "0";
     g1.style.opacity = "0";
@@ -295,74 +295,51 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
       return;
     }
 
-    // 0s: Olhos pequenos no fundo azul respirando
-    A(g1, [{ transform: tf(0.7) }, { transform: tf(0.74) }, { transform: tf(0.7) }], { duration: 900 });
+    // 0s: Olhos com brilho total
+    A(bg, [{ background: "#0B131D" }, { background: "#0E1720" }], { duration: 180 });
+    A(mark, [{ opacity: 0.35 }, { opacity: 0.8 }], { duration: 180 });
+    A(g1, [{ transform: tf(0.9), filter: "brightness(.9)" }, { transform: tf(1), filter: "brightness(1)" }], { duration: 220, easing: SPR });
 
-    // 0,9s: O fundo acende para #3AA5EE e os olhos ganham brilho total
-    at(900, () => {
-      A(bg, [{ background: "#1B6DB5" }, { background: "#3AA5EE" }], { duration: 500 });
-      A(mark, [{ opacity: 0.5 }, { opacity: 1 }], { duration: 400 });
-      A(g1, [{ transform: tf(0.7), filter: "brightness(.7)" }, { transform: tf(1), filter: "brightness(1)" }], { duration: 560, easing: SPR });
-    });
+    // Olhos olham para a esquerda e para a direita uma única vez (corte direto)
+    at(200, () => look(-18, 2));
+    at(550, () => look(18, 2));
 
-    // Olhos olham ao redor e piscam
-    at(1450, () => look(-17, 3));
-    at(1900, () => look(17, 3));
-    at(2350, () => look(0, -16));
-    at(2750, () => look(0, 0));
-    at(2950, blink);
-
-    // 3,5s: Olhos felizes (^ ^) com pulinho alegre
-    at(3500, () => {
-      g1.classList.add("happy");
-      A(g1, [
-        { transform: tf(1) },
-        { transform: "translateY(6px) scale(1.06,.9)", offset: 0.3 },
-        { transform: tf(1, -12), offset: 0.62 },
-        { transform: tf(1) },
-      ], { duration: 600, easing: "ease-out" });
-    });
-
-    // 4,4s: Os olhos encolhem suavemente até virar um pontinho luminoso
-    at(4400, () => {
+    // ~0,85s: Os olhos encolhem suavemente até virar o ponto luminoso (< 1 segundo)
+    at(850, () => {
       A(g1, [
         { transform: tf(1), opacity: 1 },
-        { transform: tf(1.12), opacity: 1, offset: 0.25 },
+        { transform: tf(1.08), opacity: 1, offset: 0.2 },
         { transform: tf(0.03), opacity: 1, offset: 0.95 },
         { transform: tf(0.03), opacity: 0 },
-      ], { duration: 520, easing: "cubic-bezier(.6,0,.9,.4)" });
-      A(mark, [{ opacity: 1 }, { opacity: 0 }], { duration: 300 });
+      ], { duration: 300, easing: "cubic-bezier(.6,0,.9,.4)" });
+      A(mark, [{ opacity: 1 }, { opacity: 0 }], { duration: 180 });
     });
 
-    // 4,9s: O pontinho vira um círculo branco que se expande com ondas
-    at(4920, () => {
-      A(paper, [{ clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(150% at 50% 50%)" }], { duration: 850, easing: "cubic-bezier(.65,0,.2,1)" });
+    // 1,1s: O pontinho vira o círculo que se expande
+    at(1100, () => {
+      A(paper, [{ clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(150% at 50% 50%)" }], { duration: 600, easing: "cubic-bezier(.65,0,.2,1)" });
       rings.forEach((r, i) =>
-        A(r, [{ opacity: 0.9, transform: "scale(.4)" }, { opacity: 0, transform: "scale(8)" }], { duration: 1000, delay: i * 140, easing: "cubic-bezier(.2,.7,.2,1)" }));
+        A(r, [{ opacity: 0.9, transform: "scale(.4)" }, { opacity: 0, transform: "scale(8)" }], { duration: 750, delay: i * 90, easing: "cubic-bezier(.2,.7,.2,1)" }));
     });
 
-    // 5,45s: Tela já branca — o Goti salta com squash & stretch e começa a acenar em Ultra HD
-    at(5450, () => {
+    // 1,4s: O Goti surge acenando
+    at(1400, () => {
       g2.style.opacity = "1";
       startCanvasLoop();
 
       A(g2, [
-        { opacity: 0, transform: "translateY(70px) scale(.92,1.1)" },
-        { opacity: 1, transform: "translateY(-18px) scale(.97,1.05)", offset: 0.3 },
-        { opacity: 1, transform: "translateY(0) scale(1.06,.93)", offset: 0.55 },
-        { opacity: 1, transform: "translateY(-5px) scale(.99,1.02)", offset: 0.75 },
+        { opacity: 0, transform: "translateY(50px) scale(.95,1.05)" },
+        { opacity: 1, transform: "translateY(-12px) scale(.98,1.03)", offset: 0.35 },
         { opacity: 1, transform: "none" },
-      ], { duration: 900, easing: "cubic-bezier(.33,0,.2,1)" });
+      ], { duration: 600, easing: "cubic-bezier(.33,0,.2,1)" });
 
       A(sh, [
         { opacity: 0, transform: "scale(.3)" },
-        { opacity: 0, transform: "scale(.3)", offset: 0.25 },
-        { opacity: 1, transform: "scale(1.12)", offset: 0.55 },
         { opacity: 1, transform: "scale(1)" },
-      ], { duration: 900 });
+      ], { duration: 600 });
     });
 
-    at(5950, ready);
+    at(1800, ready);
   };
 
   const onPointerDown = (e: MouseEvent | TouchEvent) => {

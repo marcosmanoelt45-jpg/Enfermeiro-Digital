@@ -40,3 +40,48 @@ Sempre que implementar login ou cadastro social via OAuth (Google, GitHub, etc.)
 2. Não tente fazer `fetch(data.url)` na rota `/auth/v1/authorize`, pois o Supabase não envia cabeçalhos CORS para origens locais nessa rota.
 3. Consulte o endpoint oficial `${supabaseUrl}/auth/v1/settings` com o cabeçalho `apikey: ${supabaseAnonKey}`.
 4. Se `settings.external[provider] !== true`, cancele o redirecionamento, lance o erro com código `PROVIDER_DISABLED` e apresente um modal na interface com instruções de configuração e a Redirect URI autorizada (`${supabaseUrl}/auth/v1/callback`).
+
+## Golden Architecture Context & Memory Manifesto (Memória Canônica)
+
+Este manifesto é a **Fonte Única da Verdade (SSOT)** do projeto Enfermeiro Digital para todos os agentes. Ele define o que é essencial, o que está ativo e o que foi descontinuado:
+
+### 1. Pilares Essenciais Ativos (Os 6 Módulos Oficiais)
+1. **Hub do Estudante**: `src/pages/StudentDashboard.jsx` + `src/components/mobile/MobileBottomDock.jsx` + `src/components/mobile/EnfereVivoTrail.jsx`.
+2. **Goti Preceptor & IA Socrática**: `src/components/mascot/GotiAnimated.jsx` + `src/components/mascot/GotiChatDrawer.jsx` + `src/services/gotiPreceptorService.js` + `src/services/socraticTutorService.js` + áudios clínicos em `public/`.
+3. **Simulador de Casos Clínicos**: `src/pages/CaseStudySimulator.jsx` + `src/pages/CaseStudio.jsx` + `src/pages/CaseLibrary.jsx` (NANDA, NIC, NOC, raciocínio diagnóstico e evolução).
+4. **Plantão SBAR**: `src/pages/SbarHandoffLab.jsx` + `src/services/sbarTutorService.js` (comunicação interprofissional, gravação de áudio e transcrição).
+5. **Cálculo de Doses & Soluções**: `src/pages/MedicationDosageLab.jsx` + `src/data/medicationCatalog.js` (regras de três, gotejamento macrogotas/microgotas, diluições críticas).
+6. **Laboratório de Procedimentos (Skills Lab)**: `src/pages/ProcedimentosLab.jsx` + `src/services/procedureService.js` + `src/services/procedurePreviews.js` (checklists operacionais, POPs e validação de passos).
+
+### 2. Infraestrutura & Serviços Canônicos
+- **Frontend**: React 18 + Vite + TailwindCSS v3 + Radix UI + Lucide React + Framer Motion.
+- **Autenticação & Perfis**: Supabase (`src/services/supabaseClient.js`, `src/services/authService.js`, `src/lib/AuthContext.jsx`).
+- **Backend & Plataforma**: Base44 (`src/api/base44Client.js`, CLI `base44 dev`).
+- **Serviços de IA**: Usar sempre `src/services/aiCoreService.js` e os tutores especializados (`gotiPreceptorService.js`, `sbarTutorService.js`). Evitar acoplar novas features ao monólito legado `aiService.js`.
+
+### 3. Módulos & Ativos Descontinuados (NÃO reutilizar ou sugerir)
+- `/sistemas-organicos` e `SystemsAssessmentLab.jsx`: Descontinuado (redirecionado para `/`).
+- `/turmas`, `Turmas.jsx`, `TurmaDetail.jsx`: Rotas educacionais legadas redirecionadas para `/`.
+### 4. Diretrizes de Qualidade Sênior
+- **Zero Linter Warnings/Errors**: Toda modificação de código DEVE passar por `npm run lint` e `npm run typecheck` sem falhas.
+- **Respostas em Português do Brasil**: Manter sempre comunicação e interfaces em PT-BR.
+- **Mobile-First Tátil**: Preservar a experiência responsiva e feedback tátil (haptic, botões 3D que afundam, dock inferior no mobile).
+
+### 5. Ecossistema Multi-Agente (Padrão Claude Code / Hub-and-Spoke)
+
+O desenvolvimento e a manutenção do Enfermeiro Digital operam através de uma arquitetura multi-agente hierárquica baseada no padrão Orchestrator-Worker da Anthropic / Claude Code:
+- **Agente Global (Orquestrador Lead)**: Ponto único de contato com o desenvolvedor. Responsável pelo plano de controle, decomposição atômica de tarefas, seleção e despacho de subagentes especialistas, sem poluir a janela de contexto principal com ruído operacional. Subagentes **nunca se comunicam diretamente entre si**, passando todo dado e resultado pelo Orquestrador.
+- **Suíte de 8 Subagentes Especialistas** (definidos em `.agents/plugins/enfermeiro-digital-subagents/agents/`):
+  1. `subagent-goti-ai`: Preceptor Clínico Goti, IA socrática, estados do mascote e áudios clínicos.
+  2. `subagent-clinical-cases`: Simulador de Casos Clínicos, NANDA-I, NIC, NOC, raciocínio diagnóstico e evolução da SAE.
+  3. `subagent-sbar-handoff`: Passagem de plantão SBAR, gravação/transcrição de áudio e comunicação interprofissional.
+  4. `subagent-dosage-calc`: Cálculo de doses, soluções, fórmulas de gotejamento, BIC e farmacologia clínica.
+  5. `subagent-skills-lab`: Procedimentos Operacionais Padrão (POPs), checklists cirúrgicos/clínicos e biossegurança.
+  6. `subagent-student-hub`: Dashboard do Estudante, UI Mobile-First, navegação inferior tátil (dock) e acessibilidade WCAG.
+  7. `subagent-infra-backend`: Supabase Auth (OAuth Pre-Flight Protection), Base44 SDK e variáveis de ambiente.
+  8. `subagent-qa-guardian`: Auditoria de qualidade, execução mandatória de `npm run lint` e `npm run typecheck`, prevenindo bugs antes da entrega.
+- **Workflows e Regras**:
+  - Regra de orquestração: `.agents/rules/subagent-orchestrator.md`
+  - Workflow de invocação: `.agents/workflows/orquestrador.md` e `/agente`
+
+
