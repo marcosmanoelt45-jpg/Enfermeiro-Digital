@@ -22,12 +22,26 @@ const testes = [
   { entrada: "higienizar as mãos com água e sabão", esperado: true, desc: "Higienizar as mãos com complemento" },
   { entrada: "higiene das mãos", esperado: true, desc: "Substantivo higiene" },
   { entrada: "colocar as luvas direto", esperado: false, desc: "Resposta incorreta sem higiene" },
-  { entrada: "aplicar injeção", esperado: false, desc: "Resposta completamente fora" }
+  { entrada: "aplicar injeção", esperado: false, desc: "Resposta completamente fora" },
+  { entrada: "passar álcool 70 no conector", esperado: true, desc: "Desinfecção de conector com álcool 70" },
+  { entrada: "antissepsia do hub com álcool a setenta", esperado: true, desc: "Antissepsia do hub com setenta por extenso" },
+  { entrada: "fricção alcoólica no conector", esperado: true, desc: "Fricção alcoólica no conector" },
+  { entrada: "limpar o hub com álcool", esperado: true, desc: "Limpar o hub com álcool" }
+];
+
+const aceitasTeresinha = [
+  "antissepsia do hub",
+  "antissepsia de hub",
+  "antissepsia do conector",
+  "desinfeccao com alcool 70",
+  "desinfeccao do hub",
+  "limpar conector com alcool"
 ];
 
 let falhas = 0;
 for (const t of testes) {
-  const obtido = validarRespostaFalada(t.entrada, aceitasBiosseguranca);
+  const lista = t.desc.includes("hub") || t.desc.includes("conector") ? aceitasTeresinha : aceitasBiosseguranca;
+  const obtido = validarRespostaFalada(t.entrada, lista);
   if (obtido === t.esperado) {
     console.log(`✅ SUCESSO: "${t.entrada}" => ${obtido} (${t.desc})`);
   } else {

@@ -212,103 +212,182 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
 }
 
 /**
- * Inicia o reconhecimento de voz contínuo do estudante via Web Speech API.
- * Sem nenhuma resposta mockada ou exemplo pré-programado.
+ * Inicia a captura de áudio Dual-Engine do estudante:
+ * 1. Solicita permissão explícita via navigator.mediaDevices.getUserMedia
+ * 2. Grava o áudio binário em paralelo via MediaRecorder (garantia de fallback com IA)
+ * 3. Executa transcrição em tempo real com Web Speech API com auto-restart em silêncio
  *
  * @param {Object} options
  * @param {Function} [options.onInterim] (parcial: string) => void
  * @param {Function} [options.onFinal] (completo: string) => void
  * @param {Function} [options.onError] (erro: string) => void
  * @param {Function} [options.onEnd] () => void
- * @returns {{ stop: () => void }}
+ * @returns {Promise<{ stop: () => Promise<{ text: string, audioBlob: Blob | null }> }>}
  */
-export function iniciarReconhecimentoVoz(options = {}) {
+export async function iniciarReconhecimentoVoz(options = {}) {
   const { onInterim, onFinal, onError, onEnd } = options;
 
+  let stream = null;
+  let mediaRecorder = null;
+  const audioChunks = [];
+  let isRecording = true;
+  let transcriptAcumulada = "";
+  let latestTextoExibicao = "";
+  let recognition = null;
+
+  // 1. Solicita permissão explícita de hardware de áudio via getUserMedia
+  try {
+    if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
+      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    }
+  } catch (err) {
+    console.warn("getUserMedia falhou ou foi bloqueado:", err);
+    const isDenied = err.name === "NotAllowedError" || err.name === "PermissionDeniedError";
+    const msg = isDenied
+      ? "Permissão de microfone negada. Autorize no ícone de cadeado do navegador ou clique em 'Prefiro digitar'."
+      : "Não foi possível conectar ao microfone. Verifique as configurações de áudio do dispositivo.";
+    if (onError) onError(msg);
+    if (onEnd) onEnd();
+    return {
+      stop: async () => ({ text: "", audioBlob: null })
+    };
+  }
+
+  // 2. Inicializa MediaRecorder em paralelo (para capturar o áudio real)
+  if (stream && typeof MediaRecorder !== "undefined") {
+    try {
+      const types = ["audio/webm", "audio/mp4", "audio/ogg", "audio/wav"];
+      const mimeType = types.find((t) => {
+        try {
+          return MediaRecorder.isTypeSupported?.(t);
+        } catch {
+          return false;
+        }
+      });
+      mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
+      mediaRecorder.ondataavailable = (e) => {
+        if (e.data && e.data.size > 0) {
+          audioChunks.push(e.data);
+        }
+      };
+      mediaRecorder.start(200);
+    } catch (e) {
+      console.warn("MediaRecorder não pôde ser iniciado:", e);
+    }
+  }
+
+  // 3. Inicializa Web Speech API com auto-restart controlado por isRecording
   const SpeechRecognition =
     typeof window !== "undefined" &&
     (window.SpeechRecognition || window.webkitSpeechRecognition);
 
-  if (!SpeechRecognition) {
-    if (onError) onError("Microfone não suportado neste navegador. Utilize a opção 'Prefiro digitar'.");
-    if (onEnd) onEnd();
-    return { stop: () => {} };
+  if (SpeechRecognition) {
+    try {
+      recognition = new SpeechRecognition();
+      recognition.lang = "pt-BR";
+      recognition.interimResults = true;
+      recognition.maxAlternatives = 1;
+      recognition.continuous = true;
+
+      recognition.onresult = (event) => {
+        let interim = "";
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          const item = event.results[i][0].transcript;
+          if (event.results[i].isFinal) {
+            transcriptAcumulada += (transcriptAcumulada ? " " : "") + item.trim();
+          } else {
+            interim += item;
+          }
+        }
+
+        latestTextoExibicao = (transcriptAcumulada + " " + interim).trim();
+        if (onInterim && latestTextoExibicao) {
+          onInterim(latestTextoExibicao);
+        }
+        if (transcriptAcumulada && onFinal) {
+          onFinal(transcriptAcumulada.trim());
+        }
+      };
+
+      recognition.onerror = (event) => {
+        console.warn("SpeechRecognition notice:", event.error);
+        if (event.error === "not-allowed" || event.error === "permission-denied") {
+          if (onError) onError("Permissão de microfone negada. Clique em 'Prefiro digitar'.");
+        }
+      };
+
+      recognition.onend = () => {
+        // Auto-restart enquanto o usuário ainda estiver com o microfone aberto
+        if (isRecording && recognition) {
+          try {
+            recognition.start();
+          } catch {
+            // ignore
+          }
+        }
+      };
+
+      recognition.start();
+    } catch (err) {
+      console.warn("Falha ao inicializar SpeechRecognition:", err);
+    }
   }
 
-  try {
-    const recognition = new SpeechRecognition();
-    recognition.lang = "pt-BR";
-    recognition.interimResults = true;
-    recognition.maxAlternatives = 1;
-    recognition.continuous = true;
+  return {
+    stop: async () => {
+      isRecording = false;
 
-    let transcriptAcumulada = "";
-    let latestTextoExibicao = "";
-    let isStoppedManualmente = false;
-
-    recognition.onresult = (event) => {
-      let interim = "";
-      for (let i = event.resultIndex; i < event.results.length; i++) {
-        const item = event.results[i][0].transcript;
-        if (event.results[i].isFinal) {
-          transcriptAcumulada += (transcriptAcumulada ? " " : "") + item.trim();
-        } else {
-          interim += item;
-        }
-      }
-
-      latestTextoExibicao = (transcriptAcumulada + " " + interim).trim();
-      if (onInterim && latestTextoExibicao) {
-        onInterim(latestTextoExibicao);
-      }
-      if (transcriptAcumulada && onFinal) {
-        onFinal(transcriptAcumulada.trim());
-      }
-    };
-
-    recognition.onerror = (event) => {
-      console.warn("SpeechRecognition error:", event.error);
-      if (onError) {
-        if (event.error === "not-allowed" || event.error === "permission-denied") {
-          onError("Permissão de microfone negada. Clique em 'Prefiro digitar' para responder.");
-        } else if (event.error === "no-speech") {
-          // Apenas silêncio momentâneo, não bloqueia
-        } else {
-          onError(`Microfone: ${event.error}`);
-        }
-      }
-    };
-
-    recognition.onend = () => {
-      const resultadoFinal = (transcriptAcumulada || latestTextoExibicao).trim();
-      if (!isStoppedManualmente && resultadoFinal && onFinal) {
-        onFinal(resultadoFinal);
-      }
-      if (onEnd) onEnd();
-    };
-
-    recognition.start();
-
-    return {
-      stop: () => {
-        isStoppedManualmente = true;
+      // Para a Web Speech API
+      if (recognition) {
         try {
+          recognition.onend = null;
           recognition.stop();
         } catch {
           // ignore
         }
-        const resultadoFinal = (transcriptAcumulada || latestTextoExibicao).trim();
-        if (resultadoFinal && onFinal) {
-          onFinal(resultadoFinal);
-        }
-        if (onEnd) onEnd();
       }
-    };
-  } catch (err) {
-    if (onError) onError(err?.message || "Erro ao inicializar microfone");
-    if (onEnd) onEnd();
-    return { stop: () => {} };
-  }
+
+      // Encerra o MediaRecorder e captura o blob de áudio gravado
+      let audioBlob = null;
+      if (mediaRecorder && mediaRecorder.state !== "inactive") {
+        try {
+          await new Promise((resolve) => {
+            mediaRecorder.onstop = () => {
+              if (audioChunks.length > 0) {
+                audioBlob = new Blob(audioChunks, {
+                  type: mediaRecorder.mimeType || "audio/webm"
+                });
+              }
+              resolve();
+            };
+            mediaRecorder.stop();
+          });
+        } catch (e) {
+          console.warn("Erro ao finalizar MediaRecorder:", e);
+        }
+      }
+
+      // Desliga todas as faixas do microfone físico
+      if (stream) {
+        try {
+          stream.getTracks().forEach((track) => track.stop());
+        } catch {
+          // ignore
+        }
+      }
+
+      const textoFinal = (transcriptAcumulada || latestTextoExibicao).trim();
+      if (onFinal && textoFinal) {
+        onFinal(textoFinal);
+      }
+      if (onEnd) onEnd();
+
+      return {
+        text: textoFinal,
+        audioBlob
+      };
+    }
+  };
 }
 
 const STOP_WORDS_PT = new Set([
@@ -351,11 +430,15 @@ export function extrairTokensSignificativos(texto) {
 export function validarRespostaFalada(respostaAluno, respostasAceitas = []) {
   if (!respostaAluno || !respostasAceitas.length) return false;
 
-  const alunoNorm = normalizarTextoVoz(respostaAluno);
+  const alunoNorm = normalizarTextoVoz(respostaAluno)
+    .replace(/\bsetenta\b/g, "70")
+    .replace(/\bsetenta por cento\b/g, "70");
   const alunoTokens = extrairTokensSignificativos(alunoNorm);
 
   for (const aceita of respostasAceitas) {
-    const aceitaNorm = normalizarTextoVoz(aceita);
+    const aceitaNorm = normalizarTextoVoz(aceita)
+      .replace(/\bsetenta\b/g, "70")
+      .replace(/\bsetenta por cento\b/g, "70");
     if (!aceitaNorm) continue;
 
     // 1. Igualdade estrita
@@ -375,6 +458,14 @@ export function validarRespostaFalada(respostaAluno, respostasAceitas = []) {
         alunoTokens.some((at) => at.includes(token) || token.includes(at))
       );
       if (todosCasam) return true;
+
+      // Se 65% ou mais dos tokens clínicos esperados estão presentes
+      const tokensPresentes = aceitaTokens.filter((token) =>
+        alunoTokens.some((at) => at.includes(token) || token.includes(at))
+      );
+      if (tokensPresentes.length >= 2 && tokensPresentes.length / aceitaTokens.length >= 0.65) {
+        return true;
+      }
     }
 
     // 4. Regra semântica universal para Higienização das Mãos
@@ -386,6 +477,18 @@ export function validarRespostaFalada(respostaAluno, respostasAceitas = []) {
     );
     const aceitaEhHigiene = aceitaNorm.includes("mao") || aceitaNorm.includes("higien") || aceitaNorm.includes("lav");
     if (temAcaoLimpeza && temObjetoMao && aceitaEhHigiene) {
+      return true;
+    }
+
+    // 5. Regra semântica universal para Antissepsia / Desinfecção de Hub ou Conector
+    const temAcaoHub = alunoTokens.some((t) =>
+      t.startsWith("antiseps") || t.startsWith("desinfec") || t.startsWith("fricc") || t.startsWith("limp") || t.startsWith("higien") || t.startsWith("pass")
+    );
+    const temObjetoHub = alunoTokens.some((t) =>
+      t.startsWith("hub") || t.startsWith("conect") || t.includes("70") || t.startsWith("alco")
+    );
+    const aceitaEhHub = aceitaNorm.includes("hub") || aceitaNorm.includes("conect") || aceitaNorm.includes("alcool");
+    if (temAcaoHub && temObjetoHub && aceitaEhHub) {
       return true;
     }
   }

@@ -23,18 +23,20 @@ export const audioTranscriptionService = {
     ).trim();
   },
 
-  // Retorna a chave do Gemini se configurada no localStorage do usuário
+  // Retorna a chave do Gemini se configurada no localStorage do usuário ou no ambiente
   getGeminiKey() {
     return (
       (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_gemini_api_key')) ||
+      (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) ||
       ''
     ).trim();
   },
 
-  // Retorna a chave do OpenRouter se configurada no localStorage do usuário
+  // Retorna a chave do OpenRouter se configurada no localStorage do usuário ou no ambiente
   getOpenRouterKey() {
     return (
       (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_openrouter_api_key')) ||
+      (typeof import.meta !== 'undefined' && (import.meta.env?.VITE_OPENROUTER_API_KEY || import.meta.env?.OPENROUTER_API_KEY)) ||
       ''
     ).trim();
   },
@@ -235,7 +237,88 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
       }
     }
 
-    throw new Error('Não foi possível obter transcrição via Google Gemini.');
+    throw new Error('Não foi possível transcrever o áudio com nenhum dos modelos Gemini disponíveis.');
+  },
+
+  // Transcreve usando OpenRouter Multimodal Audio (Gemini 2.5 Flash / Gemini 2.0 Flash)
+  async transcribeWithOpenRouter(audioBlob, onProgress) {
+    const apiKey = this.getOpenRouterKey();
+    if (!apiKey) throw new Error('Chave do OpenRouter não configurada.');
+
+    if (onProgress) onProgress('Codificando áudio para transcrição via OpenRouter...');
+    const base64Audio = await blobToBase64(audioBlob);
+
+    const rawMime = (audioBlob.type || 'audio/webm').toLowerCase();
+    const cleanMime = rawMime.split(';')[0].trim();
+    const supportedMimes = ['audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav', 'audio/aac', 'audio/mp3', 'audio/flac'];
+    const sanitizedMimeType = supportedMimes.includes(cleanMime) ? cleanMime : 'audio/webm';
+
+    if (onProgress) onProgress('Transcrevendo áudio em alta fidelidade com IA...');
+
+    const prompt = `Você é um especialista em transcrição clínica de enfermagem e terminologia médica em português (pt-BR).
+Ouça atentamente este áudio gravado por um estudante ou enfermeiro.
+Transcreva com fidelidade absoluta tudo o que foi falado.
+Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções ou explicações.`;
+
+    const models = [
+      'google/gemini-2.5-flash',
+      'google/gemini-2.0-flash-001',
+      'meta-llama/llama-3.2-11b-vision-instruct'
+    ];
+
+    for (const model of models) {
+      try {
+        const response = await fetch('https://openrouter.ai/api/v1/chat/completions', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${apiKey}`,
+            'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://enfermeirodigital.com.br',
+            'X-Title': 'Enfermeiro Digital - Atendimento por Voz',
+          },
+          body: JSON.stringify({
+            model,
+            messages: [
+              {
+                role: 'user',
+                content: [
+                  {
+                    type: 'text',
+                    text: prompt
+                  },
+                  {
+                    type: 'image_url',
+                    image_url: {
+                      url: `data:${sanitizedMimeType};base64,${base64Audio}`
+                    }
+                  }
+                ]
+              }
+            ],
+            temperature: 0.1
+          })
+        });
+
+        if (!response.ok) {
+          const errText = await response.text();
+          console.warn(`Erro no OpenRouter Audio (${model}):`, errText);
+          continue;
+        }
+
+        const data = await response.json();
+        const textOutput = data?.choices?.[0]?.message?.content;
+        if (textOutput && textOutput.trim()) {
+          return {
+            text: textOutput.trim().replace(/^["']|["']$/g, ''),
+            engine: `OpenRouter (${model})`
+          };
+        }
+      } catch (err) {
+        console.warn(`Falha na chamada OpenRouter com ${model}:`, err);
+      }
+    }
+
+    throw new Error('Não foi possível obter transcrição via OpenRouter.');
   },
 
   // Método principal que orquestra a transcrição em cascata
@@ -258,7 +341,16 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
       }
     }
 
-    // 3. Se já temos transcrição da Web Speech API ou manual
+    // 3. Se tem OpenRouter configurado, tenta OpenRouter Multimodal Audio
+    if (audioBlob && this.getOpenRouterKey()) {
+      try {
+        return await this.transcribeWithOpenRouter(audioBlob, onProgress);
+      } catch (err) {
+        console.warn('Falha na transcrição com OpenRouter Audio, tentando fallback:', err);
+      }
+    }
+
+    // 4. Se já temos transcrição da Web Speech API ou manual
     if (existingTranscript && existingTranscript.trim()) {
       return {
         text: existingTranscript.trim(),
@@ -266,9 +358,9 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
       };
     }
 
-    // 4. Se não conseguiu transcrever por nenhuma IA e não tem texto
+    // 5. Se não conseguiu transcrever por nenhuma IA e não tem texto
     throw new Error(
-      'Nenhuma chave de IA foi detectada para transcrição do áudio gravado. Configure uma chave do Google Gemini na página Minha Conta ou fale pausadamente usando o Google Chrome.'
+      'Nenhuma transcrição foi gerada. Fale mais próximo ao microfone ou utilize a opção "Prefiro digitar".'
     );
   },
 

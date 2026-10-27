@@ -18,6 +18,7 @@ import {
   iniciarReconhecimentoVoz,
   validarRespostaFalada
 } from "@/services/simuladorVozService";
+import { audioTranscriptionService } from "@/services/audioTranscriptionService";
 import { validateCalculoAnswer } from "@/services/simuladorFormulaService";
 import PacienteVideoStage from "@/components/simulador/PacienteVideoStage";
 import SimuladorTopBar from "@/components/simulador/SimuladorTopBar";
@@ -199,41 +200,81 @@ export default function Videochamada() {
     }
   }
 
-  // Gravação de voz com Web Speech API
-  function handleToggleGravacaoVoz() {
+  // Gravação de voz Dual-Engine (Web Speech API em tempo real + MediaRecorder com Fallback IA)
+  async function handleToggleGravacaoVoz() {
     if (isRecording) {
-      if (activeRecognizerRef.current) {
-        activeRecognizerRef.current.stop();
-      }
       setIsRecording(false);
-      setMicStatusLabel(textoVoz ? "Fala gravada com sucesso" : "Gravação concluída");
+      setMicStatusLabel("Processando sua fala...");
+
+      if (activeRecognizerRef.current) {
+        try {
+          const res = await activeRecognizerRef.current.stop();
+          activeRecognizerRef.current = null;
+
+          let finalText = (res?.text || textoVoz || "").trim();
+
+          // Fallback: Se a Web Speech API não retornou texto (bloqueio do browser ou sem internet), mas gravamos o áudio real:
+          if (!finalText && res?.audioBlob && res.audioBlob.size > 1000) {
+            setMicStatusLabel("Transcrevendo fala com IA...");
+            try {
+              const aiRes = await audioTranscriptionService.transcribe(res.audioBlob, (status) => {
+                if (status?.message) setMicStatusLabel(status.message);
+              });
+              if (aiRes?.text) {
+                finalText = aiRes.text.trim();
+              }
+            } catch (aiErr) {
+              console.warn("Fallback de transcrição por IA falhou:", aiErr);
+            }
+          }
+
+          if (finalText) {
+            setTextoVoz(finalText);
+            setMicStatusLabel("Fala gravada com sucesso");
+          } else {
+            setMicStatusLabel("Nenhuma fala detectada. Toque para tentar de novo ou prefira digitar.");
+          }
+        } catch (stopErr) {
+          console.error("Erro ao finalizar captura de voz:", stopErr);
+          setMicStatusLabel("Erro ao processar áudio. Tente novamente.");
+        }
+      }
       return;
     }
 
     pararFala();
     setTextoVoz("");
     setIsRecording(true);
-    setMicStatusLabel("Gravando... Fale a sua resposta");
+    setMicStatusLabel("Conectando microfone...");
 
-    const recognizer = iniciarReconhecimentoVoz({
-      onInterim: (interim) => {
-        setTextoVoz(interim);
-      },
-      onFinal: (final) => {
-        setTextoVoz(final);
-        setMicStatusLabel("Transcrição concluída");
-      },
-      onError: (erro) => {
-        setIsRecording(false);
-        setMicStatusLabel(typeof erro === "string" ? erro : "Microfone indisponível");
-        console.warn("Erro no microfone:", erro);
-      },
-      onEnd: () => {
-        setIsRecording(false);
-      }
-    });
+    try {
+      const recognizer = await iniciarReconhecimentoVoz({
+        onInterim: (interim) => {
+          setTextoVoz(interim);
+          setMicStatusLabel("Ouvindo você...");
+        },
+        onFinal: (final) => {
+          setTextoVoz(final);
+          setMicStatusLabel("Fala capturada");
+        },
+        onError: (erro) => {
+          setIsRecording(false);
+          setMicStatusLabel(typeof erro === "string" ? erro : "Microfone indisponível");
+          console.warn("Erro no microfone:", erro);
+        },
+        onEnd: () => {
+          // Mantém controle via stop
+        }
+      });
 
-    activeRecognizerRef.current = recognizer;
+      activeRecognizerRef.current = recognizer;
+      setMicStatusLabel("Gravando... Fale sua resposta");
+    } catch (startErr) {
+      setIsRecording(false);
+      activeRecognizerRef.current = null;
+      setMicStatusLabel("Microfone bloqueado. Permita o acesso ou clique em 'Prefiro digitar'.");
+      console.error("Erro ao inicializar microfone:", startErr);
+    }
   }
 
   // Verifica se o botão "Verificar" da questão deve estar habilitado
@@ -331,12 +372,6 @@ export default function Videochamada() {
     }
   }
 
-  // Alternar entre paciente Marcus e Teresinha
-  function handleSelectPaciente(pId) {
-    if (pId === pacienteId) return;
-    pararFala();
-    setPacienteId(pId);
-  }
 
   return (
     <div className="w-full min-h-screen bg-[#0E1720] text-[#EAF2F8] font-['Nunito',sans-serif] flex justify-center selection:bg-[#2AD3C1]/30">
