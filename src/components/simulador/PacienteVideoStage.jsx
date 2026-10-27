@@ -71,8 +71,10 @@ export default function PacienteVideoStage({
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[18px] bg-[#16222E] border-2 border-[#27394B] border-b-[5px] border-b-[#0A1118] select-none ${
-        small ? "w-[185px] h-[140px] flex-none" : "w-full h-[270px]"
+      className={`relative overflow-hidden rounded-[20px] bg-[#16222E] border-2 border-[#27394B] border-b-[5px] border-b-[#0A1118] select-none transition-all duration-300 ${
+        small
+          ? "w-[210px] xs:w-[220px] h-[160px] md:w-full md:h-[300px] lg:h-[340px] flex-none"
+          : "w-full h-[320px] sm:h-[360px] md:h-[420px]"
       } ${className}`}
     >
       {/* 1. Clipes Fala */}

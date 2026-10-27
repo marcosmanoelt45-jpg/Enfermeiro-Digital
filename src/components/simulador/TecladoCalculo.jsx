@@ -21,32 +21,32 @@ export default function TecladoCalculo({
   ];
 
   return (
-    <div className="flex flex-col gap-3 select-none">
+    <div className="flex flex-col gap-2.5 select-none">
       {/* Display do Valor Inserido */}
-      <div className="flex items-center justify-between h-14 px-4 rounded-2xl border-2 border-[#2AD3C1] border-b-[5px] border-b-[#17A99A] bg-[#16222E]">
+      <div className="flex items-center justify-between h-12 px-3.5 rounded-xl border-2 border-[#2AD3C1] border-b-[4px] border-b-[#17A99A] bg-[#16222E]">
         <span
-          className={`text-xl font-black ${
+          className={`text-lg font-black ${
             valor ? "text-[#EAF2F8]" : "text-[#9FB3C6]/60"
           }`}
         >
           {valor || "Sua resposta"}
         </span>
-        <span className="text-sm font-black text-[#9FB3C6] uppercase tracking-wider">
+        <span className="text-xs font-black text-[#9FB3C6] uppercase tracking-wider">
           {unidade}
         </span>
       </div>
 
       {/* Grade do Teclado 3x4 */}
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-3 gap-1.5 sm:gap-2">
         {keys.map((k) => (
           <button
             key={k}
             type="button"
             onClick={() => onKeyPress(k)}
-            className="h-12 rounded-[14px] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-black text-xl flex items-center justify-center active:translate-y-[2px] active:border-b-2 hover:bg-[#1E2E3E] transition-all cursor-pointer"
+            className="h-10 sm:h-10.5 rounded-[12px] border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-black text-lg flex items-center justify-center active:translate-y-[2px] active:border-b-2 hover:bg-[#1E2E3E] transition-all cursor-pointer"
           >
             {k === "BACKSPACE" ? (
-              <Delete className="w-6 h-6 stroke-[2.3] text-[#9FB3C6]" />
+              <Delete className="w-5 h-5 stroke-[2.3] text-[#9FB3C6]" />
             ) : (
               k
             )}

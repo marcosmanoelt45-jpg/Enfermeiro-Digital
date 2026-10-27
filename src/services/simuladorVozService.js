@@ -243,6 +243,7 @@ export function iniciarReconhecimentoVoz(options = {}) {
     recognition.continuous = true;
 
     let transcriptAcumulada = "";
+    let latestTextoExibicao = "";
     let isStoppedManualmente = false;
 
     recognition.onresult = (event) => {
@@ -256,9 +257,9 @@ export function iniciarReconhecimentoVoz(options = {}) {
         }
       }
 
-      const textoExibicao = (transcriptAcumulada + " " + interim).trim();
-      if (interim && onInterim) {
-        onInterim(textoExibicao);
+      latestTextoExibicao = (transcriptAcumulada + " " + interim).trim();
+      if (onInterim && latestTextoExibicao) {
+        onInterim(latestTextoExibicao);
       }
       if (transcriptAcumulada && onFinal) {
         onFinal(transcriptAcumulada.trim());
@@ -279,8 +280,9 @@ export function iniciarReconhecimentoVoz(options = {}) {
     };
 
     recognition.onend = () => {
-      if (!isStoppedManualmente && transcriptAcumulada && onFinal) {
-        onFinal(transcriptAcumulada.trim());
+      const resultadoFinal = (transcriptAcumulada || latestTextoExibicao).trim();
+      if (!isStoppedManualmente && resultadoFinal && onFinal) {
+        onFinal(resultadoFinal);
       }
       if (onEnd) onEnd();
     };
@@ -295,8 +297,9 @@ export function iniciarReconhecimentoVoz(options = {}) {
         } catch {
           // ignore
         }
-        if (transcriptAcumulada && onFinal) {
-          onFinal(transcriptAcumulada.trim());
+        const resultadoFinal = (transcriptAcumulada || latestTextoExibicao).trim();
+        if (resultadoFinal && onFinal) {
+          onFinal(resultadoFinal);
         }
         if (onEnd) onEnd();
       }
@@ -307,6 +310,15 @@ export function iniciarReconhecimentoVoz(options = {}) {
     return { stop: () => {} };
   }
 }
+
+const STOP_WORDS_PT = new Set([
+  "de", "da", "do", "das", "dos",
+  "a", "o", "as", "os",
+  "com", "sem", "em", "no", "na", "nos", "nas",
+  "por", "para", "pra", "pelo", "pela", "pelos", "pelas",
+  "um", "uma", "uns", "umas",
+  "e", "ou", "se", "que", "so", "apenas"
+]);
 
 /**
  * Normaliza strings para comparação fonética e sinônimos clínicos.
@@ -323,29 +335,58 @@ export function normalizarTextoVoz(texto) {
 }
 
 /**
+ * Extrai tokens relevantes descartando stop words e partículas em português.
+ */
+export function extrairTokensSignificativos(texto) {
+  const norm = normalizarTextoVoz(texto);
+  return norm
+    .split(/\s+/)
+    .filter((w) => w && !STOP_WORDS_PT.has(w) && w.length >= 2);
+}
+
+/**
  * Validação semântica e fonética determinística de respostas faladas.
+ * Reconhece variações clínicas, sinônimos e elimina preposições/artigos.
  */
 export function validarRespostaFalada(respostaAluno, respostasAceitas = []) {
   if (!respostaAluno || !respostasAceitas.length) return false;
 
   const alunoNorm = normalizarTextoVoz(respostaAluno);
+  const alunoTokens = extrairTokensSignificativos(alunoNorm);
 
   for (const aceita of respostasAceitas) {
     const aceitaNorm = normalizarTextoVoz(aceita);
     if (!aceitaNorm) continue;
 
+    // 1. Igualdade estrita
     if (alunoNorm === aceitaNorm) return true;
 
+    // 2. Contém substring
     if (alunoNorm.includes(aceitaNorm) || aceitaNorm.includes(alunoNorm)) {
       if (Math.min(alunoNorm.length, aceitaNorm.length) >= 4) {
         return true;
       }
     }
 
-    const palavrasAceitas = aceitaNorm.split(" ").filter((w) => w.length > 2);
-    if (palavrasAceitas.length > 0) {
-      const contemTodas = palavrasAceitas.every((palavra) => alunoNorm.includes(palavra));
-      if (contemTodas) return true;
+    // 3. Comparação de tokens significativos (sem preposições/artigos)
+    const aceitaTokens = extrairTokensSignificativos(aceitaNorm);
+    if (aceitaTokens.length > 0 && alunoTokens.length > 0) {
+      const todosCasam = aceitaTokens.every((token) =>
+        alunoTokens.some((at) => at.includes(token) || token.includes(at))
+      );
+      if (todosCasam) return true;
+    }
+
+    // 4. Regra semântica universal para Higienização das Mãos
+    const temAcaoLimpeza = alunoTokens.some((t) =>
+      t.startsWith("lav") || t.startsWith("higien") || t.startsWith("asseps") || t.startsWith("antiseps")
+    );
+    const temObjetoMao = alunoTokens.some((t) =>
+      t.startsWith("mao") || t.startsWith("alco") || t.startsWith("agua") || t.startsWith("saba") || t.startsWith("sabao")
+    );
+    const aceitaEhHigiene = aceitaNorm.includes("mao") || aceitaNorm.includes("higien") || aceitaNorm.includes("lav");
+    if (temAcaoLimpeza && temObjetoMao && aceitaEhHigiene) {
+      return true;
     }
   }
 

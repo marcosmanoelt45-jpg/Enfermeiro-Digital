@@ -1,0 +1,45 @@
+import { validarRespostaFalada } from "../src/services/simuladorVozService.js";
+
+console.log("--- TESTANDO VALIDACAO DE RESPOSTA FALADA ---");
+
+const aceitasBiosseguranca = [
+  "higienizar as maos",
+  "higienizar maos",
+  "higiene das maos",
+  "higiene de maos",
+  "lavar as maos",
+  "lavar maos",
+  "lavagem das maos",
+  "lavagem de maos",
+  "friccao alcoolica",
+  "higienizacao com alcool"
+];
+
+const testes = [
+  { entrada: "lavagem de mãos", esperado: true, desc: "Caso real do usuário ('lavagem de mãos' vs 'lavagem das mãos')" },
+  { entrada: "lavagem das mãos", esperado: true, desc: "Variação com artigo 'das'" },
+  { entrada: "lavar as mãos", esperado: true, desc: "Verbo infinitivo lavar" },
+  { entrada: "higienizar as mãos com água e sabão", esperado: true, desc: "Higienizar as mãos com complemento" },
+  { entrada: "higiene das mãos", esperado: true, desc: "Substantivo higiene" },
+  { entrada: "colocar as luvas direto", esperado: false, desc: "Resposta incorreta sem higiene" },
+  { entrada: "aplicar injeção", esperado: false, desc: "Resposta completamente fora" }
+];
+
+let falhas = 0;
+for (const t of testes) {
+  const obtido = validarRespostaFalada(t.entrada, aceitasBiosseguranca);
+  if (obtido === t.esperado) {
+    console.log(`✅ SUCESSO: "${t.entrada}" => ${obtido} (${t.desc})`);
+  } else {
+    console.error(`❌ FALHA: "${t.entrada}" esperado ${t.esperado}, obtido ${obtido} (${t.desc})`);
+    falhas++;
+  }
+}
+
+if (falhas === 0) {
+  console.log("🎉 TODOS OS TESTES DE VALIDAÇÃO DE VOZ PASSARAM COM SUCESSO!");
+  process.exit(0);
+} else {
+  console.error(`❌ ${falhas} teste(s) falharam.`);
+  process.exit(1);
+}

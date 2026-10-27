@@ -47,7 +47,7 @@ const CSS = `
 .enfere-splash .es-wave-canvas{display:block;width:100%;height:100%;object-fit:contain;position:relative}
 .enfere-splash .es-wave-fallback{display:none;width:100%;height:100%;object-fit:contain;position:relative}
 .enfere-splash .es-sh{position:absolute;left:14%;right:14%;bottom:1%;height:7%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.6),rgba(0,0,0,0));opacity:0}
-.enfere-splash .pu{transition:transform .22s cubic-bezier(.3,1.4,.5,1)}
+.enfere-splash .pu{transition:transform .38s cubic-bezier(.25,1,.5,1)}
 .enfere-splash .eye{transform-box:fill-box;transform-origin:center;transition:transform 110ms ease-in-out,opacity 90ms}
 .enfere-splash .blink .eye{transform:scaleY(.08)}
 .enfere-splash .arc{opacity:0;transition:opacity 90ms}
@@ -300,30 +300,31 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     A(mark, [{ opacity: 0.35 }, { opacity: 0.8 }], { duration: 180 });
     A(g1, [{ transform: tf(0.9), filter: "brightness(.9)" }, { transform: tf(1), filter: "brightness(1)" }], { duration: 220, easing: SPR });
 
-    // Olhos olham para a esquerda e para a direita uma única vez (corte direto)
-    at(200, () => look(-18, 2));
-    at(550, () => look(18, 2));
+    // Olhos olham suavemente para a esquerda e para a direita uma única vez
+    at(350, () => look(-18, 2));
+    at(1050, () => look(18, 2));
+    at(1650, () => look(0, 0));
 
-    // ~0,85s: Os olhos encolhem suavemente até virar o ponto luminoso (< 1 segundo)
-    at(850, () => {
+    // ~1,85s: Os olhos encolhem suavemente até virar o ponto luminoso
+    at(1850, () => {
       A(g1, [
         { transform: tf(1), opacity: 1 },
         { transform: tf(1.08), opacity: 1, offset: 0.2 },
         { transform: tf(0.03), opacity: 1, offset: 0.95 },
         { transform: tf(0.03), opacity: 0 },
-      ], { duration: 300, easing: "cubic-bezier(.6,0,.9,.4)" });
-      A(mark, [{ opacity: 1 }, { opacity: 0 }], { duration: 180 });
+      ], { duration: 320, easing: "cubic-bezier(.6,0,.9,.4)" });
+      A(mark, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
     });
 
-    // 1,1s: O pontinho vira o círculo que se expande
-    at(1100, () => {
+    // 2,15s: O pontinho vira o círculo que se expande
+    at(2150, () => {
       A(paper, [{ clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(150% at 50% 50%)" }], { duration: 600, easing: "cubic-bezier(.65,0,.2,1)" });
       rings.forEach((r, i) =>
         A(r, [{ opacity: 0.9, transform: "scale(.4)" }, { opacity: 0, transform: "scale(8)" }], { duration: 750, delay: i * 90, easing: "cubic-bezier(.2,.7,.2,1)" }));
     });
 
-    // 1,4s: O Goti surge acenando
-    at(1400, () => {
+    // 2,45s: O Goti surge acenando
+    at(2450, () => {
       g2.style.opacity = "1";
       startCanvasLoop();
 
@@ -339,7 +340,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
       ], { duration: 600 });
     });
 
-    at(1800, ready);
+    at(2900, ready);
   };
 
   const onPointerDown = (e: MouseEvent | TouchEvent) => {
@@ -392,20 +393,20 @@ export default function EnfereSplash({
   style
 }: EnfereSplashProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const cb = useRef({ onGetStarted, onHaveAccount, onIntroComplete });
-  cb.current = { onGetStarted, onHaveAccount, onIntroComplete };
+  const cb = useRef({ onGetStarted, onHaveAccount, onIntroComplete, waveSrc, isAuthenticated, userName });
+  cb.current = { onGetStarted, onHaveAccount, onIntroComplete, waveSrc, isAuthenticated, userName };
 
   useEffect(() => {
     if (!ref.current) return;
     return mountEnfereSplash(ref.current, {
-      waveSrc,
-      isAuthenticated,
-      userName,
+      waveSrc: cb.current.waveSrc,
+      isAuthenticated: cb.current.isAuthenticated,
+      userName: cb.current.userName,
       onGetStarted: () => cb.current.onGetStarted?.(),
       onHaveAccount: () => cb.current.onHaveAccount?.(),
       onIntroComplete: () => cb.current.onIntroComplete?.(),
     });
-  }, [waveSrc, isAuthenticated, userName]);
+  }, []); // Executa estritamente uma única vez por montagem da tela
 
   return (
     <>

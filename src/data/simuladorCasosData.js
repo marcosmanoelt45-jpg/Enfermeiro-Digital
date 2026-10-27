@@ -68,12 +68,14 @@ export const CASOS_SIMULADOR = {
     passos: [
       {
         tipo: "fala",
-        texto: "Bom dia! Essa ferida no meu calcanhar já está comigo há uns dez dias. Ela está molhada, solta um líquido amarelado e dói quando encosta no lençol. O que você vai fazer comigo?"
+        texto: "Bom dia! Essa ferida no meu calcanhar já está comigo há uns dez dias. Ela está molhada, solta um líquido amarelado e dói quando encosta no lençol. O que você vai fazer comigo?",
+        audioPath: "/pacientes/marcus/passo_0.wav"
       },
       {
         tipo: "multipla_escolha",
         tema: "AVALIAÇÃO E ESTADIAMENTO",
         pergunta: "Ao avaliar a ferida com perda parcial da espessura da pele e leito avermelhado sem esfacelo visível, como você a classifica segundo a NPUAP?",
+        audioPath: "/pacientes/marcus/passo_1.wav",
         opcoes: [
           "Lesão por Pressão Estágio 2",
           "Lesão por Pressão Estágio 1 (pele intacta)",
@@ -87,6 +89,7 @@ export const CASOS_SIMULADOR = {
         tipo: "multipla_selecao",
         tema: "MATERIAIS DE CURATIVO",
         pergunta: "Quais materiais você separa para realizar o curativo estéril?",
+        audioPath: "/pacientes/marcus/passo_2.wav",
         opcoes: [
           "Soro fisiológico 0,9% aquecido em temperatura ambiente",
           "Luvas de procedimento e kit de curativo estéril",
@@ -102,6 +105,7 @@ export const CASOS_SIMULADOR = {
         tipo: "calculo",
         tema: "CÁLCULO DE ANALGESIA",
         pergunta: "Quantos mL você prepara para o alívio da dor do paciente?",
+        audioPath: "/pacientes/marcus/passo_3.wav",
         prescricao: "Dipirona 500 mg/mL, solução injetável. Prescrito: 1 g por via intravenosa lenta.",
         dadosTabela: [
           ["Prescrito", "1 g (1000 mg)"],
@@ -124,6 +128,7 @@ export const CASOS_SIMULADOR = {
         tipo: "multipla_escolha",
         tema: "TÉCNICA DE LIMPEZA",
         pergunta: "Qual técnica é preconizada pelo Ministério da Saúde para limpar a lesão sem traumatizar o tecido de granulação?",
+        audioPath: "/pacientes/marcus/passo_4.wav",
         opcoes: [
           "Irrigação por jato de soro fisiológico 0,9% morno com seringa e agulha",
           "Esfregar vigorosamente com gaze embebida em clorexidina degermante",
@@ -137,6 +142,7 @@ export const CASOS_SIMULADOR = {
         tipo: "multipla_selecao",
         tema: "PREVENÇÃO E ALÍVIO DE PRESSÃO",
         pergunta: "Quais condutas de enfermagem previnem a piora da lesão e protegem outras proeminências?",
+        audioPath: "/pacientes/marcus/passo_5.wav",
         opcoes: [
           "Mudança de decúbito a cada 2 horas conforme escala de risco",
           "Uso de coxim na panturrilha para descarregar o calcanhar do colchão",
@@ -151,6 +157,7 @@ export const CASOS_SIMULADOR = {
         tipo: "calculo",
         tema: "CÁLCULO DE GOTEJAMENTO",
         pergunta: "Quantas gotas por minuto (macrogotas) devem correr na hidratação prescrita?",
+        audioPath: "/pacientes/marcus/passo_6.wav",
         prescricao: "Soro Fisiológico 0,9% 500 mL para infundir em 6 horas, equipo macrogotas.",
         dadosTabela: [
           ["Volume Prescrito", "500 mL"],
@@ -173,13 +180,23 @@ export const CASOS_SIMULADOR = {
         tipo: "resposta_falada",
         tema: "BIOSSEGURANÇA UNIVERSAL",
         pergunta: "Antes de colocar as luvas e tocar no paciente, diga qual procedimento primordial você realiza.",
+        audioPath: "/pacientes/marcus/passo_7.wav",
         aceitas: [
           "higienizar as maos",
+          "higienizar maos",
           "higiene das maos",
+          "higiene de maos",
           "lavar as maos",
+          "lavar maos",
           "lavagem das maos",
+          "lavagem de maos",
+          "lavagem das maos com agua e sabao",
           "friccao alcoolica",
-          "higienizacao com alcool"
+          "higienizacao com alcool",
+          "higienizar com alcool",
+          "passar alcool nas maos",
+          "passar alcool 70",
+          "higienizacao das maos"
         ],
         respostaCertaTexto: "Higienizar as mãos",
         explicacao: "A higienização das mãos (com água e sabão ou álcool 70%) antes do contato com o paciente é a principal meta de segurança internacional da OMS."
@@ -188,6 +205,7 @@ export const CASOS_SIMULADOR = {
         tipo: "multipla_escolha",
         tema: "ESCALA DE BRADEN",
         pergunta: "Na Escala de Braden para predição do risco de lesão por pressão, qual parâmetro avalia a sensibilidade a desconforto?",
+        audioPath: "/pacientes/marcus/passo_8.wav",
         opcoes: [
           "Percepção sensorial",
           "Fricção e cisalhamento",
@@ -209,12 +227,14 @@ export const CASOS_SIMULADOR = {
     passos: [
       {
         tipo: "fala",
-        texto: "Oi, filha! O médico disse que preciso tomar esse antibiótico na veia para a infecção urinária. Meu braço está meio dolorido perto do cateter e sinto um formigamento. Você pode olhar para mim antes de aplicar?"
+        texto: "Oi, filha! O médico disse que preciso tomar esse antibiótico na veia para a infecção urinária. Meu braço está meio dolorido perto do cateter e sinto um formigamento. Você pode olhar para mim antes de aplicar?",
+        audioPath: "/pacientes/teresinha/passo_0.wav"
       },
       {
         tipo: "multipla_escolha",
         tema: "AVALIAÇÃO DO ACESSO",
         pergunta: "Ao inspecionar o acesso venoso periférico, qual sinal clínico indica flebite e necessidade de retirada imediata?",
+        audioPath: "/pacientes/teresinha/passo_1.wav",
         opcoes: [
           "Presença de hiperemia, calor local, dor e cordão venoso palpável",
           "Curativo seco, limpo e transparente sem sinais flogísticos",
@@ -228,6 +248,7 @@ export const CASOS_SIMULADOR = {
         tipo: "multipla_selecao",
         tema: "CONDUTAS IMEDIATAS",
         pergunta: "Identificada a flebite no braço esquerdo, quais ações você executa de imediato?",
+        audioPath: "/pacientes/teresinha/passo_2.wav",
         opcoes: [
           "Interromper imediatamente a infusão medicamentosa",
           "Retirar o cateter venoso periférico do sítio afetado",
@@ -243,6 +264,7 @@ export const CASOS_SIMULADOR = {
         tipo: "calculo",
         tema: "RECONSTITUIÇÃO E DILUIÇÃO",
         pergunta: "Quantos mL você aspira do frasco reconstituído para administrar a dose prescrita?",
+        audioPath: "/pacientes/teresinha/passo_3.wav",
         prescricao: "Ceftriaxona 1 g frasco-ampola pó liofilizado reconstituído com 10 mL de diluente. Prescrito: 500 mg IV.",
         dadosTabela: [
           ["Prescrito", "500 mg"],
@@ -266,6 +288,7 @@ export const CASOS_SIMULADOR = {
         tipo: "multipla_escolha",
         tema: "SELEÇÃO DE NOVO SÍTIO",
         pergunta: "Ao puncionar novo acesso venoso periférico na Dona Teresinha, qual a recomendação técnica de boas práticas?",
+        audioPath: "/pacientes/teresinha/passo_4.wav",
         opcoes: [
           "Puncionar em membro contralateral, iniciando preferencialmente de distal para proximal",
           "Puncionar exatamente no mesmo trajeto venoso da flebite",
@@ -279,6 +302,7 @@ export const CASOS_SIMULADOR = {
         tipo: "multipla_selecao",
         tema: "SEGURANÇA DO PACIENTE",
         pergunta: "Quais verificações são obrigatórias antes da infusão de antibiótico intravenoso?",
+        audioPath: "/pacientes/teresinha/passo_5.wav",
         opcoes: [
           "Checar 2 identificadores do paciente (nome completo e data de nascimento na pulseira)",
           "Confirmar o medicamento, dosagem, via e horário prescritos",
@@ -294,6 +318,7 @@ export const CASOS_SIMULADOR = {
         tipo: "calculo",
         tema: "INFUSÃO EM BOMBA (BIC)",
         pergunta: "A que velocidade em mL/h você programa a Bomba de Infusão Contínua (BIC)?",
+        audioPath: "/pacientes/teresinha/passo_6.wav",
         prescricao: "Ceftriaxona 500 mg diluída em 100 mL de Soro Fisiológico 0,9% para correr em 30 minutos.",
         dadosTabela: [
           ["Volume da Solução", "100 mL"],
@@ -316,13 +341,22 @@ export const CASOS_SIMULADOR = {
         tipo: "resposta_falada",
         tema: "DESINFECÇÃO DE CONECTORES",
         pergunta: "Antes de acoplar a seringa ou o equipo ao conector venoso (hub), qual cuidado asséptico você realiza?",
+        audioPath: "/pacientes/teresinha/passo_7.wav",
         aceitas: [
           "antissepsia do hub",
+          "antissepsia de hub",
           "antissepsia do conector",
+          "antissepsia de conector",
           "desinfeccao com alcool 70",
+          "desinfeccao do conector",
+          "desinfeccao do hub",
           "limpar conector com alcool",
+          "limpar hub com alcool",
           "friccao com alcool 70",
-          "alcool 70"
+          "alcool 70",
+          "passar alcool 70 no conector",
+          "desinfeccao do conector com alcool 70",
+          "friccao mecanica com alcool 70"
         ],
         respostaCertaTexto: "Antissepsia do hub com álcool 70%",
         explicacao: "A fricção mecânica com álcool 70% por 15 segundos no hub/conector sem agulha é crucial para prevenir infecções de corrente sanguínea relacionadas a cateter (IPCS)."
@@ -331,6 +365,7 @@ export const CASOS_SIMULADOR = {
         tipo: "multipla_escolha",
         tema: "DIAGNÓSTICO DIFERENCIAL",
         pergunta: "Qual achado clínico diferencia uma infiltração venosa de uma flebite?",
+        audioPath: "/pacientes/teresinha/passo_8.wav",
         opcoes: [
           "Edema frio, palidez cutânea e redução do gotejamento por compressão mecânica",
           "Hiperemia intensa e calor local irradiado",
