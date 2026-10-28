@@ -120,7 +120,7 @@ function eyesSvg(): string {
       `<circle cx="${e.px + 17}" cy="${e.py + 15}" r="7" fill="#fff"/>` +
       `<circle cx="${e.px + 30}" cy="${e.py + 2}" r="2.6" fill="#fff" opacity=".7"/>` +
       `</g></g></g>` +
-      `<path class="arc" fill="none" stroke="#1B2A5C" stroke-width="15" stroke-linecap="round" d="M${e.cx - e.r * 0.7} ${e.cy + e.r * 0.25}Q${e.cx} ${e.cy - e.r * 0.95} ${e.cx + e.r * 0.7} ${e.cy + e.r * 0.25}"/>`;
+      `<path class="arc" fill="none" stroke="#20D5B5" stroke-width="15" stroke-linecap="round" d="M${e.cx - e.r * 0.7} ${e.cy + e.r * 0.25}Q${e.cx} ${e.cy - e.r * 0.95} ${e.cx + e.r * 0.7} ${e.cy + e.r * 0.25}"/>`;
   });
   return s + "</svg>";
 }
@@ -300,13 +300,30 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     A(mark, [{ opacity: 0.35 }, { opacity: 0.8 }], { duration: 180 });
     A(g1, [{ transform: tf(0.9), filter: "brightness(.9)" }, { transform: tf(1), filter: "brightness(1)" }], { duration: 220, easing: SPR });
 
-    // Olhos olham suavemente para a esquerda e para a direita uma única vez
-    at(350, () => look(-18, 2));
-    at(1050, () => look(18, 2));
-    at(1650, () => look(0, 0));
+    // Olhos olham para a esquerda, para a direita e retornam ao centro
+    at(300, () => look(-18, 2));
+    at(800, () => look(18, 2));
+    at(1300, () => look(0, 0));
 
-    // ~1,85s: Os olhos encolhem suavemente até virar o ponto luminoso
-    at(1850, () => {
+    // 1,5s: Olhinhos fechados alegres (^ ^) com pulinho carismático
+    at(1500, () => {
+      g1.classList.add("happy");
+      A(g1, [
+        { transform: tf(1) },
+        { transform: "translateY(5px) scale(1.06,.92)", offset: 0.25 },
+        { transform: tf(1, -12), offset: 0.6 },
+        { transform: tf(1) },
+      ], { duration: 520, easing: "cubic-bezier(.25,1,.5,1)" });
+    });
+
+    // 2,05s: Reabertura com piscar cintilante
+    at(2050, () => {
+      g1.classList.remove("happy");
+      blink();
+    });
+
+    // ~2,25s: Os olhos encolhem suavemente até virar o ponto luminoso
+    at(2250, () => {
       A(g1, [
         { transform: tf(1), opacity: 1 },
         { transform: tf(1.08), opacity: 1, offset: 0.2 },
@@ -316,15 +333,15 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
       A(mark, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
     });
 
-    // 2,15s: O pontinho vira o círculo que se expande
-    at(2150, () => {
+    // 2,55s: O pontinho vira o círculo que se expande com ondas
+    at(2550, () => {
       A(paper, [{ clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(150% at 50% 50%)" }], { duration: 600, easing: "cubic-bezier(.65,0,.2,1)" });
       rings.forEach((r, i) =>
         A(r, [{ opacity: 0.9, transform: "scale(.4)" }, { opacity: 0, transform: "scale(8)" }], { duration: 750, delay: i * 90, easing: "cubic-bezier(.2,.7,.2,1)" }));
     });
 
-    // 2,45s: O Goti surge acenando
-    at(2450, () => {
+    // 2,85s: O Goti surge acenando com salto fluido
+    at(2850, () => {
       g2.style.opacity = "1";
       startCanvasLoop();
 
@@ -340,7 +357,8 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
       ], { duration: 600 });
     });
 
-    at(2900, ready);
+    // 3,35s: Prontidão e botões disponíveis
+    at(3350, ready);
   };
 
   const onPointerDown = (e: MouseEvent | TouchEvent) => {
