@@ -52,7 +52,10 @@ export default function Videochamada() {
     const paramStep = searchParams.get("step");
     return paramStep !== null ? Number(paramStep) : 0;
   });
-  const [vidas, setVidas] = useState(3);
+  const [vidas, setVidas] = useState(() => {
+    const paramVidas = searchParams.get("vidas");
+    return paramVidas !== null ? Number(paramVidas) : 3;
+  });
   const [xp, setXp] = useState(0);
   const [acertos, setAcertos] = useState(0);
   const [erros, setErros] = useState([]);
@@ -875,74 +878,106 @@ export default function Videochamada() {
         {/* =========================================================================
             TELA 10: CONCLUSÃO E RESUMO (10-resumo.png)
         ========================================================================= */}
-        {tela === "resumo" && (
-          <div className="flex-1 flex flex-col p-5 items-center justify-center text-center animate-in fade-in duration-300">
-            <div className="w-full max-w-md mx-auto flex flex-col items-center">
-              {/* Título de Conclusão */}
-              <h2 className="text-[28px] sm:text-[32px] font-black text-[#3DD68C] leading-tight mb-2">
-                Atendimento concluído!
-              </h2>
+        {tela === "resumo" && (() => {
+          const semVidas = vidas <= 0;
+          return (
+            <div className="flex-1 flex flex-col p-5 items-center justify-center text-center animate-in fade-in duration-300">
+              <div className="w-full max-w-md mx-auto flex flex-col items-center">
+                {/* Título de Conclusão ou Encerramento */}
+                <h2
+                  className={`text-[26px] xs:text-[28px] sm:text-[32px] font-black leading-tight mb-2 ${
+                    semVidas ? "text-[#FF5C5C]" : "text-[#3DD68C]"
+                  }`}
+                >
+                  {semVidas ? "Atendimento encerrado" : "Atendimento concluído!"}
+                </h2>
 
-              {/* Mascote Goti Animado */}
-              <div className="my-2 py-1">
-                <GotiAnimated pose="jumping" size="md" width={115} />
+                {/* Mascote Goti Animado */}
+                <div className="my-2 py-1">
+                  <GotiAnimated pose={semVidas ? "error" : "jumping"} size="md" width={115} />
+                </div>
+
+                {/* Subtítulo dinâmico */}
+                <div className="text-sm font-bold text-[#9FB3C6] max-w-sm mx-auto mb-4 leading-relaxed">
+                  {semVidas
+                    ? "Você cometeu alguns enganos e ficou sem vidas, mas não desanime, é errando que se aprende!"
+                    : `Você cuidou bem do ${paciente.nome}.`}
+                </div>
+
+                {/* Grade de 3 Cards de Métricas */}
+                <div className="w-full grid grid-cols-3 gap-2 mb-3">
+                  <div className="rounded-2xl bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-2.5">
+                    <div className="text-xl font-black text-[#2AD3C1]">+{xp}</div>
+                    <div className="text-[11px] font-extrabold text-[#9FB3C6] uppercase">
+                      PE ganhos
+                    </div>
+                  </div>
+                  <div className="rounded-2xl bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-2.5">
+                    <div
+                      className={`text-xl font-black ${
+                        semVidas ? "text-[#FF7A7A]" : "text-[#3DD68C]"
+                      }`}
+                    >
+                      {Math.round((acertos / totalQuestoes) * 100)}%
+                    </div>
+                    <div className="text-[11px] font-extrabold text-[#9FB3C6] uppercase">
+                      Precisão
+                    </div>
+                  </div>
+                  <div className="rounded-2xl bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-2.5">
+                    <div className="text-xl font-black text-[#6CC3F5]">
+                      {Math.floor(tempoDecorrido / 60)}:
+                      {(tempoDecorrido % 60).toString().padStart(2, "0")}
+                    </div>
+                    <div className="text-[11px] font-extrabold text-[#9FB3C6] uppercase">
+                      Tempo
+                    </div>
+                  </div>
+                </div>
+
+                {/* Card Revisar */}
+                <div className="w-full rounded-2xl bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-3.5 text-left mb-6">
+                  <div className="text-xs font-black text-[#9FB3C6] uppercase tracking-wider mb-1">
+                    REVISAR
+                  </div>
+                  <div className="text-sm font-extrabold text-[#EAF2F8]">
+                    {erros.length === 0
+                      ? "Nenhum erro — ótimo trabalho!"
+                      : `${erros.length} questão(ões) para refazer`}
+                  </div>
+                </div>
+
+                {/* Botões de Ação */}
+                {semVidas ? (
+                  <div className="w-full flex flex-col gap-2.5">
+                    <button
+                      type="button"
+                      onClick={handleIniciarAtendimento}
+                      className="w-full h-12 sm:h-13 rounded-xl bg-[#2AD3C1] text-[#06302E] font-black text-base sm:text-lg shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A] flex items-center justify-center transition-all cursor-pointer"
+                    >
+                      Tentar novamente
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => navigate("/")}
+                      className="w-full h-11 rounded-xl bg-[#16222E] border-2 border-[#27394B] text-[#9FB3C6] hover:text-[#EAF2F8] font-bold text-sm flex items-center justify-center transition-all cursor-pointer"
+                    >
+                      Voltar ao início
+                    </button>
+                  </div>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={() => navigate("/")}
+                    className="w-full h-12 sm:h-13 rounded-xl bg-[#2AD3C1] text-[#06302E] font-black text-base sm:text-lg shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A] flex items-center justify-center transition-all cursor-pointer"
+                  >
+                    Concluir
+                  </button>
+                )}
               </div>
-
-              {/* Subtítulo */}
-              <div className="text-sm font-bold text-[#9FB3C6] mb-4">
-                Você cuidou bem do {paciente.nome}.
-              </div>
-
-              {/* Grade de 3 Cards de Métricas */}
-              <div className="w-full grid grid-cols-3 gap-2 mb-3">
-                <div className="rounded-2xl bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-2.5">
-                  <div className="text-xl font-black text-[#2AD3C1]">+{xp}</div>
-                  <div className="text-[11px] font-extrabold text-[#9FB3C6] uppercase">
-                    PE ganhos
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-2.5">
-                  <div className="text-xl font-black text-[#3DD68C]">
-                    {Math.round((acertos / totalQuestoes) * 100)}%
-                  </div>
-                  <div className="text-[11px] font-extrabold text-[#9FB3C6] uppercase">
-                    Precisão
-                  </div>
-                </div>
-                <div className="rounded-2xl bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-2.5">
-                  <div className="text-xl font-black text-[#6CC3F5]">
-                    {Math.floor(tempoDecorrido / 60)}:
-                    {(tempoDecorrido % 60).toString().padStart(2, "0")}
-                  </div>
-                  <div className="text-[11px] font-extrabold text-[#9FB3C6] uppercase">
-                    Tempo
-                  </div>
-                </div>
-              </div>
-
-              {/* Card Revisar */}
-              <div className="w-full rounded-2xl bg-[#16222E] border-2 border-[#27394B] border-b-[4px] border-b-[#0A1118] p-3.5 text-left mb-6">
-                <div className="text-xs font-black text-[#9FB3C6] uppercase tracking-wider mb-1">
-                  REVISAR
-                </div>
-                <div className="text-sm font-extrabold text-[#EAF2F8]">
-                  {erros.length === 0
-                    ? "Nenhum erro — ótimo trabalho!"
-                    : `${erros.length} questão(ões) para refazer`}
-                </div>
-              </div>
-
-              {/* Botão Concluir */}
-              <button
-                type="button"
-                onClick={() => navigate("/")}
-                className="w-full h-12 sm:h-13 rounded-xl bg-[#2AD3C1] text-[#06302E] font-black text-base sm:text-lg shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A] flex items-center justify-center transition-all cursor-pointer"
-              >
-                Concluir
-              </button>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* =========================================================================
             TELAS 8 & 9: BOTTOM SHEET DE FEEDBACK (08-feedback-acerto / 09-feedback-erro)
