@@ -865,10 +865,19 @@ export const CASOS_SIMULADOR = {
 /**
  * Algoritmo Fisher-Yates para embaralhamento imutável.
  */
+/**
+ * Algoritmo Fisher-Yates aprimorado com alta entropia.
+ */
 export function shuffleArray(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    let rand = Math.random();
+    if (typeof window !== "undefined" && window.crypto && window.crypto.getRandomValues) {
+      const buf = new Uint32Array(1);
+      window.crypto.getRandomValues(buf);
+      rand = buf[0] / (0xffffffff + 1);
+    }
+    const j = Math.floor(rand * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
@@ -877,27 +886,88 @@ export function shuffleArray(array) {
 /**
  * Gera um caso clínico pronto para a lição, com:
  * 1. Fala inicial do paciente sempre no passo 0.
- * 2. Seleção procedural de questões aleatórias do banco ampliado (mínimo minQuestions, default 10).
- * 3. Embaralhamento da ordem das questões subsequentes.
- * 4. Embaralhamento das alternativas (múltipla escolha e múltipla seleção) recalculando os índices de resposta correta.
+ * 2. Rotação estrita sem repetição via localStorage:
+ *    Divide as 21 questões clínicas em 3 lotes de 7 questões 100% distintas.
+ *    - Rodada 1: Lote 1 (7 questões inéditas)
+ *    - Rodada 2: Lote 2 (7 questões inéditas)
+ *    - Rodada 3: Lote 3 (7 questões inéditas)
+ *    - Rodada 4+: Inicia novo ciclo com ordenação fresca reembaralhada.
+ * 3. Embaralhamento dinâmico das alternativas recalculando os índices de gabarito.
  */
-export function gerarCasoAleatorio(pacienteId = null, { shuffleQuestions = true, minQuestions = 10 } = {}) {
+export function gerarCasoAleatorio(pacienteId = null, { shuffleQuestions = true, minQuestions = 7 } = {}) {
   const idsDisponiveis = Object.keys(CASOS_SIMULADOR);
   const idEscolhido = pacienteId || idsDisponiveis[Math.floor(Math.random() * idsDisponiveis.length)];
   const casoBase = CASOS_SIMULADOR[idEscolhido] || CASOS_SIMULADOR.marcus;
 
   const falaInicial = casoBase.passos.find((p) => p.tipo === "fala") || casoBase.passos[0];
-  const questoes = casoBase.passos.filter((p) => p.tipo !== "fala");
+  const todasQuestoes = casoBase.passos.filter((p) => p.tipo !== "fala");
+  const totalDisponivel = todasQuestoes.length;
+  const qtdPorRodada = Math.min(minQuestions || 7, totalDisponivel);
 
-  // Embaralha o acervo de questões
-  const questoesShuffled = shuffleQuestions ? shuffleArray(questoes) : [...questoes];
+  const keyOrdem = `enfere_ciclo_ordem_${idEscolhido}`;
+  const keyCursor = `enfere_ciclo_cursor_${idEscolhido}`;
 
-  // Seleciona um subconjunto dinâmico para a sessão (ex: 10 questões de um banco de 21)
-  const qtdParaSessao = Math.min(questoesShuffled.length, Math.max(minQuestions, 8));
-  const questoesSelecionadas = questoesShuffled.slice(0, qtdParaSessao);
+  let indicesCiclo = [];
+  let cursorAtual = 0;
 
-  // Embaralha as alternativas internamente de cada questão
-  const questoesEmbaralhadas = questoesSelecionadas.map((q) => {
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      const rawOrdem = window.localStorage.getItem(keyOrdem);
+      const rawCursor = window.localStorage.getItem(keyCursor);
+      if (rawOrdem) {
+        indicesCiclo = JSON.parse(rawOrdem);
+      }
+      if (rawCursor !== null) {
+        cursorAtual = parseInt(rawCursor, 10);
+        if (isNaN(cursorAtual)) cursorAtual = 0;
+      }
+    }
+  } catch {
+    indicesCiclo = [];
+    cursorAtual = 0;
+  }
+
+  // Se o ciclo não existe, tem tamanho incorreto ou o cursor esgotou as questões disponíveis:
+  if (!indicesCiclo || indicesCiclo.length !== totalDisponivel || cursorAtual >= totalDisponivel) {
+    const baseIndices = Array.from({ length: totalDisponivel }, (_, i) => i);
+    indicesCiclo = shuffleArray(baseIndices);
+    cursorAtual = 0;
+  }
+
+  // Fatura o lote atual estritamente sem sobreposição
+  const fimLote = Math.min(cursorAtual + qtdPorRodada, totalDisponivel);
+  const indicesLote = indicesCiclo.slice(cursorAtual, fimLote);
+
+  // Se o lote final ficou menor que qtdPorRodada (ex: sobra 2 questões), completa com o início de um novo ciclo
+  let indicesCompletos = [...indicesLote];
+  let novoCursor = fimLote;
+
+  if (indicesCompletos.length < qtdPorRodada) {
+    const faltam = qtdPorRodada - indicesCompletos.length;
+    const novosIndices = shuffleArray(Array.from({ length: totalDisponivel }, (_, i) => i));
+    const complemento = novosIndices.slice(0, faltam);
+    indicesCompletos = [...indicesCompletos, ...complemento];
+    indicesCiclo = novosIndices;
+    novoCursor = faltam;
+  }
+
+  // Atualiza o cursor persistente no localStorage
+  try {
+    if (typeof window !== "undefined" && window.localStorage) {
+      window.localStorage.setItem(keyOrdem, JSON.stringify(indicesCiclo));
+      window.localStorage.setItem(keyCursor, novoCursor.toString());
+    }
+  } catch {
+    // Fallback silencioso
+  }
+
+  // Mapeia as questões do lote selecionado
+  const questoesSelecionadas = indicesCompletos.map((idx) => todasQuestoes[idx]);
+
+  // Embaralha as alternativas internamente de cada questão mantendo o gabarito
+  const questoesEmbaralhadas = questoesSelecionadas.map((q, qIndex) => {
+    const temaComProgresso = q.tema ? `${q.tema}` : `QUESTÃO ${qIndex + 1}`;
+
     if (q.tipo === "multipla_escolha") {
       const opcoesComIndex = q.opcoes.map((texto, originalIdx) => ({
         texto,
@@ -908,6 +978,7 @@ export function gerarCasoAleatorio(pacienteId = null, { shuffleQuestions = true,
 
       return {
         ...q,
+        tema: temaComProgresso,
         opcoes: opcoesShuffled.map((item) => item.texto),
         correta: novaCorreta
       };
@@ -925,19 +996,27 @@ export function gerarCasoAleatorio(pacienteId = null, { shuffleQuestions = true,
 
       return {
         ...q,
+        tema: temaComProgresso,
         opcoes: opcoesShuffled.map((item) => item.texto),
         corretas: novasCorretas
       };
     }
 
-    return { ...q };
+    return { ...q, tema: temaComProgresso };
   });
 
   const totalQuestoes = questoesEmbaralhadas.length;
+  const numLote = Math.min(3, Math.floor(cursorAtual / qtdPorRodada) + 1);
 
   return {
     ...casoBase,
-    subtitulo: `Paciente simulado fala com você · ${totalQuestoes} questões selecionadas`,
+    loteInfo: {
+      loteAtual: numLote,
+      totalLotes: 3,
+      questoesNoLote: totalQuestoes,
+      bancoTotal: totalDisponivel
+    },
+    subtitulo: `Paciente simulado fala com você · Sessão #${numLote} (${totalQuestoes} questões inéditas)`,
     passos: [falaInicial, ...questoesEmbaralhadas]
   };
 }

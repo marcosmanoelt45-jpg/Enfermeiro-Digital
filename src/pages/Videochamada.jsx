@@ -38,10 +38,10 @@ export default function Videochamada() {
   const [pacienteId, setPacienteId] = useState("marcus");
   const [tela, setTela] = useState(initialTelaParam); // 'intro' | 'fala' | 'questao' | 'resumo'
 
-  // Caso dinâmico com 10 questões e alternativas embaralhadas
+  // Caso dinâmico com 7 questões por atendimento e rotação sem repetição
   const [caso, setCaso] = useState(() => {
     const shouldShuffle = searchParams.get("noshuffle") !== "1";
-    return gerarCasoAleatorio("marcus", { shuffleQuestions: shouldShuffle, minQuestions: 10 });
+    return gerarCasoAleatorio("marcus", { shuffleQuestions: shouldShuffle, minQuestions: 7 });
   });
 
   const [stepIndex, setStepIndex] = useState(() => {
@@ -101,7 +101,7 @@ export default function Videochamada() {
   function handleSelectPaciente(novoId) {
     pararFala();
     setPacienteId(novoId);
-    setCaso(gerarCasoAleatorio(novoId, { shuffleQuestions: true, minQuestions: 10 }));
+    setCaso(gerarCasoAleatorio(novoId, { shuffleQuestions: true, minQuestions: 7 }));
     setIsSpeaking(false);
     setFalaConcluida(false);
     resetRespostasPasso();
@@ -140,7 +140,7 @@ export default function Videochamada() {
 
   // Abertura do Atendimento (Gesto que destrava áudio no navegador)
   function handleIniciarAtendimento() {
-    const novoCaso = gerarCasoAleatorio(pacienteId, { shuffleQuestions: true, minQuestions: 10 });
+    const novoCaso = gerarCasoAleatorio(pacienteId, { shuffleQuestions: true, minQuestions: 7 });
     setCaso(novoCaso);
     setTela("fala");
     setStepIndex(0);
@@ -491,7 +491,7 @@ export default function Videochamada() {
                     Caso simulado
                   </span>
                   <span className="px-3 py-1 rounded-full text-xs font-black bg-[#FFC247]/15 text-[#FFC247]">
-                    Banco de 44 Questões
+                    7 Questões Inéditas · Sessão {caso.loteInfo?.loteAtual || 1}/3
                   </span>
                 </div>
 
@@ -630,10 +630,10 @@ export default function Videochamada() {
         {tela === "questao" && (
           <div className="flex-1 flex flex-col justify-center p-3 sm:p-4 my-auto animate-in fade-in duration-200">
             <div>
-              {/* TopBar */}
+              {/* TopBar com contagem de 1 a totalQuestoes */}
               <SimuladorTopBar
-                stepAtual={stepIndex}
-                totalSteps={caso.passos.length}
+                stepAtual={Math.max(0, stepIndex - 1)}
+                totalSteps={totalQuestoes}
                 vidas={vidas}
                 onExit={() => setTela("intro")}
                 onMoreOptions={() => setModalOpcoesAberto(true)}
@@ -658,12 +658,17 @@ export default function Videochamada() {
                 />
               </div>
 
-              {/* Tema da Questão agrupado com as opções */}
-              {passoAtual.tema && (
-                <div className="text-[11px] font-black text-[#2AD3C1] uppercase tracking-wider px-0.5 mb-1.5">
-                  {passoAtual.tema}
-                </div>
-              )}
+              {/* Tema da Questão agrupado com indicador de Sessão Única */}
+              <div className="flex items-center justify-between text-[11px] font-black uppercase tracking-wider px-0.5 mb-1.5">
+                <span className="text-[#2AD3C1] truncate max-w-[70%]">
+                  {passoAtual.tema || `QUESTÃO ${stepIndex} DE ${totalQuestoes}`}
+                </span>
+                {caso.rodadaId && (
+                  <span className="text-[10px] text-[#9FB3C6] bg-[#16222E] px-2 py-0.5 rounded-md border border-[#27394B] font-bold">
+                    Sessão #{caso.rodadaId}
+                  </span>
+                )}
+              </div>
 
               {/* Corpo Dinâmico por Tipo de Questão */}
               <div className="flex flex-col gap-1.5 w-full mb-2">

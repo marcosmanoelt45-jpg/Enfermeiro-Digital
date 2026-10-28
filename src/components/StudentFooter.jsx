@@ -4,6 +4,7 @@ import { ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 import MobilePocketDrawer from "@/components/mobile/MobilePocketDrawer";
+import gotiLogoOficial from "@/assets/goti-icone-oficial.png";
 
 export default function StudentFooter({ onOpenOptions }) {
   const navigate = useNavigate();
@@ -15,9 +16,9 @@ export default function StudentFooter({ onOpenOptions }) {
       <footer className="mt-auto border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-950 pt-6 pb-24 md:py-6 text-slate-500 dark:text-slate-400 transition-colors">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-2">
-            <div className="h-6 w-6 rounded-lg overflow-hidden shrink-0 ring-1 ring-emerald-500/40 shadow-xs">
+            <div className="h-7 w-7 rounded-lg overflow-hidden shrink-0 ring-1 ring-emerald-500/40 shadow-xs">
               <img
-                src="/goti/goti-icone.jpg"
+                src={gotiLogoOficial}
                 alt="Goti"
                 className="w-full h-full object-cover"
               />

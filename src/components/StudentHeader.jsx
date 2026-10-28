@@ -20,6 +20,7 @@ import GotiChatDrawer from "@/components/mascot/GotiChatDrawer";
 import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
+import gotiLogoOficial from "@/assets/goti-icone-oficial.png";
 
 export default function StudentHeader({ activeTab = "hub", desktopOnly = false }) {
   const navigate = useNavigate();
@@ -88,9 +89,9 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
               }}
               className="flex items-center gap-3 text-left group transition tap-press shrink-0"
             >
-              <div className="w-10 h-10 rounded-2xl bg-[#16222E] border border-[#20D5B5]/30 p-0.5 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
+              <div className="w-10 h-10 rounded-2xl bg-[#16222E] border border-[#20D5B5]/40 p-0.5 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
                 <img
-                  src="/goti/goti-icone.jpg"
+                  src={gotiLogoOficial}
                   alt="Enfere - Mascote Goti"
                   className="w-full h-full object-cover rounded-xl"
                 />
@@ -189,7 +190,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
         title="Dúvidas clínicas? Pergunte ao Goti"
       >
         <img
-          src="/goti/goti-icone.jpg"
+          src={gotiLogoOficial}
           alt="Goti IA"
           className="w-8 h-8 rounded-full object-cover filter drop-shadow-xs group-hover:scale-110 transition-transform"
         />
