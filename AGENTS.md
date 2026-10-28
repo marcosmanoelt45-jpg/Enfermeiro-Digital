@@ -66,6 +66,8 @@ Este manifesto é a **Fonte Única da Verdade (SSOT)** do projeto Enfermeiro Dig
 - **Zero Linter Warnings/Errors**: Toda modificação de código DEVE passar por `npm run lint` e `npm run typecheck` sem falhas.
 - **Respostas em Português do Brasil**: Manter sempre comunicação e interfaces em PT-BR.
 - **Mobile-First Tátil**: Preservar a experiência responsiva e feedback tátil (haptic, botões 3D que afundam, dock inferior no mobile).
+- **Cache-Busting de Assets (Imports com Hash do Vite)**: Novos ícones, avatares ou logotipos oficiais devem ser armazenados em `src/assets/` e importados diretamente nos componentes React (`import logo from "@/assets/logo.png"`). Evitar confiar exclusivamente em URLs estáticas em `public/`, garantindo que o bundle do Vite gere hashes à prova de cache.
+- **Sincronização e Deploy Pré-Entrega**: Sempre que uma alteração envolver feedback visual do usuário que valida em produção (Vercel), a entrega requer `npm run build`, sincronização remota via `git push origin main` e confirmação dos assets compilados.
 
 ### 5. Ecossistema Multi-Agente (Padrão Claude Code / Hub-and-Spoke)
 
