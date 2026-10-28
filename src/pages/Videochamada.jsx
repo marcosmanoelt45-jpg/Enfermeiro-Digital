@@ -392,44 +392,43 @@ export default function Videochamada() {
 
   return (
     <div className="w-full min-h-screen bg-[#0E1720] text-[#EAF2F8] font-['Nunito',sans-serif] flex justify-center selection:bg-[#2AD3C1]/30">
-      <div className="w-full max-w-[440px] md:max-w-4xl lg:max-w-5xl xl:max-w-6xl min-h-screen flex flex-col relative overflow-x-hidden transition-all duration-300">
+      <div className="w-full max-w-[480px] sm:max-w-[500px] min-h-screen flex flex-col relative overflow-x-hidden transition-all duration-300">
 
         {/* =========================================================================
             TELA 2: ABERTURA DO CASO (02-intro.png)
         ========================================================================= */}
         {tela === "intro" && (
-          <div className="flex-1 flex flex-col p-4 sm:p-5 md:p-8 animate-in fade-in duration-200">
-            {/* Topo com Botão Fechar X */}
-            <div className="flex items-center justify-between pt-1 pb-3">
-              <button
-                type="button"
-                onClick={() => navigate("/")}
-                className="w-10 h-10 rounded-full flex items-center justify-center text-[#9FB3C6] hover:text-[#EAF2F8] hover:bg-[#16222E] transition-colors cursor-pointer"
-                aria-label="Voltar para Início"
-              >
-                <X className="w-7 h-7 stroke-[2.5]" />
-              </button>
-              <div className="flex items-center gap-2">
+          <div className="flex-1 flex flex-col justify-center p-3 sm:p-4 my-auto animate-in fade-in duration-200">
+            {/* Topo com Botão Fechar X e Som */}
+            <div>
+              <div className="flex items-center justify-between pt-1 pb-2">
                 <button
                   type="button"
-                  onClick={handleToggleSound}
-                  className="w-9 h-9 rounded-full flex items-center justify-center text-[#9FB3C6] hover:text-[#2AD3C1] bg-[#16222E] border border-[#27394B] cursor-pointer"
-                  title={soundEnabled ? "Som ativado" : "Som desativado"}
+                  onClick={() => navigate("/")}
+                  className="w-10 h-10 rounded-full flex items-center justify-center text-[#9FB3C6] hover:text-[#EAF2F8] hover:bg-[#16222E] transition-colors cursor-pointer"
+                  aria-label="Voltar para Início"
                 >
-                  {soundEnabled ? <Volume2 className="w-4 h-4 text-[#2AD3C1]" /> : <VolumeX className="w-4 h-4 text-[#FF6B6B]" />}
+                  <X className="w-7 h-7 stroke-[2.5]" />
                 </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={handleToggleSound}
+                    className="w-9 h-9 rounded-full flex items-center justify-center text-[#9FB3C6] hover:text-[#2AD3C1] bg-[#16222E] border border-[#27394B] cursor-pointer"
+                    title={soundEnabled ? "Som ativado" : "Som desativado"}
+                  >
+                    {soundEnabled ? <Volume2 className="w-4 h-4 text-[#2AD3C1]" /> : <VolumeX className="w-4 h-4 text-[#FF6B6B]" />}
+                  </button>
+                </div>
               </div>
-            </div>
 
-            {/* Layout Responsivo: Coluna Única no Mobile, 2 Colunas no Desktop */}
-            <div className="flex-1 flex flex-col md:grid md:grid-cols-12 md:gap-8 md:items-center">
-              {/* Coluna Esquerda no PC: Palco de Vídeo do Paciente com Dados Clínicos */}
-              <div className="md:col-span-6 flex flex-col gap-3 mb-4 md:mb-0">
+              {/* Palco de Vídeo do Paciente com Dados Clínicos */}
+              <div className="flex flex-col gap-2.5 mb-2.5">
                 <PacienteVideoStage
                   pacienteId={pacienteId}
                   clipeAtivo="fala"
                   isSpeaking={false}
-                  className="w-full h-[185px] xs:h-[200px] sm:h-[220px] md:h-[280px] lg:h-[320px]"
+                  className="w-full h-[185px] xs:h-[200px] sm:h-[220px] rounded-2xl shadow-md border-2 border-[#27394B]"
                 />
 
                 {/* Ficha Clínica do Paciente */}
@@ -448,71 +447,69 @@ export default function Videochamada() {
                 </div>
               </div>
 
-              {/* Coluna Direita no PC: Informações da Missão e Ações */}
-              <div className="md:col-span-6 flex flex-col justify-between h-full">
-                <div>
-                  {/* Chips de Categoria */}
-                  <div className="flex items-center gap-2 mb-2">
-                    <span className="px-3 py-1 rounded-full text-xs font-black bg-[#2AD3C1]/15 text-[#2AD3C1]">
-                      Atendimento por voz
-                    </span>
-                    <span className="px-3 py-1 rounded-full text-xs font-black bg-[#3DD68C]/15 text-[#3DD68C]">
-                      Caso simulado
-                    </span>
-                  </div>
-
-                  {/* Título do Caso */}
-                  <h1 className="text-2xl sm:text-3xl font-black leading-tight text-[#EAF2F8] mb-2">
-                    {caso.titulo}
-                  </h1>
-                  <p className="text-xs sm:text-sm font-bold text-[#9FB3C6] mb-4">
-                    {caso.subtitulo}
-                  </p>
-
-                  {/* Seletor Segmentado Marcus / Teresinha */}
-                  <div className="flex gap-2 mb-3">
-                    <button
-                      type="button"
-                      onClick={() => handleSelectPaciente("marcus")}
-                      className={`flex-1 h-11 rounded-xl border-2 font-black text-sm flex items-center justify-center transition-all cursor-pointer ${
-                        pacienteId === "marcus"
-                          ? "border-[#2AD3C1] border-b-[4px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
-                          : "border-[#27394B] border-b-[4px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8]"
-                      }`}
-                    >
-                      Marcus
-                    </button>
-                    <button
-                      type="button"
-                      onClick={() => handleSelectPaciente("teresinha")}
-                      className={`flex-1 h-11 rounded-xl border-2 font-black text-sm flex items-center justify-center transition-all cursor-pointer ${
-                        pacienteId === "teresinha"
-                          ? "border-[#2AD3C1] border-b-[4px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
-                          : "border-[#27394B] border-b-[4px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8]"
-                      }`}
-                    >
-                      Teresinha
-                    </button>
-                  </div>
-
-                  {/* Nota de Som */}
-                  <div className="flex items-center gap-2 text-xs font-bold text-[#9FB3C6] mb-4 px-1">
-                    <Volume1 className="w-4 h-4 text-[#2AD3C1] flex-none" />
-                    <span>A voz do paciente é gerada a partir do caso com Voicebox neural.</span>
-                  </div>
+              {/* Informações da Missão */}
+              <div>
+                {/* Chips de Categoria */}
+                <div className="flex items-center gap-2 mb-2">
+                  <span className="px-3 py-1 rounded-full text-xs font-black bg-[#2AD3C1]/15 text-[#2AD3C1]">
+                    Atendimento por voz
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-black bg-[#3DD68C]/15 text-[#3DD68C]">
+                    Caso simulado
+                  </span>
                 </div>
 
-                {/* Botão de Abertura 3D */}
-                <div className="mt-auto pt-2">
+                {/* Título do Caso */}
+                <h1 className="text-xl sm:text-2xl font-black leading-tight text-[#EAF2F8] mb-1.5">
+                  {caso.titulo}
+                </h1>
+                <p className="text-xs sm:text-sm font-bold text-[#9FB3C6] mb-3">
+                  {caso.subtitulo}
+                </p>
+
+                {/* Seletor Segmentado Marcus / Teresinha */}
+                <div className="flex gap-2 mb-2.5">
                   <button
                     type="button"
-                    onClick={handleIniciarAtendimento}
-                    className="w-full h-12 sm:h-13 rounded-xl bg-[#2AD3C1] text-[#06302E] font-black text-base sm:text-lg shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A] flex items-center justify-center transition-all cursor-pointer"
+                    onClick={() => handleSelectPaciente("marcus")}
+                    className={`flex-1 h-11 rounded-xl border-2 font-black text-sm flex items-center justify-center transition-all cursor-pointer ${
+                      pacienteId === "marcus"
+                        ? "border-[#2AD3C1] border-b-[4px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
+                        : "border-[#27394B] border-b-[4px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8]"
+                    }`}
                   >
-                    Iniciar atendimento
+                    Marcus
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectPaciente("teresinha")}
+                    className={`flex-1 h-11 rounded-xl border-2 font-black text-sm flex items-center justify-center transition-all cursor-pointer ${
+                      pacienteId === "teresinha"
+                        ? "border-[#2AD3C1] border-b-[4px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
+                        : "border-[#27394B] border-b-[4px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8]"
+                    }`}
+                  >
+                    Teresinha
                   </button>
                 </div>
+
+                {/* Nota de Som */}
+                <div className="flex items-center gap-2 text-xs font-bold text-[#9FB3C6] px-1">
+                  <Volume1 className="w-4 h-4 text-[#2AD3C1] flex-none" />
+                  <span>A voz do paciente é gerada a partir do caso com Voicebox neural.</span>
+                </div>
               </div>
+            </div>
+
+            {/* Botão de Abertura 3D */}
+            <div className="pt-3 mt-2">
+              <button
+                type="button"
+                onClick={handleIniciarAtendimento}
+                className="w-full h-12 sm:h-13 rounded-xl bg-[#2AD3C1] text-[#06302E] font-black text-base sm:text-lg shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A] flex items-center justify-center transition-all cursor-pointer"
+              >
+                Iniciar atendimento
+              </button>
             </div>
           </div>
         )}
@@ -521,75 +518,72 @@ export default function Videochamada() {
             TELA 3: PACIENTE FALANDO (03-fala-paciente.png)
         ========================================================================= */}
         {tela === "fala" && (
-          <div className="flex-1 flex flex-col p-4 sm:p-5 md:p-8 animate-in fade-in duration-200">
-            {/* TopBar */}
-            <SimuladorTopBar
-              stepAtual={0}
-              totalSteps={caso.passos.length}
-              vidas={vidas}
-              onExit={() => setTela("intro")}
-              onMoreOptions={() => setModalOpcoesAberto(true)}
-            />
+          <div className="flex-1 flex flex-col justify-center p-3 sm:p-4 my-auto animate-in fade-in duration-200">
+            <div>
+              {/* TopBar */}
+              <SimuladorTopBar
+                stepAtual={0}
+                totalSteps={caso.passos.length}
+                vidas={vidas}
+                onExit={() => setTela("intro")}
+                onMoreOptions={() => setModalOpcoesAberto(true)}
+              />
 
-            {/* Conteúdo Central Responsivo */}
-            <div className="flex-1 flex flex-col md:grid md:grid-cols-12 md:gap-8 md:items-center mt-3">
               {/* Palco do Paciente */}
-              <div className="md:col-span-6 mb-3 md:mb-0">
+              <div className="mt-2.5 mb-2.5">
                 <PacienteVideoStage
                   pacienteId={pacienteId}
                   clipeAtivo={clipeAtivo}
                   isSpeaking={isSpeaking}
                   onClipeEnded={() => setClipeAtivo("fala")}
-                  className="w-full h-[185px] xs:h-[200px] sm:h-[220px] md:h-[280px] lg:h-[320px]"
+                  className="w-full h-[185px] xs:h-[200px] sm:h-[220px] rounded-2xl shadow-md border-2 border-[#27394B]"
                 />
               </div>
 
-              {/* Lado Direito: Balão com Ondas Sonoras, Karaokê e Botões */}
-              <div className="md:col-span-6 flex flex-col justify-between gap-3 h-full">
-                <div className="flex flex-col gap-3">
-                  <FalaLegendaBubble
-                    texto={caso.passos[0].texto}
-                    isSpeaking={isSpeaking}
-                    activeWordIndex={activeWordIndex}
-                  />
+              {/* Balão com Ondas Sonoras, Karaokê e Botões */}
+              <div className="flex flex-col gap-2.5">
+                <FalaLegendaBubble
+                  texto={caso.passos[0].texto}
+                  isSpeaking={isSpeaking}
+                  activeWordIndex={activeWordIndex}
+                />
 
-                  {/* Botões Secundários: Repetir e Pular */}
-                  <div className="flex gap-2">
-                    <button
-                      type="button"
-                      onClick={handleRepetirFala}
-                      className="flex-1 h-11 rounded-xl border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-extrabold text-sm flex items-center justify-center gap-1.5 active:translate-y-[2px] active:border-b-2 hover:bg-[#1E2E3E] transition-all cursor-pointer"
-                    >
-                      <RotateCcw className="w-4 h-4 text-[#9FB3C6]" />
-                      <span>Repetir</span>
-                    </button>
-                    <button
-                      type="button"
-                      onClick={handlePularFala}
-                      className="flex-1 h-11 rounded-xl border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-extrabold text-sm flex items-center justify-center gap-1.5 active:translate-y-[2px] active:border-b-2 hover:bg-[#1E2E3E] transition-all cursor-pointer"
-                    >
-                      <span>Pular</span>
-                      <SkipForward className="w-4 h-4 text-[#9FB3C6]" />
-                    </button>
-                  </div>
-                </div>
-
-                {/* Botão de Continuar */}
-                <div className="mt-auto pt-3">
+                {/* Botões Secundários: Repetir e Pular */}
+                <div className="flex gap-2">
                   <button
                     type="button"
-                    disabled={!falaConcluida && isSpeaking}
-                    onClick={handleContinuarAposFala}
-                    className={`w-full h-12 sm:h-13 rounded-xl font-black text-base sm:text-lg flex items-center justify-center transition-all cursor-pointer ${
-                      !falaConcluida && isSpeaking
-                        ? "bg-[#27394B] text-[#5D7388] shadow-[0_4px_0_#0A1118] cursor-not-allowed opacity-75"
-                        : "bg-[#2AD3C1] text-[#06302E] shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A]"
-                    }`}
+                    onClick={handleRepetirFala}
+                    className="flex-1 h-11 rounded-xl border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-extrabold text-sm flex items-center justify-center gap-1.5 active:translate-y-[2px] active:border-b-2 hover:bg-[#1E2E3E] transition-all cursor-pointer"
                   >
-                    Continuar
+                    <RotateCcw className="w-4 h-4 text-[#9FB3C6]" />
+                    <span>Repetir</span>
+                  </button>
+                  <button
+                    type="button"
+                    onClick={handlePularFala}
+                    className="flex-1 h-11 rounded-xl border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-extrabold text-sm flex items-center justify-center gap-1.5 active:translate-y-[2px] active:border-b-2 hover:bg-[#1E2E3E] transition-all cursor-pointer"
+                  >
+                    <span>Pular</span>
+                    <SkipForward className="w-4 h-4 text-[#9FB3C6]" />
                   </button>
                 </div>
               </div>
+            </div>
+
+            {/* Botão de Continuar */}
+            <div className="pt-3 mt-2">
+              <button
+                type="button"
+                disabled={!falaConcluida && isSpeaking}
+                onClick={handleContinuarAposFala}
+                className={`w-full h-12 sm:h-13 rounded-xl font-black text-base sm:text-lg flex items-center justify-center transition-all cursor-pointer ${
+                  !falaConcluida && isSpeaking
+                    ? "bg-[#27394B] text-[#5D7388] shadow-[0_4px_0_#0A1118] cursor-not-allowed opacity-75"
+                    : "bg-[#2AD3C1] text-[#06302E] shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A]"
+                }`}
+              >
+                Continuar
+              </button>
             </div>
           </div>
         )}
@@ -598,279 +592,239 @@ export default function Videochamada() {
             TELAS 4 A 7: QUESTÕES DO CASO (Escolha, Seleção, Cálculo, Voz)
         ========================================================================= */}
         {tela === "questao" && (
-          <div className="flex-1 flex flex-col p-3 sm:p-4 md:p-6 lg:p-8 animate-in fade-in duration-200">
-            {/* TopBar */}
-            <SimuladorTopBar
-              stepAtual={stepIndex}
-              totalSteps={caso.passos.length}
-              vidas={vidas}
-              onExit={() => setTela("intro")}
-              onMoreOptions={() => setModalOpcoesAberto(true)}
-            />
+          <div className="flex-1 flex flex-col justify-center p-3 sm:p-4 my-auto animate-in fade-in duration-200">
+            <div>
+              {/* TopBar */}
+              <SimuladorTopBar
+                stepAtual={stepIndex}
+                totalSteps={caso.passos.length}
+                vidas={vidas}
+                onExit={() => setTela("intro")}
+                onMoreOptions={() => setModalOpcoesAberto(true)}
+              />
 
-            {/* Layout Responsivo: 2 Colunas no Desktop, Empilhado no Mobile */}
-            <div className="flex-1 flex flex-col md:grid md:grid-cols-12 md:gap-8 md:items-start my-2">
-
-              {/* Coluna Esquerda (Desktop): Palco de Vídeo + Pergunta do Paciente com Ondas */}
-              <div className="md:col-span-5 flex flex-col gap-2.5 mb-2 md:mb-0">
-                {/* Visualização Mobile: Paciente em destaque vertical ampliado + Fala abaixo */}
-                <div className="flex md:hidden flex-col items-center gap-2.5 w-full">
-                  <PacienteVideoStage
-                    pacienteId={pacienteId}
-                    clipeAtivo={clipeAtivo}
-                    isSpeaking={isSpeaking}
-                    small={false}
-                    onClipeEnded={() => setClipeAtivo("fala")}
-                    className="w-full h-[185px] xs:h-[200px] sm:h-[220px] mx-auto rounded-2xl shadow-md border-2 border-[#27394B]"
-                  />
-                  <FalaLegendaBubble
-                    texto={passoAtual.pergunta}
-                    isSpeaking={isSpeaking}
-                    activeWordIndex={activeWordIndex}
-                    compact
-                    className="w-full text-center"
-                  />
-                </div>
-
-                {/* Visualização Desktop: Vídeo Grande + Balão de Pergunta abaixo */}
-                <div className="hidden md:flex flex-col gap-3">
-                  <PacienteVideoStage
-                    pacienteId={pacienteId}
-                    clipeAtivo={clipeAtivo}
-                    isSpeaking={isSpeaking}
-                    small={false}
-                    onClipeEnded={() => setClipeAtivo("fala")}
-                    className="w-full md:h-[260px] lg:h-[300px]"
-                  />
-                  <FalaLegendaBubble
-                    texto={passoAtual.pergunta}
-                    isSpeaking={isSpeaking}
-                    activeWordIndex={activeWordIndex}
-                    compact={false}
-                    className="w-full"
-                  />
-                  {/* Badge de Sinais Vitais no Desktop */}
-                  <div className="flex items-center justify-between p-3 rounded-xl bg-[#16222E] border-2 border-[#27394B]">
-                    <div>
-                      <span className="text-sm font-black text-[#EAF2F8] block">{paciente.nome}</span>
-                      <span className="text-xs font-bold text-[#9FB3C6]">{paciente.idade} · {paciente.leito}</span>
-                    </div>
-                    <span className="px-2.5 py-1 rounded-lg bg-[#3AA7E8]/15 text-[#6CC3F5] text-xs font-black">
-                      {paciente.sinaisVitais}
-                    </span>
-                  </div>
-                </div>
+              {/* Palco de Vídeo + Pergunta do Paciente com Ondas */}
+              <div className="flex flex-col items-center gap-2.5 w-full mt-2 mb-2">
+                <PacienteVideoStage
+                  pacienteId={pacienteId}
+                  clipeAtivo={clipeAtivo}
+                  isSpeaking={isSpeaking}
+                  small={false}
+                  onClipeEnded={() => setClipeAtivo("fala")}
+                  className="w-full h-[185px] xs:h-[200px] sm:h-[220px] mx-auto rounded-2xl shadow-md border-2 border-[#27394B]"
+                />
+                <FalaLegendaBubble
+                  texto={passoAtual.pergunta}
+                  isSpeaking={isSpeaking}
+                  activeWordIndex={activeWordIndex}
+                  compact
+                  className="w-full text-center"
+                />
               </div>
 
-              {/* Coluna Direita (Desktop): Opções da Questão + Botão Verificar */}
-              <div className="md:col-span-7 flex flex-col justify-between flex-1 gap-2 md:min-h-[460px]">
-                <div className="flex flex-col gap-1.5 w-full mt-1.5 md:mt-0">
-                  {/* Tema da Questão agrupado com as opções (sem vazio vertical) */}
-                  {passoAtual.tema && (
-                    <div className="text-[11px] font-black text-[#2AD3C1] uppercase tracking-wider px-0.5 mb-0.5">
-                      {passoAtual.tema}
-                    </div>
-                  )}
+              {/* Tema da Questão agrupado com as opções */}
+              {passoAtual.tema && (
+                <div className="text-[11px] font-black text-[#2AD3C1] uppercase tracking-wider px-0.5 mb-1.5">
+                  {passoAtual.tema}
+                </div>
+              )}
 
-                  {/* Corpo Dinâmico por Tipo de Questão */}
-                  <div className="flex flex-col gap-1.5 w-full">
-                  {/* -----------------------------------------------------------
-                      TELA 4: MÚLTIPLA ESCOLHA (04-questao-escolha.png)
-                  ----------------------------------------------------------- */}
-                  {passoAtual.tipo === "multipla_escolha" && (
-                    <div className="flex flex-col gap-1.5">
-                      {passoAtual.opcoes.map((opcao, optIdx) => {
-                        const isSelected = selectedEscolha === optIdx;
-                        const letter = ["A", "B", "C", "D", "E"][optIdx] || String(optIdx + 1);
-                        return (
-                          <button
-                            key={optIdx}
-                            type="button"
-                            onClick={() => setSelectedEscolha(optIdx)}
-                            className={`w-full py-2 px-3 rounded-[12px] border-2 font-black text-[13px] sm:text-[13.5px] text-left flex items-center gap-2.5 transition-all cursor-pointer ${
-                              isSelected
-                                ? "border-[#2AD3C1] border-b-[3px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
-                                : "border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] hover:bg-[#1E2E3E]"
-                            }`}
-                          >
-                            <span
-                              className={`w-5.5 h-5.5 rounded-md border-2 flex items-center justify-center text-[10.5px] font-black flex-none ${
-                                isSelected
-                                  ? "border-[#2AD3C1] text-[#2AD3C1]"
-                                  : "border-[#27394B] text-[#9FB3C6]"
-                              }`}
-                            >
-                              {letter}
-                            </span>
-                            <span className="flex-1 leading-snug">{opcao}</span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  )}
-
-                  {/* -----------------------------------------------------------
-                      TELA 5: MÚLTIPLA SELEÇÃO (05-questao-selecao.png)
-                  ----------------------------------------------------------- */}
-                  {passoAtual.tipo === "multipla_selecao" && (
-                    <div className="flex flex-col gap-1.5">
-                      {passoAtual.opcoes.map((opcao, optIdx) => {
-                        const isChecked = selectedMultipla.includes(optIdx);
-                        return (
-                          <button
-                            key={optIdx}
-                            type="button"
-                            onClick={() => {
-                              setSelectedMultipla((prev) =>
-                                prev.includes(optIdx)
-                                  ? prev.filter((i) => i !== optIdx)
-                                  : [...prev, optIdx]
-                              );
-                            }}
-                            className={`w-full py-1.5 px-3 rounded-[12px] border-2 font-black text-[12px] sm:text-[12.5px] text-left flex items-center gap-2.5 transition-all cursor-pointer ${
-                              isChecked
-                                ? "border-[#2AD3C1] border-b-[3px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
-                                : "border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] hover:bg-[#1E2E3E]"
-                            }`}
-                          >
-                            <div
-                              className={`w-4.5 h-4.5 rounded-md border-2 flex items-center justify-center flex-none ${
-                                isChecked
-                                  ? "border-[#2AD3C1] bg-[#2AD3C1] text-[#06302E]"
-                                  : "border-[#27394B]"
-                              }`}
-                            >
-                              {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
-                            </div>
-                            <span className="flex-1 leading-tight">{opcao}</span>
-                          </button>
-                        );
-                      })}
-                      <div className="text-[11px] font-bold text-[#9FB3C6] px-1">
-                        Marque todas as corretas.
-                      </div>
-                    </div>
-                  )}
-
-                  {/* -----------------------------------------------------------
-                      TELA 6: CÁLCULO DE DOSE (06-questao-calculo.png)
-                  ----------------------------------------------------------- */}
-                  {passoAtual.tipo === "calculo" && (
-                    <div className="flex flex-col gap-2">
-                      {/* Card Registro de Prescrição com Fórmula no Cantinho */}
-                      <div className="rounded-[16px] bg-[#16222E] border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] p-3">
-                        <div className="flex items-center justify-between text-[#2AD3C1] font-black text-xs uppercase tracking-wider mb-1">
-                          <div className="flex items-center gap-1.5">
-                            <FileText className="w-4 h-4" />
-                            <span>Registro de prescrição</span>
-                          </div>
-                          {passoAtual.formulaGuia && (
-                            <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#0E1720] border border-[#27394B] text-[#9FB3C6] truncate max-w-[190px]">
-                              {passoAtual.formulaGuia}
-                            </span>
-                          )}
-                        </div>
-                        <p className="text-xs font-bold text-[#EAF2F8] leading-tight mb-2">
-                          {passoAtual.prescricao}
-                        </p>
-                        <div className="grid grid-cols-2 gap-2 text-xs">
-                          {passoAtual.dadosTabela.map(([label, val], dIdx) => (
-                            <div key={dIdx}>
-                              <div className="font-bold text-[#9FB3C6] text-[11px]">{label}</div>
-                              <div className="font-black text-[#EAF2F8]">{val}</div>
-                            </div>
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* Teclado e Display Virtual */}
-                      <TecladoCalculo
-                        valor={valorCalculo}
-                        unidade={passoAtual.unidade}
-                        onKeyPress={handleKeypadPress}
-                      />
-                    </div>
-                  )}
-
-                  {/* -----------------------------------------------------------
-                      TELA 7: RESPOSTA FALADA (07-questao-voz.png)
-                  ----------------------------------------------------------- */}
-                  {passoAtual.tipo === "resposta_falada" && (
-                    <div className="flex flex-col items-center gap-2 pt-1">
-                      {/* Botão de Microfone 3D Amplo e Retangular */}
-                      <button
-                        type="button"
-                        onClick={handleToggleGravacaoVoz}
-                        className={`w-full max-w-[340px] h-13 sm:h-14 rounded-2xl flex items-center justify-center gap-2.5 px-6 font-black text-sm tracking-wide transition-all cursor-pointer ${
-                          isRecording
-                            ? "bg-[#FF6B6B] text-[#2B1619] shadow-[0_4px_0_#b84444] animate-pulse"
-                            : "bg-[#2AD3C1] text-[#06302E] shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A]"
-                        }`}
-                        aria-label={isRecording ? "Concluir gravação" : "Falar resposta por voz"}
-                      >
-                        <Mic className="w-5 h-5 stroke-[2.5]" />
-                        <span>{isRecording ? "Gravando... (Toque para parar)" : "Falar resposta por voz"}</span>
-                      </button>
-
-                      <div className="text-xs font-black text-[#9FB3C6] text-center px-3">
-                        {micStatusLabel}
-                      </div>
-
-                      {/* Card com a Transcrição ao Vivo */}
-                      <div className="w-full rounded-[16px] bg-[#16222E] border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] p-3 min-h-[58px] flex items-center text-left">
-                        <span
-                          className={`text-[13.5px] font-extrabold ${
-                            textoVoz ? "text-[#EAF2F8]" : "text-[#9FB3C6]/60"
+              {/* Corpo Dinâmico por Tipo de Questão */}
+              <div className="flex flex-col gap-1.5 w-full mb-2">
+                {/* -----------------------------------------------------------
+                    TELA 4: MÚLTIPLA ESCOLHA (04-questao-escolha.png)
+                ----------------------------------------------------------- */}
+                {passoAtual.tipo === "multipla_escolha" && (
+                  <div className="flex flex-col gap-1.5">
+                    {passoAtual.opcoes.map((opcao, optIdx) => {
+                      const isSelected = selectedEscolha === optIdx;
+                      const letter = ["A", "B", "C", "D", "E"][optIdx] || String(optIdx + 1);
+                      return (
+                        <button
+                          key={optIdx}
+                          type="button"
+                          onClick={() => setSelectedEscolha(optIdx)}
+                          className={`w-full py-2 px-3 rounded-[12px] border-2 font-black text-[13px] sm:text-[13.5px] text-left flex items-center gap-2.5 transition-all cursor-pointer ${
+                            isSelected
+                              ? "border-[#2AD3C1] border-b-[3px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
+                              : "border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] hover:bg-[#1E2E3E]"
                           }`}
                         >
-                          {textoVoz || "A transcrição da sua fala aparece aqui…"}
-                        </span>
-                      </div>
-
-                      {/* Botões de Ação */}
-                      <div className="flex gap-2 w-full justify-center">
-                        {isRecording && (
-                          <button
-                            type="button"
-                            onClick={handleToggleGravacaoVoz}
-                            className="h-9 px-3.5 rounded-xl bg-[#FF6B6B] text-[#2B1619] font-black text-xs shadow-[0_3px_0_#b84444] active:translate-y-0.5 transition-all cursor-pointer"
+                          <span
+                            className={`w-5.5 h-5.5 rounded-md border-2 flex items-center justify-center text-[10.5px] font-black flex-none ${
+                              isSelected
+                                ? "border-[#2AD3C1] text-[#2AD3C1]"
+                                : "border-[#27394B] text-[#9FB3C6]"
+                            }`}
                           >
-                            Concluir fala
-                          </button>
-                        )}
+                            {letter}
+                          </span>
+                          <span className="flex-1 leading-snug">{opcao}</span>
+                        </button>
+                      );
+                    })}
+                  </div>
+                )}
+
+                {/* -----------------------------------------------------------
+                    TELA 5: MÚLTIPLA SELEÇÃO (05-questao-selecao.png)
+                ----------------------------------------------------------- */}
+                {passoAtual.tipo === "multipla_selecao" && (
+                  <div className="flex flex-col gap-1.5">
+                    {passoAtual.opcoes.map((opcao, optIdx) => {
+                      const isChecked = selectedMultipla.includes(optIdx);
+                      return (
                         <button
+                          key={optIdx}
                           type="button"
                           onClick={() => {
-                            setInputDigitarManual(textoVoz);
-                            setModalDigitarAberto(true);
+                            setSelectedMultipla((prev) =>
+                              prev.includes(optIdx)
+                                ? prev.filter((i) => i !== optIdx)
+                                : [...prev, optIdx]
+                            );
                           }}
-                          className="h-9 px-3.5 rounded-xl border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-black text-xs hover:bg-[#1E2E3E] active:translate-y-[2px] transition-all cursor-pointer"
+                          className={`w-full py-1.5 px-3 rounded-[12px] border-2 font-black text-[12px] sm:text-[12.5px] text-left flex items-center gap-2.5 transition-all cursor-pointer ${
+                            isChecked
+                              ? "border-[#2AD3C1] border-b-[3px] border-b-[#17A99A] bg-[#2AD3C1]/10 text-[#2AD3C1]"
+                              : "border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] hover:bg-[#1E2E3E]"
+                          }`}
                         >
-                          Prefiro digitar
+                          <div
+                            className={`w-4.5 h-4.5 rounded-md border-2 flex items-center justify-center flex-none ${
+                              isChecked
+                                ? "border-[#2AD3C1] bg-[#2AD3C1] text-[#06302E]"
+                                : "border-[#27394B]"
+                            }`}
+                          >
+                            {isChecked && <Check className="w-3.5 h-3.5 stroke-[3]" />}
+                          </div>
+                          <span className="flex-1 leading-tight">{opcao}</span>
                         </button>
+                      );
+                    })}
+                    <div className="text-[11px] font-bold text-[#9FB3C6] px-1">
+                      Marque todas as corretas.
+                    </div>
+                  </div>
+                )}
+
+                {/* -----------------------------------------------------------
+                    TELA 6: CÁLCULO DE DOSE (06-questao-calculo.png)
+                ----------------------------------------------------------- */}
+                {passoAtual.tipo === "calculo" && (
+                  <div className="flex flex-col gap-2">
+                    {/* Card Registro de Prescrição com Fórmula no Cantinho */}
+                    <div className="rounded-[16px] bg-[#16222E] border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] p-3">
+                      <div className="flex items-center justify-between text-[#2AD3C1] font-black text-xs uppercase tracking-wider mb-1">
+                        <div className="flex items-center gap-1.5">
+                          <FileText className="w-4 h-4" />
+                          <span>Registro de prescrição</span>
+                        </div>
+                        {passoAtual.formulaGuia && (
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#0E1720] border border-[#27394B] text-[#9FB3C6] truncate max-w-[190px]">
+                            {passoAtual.formulaGuia}
+                          </span>
+                        )}
+                      </div>
+                      <p className="text-xs font-bold text-[#EAF2F8] leading-tight mb-2">
+                        {passoAtual.prescricao}
+                      </p>
+                      <div className="grid grid-cols-2 gap-2 text-xs">
+                        {passoAtual.dadosTabela.map(([label, val], dIdx) => (
+                          <div key={dIdx}>
+                            <div className="font-bold text-[#9FB3C6] text-[11px]">{label}</div>
+                            <div className="font-black text-[#EAF2F8]">{val}</div>
+                          </div>
+                        ))}
                       </div>
                     </div>
-                  )}
-                </div>
-              </div>
 
-              {/* Botão 3D Verificar */}
-              <div className="mt-auto pt-2">
-                  <button
-                    type="button"
-                    disabled={!canVerificar()}
-                    onClick={handleVerificarResposta}
-                    className={`w-full h-11 sm:h-12 rounded-xl font-black text-base flex items-center justify-center transition-all cursor-pointer ${
-                      !canVerificar()
-                        ? "bg-[#27394B] text-[#5D7388] shadow-[0_4px_0_#0A1118] cursor-not-allowed opacity-75"
-                        : "bg-[#2AD3C1] text-[#06302E] shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A]"
-                    }`}
-                  >
-                    Verificar
-                  </button>
-                </div>
-              </div>
+                    {/* Teclado e Display Virtual */}
+                    <TecladoCalculo
+                      valor={valorCalculo}
+                      unidade={passoAtual.unidade}
+                      onKeyPress={handleKeypadPress}
+                    />
+                  </div>
+                )}
 
+                {/* -----------------------------------------------------------
+                    TELA 7: RESPOSTA FALADA (07-questao-voz.png)
+                ----------------------------------------------------------- */}
+                {passoAtual.tipo === "resposta_falada" && (
+                  <div className="flex flex-col items-center gap-2.5 pt-1 w-full">
+                    {/* Botão de Microfone Bloco 3D (conforme desenho na print) */}
+                    <button
+                      type="button"
+                      onClick={handleToggleGravacaoVoz}
+                      className={`w-24 h-20 sm:w-28 sm:h-22 rounded-2xl flex items-center justify-center transition-all cursor-pointer select-none mx-auto ${
+                        isRecording
+                          ? "bg-[#FF6B6B] text-[#2B1619] shadow-[0_5px_0_#b84444] animate-pulse active:translate-y-[2px] active:shadow-[0_2px_0_#b84444]"
+                          : "bg-[#2AD3C1] text-[#06302E] shadow-[0_5px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A] hover:brightness-105"
+                      }`}
+                      aria-label={isRecording ? "Concluir gravação" : "Falar resposta por voz"}
+                    >
+                      <Mic className="w-10 h-10 sm:w-11 sm:h-11 stroke-[2.2]" />
+                    </button>
+
+                    {/* Texto de Status / Instrução */}
+                    <div className="text-xs font-black text-[#9FB3C6] text-center px-3">
+                      {isRecording ? "Gravando fala... Toque no botão para concluir" : micStatusLabel}
+                    </div>
+
+                    {/* Card com a Transcrição ao Vivo */}
+                    <div className="w-full rounded-[16px] bg-[#16222E] border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] p-3 min-h-[58px] flex items-center text-left">
+                      <span
+                        className={`text-[13.5px] font-extrabold ${
+                          textoVoz ? "text-[#EAF2F8]" : "text-[#9FB3C6]/60"
+                        }`}
+                      >
+                        {textoVoz || "A transcrição da sua fala aparece aqui…"}
+                      </span>
+                    </div>
+
+                    {/* Botões de Ação */}
+                    <div className="flex gap-2 w-full justify-center">
+                      {isRecording && (
+                        <button
+                          type="button"
+                          onClick={handleToggleGravacaoVoz}
+                          className="h-9 px-3.5 rounded-xl bg-[#FF6B6B] text-[#2B1619] font-black text-xs shadow-[0_3px_0_#b84444] active:translate-y-0.5 transition-all cursor-pointer"
+                        >
+                          Concluir fala
+                        </button>
+                      )}
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setInputDigitarManual(textoVoz);
+                          setModalDigitarAberto(true);
+                        }}
+                        className="h-9 px-3.5 rounded-xl border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-black text-xs hover:bg-[#1E2E3E] active:translate-y-[2px] transition-all cursor-pointer"
+                      >
+                        Prefiro digitar
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Botão 3D Verificar */}
+            <div className="pt-2 mt-1.5">
+              <button
+                type="button"
+                disabled={!canVerificar()}
+                onClick={handleVerificarResposta}
+                className={`w-full h-11 sm:h-12 rounded-xl font-black text-base flex items-center justify-center transition-all cursor-pointer ${
+                  !canVerificar()
+                    ? "bg-[#27394B] text-[#5D7388] shadow-[0_4px_0_#0A1118] cursor-not-allowed opacity-75"
+                    : "bg-[#2AD3C1] text-[#06302E] shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A]"
+                }`}
+              >
+                Verificar
+              </button>
             </div>
           </div>
         )}
