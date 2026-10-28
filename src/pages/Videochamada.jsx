@@ -854,7 +854,7 @@ export default function Videochamada() {
 
                 {/* Mascote Goti Animado */}
                 <div className="my-2 py-1">
-                  <GotiAnimated pose={semVidas ? "error" : "jumping"} size="md" width={115} />
+                  <GotiAnimated animation={semVidas ? "angry" : "jumping"} pose={semVidas ? "angry" : "jumping"} size="md" width={115} />
                 </div>
 
                 {/* Subtítulo dinâmico */}

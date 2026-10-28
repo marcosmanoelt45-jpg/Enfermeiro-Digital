@@ -86,14 +86,14 @@ const GOTI_POSES = {
   angry: {
     videoSrc: "/goti/goti-angry.webm",
     src: "/goti/goti-angry.webp",
-    label: "Goti em alerta de segurança do paciente",
+    label: "Goti bravo em alerta de segurança do paciente",
     animationClass: "",
     bottomCropPercent: 0
   },
   error: {
-    videoSrc: "/goti/goti-error.webm",
-    src: "/goti/goti-error.webp",
-    label: "Goti atento corrigindo a conduta",
+    videoSrc: "/goti/goti-angry.webm",
+    src: "/goti/goti-angry.webp",
+    label: "Goti bravo em alerta de segurança do paciente",
     animationClass: "",
     bottomCropPercent: 0
   },
@@ -128,18 +128,24 @@ const SIZE_PRESETS = {
  * - Taxa de quadros fluida (24-60 FPS) e aceleração GPU ativa.
  */
 export default function GotiAnimated({
-  animation = "idle",
+  animation,
+  pose,
   size = "md",
+  width,
+  height,
   className = "",
   onClick = null,
   showBadge = null,
   showShadow = false
 }) {
-  const currentPose = GOTI_POSES[animation] || GOTI_POSES.idle;
+  const requestedPose = animation || pose || "idle";
+  const currentPose = GOTI_POSES[requestedPose] || GOTI_POSES.idle;
   const isPreset = typeof size === "string" && SIZE_PRESETS[size];
   const sizeClass = isPreset ? SIZE_PRESETS[size] : (typeof size === "string" && !size.match(/^\d+$/) ? size : "");
-  const customStyle = typeof size === "number" || (typeof size === "string" && size.match(/^\d+$/))
-    ? { width: `${size}px`, height: `${size}px`, maxWidth: `${size}px`, maxHeight: `${size}px`, flexShrink: 0 }
+  const customWidth = width || (typeof size === "number" || (typeof size === "string" && size.match(/^\d+$/)) ? size : null);
+  const customHeight = height || customWidth;
+  const customStyle = customWidth
+    ? { width: `${customWidth}px`, height: `${customHeight}px`, maxWidth: `${customWidth}px`, maxHeight: `${customHeight}px`, flexShrink: 0 }
     : {};
 
   const canvasRef = useRef(null);
