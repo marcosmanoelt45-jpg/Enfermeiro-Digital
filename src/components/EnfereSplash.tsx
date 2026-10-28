@@ -47,7 +47,7 @@ const CSS = `
 .enfere-splash .es-wave-canvas{display:block;width:100%;height:100%;object-fit:contain;position:relative}
 .enfere-splash .es-wave-fallback{display:none;width:100%;height:100%;object-fit:contain;position:relative}
 .enfere-splash .es-sh{position:absolute;left:14%;right:14%;bottom:1%;height:7%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.6),rgba(0,0,0,0));opacity:0}
-.enfere-splash .pu{transition:transform .22s cubic-bezier(.25,1,.5,1)}
+.enfere-splash .pu{transition:transform .30s cubic-bezier(.25,1,.5,1)}
 .enfere-splash .eye{transform-box:fill-box;transform-origin:center;transition:transform 110ms ease-in-out,opacity 90ms}
 .enfere-splash .arc{opacity:0;transition:opacity 90ms}
 .enfere-splash .happy .eye{display:none !important;opacity:0 !important;visibility:hidden !important}
@@ -291,64 +291,64 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     }
 
     // 0s: Olhos com brilho total
-    A(bg, [{ background: "#0B131D" }, { background: "#0E1720" }], { duration: 180 });
-    A(mark, [{ opacity: 0.35 }, { opacity: 0.8 }], { duration: 180 });
-    A(g1, [{ transform: tf(0.9), filter: "brightness(.9)" }, { transform: tf(1), filter: "brightness(1)" }], { duration: 220, easing: SPR });
+    A(bg, [{ background: "#0B131D" }, { background: "#0E1720" }], { duration: 250 });
+    A(mark, [{ opacity: 0.35 }, { opacity: 0.8 }], { duration: 250 });
+    A(g1, [{ transform: tf(0.9), filter: "brightness(.9)" }, { transform: tf(1), filter: "brightness(1)" }], { duration: 260, easing: SPR });
 
-    // Olhos olham para a esquerda, para a direita e retornam ao centro com agilidade
-    at(160, () => look(-18, 2));
-    at(440, () => look(18, 2));
-    at(720, () => look(0, 0));
+    // Olhos olham para a esquerda, para a direita e retornam ao centro com suavidade
+    at(350, () => look(-18, 2));
+    at(850, () => look(18, 2));
+    at(1350, () => look(0, 0));
 
-    // 0,9s: Olhinhos fecham alegremente (^ ^) e fazem uma transição fluida contínua sem quebras
-    at(900, () => {
+    // 1,75s: Olhinhos fecham alegremente (^ ^) e fazem uma transição fluida contínua sem quebras
+    at(1750, () => {
       g1.classList.add("happy");
       // Pulinho alegre dos olhinhos fechados seguido diretamente do encolhimento no ponto de luz (uma só animação contínua)
       A(g1, [
         { transform: tf(1), opacity: 1 },
-        { transform: "translateY(3px) scale(1.04,.96)", opacity: 1, offset: 0.18 },
-        { transform: tf(1.02, -8), opacity: 1, offset: 0.42 },
-        { transform: tf(1), opacity: 1, offset: 0.65 },
+        { transform: "translateY(4px) scale(1.05,.95)", opacity: 1, offset: 0.2 },
+        { transform: tf(1.02, -10), opacity: 1, offset: 0.45 },
+        { transform: tf(1), opacity: 1, offset: 0.68 },
         { transform: tf(0.02), opacity: 0, offset: 1 }
-      ], { duration: 680, easing: "cubic-bezier(.25,1,.5,1)" });
+      ], { duration: 800, easing: "cubic-bezier(.25,1,.5,1)" });
 
       // Oculta a marca Enfere junto com o encolhimento
-      at(450, () => {
-        A(mark, [{ opacity: 1 }, { opacity: 0 }], { duration: 200 });
+      at(520, () => {
+        A(mark, [{ opacity: 1 }, { opacity: 0 }], { duration: 240 });
       });
 
       // Desativa g1 definitivamente para impedir qualquer render residual antes do Goti surgir
-      at(680, () => {
+      at(800, () => {
         g1.style.display = "none";
       });
     });
 
-    // 1,6s: O pontinho vira o círculo que se expande com ondas
-    at(1600, () => {
-      A(paper, [{ clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(150% at 50% 50%)" }], { duration: 500, easing: "cubic-bezier(.65,0,.2,1)" });
+    // 2,55s: O pontinho vira o círculo que se expande com ondas
+    at(2550, () => {
+      A(paper, [{ clipPath: "circle(0% at 50% 50%)" }, { clipPath: "circle(150% at 50% 50%)" }], { duration: 580, easing: "cubic-bezier(.65,0,.2,1)" });
       rings.forEach((r, i) =>
-        A(r, [{ opacity: 0.9, transform: "scale(.4)" }, { opacity: 0, transform: "scale(8)" }], { duration: 600, delay: i * 60, easing: "cubic-bezier(.2,.7,.2,1)" }));
+        A(r, [{ opacity: 0.9, transform: "scale(.4)" }, { opacity: 0, transform: "scale(8)" }], { duration: 680, delay: i * 70, easing: "cubic-bezier(.2,.7,.2,1)" }));
     });
 
-    // 1,85s: O Goti surge acenando com salto fluido
-    at(1850, () => {
+    // 2,85s: O Goti surge acenando com salto fluido
+    at(2850, () => {
       g2.style.opacity = "1";
       startCanvasLoop();
 
       A(g2, [
-        { opacity: 0, transform: "translateY(40px) scale(.95,1.05)" },
-        { opacity: 1, transform: "translateY(-8px) scale(.98,1.03)", offset: 0.35 },
+        { opacity: 0, transform: "translateY(45px) scale(.95,1.05)" },
+        { opacity: 1, transform: "translateY(-10px) scale(.98,1.03)", offset: 0.35 },
         { opacity: 1, transform: "none" },
-      ], { duration: 500, easing: "cubic-bezier(.33,0,.2,1)" });
+      ], { duration: 550, easing: "cubic-bezier(.33,0,.2,1)" });
 
       A(sh, [
         { opacity: 0, transform: "scale(.3)" },
         { opacity: 1, transform: "scale(1)" },
-      ], { duration: 500 });
+      ], { duration: 550 });
     });
 
-    // 2,3s: Prontidão e botões disponíveis
-    at(2300, ready);
+    // 3,4s: Prontidão e botões disponíveis
+    at(3400, ready);
   };
 
   const onPointerDown = (e: MouseEvent | TouchEvent) => {
