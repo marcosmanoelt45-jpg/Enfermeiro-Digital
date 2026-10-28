@@ -88,11 +88,11 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
               }}
               className="flex items-center gap-3 text-left group transition tap-press shrink-0"
             >
-              <div className="w-10 h-10 rounded-2xl bg-[#16222E] border border-[#20D5B5]/30 p-1 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform">
+              <div className="w-10 h-10 rounded-2xl bg-[#16222E] border border-[#20D5B5]/30 p-0.5 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
                 <img
-                  src="/goti/goti-avatar-app.png"
+                  src="/goti/goti-icone.jpg"
                   alt="Enfere - Mascote Goti"
-                  className="w-full h-full object-contain"
+                  className="w-full h-full object-cover rounded-xl"
                 />
               </div>
               <div>

@@ -13,12 +13,13 @@ import { useTheme } from "@/lib/ThemeContext";
 import { useDragScroll } from "@/hooks/useDragScroll";
 
 const GOTI_NAVIGATION_PROMPTS = [
-  "Onde posso aprender a puncionar?",
+  "Como funciona a videochamada por voz?",
+  "O que você achou do meu atendimento?",
   "Onde treino o cálculo de dosagens?",
+  "Onde posso aprender a puncionar?",
   "Como inicio uma simulação de caso clínico?",
   "Onde treino passagem de plantão SBAR?",
-  "Onde monto um caso clínico do zero?",
-  "Onde vejo minhas turmas e atividades?"
+  "Onde monto um caso clínico do zero?"
 ];
 
 /**

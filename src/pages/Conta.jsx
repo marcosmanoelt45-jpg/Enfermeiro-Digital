@@ -6,7 +6,6 @@ import { useNavigate } from "react-router-dom";
 import {
   LogOut,
   User,
-  ShieldCheck,
   Loader2,
   Camera,
   Check,
@@ -15,8 +14,6 @@ import {
   Snowflake,
   ChevronDown,
   ChevronUp,
-  Award,
-  Users,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -35,26 +32,12 @@ export default function Conta() {
   const { triggerHaptic } = useTheme();
   const navigate = useNavigate();
 
-  // Controle de Abas: 'stats' (Estatísticas Clínicas) | 'settings' (Preferências)
-  const [activeTab, setActiveTab] = useState("stats");
-
   // Estado da Gamificação Clínica
   const [gameState, setGameState] = useState(() => clinicalGamificationService.getState());
   const [showPeModal, setShowPeModal] = useState(false);
 
-  // Controle de accordions expansíveis
-  const [openSections, setOpenSections] = useState({
-    dedication: false,
-    league: false,
-    mission: false,
-    achievements: false,
-    team: false,
-  });
-
-  const toggleSection = (section) => {
-    triggerHaptic(15);
-    setOpenSections((prev) => ({ ...prev, [section]: !prev[section] }));
-  };
+  // Controle do acordeão de dedicação semanal
+  const [openDedication, setOpenDedication] = useState(true);
 
   const refreshGameState = () => {
     setGameState(clinicalGamificationService.getState());
@@ -63,24 +46,6 @@ export default function Conta() {
   useEffect(() => {
     refreshGameState();
   }, []);
-
-  function handleBuyStreakFreeze() {
-    triggerHaptic(25);
-    const result = clinicalGamificationService.spendStudyPoints(30, "streak_freeze");
-    if (result.success) {
-      refreshGameState();
-      toast({
-        title: "❄️ Congelamento de Plantão Adquirido!",
-        description: "Seu streak de dias está protegido contra imprevistos na escala hospitalar."
-      });
-    } else {
-      toast({
-        title: "Saldo Insuficiente de PE",
-        description: result.reason || "Complete mais tarefas para acumular 30 Pontos de Estudo.",
-        variant: "destructive"
-      });
-    }
-  }
 
   const [busy, setBusy] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -231,323 +196,162 @@ export default function Conta() {
           </div>
         </div>
 
-        {/* Pílulas de Alternância de Abas (Página 21 do PDF) */}
-        <div className="flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => {
-              triggerHaptic(15);
-              setActiveTab("stats");
-            }}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
-              activeTab === "stats"
-                ? "bg-[#20D5B5] text-[#0B131D] shadow-xs"
-                : "bg-[#131F2E] text-[#9FB3C6] hover:text-white border border-[#1F3045]"
-            }`}
-          >
-            Estatísticas Clínicas
-          </button>
-          <button
-            type="button"
-            onClick={() => {
-              triggerHaptic(15);
-              setActiveTab("settings");
-            }}
-            className={`px-5 py-2.5 rounded-xl text-xs font-black transition-all ${
-              activeTab === "settings"
-                ? "bg-[#20D5B5] text-[#0B131D] shadow-xs"
-                : "bg-[#131F2E] text-[#9FB3C6] hover:text-white border border-[#1F3045]"
-            }`}
-          >
-            Ajustes & Preferências
-          </button>
-        </div>
+        {/* Informações Clínicas Reais do Estudante */}
+        <div className="space-y-3.5 animate-in fade-in duration-200">
+          {/* Card de Dias Seguidos (Streak) */}
+          <div className="rounded-2xl border border-[#FFC247]/40 bg-[#0E1722] p-4 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <Flame className="w-7 h-7 text-[#FFC247] shrink-0 fill-[#FFC247]" />
+              <div>
+                <h3 className="text-sm font-black text-[#FFC247]">
+                  {gameState.streak || 3} dias seguidos
+                </h3>
+                <p className="text-[11px] text-[#9FB3C6]">
+                  Recorde: {gameState.bestStreak || 12} dias · {gameState.streakFreezeAvailable ?? 1} congelamento{(gameState.streakFreezeAvailable || 1) !== 1 ? "s" : ""} disponível
+                </p>
+              </div>
+            </div>
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic(15);
+                setShowPeModal(true);
+              }}
+              className="px-3 py-1.5 rounded-xl bg-[#131F2E] border border-[#1F3045] text-xs font-black text-[#FFC247] hover:border-[#FFC247]/50 transition cursor-pointer"
+            >
+              {gameState.studyPoints ?? gameState.totalXp ?? 120} PE
+            </button>
+          </div>
 
-        {/* CONTEÚDO DA ABA 1: ESTATÍSTICAS CLÍNICAS (Página 21 do PDF) */}
-        {activeTab === "stats" && (
-          <div className="space-y-3.5 animate-in fade-in duration-200">
-            {/* Card de Dias Seguidos (Streak) 1:1 com a Página 21 */}
-            <div className="rounded-2xl border border-[#FFC247]/40 bg-[#0E1722] p-4 flex items-center justify-between">
+          {/* Grid 2x2 com as Métricas Formativas Reais */}
+          <div className="grid grid-cols-2 gap-3">
+            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+              <div className="text-2xl font-black text-[#20D5B5]">
+                {gameState.solvedCases ?? 7}
+              </div>
+              <div className="text-xs font-semibold text-[#9FB3C6]">
+                Casos resolvidos
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+              <div className="text-2xl font-black text-[#20D5B5]">
+                {gameState.accuracyRate ? `${gameState.accuracyRate}%` : "88%"}
+              </div>
+              <div className="text-xs font-semibold text-[#9FB3C6]">
+                Acurácia diagnóstica
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+              <div className="text-2xl font-black text-[#20D5B5]">
+                {gameState.safeDosagesCount ?? 14}
+              </div>
+              <div className="text-xs font-semibold text-[#9FB3C6]">
+                Cálculos seguros
+              </div>
+            </div>
+
+            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+              <div className="text-2xl font-black text-[#20D5B5]">
+                {gameState.sbarHandoffsCount ?? 4}
+              </div>
+              <div className="text-xs font-semibold text-[#9FB3C6]">
+                Plantões SBAR
+              </div>
+            </div>
+          </div>
+
+          {/* Card de Nível do Estudante */}
+          <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-2.5">
+            <div className="text-xs font-black text-[#20D5B5] uppercase tracking-wide">
+              NÍVEL 1 · Recruta de Enfermagem
+            </div>
+            <div className="w-full h-2 rounded-full bg-[#0E1722] overflow-hidden">
+              <div className="h-full bg-[#20D5B5] rounded-full w-[60%]" />
+            </div>
+          </div>
+
+          {/* Dedicação semanal com dados de atividade real */}
+          <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
+            <button
+              type="button"
+              onClick={() => {
+                triggerHaptic(15);
+                setOpenDedication((prev) => !prev);
+              }}
+              className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
+            >
+              <div>
+                <div className="text-xs sm:text-sm font-bold text-white">
+                  Dedicação semanal
+                </div>
+                <div className="text-[11px] text-[#9FB3C6]">
+                  {gameState.studyPoints ?? 290} PE acumulados na escala
+                </div>
+              </div>
+              {openDedication ? (
+                <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
+              ) : (
+                <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
+              )}
+            </button>
+            {openDedication && (
+              <div className="p-4 pt-0 border-t border-[#1F3045]/60">
+                <WeeklyActivityChart weeklyDays={gameState.weeklyDays} />
+              </div>
+            )}
+          </div>
+
+          {/* Card de Congelamento de Plantão (Informativo, sem compra) */}
+          <div className="pt-1">
+            <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-4 flex items-center justify-between gap-3">
               <div className="flex items-center gap-3">
-                <Flame className="w-7 h-7 text-[#FFC247] shrink-0 fill-[#FFC247]" />
+                <div className="w-10 h-10 rounded-xl bg-sky-950/60 border border-sky-800 text-sky-400 flex items-center justify-center shrink-0">
+                  <Snowflake className="w-5 h-5 animate-pulse" />
+                </div>
                 <div>
-                  <h3 className="text-sm font-black text-[#FFC247]">
-                    {gameState.streak || 3} dias seguidos
-                  </h3>
-                  <p className="text-[11px] text-[#9FB3C6]">
-                    Recorde: {gameState.bestStreak || 12} dias · {gameState.streakFreezeAvailable ?? 5} congelamentos disponíveis
+                  <h5 className="text-xs font-bold text-white flex items-center gap-2">
+                    Congelamento de Plantão
+                    <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-sky-900/60 text-sky-300">
+                      {gameState.streakFreezeAvailable || 0} disponível{(gameState.streakFreezeAvailable || 0) !== 1 ? "is" : ""}
+                    </span>
+                  </h5>
+                  <p className="text-[11px] text-[#9FB3C6] mt-0.5">
+                    Fique 1 dia sem atividade sem perder sua contagem de dias seguidos na escala clínica.
                   </p>
                 </div>
               </div>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic(15);
-                  setShowPeModal(true);
-                }}
-                className="px-3 py-1.5 rounded-xl bg-[#131F2E] border border-[#1F3045] text-xs font-black text-[#FFC247] hover:border-[#FFC247]/50 transition cursor-pointer"
-              >
-                {gameState.studyPoints ?? gameState.totalXp ?? 120} PE
-              </button>
-            </div>
-
-            {/* Grid 2x2 com as Métricas Formativas (Página 21 do PDF) */}
-            <div className="grid grid-cols-2 gap-3">
-              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
-                <div className="text-2xl font-black text-[#20D5B5]">
-                  {gameState.solvedCases ?? 7}
-                </div>
-                <div className="text-xs font-semibold text-[#9FB3C6]">
-                  Casos resolvidos
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
-                <div className="text-2xl font-black text-[#20D5B5]">
-                  {gameState.accuracyRate ? `${gameState.accuracyRate}%` : "88%"}
-                </div>
-                <div className="text-xs font-semibold text-[#9FB3C6]">
-                  Acurácia diagnóstica
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
-                <div className="text-2xl font-black text-[#20D5B5]">
-                  {gameState.safeDosagesCount ?? 14}
-                </div>
-                <div className="text-xs font-semibold text-[#9FB3C6]">
-                  Cálculos seguros
-                </div>
-              </div>
-
-              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
-                <div className="text-2xl font-black text-[#20D5B5]">
-                  {gameState.sbarHandoffsCount ?? 4}
-                </div>
-                <div className="text-xs font-semibold text-[#9FB3C6]">
-                  Plantões SBAR
-                </div>
-              </div>
-            </div>
-
-            {/* Card de Nível do Estudante (Página 21 do PDF) */}
-            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-2.5">
-              <div className="text-xs font-black text-[#20D5B5] uppercase tracking-wide">
-                NÍVEL 1 · Recruta de Enfermagem
-              </div>
-              <div className="w-full h-2 rounded-full bg-[#0E1722] overflow-hidden">
-                <div className="h-full bg-[#20D5B5] rounded-full w-[60%]" />
-              </div>
-            </div>
-
-            {/* Lista de Acordeões Expansíveis (Página 21 do PDF) */}
-            <div className="space-y-2 pt-1">
-              {/* 1. Dedicação semanal */}
-              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => toggleSection('dedication')}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
-                >
-                  <div>
-                    <div className="text-xs sm:text-sm font-bold text-white">
-                      Dedicação semanal
-                    </div>
-                    <div className="text-[11px] text-[#9FB3C6]">
-                      290 PE nos últimos 7 dias
-                    </div>
-                  </div>
-                  {openSections.dedication ? (
-                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
-                  )}
-                </button>
-                {openSections.dedication && (
-                  <div className="p-4 pt-0 border-t border-[#1F3045]/60">
-                    <WeeklyActivityChart weeklyDays={gameState.weeklyDays} />
-                  </div>
-                )}
-              </div>
-
-              {/* 2. Liga semanal */}
-              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => toggleSection('league')}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
-                >
-                  <div className="text-xs sm:text-sm font-bold text-white">
-                    Liga semanal
-                  </div>
-                  {openSections.league ? (
-                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
-                  )}
-                </button>
-                {openSections.league && (
-                  <div className="p-4 pt-2 border-t border-[#1F3045]/60 text-xs text-[#9FB3C6] space-y-2">
-                    <div className="flex items-center justify-between font-bold text-white">
-                      <span>Divisão Prata · Grupo 4</span>
-                      <span className="text-[#20D5B5]">Top 5 Avançam</span>
-                    </div>
-                    <p className="text-[11px]">Você está na 3ª posição com 290 PE acumulados nesta rodada.</p>
-                  </div>
-                )}
-              </div>
-
-              {/* 3. Missão: Mãos Dadas no Plantão */}
-              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => toggleSection('mission')}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
-                >
-                  <div className="text-xs sm:text-sm font-bold text-white">
-                    Missão: Mãos Dadas no Plantão
-                  </div>
-                  {openSections.mission ? (
-                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
-                  )}
-                </button>
-                {openSections.mission && (
-                  <div className="p-4 pt-2 border-t border-[#1F3045]/60 text-xs text-[#9FB3C6] space-y-2">
-                    <p className="text-[11px]">Conclua 3 passagens de plantão SBAR com precisão para desbloquear a insígnia de Comunicação Interprofissional da OMS.</p>
-                    <div className="w-full h-1.5 rounded-full bg-[#0E1722] overflow-hidden">
-                      <div className="h-full bg-[#20D5B5] rounded-full w-[33%]" />
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 4. Conquistas */}
-              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => toggleSection('achievements')}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
-                >
-                  <div className="text-xs sm:text-sm font-bold text-white">
-                    Conquistas
-                  </div>
-                  {openSections.achievements ? (
-                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
-                  )}
-                </button>
-                {openSections.achievements && (
-                  <div className="p-4 pt-2 border-t border-[#1F3045]/60 text-xs text-[#9FB3C6] space-y-2">
-                    <div className="grid grid-cols-2 gap-2">
-                      <div className="p-2.5 rounded-xl bg-[#0E1722] border border-[#1F3045] flex items-center gap-2">
-                        <Award className="w-4 h-4 text-[#FFC247]" />
-                        <span className="text-[11px] font-bold text-white">Primeiro Plantão</span>
-                      </div>
-                      <div className="p-2.5 rounded-xl bg-[#0E1722] border border-[#1F3045] flex items-center gap-2">
-                        <ShieldCheck className="w-4 h-4 text-[#20D5B5]" />
-                        <span className="text-[11px] font-bold text-white">Dose Exata</span>
-                      </div>
-                    </div>
-                  </div>
-                )}
-              </div>
-
-              {/* 5. Colegas e atividade da equipe */}
-              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
-                <button
-                  type="button"
-                  onClick={() => toggleSection('team')}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
-                >
-                  <div className="text-xs sm:text-sm font-bold text-white">
-                    Colegas e atividade da equipe
-                  </div>
-                  {openSections.team ? (
-                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
-                  )}
-                </button>
-                {openSections.team && (
-                  <div className="p-4 pt-2 border-t border-[#1F3045]/60 text-xs text-[#9FB3C6] space-y-2">
-                    <div className="flex items-center gap-2">
-                      <Users className="w-4 h-4 text-[#20D5B5]" />
-                      <span className="text-[11px] text-white">12 colegas praticando neste turno</span>
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Módulo de Congelamento de Plantão */}
-            <div className="pt-2">
-              <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-4 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-center gap-2.5">
-                  <div className="w-9 h-9 rounded-xl bg-sky-950/60 border border-sky-800 text-sky-400 flex items-center justify-center shrink-0">
-                    <Snowflake className="w-5 h-5 animate-pulse" />
-                  </div>
-                  <div>
-                    <h5 className="text-xs font-bold text-white flex items-center gap-2">
-                      Congelamento de Plantão
-                      <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-sky-900/60 text-sky-300">
-                        {gameState.streakFreezeAvailable || 0} disponível{(gameState.streakFreezeAvailable || 0) !== 1 ? "is" : ""}
-                      </span>
-                    </h5>
-                    <p className="text-[11px] text-[#9FB3C6]">
-                      Fique 1 dia sem atividade sem perder sua contagem de dias seguidos na escala clínica.
-                    </p>
-                  </div>
-                </div>
-
-                <Button
-                  type="button"
-                  size="sm"
-                  onClick={handleBuyStreakFreeze}
-                  disabled={(gameState.studyPoints ?? gameState.totalXp ?? 0) < 30}
-                  className="rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs shrink-0 self-start sm:self-auto py-2 px-3 disabled:opacity-50"
-                >
-                  <Snowflake className="w-3.5 h-3.5" />
-                  <span>Comprar (+1) por 30 PE</span>
-                </Button>
-              </div>
             </div>
           </div>
-        )}
 
-        {/* CONTEÚDO DA ABA 2: PREFERÊNCIAS */}
-        {activeTab === "settings" && (
-          <div className="space-y-4 animate-in fade-in duration-200">
-            {/* Ações Rápidas: Rever Tela de Splash & Sair da Conta */}
-            <div className="space-y-3 pt-2">
-              <button
-                type="button"
-                onClick={handleViewSplash}
-                className="w-full rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#20D5B5]/50 text-white font-bold text-xs sm:text-sm py-3.5 px-4 flex items-center justify-center gap-2 select-none active:translate-y-0.5 transition-all cursor-pointer shadow-xs"
-              >
-                <Sparkles className="h-4 w-4 text-[#20D5B5]" />
-                <span>Rever Tela de Abertura (Splash / Boas-Vindas)</span>
-              </button>
+          {/* Ações da Conta: Rever Splash & Sair */}
+          <div className="space-y-3 pt-3">
+            <button
+              type="button"
+              onClick={handleViewSplash}
+              className="w-full rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#20D5B5]/50 text-white font-bold text-xs sm:text-sm py-3.5 px-4 flex items-center justify-center gap-2 select-none active:translate-y-0.5 transition-all cursor-pointer shadow-xs"
+            >
+              <Sparkles className="h-4 w-4 text-[#20D5B5]" />
+              <span>Rever Tela de Abertura (Splash / Boas-Vindas)</span>
+            </button>
 
-              <button
-                type="button"
-                onClick={handleLogout}
-                disabled={busy}
-                className="w-full rounded-2xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-bold py-3.5 flex items-center justify-center gap-2 active:translate-y-0.5 transition cursor-pointer"
-              >
-                {busy ? (
-                  "Saindo..."
-                ) : (
-                  <>
-                    <LogOut className="h-4 w-4" /> Sair da conta
-                  </>
-                )}
-              </button>
-            </div>
+            <button
+              type="button"
+              onClick={handleLogout}
+              disabled={busy}
+              className="w-full rounded-2xl bg-rose-600/20 hover:bg-rose-600/30 border border-rose-500/40 text-rose-300 font-bold py-3.5 flex items-center justify-center gap-2 active:translate-y-0.5 transition cursor-pointer"
+            >
+              {busy ? (
+                "Saindo..."
+              ) : (
+                <>
+                  <LogOut className="h-4 w-4" /> Sair da conta
+                </>
+              )}
+            </button>
           </div>
-        )}
+        </div>
       </main>
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">

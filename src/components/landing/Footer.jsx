@@ -1,5 +1,5 @@
 import React from 'react';
-import { Activity, ShieldCheck } from 'lucide-react';
+import { ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
 
 export default function Footer() {
@@ -12,8 +12,12 @@ export default function Footer() {
           {/* Coluna 1: Marca & Propósito */}
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-500/20">
-                <Activity className="h-5 w-5" />
+              <div className="h-9 w-9 rounded-xl overflow-hidden shadow-md shadow-emerald-500/20 ring-1 ring-emerald-500/30 shrink-0">
+                <img
+                  src="/goti/goti-icone.jpg"
+                  alt="Goti"
+                  className="w-full h-full object-cover"
+                />
               </div>
               <div>
                 <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">

@@ -1,6 +1,6 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Activity, ShieldCheck } from "lucide-react";
+import { ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 import MobilePocketDrawer from "@/components/mobile/MobilePocketDrawer";
@@ -15,8 +15,12 @@ export default function StudentFooter({ onOpenOptions }) {
       <footer className="mt-auto border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-950 pt-6 pb-24 md:py-6 text-slate-500 dark:text-slate-400 transition-colors">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-2">
-            <div className="flex h-6 w-6 items-center justify-center rounded-lg bg-emerald-700 dark:bg-emerald-600 text-white shadow-xs">
-              <Activity className="h-3.5 w-3.5" />
+            <div className="h-6 w-6 rounded-lg overflow-hidden shrink-0 ring-1 ring-emerald-500/40 shadow-xs">
+              <img
+                src="/goti/goti-icone.jpg"
+                alt="Goti"
+                className="w-full h-full object-cover"
+              />
             </div>
             <span className="font-bold text-slate-800 dark:text-slate-200">Enfere</span>
             <span className="text-slate-300 dark:text-slate-600">•</span>

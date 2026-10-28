@@ -26,12 +26,12 @@ import FalaLegendaBubble from "@/components/simulador/FalaLegendaBubble";
 import TecladoCalculo from "@/components/simulador/TecladoCalculo";
 import FeedbackBottomSheet from "@/components/simulador/FeedbackBottomSheet";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
+import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 
 export default function Videochamada() {
   const navigate = useNavigate();
 
   const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
-  const initialStepParam = Number(searchParams.get("step")) || 0;
   const initialTelaParam = searchParams.get("tela") || "intro";
 
   // Estados do Simulador
@@ -364,7 +364,40 @@ export default function Videochamada() {
 
     // Se as vidas acabarem ou se for o último passo
     if (vidas <= 0 || stepIndex >= caso.passos.length - 1) {
-      setTempoDecorrido(Math.round((Date.now() - startTime) / 1000));
+      const tempoTotal = Math.round((Date.now() - startTime) / 1000);
+      setTempoDecorrido(tempoTotal);
+
+      // Registrar histórico para reconhecimento pela IA do Goti e estatísticas
+      try {
+        const totalQuestoes = caso.passos.filter((p) => p.tipo !== "fala_paciente").length || 1;
+        const precisaoCalculada = Math.round((acertos / totalQuestoes) * 100);
+        const novoRegistro = {
+          id: Date.now(),
+          pacienteId: paciente.id,
+          pacienteNome: paciente.nome,
+          acertos,
+          totalQuestoes,
+          precisao: precisaoCalculada,
+          vidasRestantes: vidas,
+          semVidas: vidas <= 0,
+          xpGanho: xp,
+          tempoSegundos: tempoTotal,
+          data: new Date().toLocaleDateString("pt-BR"),
+          hora: new Date().toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+        };
+
+        const rawHistorico = localStorage.getItem("enfermeiro_historico_videochamadas");
+        const historicoExistente = rawHistorico ? JSON.parse(rawHistorico) : [];
+        const atualizado = [novoRegistro, ...historicoExistente].slice(0, 10);
+        localStorage.setItem("enfermeiro_historico_videochamadas", JSON.stringify(atualizado));
+
+        if (xp > 0) {
+          clinicalGamificationService.recordActivity("case_solved", xp);
+        }
+      } catch (err) {
+        console.warn("[Videochamada] Erro ao registrar histórico de atendimento:", err);
+      }
+
       setTela("resumo");
       return;
     }

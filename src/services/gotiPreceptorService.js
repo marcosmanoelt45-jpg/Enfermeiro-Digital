@@ -15,6 +15,8 @@ SUA MISSÃO E IDENTIDADE:
 1. Você é o Goti, um guia amigável, inteligente e prestativo. NUNCA se denomine "preceptor" ou "tutor". Você é simplesmente o Goti!
 2. REGRA DE OURO INEGOCIÁVEL: Você NUNCA dá as respostas prontas, diagnósticos mastigados, prescrições resolvidas ou contas de gotejamento calculadas. No Enfere, o usuário aprende na prática ativa resolvendo os desafios por conta própria!
 3. SEU PAPEL É GUIAR O USUÁRIO PELAS COISAS DO SITE COM INTELIGÊNCIA:
+   - Se o usuário perguntar sobre Videochamadas, Atendimento por Voz, Pacientes Virtuais, Sr. Marcus, Dona Teresinha, falar no microfone ou simulação por vídeo:
+     -> Guie com entusiasmo para o módulo "Videochamada" (menu superior -> "Videochamada" ou /videochamada). Explique que lá ele atende pacientes reais por vídeo interativo, escuta os relatos clínicos em primeira pessoa (como o Sr. Marcus com pneumonia/DPOC ou Dona Teresinha com insuficiência cardíaca), responde falando no microfone ou digitando, calcula dosagens de urgência e testa suas decisões sob pressão com um sistema desafiador de 3 vidas!
    - Se o usuário perguntar sobre cálculos, medicamentos, gotejamento, macrogotas, microgotas, diluições ou heparina:
      -> Guie com entusiasmo para o "Laboratório de Cálculo de Doses" (menu superior -> "Cálculo de Doses"). Explique que lá ele encontra a calculadora interativa com todas as fórmulas e sistema de dupla checagem para ele mesmo resolver o desafio e conferir se acertou!
    - Se o usuário perguntar sobre punção venosa, cateterismo vesical (SVD/SVA), sondagem nasogástrica, curativos, injeções, técnicas assépticas ou POPs:
@@ -28,6 +30,9 @@ SUA MISSÃO E IDENTIDADE:
    - Se o usuário insistir para você dar a resposta pronta ou fizer uma pergunta conceitual:
      -> Responda de forma inteligente e descontraída: "Aqui no Enfere você aprende na prática! Eu não dou as respostas prontas para você poder desenvolver seu próprio raciocínio clínico. Mas eu te mostro o caminho exato no site para você treinar e dominar isso!" e aponte o módulo certo.
 
+RECONHECIMENTO DE HISTÓRICO E ATENDIMENTOS REAIS:
+- Você tem conhecimento do histórico de atendimentos realizados pelo estudante (como videochamadas com o Sr. Marcus ou Dona Teresinha). Se o aluno perguntar como foi o atendimento dele, como ele se saiu ou o que você achou, avalie o resultado real do histórico fornecido no contexto, elogiando os acertos e incentivando a melhoria contínua!
+
 DIRETRIZES DE COMUNICAÇÃO:
 - Seja sempre direto, empático, motivador e em português do Brasil.
 - Aponte claramente o nome da aba no menu superior e o que o aluno vai fazer lá.
@@ -36,10 +41,35 @@ DIRETRIZES DE COMUNICAÇÃO:
 
 const GOTI_CHAT_STORAGE_KEY = 'enfermeiro_goti_chat_history';
 
+/**
+ * Recupera o resumo dos atendimentos recentes em videochamada salvos no storage.
+ */
+function getRecentVideochamadaSummary() {
+  try {
+    if (typeof localStorage === 'undefined') return '';
+    const raw = localStorage.getItem('enfermeiro_historico_videochamadas');
+    if (!raw) return '';
+    const list = JSON.parse(raw);
+    if (!Array.isArray(list) || list.length === 0) return '';
+    const last = list[0];
+    const statusVidas = last.semVidas
+      ? 'Ficou sem vidas antes do término'
+      : `${last.vidasRestantes} vida(s) restante(s)`;
+    return `HISTÓRICO REAL DE ATENDIMENTO DO ALUNO:
+- Última Videochamada: Paciente ${last.pacienteNome}
+- Resultado: ${last.acertos} de ${last.totalQuestoes} questões acertadas (${last.precisao}% de precisão)
+- Condição final: ${statusVidas}
+- Data/Hora: ${last.data} às ${last.hora}
+- PE Ganhos: ${last.xpGanho || 0} PE`;
+  } catch {
+    return '';
+  }
+}
+
 const DEFAULT_GREETING = {
   role: 'assistant',
   sender: 'goti',
-  text: 'Olá! Sou o **Goti**, seu guia no Enfere! 💧✨\n\nEstou aqui para te mostrar onde encontrar qualquer simulador, videoteca de procedimentos, laboratório de cálculo de doses ou casos clínicos no site. O que você gostaria de encontrar ou treinar agora?',
+  text: 'Olá! Sou o **Goti**, seu guia no Enfere! 💧✨\n\nEstou aqui para te orientar em tudo na plataforma: desde o novo simulador de **Videochamada** com pacientes por voz, passando pela Videoteca de Procedimentos, Cálculo de Doses até os Casos Clínicos completos. O que você gostaria de treinar ou encontrar agora?',
   timestamp: new Date().toISOString()
 };
 
@@ -113,9 +143,12 @@ export const gotiPreceptorService = {
         })
         .join('\n');
 
+      const videochamadaContext = getRecentVideochamadaSummary();
+      const contextPrefix = videochamadaContext ? `${videochamadaContext}\n\n` : '';
+
       const prompt = recentHistory
-        ? `HISTÓRICO RECENTE DA CONVERSA:\n${recentHistory}\n\nPERGUNTA ATUAL DO ALUNO:\n${userMessage}`
-        : userMessage;
+        ? `${contextPrefix}HISTÓRICO RECENTE DA CONVERSA:\n${recentHistory}\n\nPERGUNTA ATUAL DO ALUNO:\n${userMessage}`
+        : `${contextPrefix}PERGUNTA ATUAL DO ALUNO:\n${userMessage}`;
 
       // Guardrail duplo: chamada da IA resiliente com timeout global de 11 segundos via Promise.race
       const aiPromise = callResilientAI(GOTI_SYSTEM_PROMPT, prompt, { maxTokens: 1200, temperature: 0.4 });
@@ -191,6 +224,31 @@ export const gotiPreceptorService = {
       return (
         'A plataforma **Enfere** foi idealizada, concebida e desenvolvida por **Marcos Manoel Tavares Neumann**, ' +
         'detentor exclusivo de todos os direitos autorais e da propriedade intelectual do sistema.'
+      );
+    }
+
+    // 2.5. Videochamada, Atendimento por Voz e Pacientes Virtuais (Sr. Marcus, Dona Teresinha)
+    if (
+      lower.includes('videochamada') || lower.includes('video chamada') || lower.includes('chamada') ||
+      lower.includes('paciente virtual') || lower.includes('marcus') || lower.includes('teresinha') ||
+      lower.includes('voz') || lower.includes('microfone') || lower.includes('falar com paciente') ||
+      lower.includes('meu atendimento') || lower.includes('minha chamada') || lower.includes('como fui')
+    ) {
+      const summary = getRecentVideochamadaSummary();
+      if (summary && (lower.includes('como fui') || lower.includes('o que achou') || lower.includes('meu atendimento') || lower.includes('minha chamada') || lower.includes('desempenho'))) {
+        return (
+          '🩺 **Seu Desempenho na Videochamada:**\n\n' +
+          'Acompanhei o seu atendimento recente! Veja o resumo dos seus registros clínicos:\n\n' +
+          summary.replace('HISTÓRICO REAL DE ATENDIMENTO DO ALUNO:\n', '') + '\n\n' +
+          '💡 **Dica do Goti:** Lembre-se sempre de conferir a prescrição com dupla checagem nos cálculos e manter a comunicação empática. Se quiser treinar novamente ou melhorar seu tempo e vidas, acesse a aba **Videochamada** no menu superior!'
+        );
+      }
+
+      return (
+        '📹 **Onde treinar Atendimento por Voz e Videochamada:**\n\n' +
+        'O Enfere conta com simulações interativas por vídeo onde você conversa diretamente com pacientes virtuais!\n\n' +
+        '👉 Acesse o módulo **Videochamada** no menu superior (ou /videochamada)!\n\n' +
+        'Lá você atende casos como o do **Sr. Marcus** (DPOC/pneumonia) e da **Dona Teresinha** (insuficiência cardíaca), escuta os relatos clínicos em vídeo, responde falando no microfone ou digitando, calcula medicamentos de urgência e testa seu raciocínio com um sistema desafiador de 3 vidas!'
       );
     }
 
@@ -288,6 +346,7 @@ export const gotiPreceptorService = {
     return (
       '👋 **Olá! Sou o Goti, seu guia na plataforma Enfere.**\n\n' +
       'No Enfere você aprende na prática ativa, por isso eu **não entrego respostas prontas ou gabaritos**. Meu papel é te mostrar o caminho para você treinar e dominar cada área:\n\n' +
+      '• **Videochamada:** Para simular atendimento por voz e vídeo em tempo real com pacientes virtuais (Sr. Marcus e Dona Teresinha).\n' +
       '• **Cálculo de Doses:** Para treinar gotejamentos, diluições e cálculos com calculadora interativa.\n' +
       '• **Procedimentos:** Para assistir aos vídeos com checklists de técnica asséptica (punção, sondagens, curativos).\n' +
       '• **Casos Clínicos:** Para simular atendimentos de emergência e enfermaria nas 5 etapas do Processo de Enfermagem (COFEN nº 736/2024).\n' +
