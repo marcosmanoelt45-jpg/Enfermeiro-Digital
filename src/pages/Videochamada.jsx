@@ -38,10 +38,10 @@ export default function Videochamada() {
   const [pacienteId, setPacienteId] = useState("marcus");
   const [tela, setTela] = useState(initialTelaParam); // 'intro' | 'fala' | 'questao' | 'resumo'
 
-  // Caso dinâmico com 8+ questões e alternativas embaralhadas
+  // Caso dinâmico com 10 questões e alternativas embaralhadas
   const [caso, setCaso] = useState(() => {
     const shouldShuffle = searchParams.get("noshuffle") !== "1";
-    return gerarCasoAleatorio("marcus", { shuffleQuestions: shouldShuffle, minQuestions: 8 });
+    return gerarCasoAleatorio("marcus", { shuffleQuestions: shouldShuffle, minQuestions: 10 });
   });
 
   const [stepIndex, setStepIndex] = useState(() => {
@@ -101,7 +101,7 @@ export default function Videochamada() {
   function handleSelectPaciente(novoId) {
     pararFala();
     setPacienteId(novoId);
-    setCaso(gerarCasoAleatorio(novoId, { shuffleQuestions: true, minQuestions: 8 }));
+    setCaso(gerarCasoAleatorio(novoId, { shuffleQuestions: true, minQuestions: 10 }));
     setIsSpeaking(false);
     setFalaConcluida(false);
     resetRespostasPasso();
@@ -140,7 +140,7 @@ export default function Videochamada() {
 
   // Abertura do Atendimento (Gesto que destrava áudio no navegador)
   function handleIniciarAtendimento() {
-    const novoCaso = gerarCasoAleatorio(pacienteId, { shuffleQuestions: true, minQuestions: 8 });
+    const novoCaso = gerarCasoAleatorio(pacienteId, { shuffleQuestions: true, minQuestions: 10 });
     setCaso(novoCaso);
     setTela("fala");
     setStepIndex(0);
@@ -483,12 +483,15 @@ export default function Videochamada() {
               {/* Informações da Missão */}
               <div>
                 {/* Chips de Categoria */}
-                <div className="flex items-center gap-2 mb-2">
+                <div className="flex flex-wrap items-center gap-2 mb-2">
                   <span className="px-3 py-1 rounded-full text-xs font-black bg-[#2AD3C1]/15 text-[#2AD3C1]">
                     Atendimento por voz
                   </span>
                   <span className="px-3 py-1 rounded-full text-xs font-black bg-[#3DD68C]/15 text-[#3DD68C]">
                     Caso simulado
+                  </span>
+                  <span className="px-3 py-1 rounded-full text-xs font-black bg-[#FFC247]/15 text-[#FFC247]">
+                    Banco de 44 Questões
                   </span>
                 </div>
 
