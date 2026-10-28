@@ -3,15 +3,8 @@ import React, { createContext, useContext, useState, useEffect, useRef } from 'r
 const ThemeContext = createContext();
 
 export function ThemeProvider({ children }) {
-  // Tema escuro como PADRÃO (ou valor salvo no localStorage)
-  const [theme, setTheme] = useState(() => {
-    try {
-      const saved = localStorage.getItem('enfermeiro_theme');
-      return saved ? saved : 'dark';
-    } catch {
-      return 'dark';
-    }
-  });
+  // Tema escuro Enfere Vivo permanente
+  const [theme, setTheme] = useState('dark');
 
   // Tamanho de Fonte para leitura clínica: 'normal' | 'large' | 'xlarge'
   const [fontSize, setFontSize] = useState(() => {
@@ -108,7 +101,7 @@ export function ThemeProvider({ children }) {
   }, [clinicalStandard]);
 
   const toggleTheme = () => {
-    setTheme(prev => (prev === 'dark' ? 'light' : 'dark'));
+    setTheme('dark');
   };
 
   // Helper para acionar vibração curta e clique tátil de confirmação

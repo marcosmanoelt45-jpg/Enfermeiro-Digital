@@ -23,7 +23,7 @@ export default function PacienteVideoStage({
   const videoAcertoRef = useRef(null);
   const videoErroRef = useRef(null);
 
-  // Controle de reprodução e pausa
+  // Controle de reprodução e pausa sem loop e sem saltos bruscos de zoom
   useEffect(() => {
     const videoFala = videoFalaRef.current;
     const videoAcerto = videoAcertoRef.current;
@@ -36,15 +36,10 @@ export default function PacienteVideoStage({
       videoErro.pause();
 
       if (isSpeaking) {
-        videoFala.loop = true;
+        videoFala.loop = false;
         videoFala.play().catch(() => {});
       } else {
         videoFala.pause();
-        try {
-          videoFala.currentTime = 0;
-        } catch {
-          // ignore
-        }
       }
     } else if (clipeAtivo === "acerto") {
       videoFala.pause();
@@ -86,14 +81,28 @@ export default function PacienteVideoStage({
     <div
       className={`relative overflow-hidden rounded-[20px] bg-[#16222E] border-2 border-[#27394B] border-b-[5px] border-b-[#0A1118] select-none transition-all duration-300 ${widthClass} ${heightClass} ${className}`}
     >
+      {/* Camada Protetora Transparente: Bloqueia injeção de botões PiP e skip do navegador */}
+      <div
+        className="absolute inset-0 z-30 pointer-events-auto bg-transparent select-none"
+        aria-hidden="true"
+      />
+
       {/* 1. Clipes Fala */}
       <video
         key={`fala-${pacienteId}`}
         ref={videoFalaRef}
         muted
         playsInline
+        disablePictureInPicture
+        disableRemotePlayback
+        controlsList="nodownload noplaybackrate nofullscreen"
         preload="auto"
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-150 ${
+        onEnded={() => {
+          if (videoFalaRef.current) {
+            videoFalaRef.current.pause();
+          }
+        }}
+        className={`absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-150 ${
           clipeAtivo === "fala" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
         }`}
       >
@@ -107,11 +116,14 @@ export default function PacienteVideoStage({
         ref={videoAcertoRef}
         muted
         playsInline
+        disablePictureInPicture
+        disableRemotePlayback
+        controlsList="nodownload noplaybackrate nofullscreen"
         preload="auto"
         onEnded={() => {
           if (onClipeEnded) onClipeEnded("acerto");
         }}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-150 ${
+        className={`absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-150 ${
           clipeAtivo === "acerto" ? "opacity-100 z-20" : "opacity-0 z-0 pointer-events-none"
         }`}
       >
@@ -125,11 +137,14 @@ export default function PacienteVideoStage({
         ref={videoErroRef}
         muted
         playsInline
+        disablePictureInPicture
+        disableRemotePlayback
+        controlsList="nodownload noplaybackrate nofullscreen"
         preload="auto"
         onEnded={() => {
           if (onClipeEnded) onClipeEnded("erro");
         }}
-        className={`absolute inset-0 w-full h-full object-cover transition-opacity duration-150 ${
+        className={`absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-150 ${
           clipeAtivo === "erro" ? "opacity-100 z-20" : "opacity-0 z-0 pointer-events-none"
         }`}
       >

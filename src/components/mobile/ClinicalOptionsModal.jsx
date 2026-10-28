@@ -1,8 +1,6 @@
 import React, { useState } from 'react';
 import {
   X,
-  Moon,
-  Sun,
   Type,
   Vibrate,
   Smartphone,
@@ -18,8 +16,6 @@ import { soundEffects } from '@/services/soundEffectsService';
 
 export default function ClinicalOptionsModal({ isOpen, onClose }) {
   const {
-    theme,
-    setTheme,
     fontSize,
     setFontSize,
     nightShiftMode,
@@ -75,78 +71,7 @@ export default function ClinicalOptionsModal({ isOpen, onClose }) {
 
         {/* Conteúdo com Scroll */}
         <div className="p-5 space-y-6 overflow-y-auto no-scrollbar">
-          {/* Seção 1: Tema da Interface (Escuro / Claro) */}
-          <div className="space-y-3">
-            <label className="text-xs font-bold uppercase tracking-wider text-emerald-700 dark:text-emerald-400 flex items-center gap-1.5">
-              <Moon className="w-3.5 h-3.5" /> Aparência e Tema
-            </label>
 
-            <div className="grid grid-cols-2 gap-3">
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic(30);
-                  setTheme('dark');
-                }}
-                className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all ${
-                  theme === 'dark'
-                    ? 'bg-slate-950 border-emerald-500 ring-2 ring-emerald-500/30 text-white shadow-md'
-                    : 'bg-slate-100/60 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="w-8 h-8 rounded-xl bg-slate-900 text-emerald-400 flex items-center justify-center">
-                    <Moon className="w-4 h-4" />
-                  </div>
-                  {theme === 'dark' && (
-                    <span className="flex h-5 w-5 rounded-full bg-emerald-500 text-slate-950 items-center justify-center text-[10px] font-bold">
-                      ✓
-                    </span>
-                  )}
-                </div>
-                <div>
-                  <span className="text-xs font-bold block text-slate-100">
-                    Tema Escuro (Padrão)
-                  </span>
-                  <span className="text-[10px] text-slate-400 block mt-0.5">
-                    Preto hospitalar e esmeralda neon
-                  </span>
-                </div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic(30);
-                  setTheme('light');
-                }}
-                className={`p-3.5 rounded-2xl border text-left flex flex-col justify-between transition-all ${
-                  theme === 'light'
-                    ? 'bg-emerald-50/50 border-emerald-600 ring-2 ring-emerald-600/30 text-slate-900 shadow-md'
-                    : 'bg-slate-50 dark:bg-slate-800/40 border-slate-200 dark:border-slate-800 text-slate-600 dark:text-slate-400 hover:border-slate-300'
-                }`}
-              >
-                <div className="flex items-center justify-between mb-2">
-                  <div className="w-8 h-8 rounded-xl bg-amber-100 text-amber-700 flex items-center justify-center">
-                    <Sun className="w-4 h-4" />
-                  </div>
-                  {theme === 'light' && (
-                    <span className="flex h-5 w-5 rounded-full bg-emerald-700 text-white items-center justify-center text-[10px] font-bold">
-                      ✓
-                    </span>
-                  )}
-                </div>
-                <div>
-                  <span className="text-xs font-bold block text-slate-900 dark:text-slate-200">
-                    Tema Claro
-                  </span>
-                  <span className="text-[10px] text-slate-500 block mt-0.5">
-                    Branco puro e verde esmeralda
-                  </span>
-                </div>
-              </button>
-            </div>
-          </div>
 
           {/* Seção 2: Modo Plantão Noturno (Anti-Ofuscamento) */}
           <div className="flex items-center justify-between p-3.5 rounded-2xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-800">

@@ -11,9 +11,6 @@ import {
   Camera,
   Check,
   Sparkles,
-  Mic,
-  Sun,
-  Moon,
   Flame,
   Snowflake,
   ChevronDown,
@@ -33,16 +30,12 @@ import { clinicalGamificationService } from "@/services/clinicalGamificationServ
 import WeeklyActivityChart from "@/components/profile/WeeklyActivityChart";
 import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 
-function cleanName(name) {
-  return (name || "").replace(/^models\//, "");
-}
-
 export default function Conta() {
   const { user, logout, checkUserAuth } = useAuth();
-  const { theme, setTheme, triggerHaptic } = useTheme();
+  const { triggerHaptic } = useTheme();
   const navigate = useNavigate();
 
-  // Controle de Abas: 'stats' (Estatísticas Clínicas) | 'settings' (Ajustes & IA)
+  // Controle de Abas: 'stats' (Estatísticas Clínicas) | 'settings' (Preferências)
   const [activeTab, setActiveTab] = useState("stats");
 
   // Estado da Gamificação Clínica
@@ -97,180 +90,9 @@ export default function Conta() {
   const [pendingFile, setPendingFile] = useState(null);
   const fileRef = useRef(null);
 
-  // Chave do Gemini AI
-  const [geminiKey, setGeminiKey] = useState(() => localStorage.getItem("enfermeiro_gemini_api_key") || "");
-  const [geminiKeyInput, setGeminiKeyInput] = useState(geminiKey);
-  const [testingGemini, setTestingGemini] = useState(false);
 
-  // Chave do AssemblyAI
-  const [assemblyAIKey, setAssemblyAIKey] = useState(() => localStorage.getItem("enfermeiro_assemblyai_api_key") || "");
-  const [assemblyAIKeyInput, setAssemblyAIKeyInput] = useState(assemblyAIKey);
-  const [testingAssemblyAI, setTestingAssemblyAI] = useState(false);
 
-  async function handleSaveGeminiKey() {
-    const keyToTest = geminiKeyInput.trim();
-    if (!keyToTest) return;
 
-    setTestingGemini(true);
-    try {
-      const listRes = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models?key=${keyToTest}`
-      );
-
-      if (!listRes.ok) {
-        const errData = await listRes.json().catch(() => ({}));
-        const msg = errData?.error?.message || "";
-        if (
-          listRes.status === 400 &&
-          (msg.toLowerCase().includes("api key not valid") || msg.toLowerCase().includes("key invalid"))
-        ) {
-          throw new Error("Chave de API inválida. Verifique se copiou a chave completa gerada no Google AI Studio.");
-        }
-        throw new Error(msg || "Não foi possível validar a chave junto ao Google AI Studio.");
-      }
-
-      const listData = await listRes.json().catch(() => ({}));
-      const rawModels = listData?.models || [];
-
-      const contentModels = rawModels.filter((m) => {
-        const methods = m.supportedGenerationMethods || m.supportedActions || [];
-        return methods.includes("generateContent");
-      });
-
-      const priorityOrder = [
-        "gemini-2.5-flash",
-        "gemini-2.5-pro",
-        "gemini-2.0-flash",
-        "gemini-flash-latest",
-        "gemini-1.5-flash-latest",
-        "gemini-1.5-flash",
-      ];
-
-      const candidateList = [];
-      for (const pref of priorityOrder) {
-        const found = contentModels.find(
-          (m) => cleanName(m.name).toLowerCase() === pref.toLowerCase()
-        );
-        if (found && !candidateList.includes(cleanName(found.name))) {
-          candidateList.push(cleanName(found.name));
-        }
-      }
-
-      for (const m of contentModels) {
-        const name = cleanName(m.name);
-        if (
-          !candidateList.includes(name) &&
-          !name.includes("tts") &&
-          !name.includes("image") &&
-          !name.includes("pro-preview")
-        ) {
-          candidateList.push(name);
-        }
-      }
-
-      let activeModel = null;
-      let lastErrorMessage = "";
-
-      for (const modelCandidate of candidateList) {
-        try {
-          const pingRes = await fetch(
-            `https://generativelanguage.googleapis.com/v1beta/models/${modelCandidate}:generateContent?key=${keyToTest}`,
-            {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                contents: [{ parts: [{ text: "ping" }] }],
-              }),
-            }
-          );
-
-          if (pingRes.ok) {
-            activeModel = modelCandidate;
-            break;
-          }
-
-          const errPing = await pingRes.json().catch(() => ({}));
-          lastErrorMessage = errPing?.error?.message || "";
-        } catch (callErr) {
-          lastErrorMessage = callErr.message || "";
-        }
-      }
-
-      if (!activeModel) {
-        throw new Error(
-          lastErrorMessage || "Nenhum modelo do Google Gemini pôde responder à geração de teste no momento."
-        );
-      }
-
-      localStorage.setItem("enfermeiro_gemini_api_key", keyToTest);
-      localStorage.setItem("enfermeiro_gemini_model", activeModel);
-      setGeminiKey(keyToTest);
-      toast({
-        title: "Google Gemini Conectado!",
-        description: `Sua chave foi validada com sucesso com o modelo ${activeModel}. Raciocínio diagnóstico e transcrição multimodal ativos.`,
-      });
-    } catch (e) {
-      toast({
-        title: "Erro ao validar chave",
-        description: e.message || "Verifique se a chave do Google AI Studio está correta.",
-        variant: "destructive",
-      });
-    } finally {
-      setTestingGemini(false);
-    }
-  }
-
-  function handleRemoveGeminiKey() {
-    localStorage.removeItem("enfermeiro_gemini_api_key");
-    localStorage.removeItem("enfermeiro_gemini_model");
-    setGeminiKey("");
-    setGeminiKeyInput("");
-    toast({
-      title: "Chave removida",
-      description: "O Enfere voltará a utilizar o super motor taxonômico local.",
-    });
-  }
-
-  async function handleSaveAssemblyAIKey() {
-    const keyToTest = assemblyAIKeyInput.trim();
-    if (!keyToTest) return;
-
-    setTestingAssemblyAI(true);
-    try {
-      const res = await fetch("https://api.assemblyai.com/v2/transcript?limit=1", {
-        headers: { authorization: keyToTest },
-      });
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || "Chave do AssemblyAI inválida ou sem saldo.");
-      }
-
-      localStorage.setItem("enfermeiro_assemblyai_api_key", keyToTest);
-      setAssemblyAIKey(keyToTest);
-      toast({
-        title: "AssemblyAI Conectado!",
-        description: "Transcrição de áudio de alta precisão em pt-BR ativada com sucesso.",
-      });
-    } catch (e) {
-      toast({
-        title: "Erro ao validar AssemblyAI",
-        description: e.message || "Verifique sua chave de API no painel do AssemblyAI.",
-        variant: "destructive",
-      });
-    } finally {
-      setTestingAssemblyAI(false);
-    }
-  }
-
-  function handleRemoveAssemblyAIKey() {
-    localStorage.removeItem("enfermeiro_assemblyai_api_key");
-    setAssemblyAIKey("");
-    setAssemblyAIKeyInput("");
-    toast({
-      title: "Chave AssemblyAI removida",
-      description: "A transcrição de voz utilizará o Google Gemini ou o reconhecimento nativo.",
-    });
-  }
 
   async function handleLogout() {
     setBusy(true);
@@ -437,7 +259,7 @@ export default function Conta() {
                 : "bg-[#131F2E] text-[#9FB3C6] hover:text-white border border-[#1F3045]"
             }`}
           >
-            Ajustes & IA
+            Ajustes & Preferências
           </button>
         </div>
 
@@ -695,181 +517,9 @@ export default function Conta() {
           </div>
         )}
 
-        {/* CONTEÚDO DA ABA 2: AJUSTES & IA */}
+        {/* CONTEÚDO DA ABA 2: PREFERÊNCIAS */}
         {activeTab === "settings" && (
           <div className="space-y-4 animate-in fade-in duration-200">
-            {/* Card de Configuração de Aparência e Tema */}
-            <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-5 space-y-4 shadow-xs">
-              <div>
-                <p className="text-sm font-bold text-white flex items-center gap-1.5">
-                  <Sun className="h-4 w-4 text-[#FFC247]" /> Aparência & Tema Visual
-                </p>
-                <p className="mt-0.5 text-xs text-[#9FB3C6]">
-                  Personalize o contraste da interface para estudos diurnos ou plantão noturno em enfermarias.
-                </p>
-              </div>
-
-              <div className="grid grid-cols-2 gap-3">
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHaptic(25);
-                    setTheme('light');
-                  }}
-                  className={`p-3.5 rounded-xl border text-left transition flex items-center gap-3 ${
-                    theme === 'light'
-                      ? 'bg-[#131F2E] border-[#20D5B5] text-white font-bold ring-2 ring-[#20D5B5]/20'
-                      : 'bg-[#131F2E] border-[#1F3045] text-[#9FB3C6] hover:border-slate-500'
-                  }`}
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-amber-100 text-amber-700 shrink-0">
-                    <Sun className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold block text-white">Modo Claro</span>
-                    <span className="text-[10px] text-[#9FB3C6]">Visual clássico</span>
-                  </div>
-                </button>
-
-                <button
-                  type="button"
-                  onClick={() => {
-                    triggerHaptic(25);
-                    setTheme('dark');
-                  }}
-                  className={`p-3.5 rounded-xl border text-left transition flex items-center gap-3 ${
-                    theme === 'dark'
-                      ? 'bg-[#131F2E] border-[#20D5B5] text-[#20D5B5] font-bold ring-2 ring-[#20D5B5]/20'
-                      : 'bg-[#131F2E] border-[#1F3045] text-[#9FB3C6] hover:border-slate-500'
-                  }`}
-                >
-                  <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-[#0B131D] text-[#FFC247] shrink-0 border border-[#1F3045]">
-                    <Moon className="h-5 w-5" />
-                  </div>
-                  <div>
-                    <span className="text-xs font-bold block text-white">Modo Escuro</span>
-                    <span className="text-[10px] text-[#9FB3C6]">Padrão relaxante</span>
-                  </div>
-                </button>
-              </div>
-            </div>
-
-            {/* Card do Google Gemini AI */}
-            <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-5 space-y-3 shadow-xs">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <Sparkles className="h-4 w-4 text-[#20D5B5]" /> Inteligência Artificial Clínica (Google Gemini)
-                  </p>
-                  <p className="mt-0.5 text-xs text-[#9FB3C6]">
-                    Conecte sua chave de API para raciocínio diagnóstico avançado e ilimitado com o Google Gemini.
-                  </p>
-                </div>
-                {geminiKey ? (
-                  <span className="rounded-full bg-[#20D5B5]/15 px-2 py-0.5 text-[11px] font-bold text-[#20D5B5] border border-[#20D5B5]/30">
-                    Chave Ativa
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-[#131F2E] px-2 py-0.5 text-[11px] font-medium text-[#9FB3C6] border border-[#1F3045]">
-                    Motor Local Ativo
-                  </span>
-                )}
-              </div>
-
-              <div className="space-y-2 pt-1">
-                <div className="flex gap-2">
-                  <Input
-                    type="password"
-                    placeholder="Cole sua chave de API (AIzaSy...)"
-                    value={geminiKeyInput}
-                    onChange={(e) => setGeminiKeyInput(e.target.value)}
-                    className="rounded-xl text-xs bg-[#131F2E] border-[#1F3045] text-white"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleSaveGeminiKey}
-                    disabled={testingGemini || (!geminiKeyInput.trim() && !geminiKey)}
-                    className="shrink-0 rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-3 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-0.5 active:shadow-none"
-                  >
-                    {testingGemini ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Salvar & Testar"}
-                  </Button>
-                </div>
-
-                {geminiKey && (
-                  <div className="flex items-center justify-between text-[11px] pt-1">
-                    <span className="text-[#20D5B5] font-medium flex items-center gap-1">
-                      <Check className="h-3 w-3" /> Chave configurada com sucesso
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleRemoveGeminiKey}
-                      className="text-rose-400 hover:underline"
-                    >
-                      Remover chave
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {/* Card do AssemblyAI */}
-            <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-5 space-y-3 shadow-xs">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-sm font-bold text-white flex items-center gap-1.5">
-                    <Mic className="h-4 w-4 text-[#20D5B5]" /> Transcrição de Voz (AssemblyAI)
-                  </p>
-                  <p className="mt-0.5 text-xs text-[#9FB3C6]">
-                    Modelo dedicado de reconhecimento de fala em português (pt-BR) para gravação de áudios longos à beira-leito.
-                  </p>
-                </div>
-                {assemblyAIKey ? (
-                  <span className="rounded-full bg-[#20D5B5]/15 px-2 py-0.5 text-[11px] font-bold text-[#20D5B5] border border-[#20D5B5]/30">
-                    Chave Ativa
-                  </span>
-                ) : (
-                  <span className="rounded-full bg-[#131F2E] px-2 py-0.5 text-[11px] font-medium text-[#9FB3C6] border border-[#1F3045]">
-                    Não configurada
-                  </span>
-                )}
-              </div>
-
-              <div className="space-y-2 pt-1">
-                <div className="flex gap-2">
-                  <Input
-                    type="password"
-                    placeholder="Cole sua chave de API do AssemblyAI"
-                    value={assemblyAIKeyInput}
-                    onChange={(e) => setAssemblyAIKeyInput(e.target.value)}
-                    className="rounded-xl text-xs bg-[#131F2E] border-[#1F3045] text-white"
-                  />
-                  <Button
-                    type="button"
-                    onClick={handleSaveAssemblyAIKey}
-                    disabled={testingAssemblyAI || (!assemblyAIKeyInput.trim() && !assemblyAIKey)}
-                    className="shrink-0 rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-3 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-0.5 active:shadow-none"
-                  >
-                    {testingAssemblyAI ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : "Salvar & Testar"}
-                  </Button>
-                </div>
-
-                {assemblyAIKey && (
-                  <div className="flex items-center justify-between text-[11px] pt-1">
-                    <span className="text-[#20D5B5] font-medium flex items-center gap-1">
-                      <Check className="h-3 w-3" /> Transcrição AssemblyAI conectada
-                    </span>
-                    <button
-                      type="button"
-                      onClick={handleRemoveAssemblyAIKey}
-                      className="text-rose-400 hover:underline"
-                    >
-                      Remover chave
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-
             {/* Ações Rápidas: Rever Tela de Splash & Sair da Conta */}
             <div className="space-y-3 pt-2">
               <button

@@ -132,10 +132,10 @@ export default function MobilePocketDrawer({
                 </div>
                 <div>
                   <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">
-                    Ajustes & Tema do Sistema
+                    Ajustes & Preferências
                   </span>
                   <span className="text-[11px] text-emerald-800 dark:text-emerald-400 block">
-                    Modo Escuro / Claro, Fonte e Modo Plantão
+                    Tamanho de Fonte, Vibração e Modo Plantão
                   </span>
                 </div>
               </div>

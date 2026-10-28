@@ -8,8 +8,6 @@ import {
   PlusCircle,
   LayoutGrid,
   ArrowRightLeft,
-  Sun,
-  Moon,
   Video,
   PhoneCall,
   Coins
@@ -26,7 +24,7 @@ import { clinicalGamificationService } from "@/services/clinicalGamificationServ
 export default function StudentHeader({ activeTab = "hub", desktopOnly = false }) {
   const navigate = useNavigate();
   const { logout } = useAuth();
-  const { theme, toggleTheme, triggerHaptic } = useTheme();
+  const { triggerHaptic } = useTheme();
 
   // Estados dos Modais do Goti e Navegação
   const [briefingModuleId, setBriefingModuleId] = useState(null);
@@ -172,23 +170,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
                 <span className="text-[10px] font-bold text-amber-700/80 dark:text-amber-400/80">PE</span>
               </button>
 
-              {/* Alternador Rápido de Tema (Claro / Escuro) */}
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic(25);
-                  toggleTheme();
-                }}
-                className="p-2 rounded-xl text-slate-600 dark:text-slate-300 hover:text-teal-700 dark:hover:text-teal-400 hover:bg-slate-100 dark:hover:bg-slate-900 border border-slate-200/80 dark:border-slate-800 transition-all active:scale-95"
-                title={theme === 'dark' ? "Mudar para Modo Claro" : "Mudar para Modo Escuro"}
-                aria-label="Alternar tema claro e escuro"
-              >
-                {theme === 'dark' ? (
-                  <Sun className="h-4 w-4 text-amber-400" />
-                ) : (
-                  <Moon className="h-4 w-4 text-slate-700" />
-                )}
-              </button>
+
 
               <Button
                 variant="outline"

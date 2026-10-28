@@ -301,7 +301,7 @@ export default function Videochamada() {
       return selectedEscolha !== null;
     }
     if (passoAtual.tipo === "multipla_selecao") {
-      return selectedMultipla.length > 0;
+      return selectedMultipla.length >= 2;
     }
     if (passoAtual.tipo === "calculo") {
       return valorCalculo.trim().length > 0;
@@ -703,8 +703,14 @@ export default function Videochamada() {
                         </button>
                       );
                     })}
-                    <div className="text-[11px] font-bold text-[#9FB3C6] px-1">
-                      Marque todas as corretas.
+                    <div className="flex items-center justify-between px-1 text-[11px] font-bold">
+                      <span className="text-[#9FB3C6]">Marque todas as corretas.</span>
+                      {selectedMultipla.length === 1 && (
+                        <span className="text-[#FFC247] animate-pulse">Marque pelo menos 2</span>
+                      )}
+                      {selectedMultipla.length >= 2 && (
+                        <span className="text-[#2AD3C1]">{selectedMultipla.length} selecionadas</span>
+                      )}
                     </div>
                   </div>
                 )}
@@ -714,15 +720,15 @@ export default function Videochamada() {
                 ----------------------------------------------------------- */}
                 {passoAtual.tipo === "calculo" && (
                   <div className="flex flex-col gap-2">
-                    {/* Card Registro de Prescrição com Fórmula no Cantinho */}
+                    {/* Card Registro de Prescrição com Fórmula sem cortes */}
                     <div className="rounded-[16px] bg-[#16222E] border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] p-3">
-                      <div className="flex items-center justify-between text-[#2AD3C1] font-black text-xs uppercase tracking-wider mb-1">
+                      <div className="flex flex-wrap items-center justify-between gap-1 text-[#2AD3C1] font-black text-xs uppercase tracking-wider mb-1.5">
                         <div className="flex items-center gap-1.5">
-                          <FileText className="w-4 h-4" />
+                          <FileText className="w-4 h-4 text-[#2AD3C1]" />
                           <span>Registro de prescrição</span>
                         </div>
                         {passoAtual.formulaGuia && (
-                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#0E1720] border border-[#27394B] text-[#9FB3C6] truncate max-w-[190px]">
+                          <span className="text-[10px] font-mono font-bold px-2 py-0.5 rounded-md bg-[#0E1720] border border-[#27394B] text-[#9FB3C6] whitespace-normal text-right">
                             {passoAtual.formulaGuia}
                           </span>
                         )}
