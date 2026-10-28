@@ -22,8 +22,8 @@ export default function FalaLegendaBubble({
         compact ? "p-3 text-[15px] leading-snug" : "p-4 text-[16.5px] leading-relaxed"
       } ${className}`}
     >
-      {/* Barras de Onda Sonora */}
-      <div className="flex items-center gap-1 h-5 mb-2">
+      {/* Barras de Onda Sonora Centralizadas */}
+      <div className="flex items-center justify-center gap-1.5 h-5 mb-2 mx-auto">
         {[0, 1, 2, 3, 4, 5, 6, 7].map((barIdx) => (
           <span
             key={barIdx}
@@ -41,8 +41,8 @@ export default function FalaLegendaBubble({
         ))}
       </div>
 
-      {/* Texto com Efeito Karaokê */}
-      <p className="font-extrabold tracking-tight">
+      {/* Texto com Efeito Karaokê Centralizado */}
+      <p className="font-extrabold tracking-tight text-center">
         {words.map((word, idx) => {
           const isSpoken = activeWordIndex === -1 || idx <= activeWordIndex;
           return (

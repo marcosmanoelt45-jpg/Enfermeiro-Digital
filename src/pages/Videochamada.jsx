@@ -30,10 +30,28 @@ import GotiAnimated from "@/components/mascot/GotiAnimated";
 export default function Videochamada() {
   const navigate = useNavigate();
 
+  const searchParams = new URLSearchParams(typeof window !== "undefined" ? window.location.search : "");
+  const initialStepParam = Number(searchParams.get("step")) || 0;
+  const initialTelaParam = searchParams.get("tela") || "intro";
+
   // Estados do Simulador
   const [pacienteId, setPacienteId] = useState("marcus");
-  const [tela, setTela] = useState("intro"); // 'intro' | 'fala' | 'questao' | 'resumo'
-  const [stepIndex, setStepIndex] = useState(0);
+  const [tela, setTela] = useState(initialTelaParam); // 'intro' | 'fala' | 'questao' | 'resumo'
+
+  // Caso dinâmico com 8+ questões e alternativas embaralhadas
+  const [caso, setCaso] = useState(() => {
+    const shouldShuffle = searchParams.get("noshuffle") !== "1";
+    return gerarCasoAleatorio("marcus", { shuffleQuestions: shouldShuffle, minQuestions: 8 });
+  });
+
+  const [stepIndex, setStepIndex] = useState(() => {
+    if (searchParams.get("tipo") === "voz") {
+      const idx = caso.passos.findIndex((p) => p.tipo === "resposta_falada");
+      if (idx >= 0) return idx;
+    }
+    const paramStep = searchParams.get("step");
+    return paramStep !== null ? Number(paramStep) : 0;
+  });
   const [vidas, setVidas] = useState(3);
   const [xp, setXp] = useState(0);
   const [acertos, setAcertos] = useState(0);
@@ -70,10 +88,6 @@ export default function Videochamada() {
   const [inputDigitarManual, setInputDigitarManual] = useState("");
   const [modalOpcoesAberto, setModalOpcoesAberto] = useState(false);
 
-  // Caso dinâmico com 8+ questões e alternativas embaralhadas
-  const [caso, setCaso] = useState(() =>
-    gerarCasoAleatorio("marcus", { shuffleQuestions: true, minQuestions: 8 })
-  );
   const paciente = PACIENTES[pacienteId] || PACIENTES.marcus;
   const passoAtual = caso.passos[stepIndex] || caso.passos[0];
   const totalQuestoes = useMemo(
@@ -412,7 +426,7 @@ export default function Videochamada() {
                   pacienteId={pacienteId}
                   clipeAtivo="fala"
                   isSpeaking={false}
-                  className="w-full"
+                  className="w-full h-[185px] xs:h-[200px] sm:h-[220px] md:h-[280px] lg:h-[320px]"
                 />
 
                 {/* Ficha Clínica do Paciente */}
@@ -523,7 +537,7 @@ export default function Videochamada() {
                   clipeAtivo={clipeAtivo}
                   isSpeaking={isSpeaking}
                   onClipeEnded={() => setClipeAtivo("fala")}
-                  className="w-full"
+                  className="w-full h-[185px] xs:h-[200px] sm:h-[220px] md:h-[280px] lg:h-[320px]"
                 />
               </div>
 
@@ -604,7 +618,7 @@ export default function Videochamada() {
                     isSpeaking={isSpeaking}
                     small={false}
                     onClipeEnded={() => setClipeAtivo("fala")}
-                    className="w-full max-w-[280px] xs:max-w-[300px] h-[175px] sm:h-[195px] mx-auto rounded-2xl shadow-md border-2 border-[#27394B]"
+                    className="w-full h-[185px] xs:h-[200px] sm:h-[220px] mx-auto rounded-2xl shadow-md border-2 border-[#27394B]"
                   />
                   <FalaLegendaBubble
                     texto={passoAtual.pergunta}
@@ -780,18 +794,19 @@ export default function Videochamada() {
                   ----------------------------------------------------------- */}
                   {passoAtual.tipo === "resposta_falada" && (
                     <div className="flex flex-col items-center gap-2 pt-1">
-                      {/* Botão Circular Grande de Microfone */}
+                      {/* Botão de Microfone 3D Amplo e Retangular */}
                       <button
                         type="button"
                         onClick={handleToggleGravacaoVoz}
-                        className={`w-18 h-18 sm:w-20 sm:h-20 rounded-full flex items-center justify-center transition-all cursor-pointer ${
+                        className={`w-full max-w-[340px] h-13 sm:h-14 rounded-2xl flex items-center justify-center gap-2.5 px-6 font-black text-sm tracking-wide transition-all cursor-pointer ${
                           isRecording
-                            ? "bg-[#FF6B6B] text-[#2B1619] shadow-[0_4px_0_#b84444] animate-pulse scale-105"
-                            : "bg-[#2AD3C1] text-[#06302E] shadow-[0_4px_0_#17A99A] active:translate-y-[2px]"
+                            ? "bg-[#FF6B6B] text-[#2B1619] shadow-[0_4px_0_#b84444] animate-pulse"
+                            : "bg-[#2AD3C1] text-[#06302E] shadow-[0_4px_0_#17A99A] active:translate-y-[2px] active:shadow-[0_2px_0_#17A99A]"
                         }`}
-                        aria-label={isRecording ? "Concluir gravação" : "Gravar resposta por voz"}
+                        aria-label={isRecording ? "Concluir gravação" : "Falar resposta por voz"}
                       >
-                        <Mic className="w-9 h-9 stroke-[2.3]" />
+                        <Mic className="w-5 h-5 stroke-[2.5]" />
+                        <span>{isRecording ? "Gravando... (Toque para parar)" : "Falar resposta por voz"}</span>
                       </button>
 
                       <div className="text-xs font-black text-[#9FB3C6] text-center px-3">

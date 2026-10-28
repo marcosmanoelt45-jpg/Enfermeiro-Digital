@@ -459,38 +459,60 @@ export function validarRespostaFalada(respostaAluno, respostasAceitas = []) {
       );
       if (todosCasam) return true;
 
-      // Se 65% ou mais dos tokens clínicos esperados estão presentes
+      // Se 50% ou mais dos tokens clínicos esperados estão presentes (abertura ampla)
       const tokensPresentes = aceitaTokens.filter((token) =>
         alunoTokens.some((at) => at.includes(token) || token.includes(at))
       );
-      if (tokensPresentes.length >= 2 && tokensPresentes.length / aceitaTokens.length >= 0.65) {
+      if (tokensPresentes.length >= 1 && (tokensPresentes.length / aceitaTokens.length >= 0.5)) {
         return true;
       }
     }
+  }
 
-    // 4. Regra semântica universal para Higienização das Mãos
-    const temAcaoLimpeza = alunoTokens.some((t) =>
-      t.startsWith("lav") || t.startsWith("higien") || t.startsWith("asseps") || t.startsWith("antiseps")
-    );
-    const temObjetoMao = alunoTokens.some((t) =>
-      t.startsWith("mao") || t.startsWith("alco") || t.startsWith("agua") || t.startsWith("saba") || t.startsWith("sabao")
-    );
-    const aceitaEhHigiene = aceitaNorm.includes("mao") || aceitaNorm.includes("higien") || aceitaNorm.includes("lav");
-    if (temAcaoLimpeza && temObjetoMao && aceitaEhHigiene) {
-      return true;
-    }
+  // 4. Regra semântica universal para Higienização das Mãos / Biossegurança
+  // Aceita: (limp* | lav* | higien* | asseps* | antiseps* | desinfec* | sanitiz* | fricc* | pass*)
+  // + (mao* | pele* | dedo* | palma* | pulso* | alco* | agua* | saba* | gel*)
+  const temAcaoLimpeza = alunoTokens.some((t) =>
+    t.startsWith("limp") || t.startsWith("lav") || t.startsWith("higien") ||
+    t.startsWith("asseps") || t.startsWith("antiseps") || t.startsWith("desinfec") ||
+    t.startsWith("sanitiz") || t.startsWith("fricc") || t.startsWith("pass")
+  );
+  const temObjetoMao = alunoTokens.some((t) =>
+    t.startsWith("mao") || t.startsWith("pele") || t.startsWith("dedo") ||
+    t.startsWith("palma") || t.startsWith("pulso") || t.startsWith("braco") ||
+    t.startsWith("alco") || t.startsWith("agua") || t.startsWith("saba") ||
+    t.startsWith("gel")
+  );
+  const questoesMao = respostasAceitas.some((a) => {
+    const an = normalizarTextoVoz(a);
+    return an.includes("mao") || an.includes("higien") || an.includes("lav") || an.includes("limp");
+  });
+  if (questoesMao && (
+    (temAcaoLimpeza && temObjetoMao) ||
+    alunoTokens.some((t) => t.startsWith("higien") || t.startsWith("lavagem"))
+  )) {
+    return true;
+  }
 
-    // 5. Regra semântica universal para Antissepsia / Desinfecção de Hub ou Conector
-    const temAcaoHub = alunoTokens.some((t) =>
-      t.startsWith("antiseps") || t.startsWith("desinfec") || t.startsWith("fricc") || t.startsWith("limp") || t.startsWith("higien") || t.startsWith("pass")
-    );
-    const temObjetoHub = alunoTokens.some((t) =>
-      t.startsWith("hub") || t.startsWith("conect") || t.includes("70") || t.startsWith("alco")
-    );
-    const aceitaEhHub = aceitaNorm.includes("hub") || aceitaNorm.includes("conect") || aceitaNorm.includes("alcool");
-    if (temAcaoHub && temObjetoHub && aceitaEhHub) {
-      return true;
-    }
+  // 5. Regra semântica universal para Antissepsia / Desinfecção de Hub ou Conector
+  const temAcaoHub = alunoTokens.some((t) =>
+    t.startsWith("antiseps") || t.startsWith("desinfec") || t.startsWith("fricc") ||
+    t.startsWith("limp") || t.startsWith("higien") || t.startsWith("pass")
+  );
+  const temObjetoHub = alunoTokens.some((t) =>
+    t.startsWith("hub") || t.startsWith("conect") || t.includes("70") ||
+    t.startsWith("alco") || t.startsWith("valvul") || t.startsWith("injet") ||
+    t.startsWith("catet") || t.startsWith("acess")
+  );
+  const questoesHub = respostasAceitas.some((a) => {
+    const an = normalizarTextoVoz(a);
+    return an.includes("hub") || an.includes("conect") || an.includes("alcool");
+  });
+  if (questoesHub && (
+    (temAcaoHub && temObjetoHub) ||
+    alunoTokens.some((t) => t.startsWith("hub") || (t.startsWith("conect") && temAcaoHub))
+  )) {
+    return true;
   }
 
   return false;

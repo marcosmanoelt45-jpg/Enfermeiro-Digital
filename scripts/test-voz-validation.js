@@ -21,12 +21,20 @@ const testes = [
   { entrada: "lavar as mãos", esperado: true, desc: "Verbo infinitivo lavar" },
   { entrada: "higienizar as mãos com água e sabão", esperado: true, desc: "Higienizar as mãos com complemento" },
   { entrada: "higiene das mãos", esperado: true, desc: "Substantivo higiene" },
+  { entrada: "limpeza das mãos", esperado: true, desc: "Exemplo explícito do usuário: limpeza + mãos" },
+  { entrada: "limpar as mãos", esperado: true, desc: "Exemplo explícito do usuário: limpar + mãos" },
+  { entrada: "limpar a pele", esperado: true, desc: "Exemplo explícito do usuário: limpar + pele" },
+  { entrada: "higienizar os dedos", esperado: true, desc: "Exemplo explícito do usuário: higienizar + dedos" },
+  { entrada: "passar álcool em gel", esperado: true, desc: "Passar álcool em gel" },
+  { entrada: "higienização", esperado: true, desc: "Apenas palavra-chave forte higienização" },
   { entrada: "colocar as luvas direto", esperado: false, desc: "Resposta incorreta sem higiene" },
   { entrada: "aplicar injeção", esperado: false, desc: "Resposta completamente fora" },
   { entrada: "passar álcool 70 no conector", esperado: true, desc: "Desinfecção de conector com álcool 70" },
   { entrada: "antissepsia do hub com álcool a setenta", esperado: true, desc: "Antissepsia do hub com setenta por extenso" },
   { entrada: "fricção alcoólica no conector", esperado: true, desc: "Fricção alcoólica no conector" },
-  { entrada: "limpar o hub com álcool", esperado: true, desc: "Limpar o hub com álcool" }
+  { entrada: "limpar o hub com álcool", esperado: true, desc: "Limpar o hub com álcool" },
+  { entrada: "desinfecção do conector", esperado: true, desc: "Desinfecção do conector" },
+  { entrada: "passar álcool no hub", esperado: true, desc: "Passar álcool no hub" }
 ];
 
 const aceitasTeresinha = [

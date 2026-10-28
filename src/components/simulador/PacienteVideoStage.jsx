@@ -69,16 +69,22 @@ export default function PacienteVideoStage({
     }
   }, [clipeAtivo, isSpeaking, pacienteId]);
 
-  const defaultSizeClass = small
-    ? "w-[210px] xs:w-[220px] h-[160px] md:w-full md:h-[300px] lg:h-[340px] flex-none"
-    : "w-full h-[280px] sm:h-[340px] md:h-[400px]";
+  const hasCustomHeight = className.includes("h-");
+  const hasCustomWidth = className.includes("w-") || className.includes("max-w-");
 
-  const hasCustomSize = className.includes("h-") || className.includes("w-");
-  const sizeClass = hasCustomSize ? "" : defaultSizeClass;
+  const defaultHeightClass = small
+    ? "h-[160px] md:h-[260px] lg:h-[300px]"
+    : "h-[185px] xs:h-[200px] sm:h-[220px] md:h-[300px] lg:h-[340px]";
+  const defaultWidthClass = small
+    ? "w-full max-w-[320px] md:max-w-none"
+    : "w-full";
+
+  const heightClass = hasCustomHeight ? "" : defaultHeightClass;
+  const widthClass = hasCustomWidth ? "" : defaultWidthClass;
 
   return (
     <div
-      className={`relative overflow-hidden rounded-[20px] bg-[#16222E] border-2 border-[#27394B] border-b-[5px] border-b-[#0A1118] select-none transition-all duration-300 ${sizeClass} ${className}`}
+      className={`relative overflow-hidden rounded-[20px] bg-[#16222E] border-2 border-[#27394B] border-b-[5px] border-b-[#0A1118] select-none transition-all duration-300 ${widthClass} ${heightClass} ${className}`}
     >
       {/* 1. Clipes Fala */}
       <video
