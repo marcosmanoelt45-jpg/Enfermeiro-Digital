@@ -132,28 +132,8 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
               })}
             </nav>
 
-            {/* Ações do Usuário: Chat do Goti, Pontos de Estudo (PE), Tema e Perfil */}
+            {/* Ações do Usuário: Perfil e Logout */}
             <div className="flex items-center gap-2 shrink-0">
-              {/* Botão de Chat com o Goti */}
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic(20);
-                  setIsGotiChatOpen(true);
-                }}
-                className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-[#16222E] border border-[#20D5B5]/40 border-b-4 border-b-[#0A1118] text-[#20D5B5] hover:bg-[#1b2b3a] text-xs font-black transition-all active:translate-y-1 active:border-b-2 shadow-xs cursor-pointer select-none"
-                title="Conversar diretamente com o Goti"
-              >
-                <div className="relative flex items-center justify-center">
-                  <img
-                    src="/goti/goti-avatar-app.png"
-                    alt="Goti"
-                    className="w-5 h-5 object-contain"
-                  />
-                  <span className="absolute -top-1 -right-1 w-2 h-2 rounded-full bg-[#20D5B5] animate-pulse" />
-                </div>
-                <span className="hidden sm:inline">Preceptor Goti</span>
-              </button>
 
               {/* Saldo de Pontos de Estudo (PE) - Ocultado temporariamente conforme diretriz */}
               <button

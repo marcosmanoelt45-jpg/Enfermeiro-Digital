@@ -578,3 +578,29 @@ video::-webkit-media-controls-overlay-play-button {
   border-bottom: 4px solid #0A1118;
 }
 
+/* ==========================================================================
+   OTIMIZAÇÕES DE PERFORMANCE MOBILE & ACESSIBILIDADE WCAG
+   ========================================================================== */
+html, body {
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  text-rendering: optimizeLegibility;
+}
+
+/* Aceleração de hardware em botões táteis e cards 3D */
+.card-3d, .card-3d-interactive, button {
+  transform: translateZ(0);
+  backface-visibility: hidden;
+}
+
+/* Respeito estrito a economia de bateria e redução de movimento no mobile */
+@media (prefers-reduced-motion: reduce) {
+  *, ::before, ::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+

@@ -46,3 +46,5 @@ _backup_pre_enfere_vivo/
 .kilo/
 agent/
 supabase/.temp/
+.vercel
+backups/

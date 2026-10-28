@@ -96,7 +96,7 @@ export default function PacienteVideoStage({
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload noplaybackrate nofullscreen"
-        preload="auto"
+        preload="metadata"
         onEnded={() => {
           if (videoFalaRef.current) {
             videoFalaRef.current.pause();
@@ -119,7 +119,7 @@ export default function PacienteVideoStage({
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload noplaybackrate nofullscreen"
-        preload="auto"
+        preload="metadata"
         onEnded={() => {
           if (onClipeEnded) onClipeEnded("acerto");
         }}
@@ -140,7 +140,7 @@ export default function PacienteVideoStage({
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload noplaybackrate nofullscreen"
-        preload="auto"
+        preload="metadata"
         onEnded={() => {
           if (onClipeEnded) onClipeEnded("erro");
         }}
