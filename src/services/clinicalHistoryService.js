@@ -91,6 +91,109 @@ function setRevisaoStorage(items, userId) {
 
 export const clinicalHistoryService = {
   /**
+   * Retorna a atividade em andamento mais recente de um usuário específico.
+   * Usado pelo card "Continuar de onde parou" no StudentDashboard e EnfereVivoTrail.
+   */
+  getLatestInProgressActivity(userId = null) {
+    const list = getStorage(userId);
+    const inProgress = list
+      .filter((it) => it.status === 'em_andamento')
+      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
+    return inProgress.length > 0 ? inProgress[0] : null;
+  },
+
+  /**
+   * Salva ou atualiza um rascunho de atividade em andamento.
+   */
+  saveDraft({ id, moduleType, title, patientInfo, progress = 0, durationSeconds = 0, formData = {}, step = 0, userId = null }) {
+    const list = getStorage(userId);
+    const now = new Date().toISOString();
+    const existingIndex = id ? list.findIndex((it) => it.id === id) : -1;
+
+    const activityItem = {
+      id: id || `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      moduleType,
+      moduleLabel: MODULE_LABELS[moduleType] || moduleType,
+      title: title || 'Caso Clínico em Andamento',
+      patientInfo: patientInfo || 'Paciente Não Identificado',
+      progressPercentage: Math.min(Math.max(progress, 0), 99),
+      status: 'em_andamento',
+      durationSeconds: Math.max(0, Math.round(durationSeconds)),
+      startedAt: existingIndex >= 0 ? list[existingIndex].startedAt : now,
+      updatedAt: now,
+      step,
+      formData,
+      score: null,
+      evaluation: null,
+      userId: userId || null
+    };
+
+    if (existingIndex >= 0) {
+      list[existingIndex] = { ...list[existingIndex], ...activityItem };
+    } else {
+      list.unshift(activityItem);
+    }
+
+    setStorage(list, userId);
+    return activityItem;
+  },
+
+  /**
+   * Submete e finaliza formalmente uma atividade clínica com 100% de conclusão.
+   */
+  submitActivity({ id, moduleType, title, patientInfo, durationSeconds = 0, score = 100, evaluation = null, formData = {}, userId = null }) {
+    const list = getStorage(userId);
+    const now = new Date().toISOString();
+    const existingIndex = id ? list.findIndex((it) => it.id === id) : -1;
+
+    const completedItem = {
+      id: id || `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      moduleType,
+      moduleLabel: MODULE_LABELS[moduleType] || moduleType,
+      title: title || 'Caso Clínico Concluído',
+      patientInfo: patientInfo || 'Paciente Avaliado',
+      progressPercentage: 100,
+      status: 'concluido',
+      durationSeconds: Math.max(0, Math.round(durationSeconds)),
+      startedAt: existingIndex >= 0 ? list[existingIndex].startedAt : now,
+      finishedAt: now,
+      updatedAt: now,
+      score: typeof score === 'number' ? score : 100,
+      evaluation: evaluation || 'Atividade clínica concluída com conformidade aos protocolos de enfermagem.',
+      formData,
+      userId: userId || null
+    };
+
+    if (existingIndex >= 0) {
+      list[existingIndex] = completedItem;
+    } else {
+      list.unshift(completedItem);
+    }
+
+    setStorage(list, userId);
+    return completedItem;
+  },
+
+  /**
+   * Atualiza campos de uma atividade existente (usado no SbarHandoffLab).
+   */
+  updateActivity(id, updates = {}, userId = null) {
+    if (!id) return null;
+    const list = getStorage(userId);
+    const existingIndex = list.findIndex((it) => it.id === id);
+    if (existingIndex < 0) return null;
+    const now = new Date().toISOString();
+    const updated = {
+      ...list[existingIndex],
+      ...updates,
+      updatedAt: now
+    };
+    list[existingIndex] = updated;
+    setStorage(list, userId);
+    return updated;
+  },
+
+  /**
    * Salva uma sessão concluída de Videochamada no histórico unificado.
    */
   saveVideochamadaSession(sessionData, userId = null) {
@@ -243,9 +346,9 @@ export const clinicalHistoryService = {
       ? Math.round(completed.reduce((acc, it) => acc + (it.score || 0), 0) / completed.length)
       : 0;
 
+    let totalAcertos = 0;
     let totalAmarelas = 0;
     let totalVermelhas = 0;
-    let totalAcertos = 0;
 
     completed.forEach((it) => {
       if (it.details) {
