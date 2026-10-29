@@ -72,6 +72,18 @@ function runTests() {
     console.log('✅ authService.js: Proteção resiliente do provedor Google implementada.');
   }
 
+  // 5. Teste de remoção total de modais intermediários nas páginas de Login e Cadastro
+  const loginPath = path.join(rootDir, 'src', 'pages', 'Login.jsx');
+  const registerPath = path.join(rootDir, 'src', 'pages', 'Register.jsx');
+  const loginContent = fs.readFileSync(loginPath, 'utf8');
+  const registerContent = fs.readFileSync(registerPath, 'utf8');
+
+  if (loginContent.includes('GoogleOAuthModal') || registerContent.includes('GoogleOAuthModal')) {
+    errors.push('Login.jsx / Register.jsx: Ainda renderizam modal intermediário antes do redirecionamento oficial do Google.');
+  } else {
+    console.log('✅ Login.jsx e Register.jsx: Redirecionamento direto para Google OAuth sem modais intermediários.');
+  }
+
   console.log('\n--- RESULTADO ---');
   if (errors.length > 0) {
     console.error('❌ Falhas encontradas:');
@@ -83,3 +95,4 @@ function runTests() {
 }
 
 runTests();
+

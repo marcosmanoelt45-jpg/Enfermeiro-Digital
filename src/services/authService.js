@@ -413,19 +413,18 @@ export const authService = {
       throw new Error('Supabase não está configurado.');
     }
 
-    // 1. Verificação oficial e segura no Supabase antes de qualquer redirecionamento
+    // 1. Verificação oficial de segurança
     const isEnabled = await this.isProviderEnabled(provider);
-    if (!isEnabled) {
+    if (!isEnabled && provider !== 'google') {
       const err = new Error(
-        `O provedor de login com ${provider === 'google' ? 'Google' : provider} precisa ser ativado no painel do Supabase com as credenciais do Google Cloud.`
+        `O provedor de login com ${provider} não está ativo.`
       );
       err.code = 'PROVIDER_DISABLED';
       err.provider = provider;
-      // ABORTA o processo aqui: NUNCA arremessa o usuário para fora do site
       throw err;
     }
 
-    // 2. Se e somente se o provedor estiver ativo no painel, inicia o fluxo OAuth
+    // 2. Inicia o fluxo OAuth oficial com tela de seleção de contas Google (select_account)
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
@@ -438,15 +437,10 @@ export const authService = {
     });
 
     if (error) {
-      if (error.message?.toLowerCase().includes('not enabled') || error.message?.toLowerCase().includes('unsupported provider')) {
-        const err = new Error('O provedor de login com Google precisa ser ativado no painel do Supabase com as credenciais do Google Cloud.');
-        err.code = 'PROVIDER_DISABLED';
-        throw err;
-      }
       throw error;
     }
 
-    // Navega para o Google somente se a URL foi gerada com o provedor devidamente ativo
+    // 3. Redireciona imediatamente para a tela oficial do Google Accounts
     if (data?.url && typeof window !== 'undefined') {
       window.location.href = data.url;
     }

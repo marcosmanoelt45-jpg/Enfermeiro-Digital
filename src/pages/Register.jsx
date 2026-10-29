@@ -8,7 +8,6 @@ import { Label } from "@/components/ui/label";
 import { UserPlus, Mail, Lock, User, Loader2, Sparkles } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
-import GoogleOAuthModal from "@/components/auth/GoogleOAuthModal";
 import { safeReturnTo } from "@/lib/authReturnTo";
 
 export default function Register() {
@@ -23,7 +22,6 @@ export default function Register() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
-  const [showGoogleSetupModal, setShowGoogleSetupModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -60,11 +58,7 @@ export default function Register() {
       }
       await authService.loginWithProvider("google", returnTo, { user_type: "aluno" });
     } catch (err) {
-      if (err.code === "PROVIDER_DISABLED" || err.message?.includes("ativado no painel do Supabase")) {
-        setShowGoogleSetupModal(true);
-      } else {
-        setError(err.message || "Falha ao autenticar com Google");
-      }
+      setError(err.message || "Falha ao autenticar com o Google. Tente novamente.");
       setGoogleLoading(false);
     }
   };
@@ -245,12 +239,6 @@ export default function Register() {
           Acessar Modo Demonstrativo Imediato
         </Button>
       </div>
-
-      <GoogleOAuthModal
-        isOpen={showGoogleSetupModal}
-        onClose={() => setShowGoogleSetupModal(false)}
-        onRetry={handleGoogle}
-      />
     </AuthLayout>
   );
 }
