@@ -64,9 +64,9 @@ export default function ClinicalGapRadar({
   const findingData = activeFinding || (activeGap ? SEMIOLOGY_KNOWLEDGE_BASE[activeGap.key] : null);
 
   function handleSelectOption(opt) {
+    if (isAnswered) return; // Não permite alterar após já ter verificado
     setSelectedOptionId(opt.id);
     setSelectedOption(opt);
-    setIsAnswered(true);
     if (findingData?.resultingItem?.value) {
       setCustomValue(findingData.resultingItem.value);
     } else if (opt.label) {
@@ -228,49 +228,74 @@ export default function ClinicalGapRadar({
             </span>
 
             {findingData?.options ? (
-              <div className="space-y-2">
-                {findingData.options.map((opt, idx) => {
-                  const isSelected = selectedOptionId === opt.id;
-                  const letter = opt.letter || String.fromCharCode(65 + idx);
-                  let cardStyle = "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200";
+              <div className="space-y-2.5">
+                <div className="space-y-2">
+                  {findingData.options.map((opt, idx) => {
+                    const isSelected = selectedOptionId === opt.id;
+                    const letter = opt.letter || String.fromCharCode(65 + idx);
+                    let cardStyle = "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200";
 
-                  if (isAnswered) {
-                    if (opt.isCorrect) {
-                      cardStyle = "border-teal-500 dark:border-teal-600 bg-teal-50/70 dark:bg-teal-950/60 text-teal-950 dark:text-teal-200 font-medium";
-                    } else if (isSelected && !opt.isCorrect) {
-                      cardStyle = "border-rose-300 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/40 text-rose-900 dark:text-rose-200";
-                    } else {
-                      cardStyle = "border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/40 text-slate-400 dark:text-slate-400 opacity-60";
+                    if (isAnswered) {
+                      if (opt.isCorrect) {
+                        cardStyle = "border-teal-500 dark:border-teal-600 bg-teal-50/80 dark:bg-teal-950/70 text-teal-950 dark:text-teal-200 font-bold";
+                      } else if (isSelected && !opt.isCorrect) {
+                        cardStyle = "border-rose-400 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200 font-bold";
+                      } else {
+                        cardStyle = "border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30 text-slate-400 dark:text-slate-500 opacity-50";
+                      }
+                    } else if (isSelected) {
+                      cardStyle = "border-teal-500 dark:border-teal-400 bg-teal-50/70 dark:bg-teal-950/40 text-teal-950 dark:text-teal-100 ring-2 ring-teal-500/30 font-semibold";
                     }
-                  }
 
-                  return (
-                    <button
-                      key={opt.id}
+                    return (
+                      <button
+                        key={opt.id}
+                        type="button"
+                        disabled={isAnswered}
+                        onClick={() => handleSelectOption(opt)}
+                        className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${cardStyle}`}
+                      >
+                        <div className={`mt-0.5 h-6 w-6 rounded-lg font-black text-xs border flex items-center justify-center shrink-0 transition-colors shadow-xs ${
+                          isAnswered && opt.isCorrect
+                            ? "bg-teal-600 border-teal-600 text-white"
+                            : isAnswered && isSelected && !opt.isCorrect
+                            ? "bg-rose-500 border-rose-500 text-white"
+                            : !isAnswered && isSelected
+                            ? "bg-teal-600 text-white border-teal-600"
+                            : "border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200"
+                        }`}>
+                          {isAnswered && opt.isCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
+                        </div>
+                        <div className="space-y-1 flex-1">
+                          <span className="font-medium text-slate-900 dark:text-slate-100">{opt.label}</span>
+                          {isAnswered && isSelected && (
+                            <p className={`text-[11px] leading-tight mt-1 ${opt.isCorrect ? "text-teal-800 dark:text-teal-300 font-semibold" : "text-rose-700 dark:text-rose-400"}`}>
+                              {opt.feedback}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })}
+                </div>
+
+                {/* Botão de Verificação Explícita Antes de Corrigir */}
+                {!isAnswered && (
+                  <div className="pt-1">
+                    <Button
                       type="button"
-                      onClick={() => handleSelectOption(opt)}
-                      className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${cardStyle}`}
+                      onClick={() => {
+                        if (!selectedOptionId) return;
+                        setIsAnswered(true);
+                      }}
+                      disabled={!selectedOptionId}
+                      className="w-full py-2.5 rounded-xl font-bold text-xs bg-teal-600 hover:bg-teal-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
                     >
-                      <div className={`mt-0.5 h-6 w-6 rounded-lg font-black text-xs border flex items-center justify-center shrink-0 transition-colors shadow-xs ${
-                        isAnswered && opt.isCorrect
-                          ? "bg-teal-600 border-teal-600 text-white"
-                          : isAnswered && isSelected && !opt.isCorrect
-                          ? "bg-rose-500 border-rose-500 text-white"
-                          : "border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200"
-                      }`}>
-                        {isAnswered && opt.isCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
-                      </div>
-                      <div className="space-y-1 flex-1">
-                        <span className="font-medium text-slate-900 dark:text-slate-100">{opt.label}</span>
-                        {isAnswered && isSelected && (
-                          <p className={`text-[11px] leading-tight mt-1 ${opt.isCorrect ? "text-teal-800 dark:text-teal-300 font-semibold" : "text-rose-700 dark:text-rose-400"}`}>
-                            {opt.feedback}
-                          </p>
-                        )}
-                      </div>
-                    </button>
-                  );
-                })}
+                      <CheckCircle2 className="h-4 w-4" />
+                      <span>Verificar Resposta</span>
+                    </Button>
+                  </div>
+                )}
               </div>
             ) : (
               <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 space-y-2">
@@ -319,7 +344,7 @@ export default function ClinicalGapRadar({
             {findingData?.options && !isAnswered && (
               <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-1.5 pt-1">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                Selecione uma conduta acima para interpretar o exame antes de incorporar ao prontuário.
+                Selecione uma conduta acima e clique em "Verificar Resposta" antes de incorporar ao prontuário.
               </p>
             )}
 

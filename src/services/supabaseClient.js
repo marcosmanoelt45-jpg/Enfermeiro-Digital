@@ -14,15 +14,48 @@ const safeGetEnv = (key) => {
   return '';
 };
 
-const rawUrl = safeGetEnv('VITE_SUPABASE_URL');
-const isKnownOfflineOrPlaceholder =
-  !rawUrl ||
-  rawUrl.includes('placeholder');
-
-const supabaseUrl = isKnownOfflineOrPlaceholder
-  ? 'https://placeholder-enfermeiro-digital.supabase.co'
-  : rawUrl;
+const rawEnvUrl = safeGetEnv('VITE_SUPABASE_URL');
 const supabaseAnonKey = safeGetEnv('VITE_SUPABASE_ANON_KEY') || 'placeholder-anon-key';
+
+const CANONICAL_SUPABASE_REF = 'xwqgyvqofxdqdbhltdzf';
+const CANONICAL_SUPABASE_URL = `https://${CANONICAL_SUPABASE_REF}.supabase.co`;
+
+/**
+ * Normaliza e protege a URL do Supabase contra erros de digitação de DNS
+ * (ex: 'dbhldtzf' invertido em vez de 'dbhltdzf') e extrai o ref verificado do JWT.
+ */
+function resolveSupabaseUrl(url, key) {
+  let clean = (url || '').trim();
+  // Corrige erro de digitação de DNS conhecido no domínio do projeto
+  if (clean.includes('dbhldtzf')) {
+    clean = clean.replace('dbhldtzf', 'dbhltdzf');
+  }
+  // Se contiver placeholder ou for vazio, usa a URL oficial do projeto
+  if (!clean || clean.includes('placeholder') || clean.includes('seu-projeto')) {
+    return CANONICAL_SUPABASE_URL;
+  }
+  // Se a chave for um JWT válido, extrai o ref do payload assinado pelo Supabase
+  if (key && typeof key === 'string' && key.includes('.')) {
+    try {
+      const parts = key.split('.');
+      if (parts.length >= 2) {
+        const jsonStr = typeof atob !== 'undefined'
+          ? atob(parts[1])
+          : Buffer.from(parts[1], 'base64').toString('utf8');
+        const payload = JSON.parse(jsonStr);
+        if (payload?.ref && payload.ref.startsWith('xwqgyvq')) {
+          return `https://${payload.ref}.supabase.co`;
+        }
+      }
+    } catch {}
+  }
+  return clean;
+}
+
+const supabaseUrl = resolveSupabaseUrl(rawEnvUrl, supabaseAnonKey);
+const isKnownOfflineOrPlaceholder =
+  !supabaseUrl ||
+  supabaseUrl.includes('placeholder');
 
 let isReachable = !isKnownOfflineOrPlaceholder;
 let offlineTimestamp = 0;

@@ -11,8 +11,7 @@ import {
   Layers,
   Send,
   Plus,
-  Stethoscope,
-  Timer,
+  Stethoscope,
   ClipboardList,
   Eye,
   Check,
@@ -1230,40 +1229,7 @@ export default function CaseStudySimulator() {
                       )}
                     </div>
 
-                    {/* Laboratório de Hipóteses do Goti (Página 5 do PDF) */}
-                    <div className="pt-2 space-y-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#9FB3C6] block">
-                        LABORATÓRIO DE HIPÓTESES DO GOTI · ARRASTE E PENSE ANTES DE CLICAR
-                      </span>
-                      <div className="flex flex-col gap-1.5">
-                        {[
-                          { category: "VENTILAÇÃO", title: "Padrão respiratório ineficaz" },
-                          { category: "OXIGENAÇÃO", title: "Troca de gases prejudicada" },
-                          { category: "HEMODINÂMICA", title: "Volume de líquidos excessivo" }
-                        ].map((h) => {
-                          const isSelected = studentHypothesis === h.title;
-                          return (
-                            <button
-                              key={h.title}
-                              type="button"
-                              onClick={() => setStudentHypothesis(h.title)}
-                              className={`w-full p-2.5 rounded-xl text-left text-xs font-semibold border flex items-center gap-2 transition ${
-                                isSelected
-                                  ? "bg-[#20D5B5]/15 border-[#20D5B5] text-white"
-                                  : "bg-[#0B131D] border-[#1F3045] text-[#9FB3C6] hover:text-white hover:border-[#20D5B5]/40"
-                              }`}
-                            >
-                              <span className={`text-[10px] font-black uppercase tracking-wider px-2 py-0.5 rounded-md ${
-                                isSelected ? "bg-[#20D5B5] text-[#0B131D]" : "bg-[#131F2E] text-[#20D5B5]"
-                              }`}>
-                                {h.category}
-                              </span>
-                              <span className="truncate">{h.title}</span>
-                            </button>
-                          );
-                        })}
-                      </div>
-                    </div>
+
                   </div>
 
                   {/* PILAR 2: FATORES RELACIONADOS / ETIOLOGIA (Página 5 do PDF) */}
@@ -1273,39 +1239,11 @@ export default function CaseStudySimulator() {
                     </label>
 
                     <Textarea
-                      value={studentEtiology || "Hipervolemia e congestão pulmonar secundária"}
+                      value={studentEtiology || ""}
                       onChange={(e) => setStudentEtiology(e.target.value)}
-                      placeholder="Descreva a causa fisiopatológica..."
-                      className="rounded-2xl bg-[#0B131D] border-[#1F3045] text-xs sm:text-sm text-white min-h-[54px] focus:border-[#20D5B5]"
+                      placeholder="Descreva a causa fisiopatológica / etiologia com suas próprias palavras..."
+                      className="rounded-2xl bg-[#0B131D] border-[#1F3045] text-xs sm:text-sm text-white min-h-[70px] focus:border-[#20D5B5]"
                     />
-
-                    {/* Causas Frequentes (Página 5 do PDF) */}
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#9FB3C6] block">
-                        CAUSAS FREQUENTES
-                      </span>
-                      <div className="flex flex-col gap-1.5">
-                        {[
-                          "Fadiga da musculatura respiratória",
-                          "Hipervolemia e congestão pulmonar secundária",
-                          "Mobilidade física prejudicada",
-                          "Idade avançada"
-                        ].map((cause) => (
-                          <button
-                            key={cause}
-                            type="button"
-                            onClick={() => {
-                              if (!studentEtiology) setStudentEtiology(cause);
-                              else if (!studentEtiology.includes(cause)) setStudentEtiology(`${studentEtiology}, ${cause}`);
-                            }}
-                            className="p-2.5 rounded-xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left text-xs text-[#9FB3C6] hover:text-white transition flex items-center gap-1.5"
-                          >
-                            <span className="text-[#20D5B5] font-black">+</span>
-                            <span>{cause}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
 
                   {/* PILAR 3: CARACTERÍSTICAS DEFINIDORAS (Página 5 do PDF) */}
@@ -1315,39 +1253,11 @@ export default function CaseStudySimulator() {
                     </label>
 
                     <Textarea
-                      value={studentEvidences || "Nível pressórico aferido: 160/95 mmHg"}
+                      value={studentEvidences || ""}
                       onChange={(e) => setStudentEvidences(e.target.value)}
-                      placeholder="Descreva os sinais clínicos que comprovam a hipótese..."
-                      className="rounded-2xl bg-[#0B131D] border-[#1F3045] text-xs sm:text-sm text-white min-h-[54px] focus:border-[#20D5B5]"
+                      placeholder="Descreva os sinais clínicos e evidências que fundamentam o diagnóstico..."
+                      className="rounded-2xl bg-[#0B131D] border-[#1F3045] text-xs sm:text-sm text-white min-h-[70px] focus:border-[#20D5B5]"
                     />
-
-                    {/* Pistas Clínicas do Prontuário (Página 5 do PDF) */}
-                    <div className="space-y-2">
-                      <span className="text-[10px] font-black uppercase tracking-wider text-[#9FB3C6] block">
-                        PISTAS CLÍNICAS DO PRONTUÁRIO DESTE CASO
-                      </span>
-                      <div className="flex flex-col gap-1.5">
-                        {[
-                          "FR: 26 irpm (Taquipneia)",
-                          "SatO₂: 89% (Hipoxemia)",
-                          "PA: 160/95 mmHg",
-                          "Eupneico em ar ambiente (sem desconforto)"
-                        ].map((evidence) => (
-                          <button
-                            key={evidence}
-                            type="button"
-                            onClick={() => {
-                              if (!studentEvidences) setStudentEvidences(evidence);
-                              else if (!studentEvidences.includes(evidence)) setStudentEvidences(`${studentEvidences}, ${evidence}`);
-                            }}
-                            className="p-2.5 rounded-xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left text-xs text-[#9FB3C6] hover:text-white transition flex items-center gap-1.5"
-                          >
-                            <span className="text-[#20D5B5] font-black">+</span>
-                            <span>{evidence}</span>
-                          </button>
-                        ))}
-                      </div>
-                    </div>
                   </div>
                 </div>
 
@@ -1517,15 +1427,7 @@ export default function CaseStudySimulator() {
                       Reavaliação Clínica & Resposta às Intervenções
                     </h2>
                   </div>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={handleSimulatePatientResponse}
-                    className="rounded-xl text-xs flex items-center gap-1.5 border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white font-bold"
-                  >
-                    <Timer className="h-4 w-4 text-[#20D5B5]" />
-                    <span>Recalcular (30 min)</span>
-                  </Button>
+
                 </div>
 
                 <div className="space-y-4">

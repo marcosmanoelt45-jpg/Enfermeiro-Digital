@@ -13,13 +13,10 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { guideMedicationCalculation } from "@/services/socraticTutorService";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
-import GotiAnimated from "@/components/mascot/GotiAnimated";
-import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 import { getDosageProblems } from "@/data/dosageProblems";
@@ -59,7 +56,6 @@ export default function MedicationDosageLab() {
   const [showFormula, setShowFormula] = useState(false);
   const [showConversions, setShowConversions] = useState(false);
   const [showFullSolution, setShowFullSolution] = useState(false);
-  const [showGotiEvaluationModal, setShowGotiEvaluationModal] = useState(false);
 
   // Estado da Calculadora Interativa Livre
   const [calcType, setCalcType] = useState("drip");
@@ -163,55 +159,57 @@ export default function MedicationDosageLab() {
   }
 
   function handleSelectOption(opt) {
+    if (feedback) return; // Se já corrigiu a questão, impede alterar
     setSelectedOption(opt.id);
     setStudentInput(opt.value || opt.text);
+  }
 
-    if (opt.isCorrect) {
-      setFeedback({
-        isCorrect: true,
-        feedback: `Alternativa (${opt.letter}) Correta! ${opt.rationale}`,
-        questionToThink: null
-      });
-      setShowGotiEvaluationModal(true);
+  async function handleEvaluate() {
+    if (!studentInput.trim() || evaluating || feedback) return;
+    setEvaluating(true);
+    try {
+      const selectedOptObj = problem.options?.find(
+        (o) => o.id === selectedOption || o.value?.trim() === studentInput.trim() || o.text?.trim() === studentInput.trim()
+      );
+
+      let isCorrect = false;
+      let rationale = "";
+
+      if (selectedOptObj) {
+        isCorrect = Boolean(selectedOptObj.isCorrect);
+        rationale = selectedOptObj.rationale || "";
+      } else {
+        const numericAnswer = parseFloat(String(studentInput).replace(',', '.'));
+        const numericCorrect = parseFloat(String(problem.correctResult).replace(',', '.'));
+        isCorrect = !isNaN(numericAnswer) && !isNaN(numericCorrect) && Math.abs(numericAnswer - numericCorrect) < 0.05;
+      }
+
+      const res = {
+        isCorrect,
+        feedback: isCorrect
+          ? `Alternativa Correta! ${rationale || "Cálculo com exatidão clínica absoluta sem risco de iatrogenia."}`
+          : `Alternativa Incorreta. ${rationale || "Revise a montagem da fórmula ou o cálculo de diluição."}`,
+        explanation: problem.explanationSteps?.join(" ") || problem.formulaHint || ""
+      };
+
+      setFeedback(res);
+
+      // Se errou, abre automaticamente a Tabela de Conversão e a Fórmula de Apoio
+      if (!isCorrect) {
+        setShowConversions(true);
+        setShowFormula(true);
+      }
+
       clinicalHistoryService.submitActivity({
         id: currentActivityId,
         moduleType: MODULE_TYPES.DOSAGE,
         title: `Cálculo: ${problem.title}`,
         patientInfo: `${problem.category} • Solução: ${problem.solutionName}`,
         durationSeconds: activitySeconds,
-        score: 100,
-        evaluation: `Alternativa (${opt.letter}) correta: ${opt.rationale}`,
-        formData: { selectedIdx, studentInput: opt.value, selectedOption: opt.id }
+        score: isCorrect ? 100 : 50,
+        evaluation: res.feedback,
+        formData: { selectedIdx, studentInput, selectedOption, isCorrect }
       });
-    } else {
-      setFeedback({
-        isCorrect: false,
-        feedback: `Alternativa (${opt.letter}) Incorreta. ${opt.rationale}`,
-        questionToThink: "Revise a montagem da fórmula ou o cálculo de diluição."
-      });
-    }
-  }
-
-  async function handleEvaluate() {
-    if (!studentInput.trim()) return;
-    setEvaluating(true);
-    try {
-      const res = await guideMedicationCalculation(problem, studentInput);
-      setFeedback(res);
-      setShowGotiEvaluationModal(true);
-
-      if (res) {
-        clinicalHistoryService.submitActivity({
-          id: currentActivityId,
-          moduleType: MODULE_TYPES.DOSAGE,
-          title: `Cálculo: ${problem.title}`,
-          patientInfo: `${problem.category} • Solução: ${problem.solutionName}`,
-          durationSeconds: activitySeconds,
-          score: res.isCorrect ? 100 : 70,
-          evaluation: res.explanation || (res.isCorrect ? "Cálculo exato sem risco de iatrogenia." : "Ajuste de dosagem requerido."),
-          formData: { selectedIdx, studentInput, res }
-        });
-      }
     } finally {
       setEvaluating(false);
     }
@@ -416,72 +414,50 @@ export default function MedicationDosageLab() {
               {/* 4 Alternativas Rápidas (Toque para preencher) */}
               {problem.options && problem.options.length > 0 && (
                 <div className="grid grid-cols-2 gap-2 pt-1">
-                  {problem.options.map((opt) => (
-                    <button
-                      key={opt.id || opt.letter}
-                      type="button"
-                      onClick={() => handleSelectOption(opt)}
-                      className={`p-2.5 rounded-xl border text-left text-xs font-semibold transition-all flex items-center gap-2 ${
-                        studentInput.trim() === opt.value || selectedOption === opt.id
-                          ? "bg-[#20D5B5]/15 border-[#20D5B5] text-[#20D5B5]"
-                          : "bg-[#0E1722] border-[#1F3045] text-[#9FB3C6] hover:text-white"
-                      }`}
-                    >
-                      <span className="w-5 h-5 rounded-md bg-[#131F2E] border border-[#1F3045] text-[10px] font-black flex items-center justify-center shrink-0">
-                        {opt.letter}
-                      </span>
-                      <span className="truncate">{opt.text}</span>
-                    </button>
-                  ))}
+                  {problem.options.map((opt) => {
+                    const isSelected = selectedOption === opt.id || studentInput.trim() === opt.value || studentInput.trim() === opt.text;
+                    let style = "bg-[#0E1722] border-[#1F3045] text-[#9FB3C6] hover:text-white";
+
+                    if (feedback) {
+                      if (opt.isCorrect) {
+                        style = "bg-emerald-500/20 border-emerald-500 text-emerald-300 font-bold";
+                      } else if (isSelected && !opt.isCorrect) {
+                        style = "bg-rose-500/20 border-rose-500 text-rose-300 font-bold";
+                      } else {
+                        style = "bg-[#0E1722]/50 border-[#1F3045]/50 text-slate-500 opacity-60";
+                      }
+                    } else if (isSelected) {
+                      style = "bg-[#20D5B5]/20 border-[#20D5B5] text-[#20D5B5] ring-2 ring-[#20D5B5]/30 font-bold";
+                    }
+
+                    return (
+                      <button
+                        key={opt.id || opt.letter}
+                        type="button"
+                        disabled={Boolean(feedback)}
+                        onClick={() => handleSelectOption(opt)}
+                        className={`p-2.5 rounded-xl border text-left text-xs font-semibold transition-all flex items-center gap-2 ${style}`}
+                      >
+                        <span className={`w-5 h-5 rounded-md text-[10px] font-black flex items-center justify-center shrink-0 border ${
+                          feedback && opt.isCorrect
+                            ? "bg-emerald-500 text-[#0B131D] border-emerald-500"
+                            : feedback && isSelected && !opt.isCorrect
+                            ? "bg-rose-500 text-white border-rose-500"
+                            : isSelected
+                            ? "bg-[#20D5B5] text-[#0B131D] border-[#20D5B5]"
+                            : "bg-[#131F2E] border-[#1F3045] text-slate-300"
+                        }`}>
+                          {opt.letter}
+                        </span>
+                        <span className="truncate">{opt.text}</span>
+                      </button>
+                    );
+                  })}
                 </div>
               )}
             </div>
 
-            {/* Linha de Ações Auxiliares (Página 17 do PDF) */}
-            <div className="flex items-center gap-2 pt-1 flex-wrap">
-              <button
-                type="button"
-                onClick={() => setShowFormula(!showFormula)}
-                className={`rounded-2xl border px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  showFormula
-                    ? "bg-[#FFC247]/15 border-[#FFC247] text-[#FFC247]"
-                    : "bg-[#0E1722] border-[#1F3045] text-white hover:bg-[#16222E]"
-                }`}
-              >
-                <Lightbulb className="w-3.5 h-3.5 text-[#FFC247]" />
-                <span>Ver Fórmula</span>
-              </button>
 
-              <button
-                type="button"
-                onClick={() => setShowConversions(!showConversions)}
-                className={`rounded-2xl border px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-1.5 ${
-                  showConversions
-                    ? "bg-[#20D5B5]/15 border-[#20D5B5] text-[#20D5B5]"
-                    : "bg-[#0E1722] border-[#1F3045] text-white hover:bg-[#16222E]"
-                }`}
-              >
-                <BookOpen className="w-3.5 h-3.5 text-[#20D5B5]" />
-                <span>Tabela de Conversão</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => {
-                  window.dispatchEvent(
-                    new CustomEvent("open-goti-chat", {
-                      detail: {
-                        prompt: `Olá Goti! Estou resolvendo uma prescrição de ${problem.category}: "${problem.description}". Como devo raciocinar para montar a fórmula passo a passo? Pode me dar uma dica didática?`
-                      }
-                    })
-                  );
-                }}
-                className="rounded-2xl border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-white px-4 py-2.5 text-xs font-bold transition-all flex items-center gap-2"
-              >
-                <GotiAnimated animation="pointing" size={24} />
-                <span>Goti</span>
-              </button>
-            </div>
 
             {/* Tabela de Conversões Sob Demanda */}
             {showConversions && (
@@ -532,33 +508,39 @@ export default function MedicationDosageLab() {
             </div>
 
             {/* ========================================================================= */}
-            {/* BOTTOM SHEET / MODAL DE FEEDBACK IMEDIATO (Página 18 do PDF)               */}
+            {/* RESOLUÇÃO E DECISÃO DE NAVEGAÇÃO PÓS-VERIFICAÇÃO                          */}
             {/* ========================================================================= */}
             {feedback && (
-              <div className="fixed inset-0 z-50 bg-black/70 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
-                <div className="bg-[#131F2E] border-t sm:border border-[#1F3045] rounded-t-[32px] sm:rounded-3xl p-6 w-full max-w-md space-y-5 animate-in slide-in-from-bottom duration-200 shadow-2xl">
+              <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
+                <div className="bg-[#131F2E] border-t sm:border border-[#1F3045] rounded-t-[32px] sm:rounded-3xl p-6 w-full max-w-lg space-y-5 animate-in slide-in-from-bottom duration-200 shadow-2xl max-h-[90vh] overflow-y-auto">
                   {/* Cabeçalho do Resultado */}
                   <div className="flex items-center gap-3">
                     <div
                       className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
-                        feedback.isCorrect ? "bg-[#20D5B5] text-[#0B131D]" : "bg-[#FFC247] text-[#0B131D]"
+                        feedback.isCorrect ? "bg-emerald-500 text-[#0B131D]" : "bg-rose-500 text-white"
                       }`}
                     >
                       <CheckCircle2 className="w-7 h-7 stroke-[2.5]" />
                     </div>
                     <div>
                       <h3 className="text-xl font-black text-white">
-                        {feedback.isCorrect ? "Correto!" : "Atenção ao cálculo!"}
+                        {feedback.isCorrect ? "Cálculo Correto!" : "Resposta Incorreta"}
                       </h3>
-                      <span className="inline-block text-xs font-black text-[#20D5B5] bg-[#20D5B5]/15 border border-[#20D5B5]/30 px-2.5 py-0.5 rounded-full mt-0.5">
-                        {feedback.isCorrect ? "+25 PE" : "Revisar"}
+                      <span className={`inline-block text-xs font-black px-2.5 py-0.5 rounded-full mt-0.5 ${
+                        feedback.isCorrect
+                          ? "bg-emerald-500/20 text-emerald-300 border border-emerald-500/30"
+                          : "bg-rose-500/20 text-rose-300 border border-rose-500/30"
+                      }`}>
+                        {feedback.isCorrect ? "+25 PE Conquistados" : "Estudo Recomendado"}
                       </span>
                     </div>
                   </div>
 
-                  {/* Card "Como chegar lá" (Página 18 do PDF) */}
+                  {/* Resolução Didática Passo a Passo */}
                   <div className="bg-[#0E1722] rounded-2xl border border-[#1F3045] p-4 space-y-2.5">
-                    <span className="text-xs font-black text-white block">Como chegar lá</span>
+                    <span className="text-xs font-black text-white block">
+                      {feedback.isCorrect ? "Justificativa Clínica:" : "Resolução e Como Chegar Lá:"}
+                    </span>
                     <div className="space-y-2 text-xs font-mono text-[#EAF2F8]">
                       {problem.explanationSteps && problem.explanationSteps.length >= 2 ? (
                         <>
@@ -566,16 +548,16 @@ export default function MedicationDosageLab() {
                             <span className="w-5 h-5 rounded-md bg-[#131F2E] border border-[#1F3045] text-white font-black text-xs flex items-center justify-center shrink-0">
                               1
                             </span>
-                            <span className="text-white font-bold leading-relaxed pt-0.5">
-                              {problem.explanationSteps[2] || "1000 ÷ (8 × 3) = 41,7"}
+                            <span className="text-white font-bold leading-relaxed pt-0.5 font-sans">
+                              {problem.explanationSteps[2] || problem.explanationSteps[0]}
                             </span>
                           </div>
                           <div className="flex items-start gap-2.5">
                             <span className="w-5 h-5 rounded-md bg-[#131F2E] border border-[#1F3045] text-white font-black text-xs flex items-center justify-center shrink-0">
                               2
                             </span>
-                            <span className="text-white font-bold leading-relaxed pt-0.5">
-                              {problem.explanationSteps[3] || `Arredondando: ${problem.correctResult} gotas/min`}
+                            <span className="text-emerald-400 font-bold leading-relaxed pt-0.5 font-sans">
+                              {problem.explanationSteps[3] || `Resultado exato: ${problem.correctResult} gotas/min`}
                             </span>
                           </div>
                         </>
@@ -587,19 +569,79 @@ export default function MedicationDosageLab() {
                     </div>
                   </div>
 
-                  {/* Botão 3D "Continuar" (Página 18 do PDF) */}
-                  <button
-                    type="button"
-                    onClick={() => {
-                      setFeedback(null);
-                      setStudentInput("");
-                      setSelectedOption(null);
-                      setSelectedIdx((prev) => (prev + 1) % problemsList.length);
-                    }}
-                    className="w-full py-4 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none text-center text-sm transition-all cursor-pointer"
-                  >
-                    Continuar
-                  </button>
+                  {/* Exibição da Tabela de Conversão e Fórmula SOMENTE SE ERROU */}
+                  {!feedback.isCorrect && (
+                    <div className="space-y-3 pt-1">
+                      <div className="p-3.5 rounded-2xl bg-[#0E1722] border border-[#FFC247]/40 text-xs text-[#EAF2F8] space-y-1">
+                        <span className="font-bold text-[#FFC247] block text-[10px] uppercase flex items-center gap-1.5">
+                          <Lightbulb className="w-3.5 h-3.5" /> Fórmula Utilizada:
+                        </span>
+                        <p className="font-mono text-sm text-white font-bold">{problem.formulaHint}</p>
+                      </div>
+
+                      <div className="p-3.5 rounded-2xl bg-[#0E1722] border border-[#1F3045] text-xs text-[#EAF2F8] space-y-2">
+                        <span className="font-bold flex items-center gap-1.5 uppercase tracking-wide text-[10px] text-[#20D5B5]">
+                          <BookOpen className="h-3.5 w-3.5" />
+                          Tabela de Conversões Hospitalares
+                        </span>
+                        <div className="grid grid-cols-2 gap-2 text-center text-[11px]">
+                          <div className="p-2 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                            <span className="text-[10px] text-[#9FB3C6] block">Gotas</span>
+                            <strong className="text-white">1 mL = 20 gotas</strong>
+                          </div>
+                          <div className="p-2 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                            <span className="text-[10px] text-[#9FB3C6] block">Microgotas</span>
+                            <strong className="text-white">1 mL = 60 microgotas</strong>
+                          </div>
+                          <div className="p-2 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                            <span className="text-[10px] text-[#9FB3C6] block">Gramas</span>
+                            <strong className="text-white">1 g = 1.000 mg</strong>
+                          </div>
+                          <div className="p-2 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                            <span className="text-[10px] text-[#9FB3C6] block">Miligramas</span>
+                            <strong className="text-white">1 mg = 1.000 mcg</strong>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  )}
+
+                  {/* Botões de Ação Decisória: Continuar vs Voltar ao Início */}
+                  <div className="space-y-2 pt-2">
+                    <p className="text-xs text-center text-[#9FB3C6] font-medium">
+                      O que você deseja fazer agora?
+                    </p>
+                    <div className="flex flex-col sm:flex-row items-center gap-2.5">
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setFeedback(null);
+                          setStudentInput("");
+                          setSelectedOption(null);
+                          setShowFormula(false);
+                          setShowConversions(false);
+                          const totalAvailable = Math.min(20, problemsList.length);
+                          if (selectedIdx + 1 < totalAvailable) {
+                            setSelectedIdx((prev) => prev + 1);
+                          } else {
+                            setSelectedIdx(0);
+                          }
+                        }}
+                        className="w-full sm:flex-1 py-3.5 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none text-center text-xs sm:text-sm transition-all cursor-pointer"
+                      >
+                        {selectedIdx + 1 < Math.min(20, problemsList.length)
+                          ? `Próxima Questão (${selectedIdx + 2} de 20)`
+                          : "Concluir Treino (20/20)"}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => navigate("/")}
+                        className="w-full sm:w-auto px-5 py-3.5 rounded-2xl bg-[#0E1722] hover:bg-[#16222E] border border-[#1F3045] text-[#9FB3C6] hover:text-white font-bold text-xs sm:text-sm transition-all cursor-pointer"
+                      >
+                        Voltar ao Início
+                      </button>
+                    </div>
+                  </div>
                 </div>
               </div>
             )}
@@ -848,16 +890,7 @@ export default function MedicationDosageLab() {
           </div>
         )}
 
-        {/* Modal Retangular de Conclusão e Avaliação do Goti */}
-        <GotiEvaluationModal
-          isOpen={showGotiEvaluationModal}
-          onClose={() => setShowGotiEvaluationModal(false)}
-          score={feedback?.isCorrect ? 100 : 40}
-          scoreLabel="Acurácia do Cálculo"
-          activityTitle={`Cálculo Clínico: ${problem.title}`}
-          comment={feedback?.feedback || (feedback?.isCorrect ? "Cálculo matemático exato e dupla checagem validada com sucesso pelo Goti!" : "Atenção à fórmula e arredondamento de gotas. Vamos recalcular juntos?")}
-          onContinue={() => setShowGotiEvaluationModal(false)}
-        />
+
 
         {/* Modal Unificado de Histórico de Cálculos (Isolado exclusivamente para Dosagem) */}
         <CaseHistoryModal
