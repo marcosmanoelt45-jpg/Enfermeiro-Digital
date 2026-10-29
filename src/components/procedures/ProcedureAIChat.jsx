@@ -67,7 +67,7 @@ export default function ProcedureAIChat({ procedure }) {
       <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2.5">
           <div className="relative flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 shadow-2xs shrink-0">
-            <img src="/goti/goti-icone.jpg" alt="Goti IA" className="w-full h-full object-cover" />
+            <img src="/goti/goti-face-transparent.png" alt="Goti IA" className="w-full h-full object-cover" />
           </div>
           <div>
             <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
@@ -90,7 +90,7 @@ export default function ProcedureAIChat({ procedure }) {
           >
             {m.sender === 'goti' && (
               <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full overflow-hidden bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 p-0.5">
-                <img src="/goti/goti-icone.jpg" alt="Goti" className="w-full h-full object-cover rounded-full" />
+                <img src="/goti/goti-face-transparent.png" alt="Goti" className="w-full h-full object-cover rounded-full" />
               </div>
             )}
 

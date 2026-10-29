@@ -111,7 +111,7 @@ export default function MobileHeader({
             title="Dúvidas sobre o site? Conversar com o Goti"
           >
             <div className="relative flex items-center justify-center">
-              <img src="/goti/goti-icone.jpg" alt="Goti" className="w-6 h-6 rounded-xl object-cover ring-1 ring-teal-400/50 shadow-2xs" />
+              <img src="/goti/goti-face-transparent.png" alt="Goti" className="w-6 h-6 rounded-xl object-cover ring-1 ring-teal-400/50 shadow-2xs" />
               <span className="absolute -top-0.5 -right-0.5 w-2 h-2 rounded-full bg-emerald-500 ring-1 ring-white dark:ring-slate-900 animate-pulse" />
             </div>
             <span className="text-[11px] font-black tracking-tight">Goti IA</span>

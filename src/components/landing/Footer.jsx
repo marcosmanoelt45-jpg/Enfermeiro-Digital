@@ -14,7 +14,7 @@ export default function Footer() {
             <div className="flex items-center gap-2.5">
               <div className="h-9 w-9 rounded-xl overflow-hidden shadow-md shadow-emerald-500/20 ring-1 ring-emerald-500/30 shrink-0">
                 <img
-                  src="/goti/goti-icone.jpg"
+                  src="/goti/goti-face-transparent.png"
                   alt="Goti"
                   className="w-full h-full object-cover"
                 />

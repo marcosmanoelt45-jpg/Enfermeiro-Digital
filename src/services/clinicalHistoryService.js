@@ -390,3 +390,5 @@ export const clinicalHistoryService = {
     };
   }
 };
+
+export default clinicalHistoryService;

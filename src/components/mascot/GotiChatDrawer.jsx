@@ -13,13 +13,13 @@ import { useTheme } from "@/lib/ThemeContext";
 import { useDragScroll } from "@/hooks/useDragScroll";
 
 const GOTI_NAVIGATION_PROMPTS = [
+  "Como estruturar uma intervenção NIC?",
+  "Como calcular gotejamento de soro?",
+  "Como formular diagnóstico NANDA-I?",
   "Como funciona a videochamada por voz?",
   "O que você achou do meu atendimento?",
-  "Onde treino o cálculo de dosagens?",
-  "Onde posso aprender a puncionar?",
-  "Como inicio uma simulação de caso clínico?",
-  "Onde treino passagem de plantão SBAR?",
-  "Onde monto um caso clínico do zero?"
+  "Como passar plantão no método SBAR?",
+  "Qual a diferença de jelco 18G para 22G?"
 ];
 
 /**
@@ -133,9 +133,9 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
   const promptsScrollRef = useDragScroll();
 
   const thinkingMessages = [
-    "Localizando os módulos e simuladores do Enfere...",
-    "Identificando o melhor laboratório prático para você...",
-    "Preparando o seu roteiro de estudo no site..."
+    "Analisando o contexto e raciocínio clínico...",
+    "Consultando diretrizes COFEN, NANDA-I e protocolos...",
+    "Preparando explicação didática e exemplo análogo..."
   ];
 
   // Alterna dinamicamente as fases de localização do Goti durante o processamento
@@ -262,14 +262,14 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
         {/* Cabeçalho Fixo do Chat: SEMPRE visível com botão de fechar proeminente */}
         <div className="sticky top-0 z-20 shrink-0 p-4 sm:p-5 border-b border-slate-800/90 bg-slate-900/95 backdrop-blur-md flex items-center justify-between">
           <div className="flex items-center gap-3.5">
-            <div className="relative flex-shrink-0">
-              {/* Ícone oficial do Goti sem margens brancas */}
+            <div className="relative flex-shrink-0 flex items-center justify-center">
+              {/* Ícone oficial transparente do Goti sem margens brancas e em tamanho ampliado */}
               <img
-                src="/goti/goti-icone.jpg"
-                alt="Goti"
-                className="w-12 h-12 rounded-2xl object-cover filter drop-shadow-md border border-teal-500/30 transition-transform hover:scale-105"
+                src="/goti/goti-face-transparent.png"
+                alt="Goti Preceptor"
+                className="w-14 h-14 sm:w-16 sm:h-16 object-contain filter drop-shadow-[0_4px_16px_rgba(32,213,181,0.35)] transition-transform hover:scale-110"
               />
-              <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 pointer-events-none">
+              <span className="absolute 0.5 -right-0.5 flex h-3.5 w-3.5 pointer-events-none">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 ring-2 ring-slate-900"></span>
               </span>
@@ -281,11 +281,11 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
                   Goti IA
                 </h3>
                 <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
-                  {gotiState === "thinking" ? "Buscando no site..." : gotiState === "speaking" ? "Guiando..." : "Online"}
+                  {gotiState === "thinking" ? "Raciocinando..." : gotiState === "speaking" ? "Explicando..." : "Online"}
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-medium">
-                Guia Oficial da Plataforma Enfere
+                Preceptor Clínico Inteligente · Tutoria Socrática (Estilo Plurall)
               </p>
             </div>
           </div>
@@ -320,16 +320,16 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
           {/* Card de Boas-Vindas */}
           <div className="p-3.5 rounded-2xl bg-teal-950/40 border border-teal-800/80 flex items-start gap-3.5 shadow-2xs">
             <img
-              src="/goti/goti-icone.jpg"
-              alt="Goti"
-              className="w-11 h-11 rounded-xl object-cover shrink-0 filter drop-shadow-xs border border-teal-500/30"
+              src="/goti/goti-face-transparent.png"
+              alt="Goti Preceptor"
+              className="w-13 h-13 sm:w-14 sm:h-14 object-contain shrink-0 filter drop-shadow-[0_2px_10px_rgba(32,213,181,0.3)]"
             />
             <div className="space-y-1">
               <p className="font-extrabold text-slate-100 text-sm">
-                Guia da Plataforma com o Goti 💧
+                Preceptor Clínico Goti 💧✨
               </p>
               <p className="text-xs text-slate-300 leading-relaxed font-medium">
-                Pergunte onde encontrar qualquer simulador, videoteca de procedimentos, laboratório de cálculo de dosagens ou casos clínicos no Enfere!
+                Tire dúvidas conceituais, metodológicas, raciocínio clínico, cálculos de dosagem e Processo de Enfermagem (COFEN nº 736/2024). Eu te ajudo a construir seu raciocínio com exemplos didáticos, sem entregar respostas prontas!
               </p>
             </div>
           </div>
@@ -344,9 +344,9 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
               >
                 {!isUser && (
                   <img
-                    src="/goti/goti-icone.jpg"
+                    src="/goti/goti-face-transparent.png"
                     alt="Goti"
-                    className="w-8 h-8 rounded-full object-cover shrink-0 self-end mb-1 filter drop-shadow-xs border border-teal-500/30"
+                    className="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0 self-end mb-1 filter drop-shadow-xs"
                   />
                 )}
 
@@ -415,7 +415,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
             type="text"
             value={inputText}
             onChange={(e) => setInputText(e.target.value)}
-            placeholder="Pergunte ao Goti onde encontrar ou treinar algo no site..."
+            placeholder="Pergunte sobre condutas, cálculos, intervenções NIC ou onde treinar..."
             disabled={isLoading}
             className="flex-1 px-4 py-2.5 rounded-2xl bg-slate-800 border border-slate-700 text-xs sm:text-sm text-slate-100 placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500/30 focus:border-teal-500 transition-all"
           />

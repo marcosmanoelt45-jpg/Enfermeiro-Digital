@@ -89,18 +89,18 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
               }}
               className="flex items-center gap-3 text-left group transition tap-press shrink-0"
             >
-              <div className="w-10 h-10 rounded-2xl bg-[#16222E] border border-[#20D5B5]/40 p-0.5 flex items-center justify-center shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
+              <div className="relative flex items-center justify-center shrink-0">
                 <img
                   src={gotiLogoOficial}
                   alt="Enfere - Mascote Goti"
-                  className="w-full h-full object-cover rounded-xl"
+                  className="w-12 h-12 sm:w-14 sm:h-14 object-contain filter drop-shadow-[0_2px_12px_rgba(32,213,181,0.35)] group-hover:scale-110 transition-transform"
                 />
               </div>
               <div>
-                <span className="font-black text-lg text-[#20D5B5] tracking-tight flex items-center gap-1.5 leading-none">
+                <span className="font-black text-xl text-[#20D5B5] tracking-tight flex items-center gap-1.5 leading-none">
                   Enfere
                 </span>
-                <span className="text-[10px] text-[#9FB3C6] block mt-0.5 font-bold tracking-tight">
+                <span className="text-[11px] text-[#9FB3C6] block mt-1 font-bold tracking-tight">
                   Prática Clínica de Enfermagem
                 </span>
               </div>

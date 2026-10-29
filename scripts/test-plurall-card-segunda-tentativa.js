@@ -49,3 +49,4 @@ assert.equal(c3Finalizada, true, "2ª tentativa com erro finaliza e marca vermel
 console.log("✓ 2ª Tentativa com Erro: questão finalizada como vermelha de revisão");
 
 console.log("\n🎯 TESTE DE DESBLOQUEIO DA 2ª TENTATIVA APROVADO COM 100% DE SUCESSO!");
+
