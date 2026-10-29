@@ -1,19 +1,27 @@
 /**
  * clinicalHistoryService.js
  * Serviço unificado de persistência e gerenciamento do histórico de atividades clínicas do Enfere.
- * Suporta Passagem de Plantão SBAR, Montador de Casos, Simulador Clínico e Videoteca.
+ * Suporta Atendimento por Voz (Videochamada), Passagem de Plantão SBAR, Montador de Casos,
+ * Simulador Clínico (PE), Cálculo de Doses e Videoteca de Procedimentos.
  */
 
 const STORAGE_KEY = 'enfere_clinical_history_v1';
+const REVISAO_STORAGE_KEY = 'enfere_questoes_revisao_v1';
 
 function getKey(userId) {
   if (!userId) return STORAGE_KEY;
-  // Sanitiza para chave válida de localStorage
   const cleanId = String(userId).replace(/[^a-zA-Z0-9_-]/g, '_');
   return `${STORAGE_KEY}_${cleanId}`;
 }
 
+function getRevisaoKey(userId) {
+  if (!userId) return REVISAO_STORAGE_KEY;
+  const cleanId = String(userId).replace(/[^a-zA-Z0-9_-]/g, '_');
+  return `${REVISAO_STORAGE_KEY}_${cleanId}`;
+}
+
 export const MODULE_TYPES = {
+  VIDEOCHAMADA: 'videochamada',
   SBAR: 'sbar',
   CASE_BUILDER: 'case_builder',
   CASE_SIMULATOR: 'case_simulator',
@@ -23,6 +31,7 @@ export const MODULE_TYPES = {
 };
 
 export const MODULE_LABELS = {
+  videochamada: 'Atendimento por Voz (Videochamada)',
   sbar: 'Passagem de Plantão SBAR',
   case_builder: 'Montador de Casos Clínicos',
   case_simulator: 'Simulador de Casos Clínicos (PE)',
@@ -56,21 +65,109 @@ function setStorage(items, userId) {
   }
 }
 
+function getRevisaoStorage(userId) {
+  try {
+    if (typeof localStorage === 'undefined') return [];
+    const k = getRevisaoKey(userId);
+    const raw = localStorage.getItem(k);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function setRevisaoStorage(items, userId) {
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const k = getRevisaoKey(userId);
+      localStorage.setItem(k, JSON.stringify(items));
+    }
+  } catch {
+    // Fallback silencioso
+  }
+}
+
 export const clinicalHistoryService = {
   /**
-   * Retorna a atividade em andamento mais recente de um usuário específico.
-   * Usado pelo card "Continuar de onde parou".
+   * Salva uma sessão concluída de Videochamada no histórico unificado.
    */
-  getLatestInProgressActivity(userId) {
+  saveVideochamadaSession(sessionData, userId = null) {
     const list = getStorage(userId);
-    const inProgress = list
-      .filter((it) => it.status === 'em_andamento')
-      .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
-    return inProgress.length > 0 ? inProgress[0] : null;
+    const now = new Date().toISOString();
+
+    const id = `act_vid_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const novoItem = {
+      id,
+      moduleType: MODULE_TYPES.VIDEOCHAMADA,
+      moduleLabel: MODULE_LABELS.videochamada,
+      title: `Atendimento Clínico — ${sessionData.pacienteNome || 'Paciente Simulado'}`,
+      patientInfo: `${sessionData.pacienteNome || 'Paciente'} · ${sessionData.modalidade || 'Normal'} (${sessionData.totalQuestoes} questões)`,
+      progressPercentage: 100,
+      status: 'concluido',
+      durationSeconds: Math.max(0, Math.round(sessionData.tempoSegundos || 0)),
+      startedAt: sessionData.startedAt || now,
+      finishedAt: now,
+      updatedAt: now,
+      score: sessionData.precisao ?? Math.round((sessionData.acertos / (sessionData.totalQuestoes || 1)) * 100),
+      evaluation: `Acertos: ${sessionData.acertos} | 1º Erro: ${sessionData.amarelas || 0} | 2º Erro/Revisão: ${sessionData.vermelhas || 0}`,
+      dataDisplay: new Date().toLocaleDateString('pt-BR'),
+      horaDisplay: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }),
+      details: {
+        pacienteId: sessionData.pacienteId,
+        pacienteNome: sessionData.pacienteNome,
+        modalidade: sessionData.modalidade,
+        totalQuestoes: sessionData.totalQuestoes,
+        acertos: sessionData.acertos,
+        amarelas: sessionData.amarelas || 0,
+        vermelhas: sessionData.vermelhas || 0,
+        questoes: sessionData.questoes || []
+      },
+      userId: userId || null
+    };
+
+    list.unshift(novoItem);
+    setStorage(list, userId);
+
+    // Também atualiza o banco de questões de revisão pendentes (Amarelas e Vermelhas)
+    if (Array.isArray(sessionData.questoes)) {
+      const erradas = sessionData.questoes.filter((q) => q.status === 'amarela' || q.status === 'vermelha');
+      if (erradas.length > 0) {
+        const revisaoList = getRevisaoStorage(userId);
+        const mapExistentes = new Map(revisaoList.map((q) => [q.pergunta || q.id, q]));
+        erradas.forEach((q) => {
+          mapExistentes.set(q.pergunta || q.id, {
+            ...q,
+            dataErro: now
+          });
+        });
+        setRevisaoStorage(Array.from(mapExistentes.values()), userId);
+      }
+    }
+
+    return novoItem;
   },
 
   /**
-   * Retorna todas as atividades ordenadas por data decrescente.
+   * Retorna a lista de questões pendentes de revisão (amarelas e vermelhas).
+   */
+  getQuestoesRevisao(userId = null) {
+    return getRevisaoStorage(userId);
+  },
+
+  /**
+   * Remove questões de revisão após o aluno refazê-las com acerto.
+   */
+  removerQuestoesRevisao(questoesAcertadas = [], userId = null) {
+    const list = getRevisaoStorage(userId);
+    const perguntasRemover = new Set(questoesAcertadas.map((q) => q.pergunta || q.id));
+    const filtradas = list.filter((q) => !perguntasRemover.has(q.pergunta || q.id));
+    setRevisaoStorage(filtradas, userId);
+  },
+
+  /**
+   * Retorna todas as atividades ordenadas por data decrescente com filtros.
    */
   getAllActivities(moduleFilter = 'all', userId = null) {
     const list = getStorage(userId);
@@ -81,75 +178,22 @@ export const clinicalHistoryService = {
   },
 
   /**
-   * Salva ou atualiza um rascunho de atividade em andamento.
+   * Exclui todo o histórico de atividades (dupla verificação realizada na UI).
    */
-  saveDraft({ id, moduleType, title, patientInfo, progress = 0, durationSeconds = 0, formData = {}, step = 0, userId = null }) {
-    const list = getStorage(userId);
-    const now = new Date().toISOString();
-    const existingIndex = id ? list.findIndex((it) => it.id === id) : -1;
-
-    const activityItem = {
-      id: id || `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      moduleType,
-      moduleLabel: MODULE_LABELS[moduleType] || moduleType,
-      title: title || 'Caso Clínico em Andamento',
-      patientInfo: patientInfo || 'Paciente Não Identificado',
-      progressPercentage: Math.min(Math.max(progress, 0), 99), // Rascunho não atinge 100%
-      status: 'em_andamento',
-      durationSeconds: Math.max(0, Math.round(durationSeconds)),
-      startedAt: existingIndex >= 0 ? list[existingIndex].startedAt : now,
-      updatedAt: now,
-      step,
-      formData,
-      score: null,
-      evaluation: null,
-      userId: userId || null
-    };
-
-    if (existingIndex >= 0) {
-      list[existingIndex] = { ...list[existingIndex], ...activityItem };
-    } else {
-      list.unshift(activityItem);
+  limparTodoHistorico(userId = null) {
+    try {
+      if (typeof localStorage !== 'undefined') {
+        const k = getKey(userId);
+        localStorage.removeItem(k);
+        const rk = getRevisaoKey(userId);
+        localStorage.removeItem(rk);
+        // Também limpa chave legada se existir
+        localStorage.removeItem('enfermeiro_historico_videochamadas');
+      }
+      return true;
+    } catch {
+      return false;
     }
-
-    setStorage(list, userId);
-    return activityItem;
-  },
-
-  /**
-   * Submete e finaliza formalmente uma atividade clínica com 100% de conclusão.
-   */
-  submitActivity({ id, moduleType, title, patientInfo, durationSeconds = 0, score = 100, evaluation = null, formData = {}, userId = null }) {
-    const list = getStorage(userId);
-    const now = new Date().toISOString();
-    const existingIndex = id ? list.findIndex((it) => it.id === id) : -1;
-
-    const completedItem = {
-      id: id || `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      moduleType,
-      moduleLabel: MODULE_LABELS[moduleType] || moduleType,
-      title: title || 'Caso Clínico Concluído',
-      patientInfo: patientInfo || 'Paciente Avaliado',
-      progressPercentage: 100,
-      status: 'concluido',
-      durationSeconds: Math.max(0, Math.round(durationSeconds)),
-      startedAt: existingIndex >= 0 ? list[existingIndex].startedAt : now,
-      finishedAt: now,
-      updatedAt: now,
-      score: typeof score === 'number' ? score : 100,
-      evaluation: evaluation || 'Atividade clínica concluída com conformidade aos protocolos de enfermagem.',
-      formData,
-      userId: userId || null
-    };
-
-    if (existingIndex >= 0) {
-      list[existingIndex] = completedItem;
-    } else {
-      list.unshift(completedItem);
-    }
-
-    setStorage(list, userId);
-    return completedItem;
   },
 
   /**
@@ -162,7 +206,7 @@ export const clinicalHistoryService = {
   },
 
   /**
-   * Remove uma atividade do histórico.
+   * Remove uma atividade específica do histórico.
    */
   deleteActivity(id, userId = null) {
     if (!id) return false;
@@ -199,12 +243,27 @@ export const clinicalHistoryService = {
       ? Math.round(completed.reduce((acc, it) => acc + (it.score || 0), 0) / completed.length)
       : 0;
 
+    let totalAmarelas = 0;
+    let totalVermelhas = 0;
+    let totalAcertos = 0;
+
+    completed.forEach((it) => {
+      if (it.details) {
+        totalAcertos += it.details.acertos || 0;
+        totalAmarelas += it.details.amarelas || 0;
+        totalVermelhas += it.details.vermelhas || 0;
+      }
+    });
+
     return {
       total: list.length,
       completedCount: completed.length,
       inProgressCount: inProgress.length,
       totalDurationSeconds,
       avgScore,
+      totalAcertos,
+      totalAmarelas,
+      totalVermelhas
     };
   }
 };

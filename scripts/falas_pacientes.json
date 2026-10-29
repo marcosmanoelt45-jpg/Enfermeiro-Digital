@@ -1,0 +1,270 @@
+{
+  "marcus": [
+    {
+      "idx": 0,
+      "tipo": "fala",
+      "textoFala": "Bom dia! Essa ferida no meu calcanhar já está comigo há uns dez dias. Ela está molhada, solta um líquido amarelado e dói quando encosta no lençol. O que você vai fazer comigo?",
+      "audioPath": "/pacientes/marcus/passo_0.wav"
+    },
+    {
+      "idx": 1,
+      "tipo": "multipla_escolha",
+      "textoFala": "Ao avaliar a ferida com perda parcial da espessura da pele e leito avermelhado sem esfacelo visível, como você a classifica segundo a NPUAP?",
+      "audioPath": "/pacientes/marcus/passo_1.wav"
+    },
+    {
+      "idx": 2,
+      "tipo": "multipla_selecao",
+      "textoFala": "Quais materiais você separa para realizar o curativo estéril?",
+      "audioPath": "/pacientes/marcus/passo_2.wav"
+    },
+    {
+      "idx": 3,
+      "tipo": "calculo",
+      "textoFala": "Quantos mL você prepara para o alívio da dor do paciente?",
+      "audioPath": "/pacientes/marcus/passo_3.wav"
+    },
+    {
+      "idx": 4,
+      "tipo": "multipla_escolha",
+      "textoFala": "Qual técnica é preconizada pelo Ministério da Saúde para limpar a lesão sem traumatizar o tecido de granulação?",
+      "audioPath": "/pacientes/marcus/passo_4.wav"
+    },
+    {
+      "idx": 5,
+      "tipo": "multipla_selecao",
+      "textoFala": "Quais condutas de enfermagem previnem a piora da lesão e protegem outras proeminências?",
+      "audioPath": "/pacientes/marcus/passo_5.wav"
+    },
+    {
+      "idx": 6,
+      "tipo": "calculo",
+      "textoFala": "Quantas gotas por minuto (macrogotas) devem correr na hidratação prescrita?",
+      "audioPath": "/pacientes/marcus/passo_6.wav"
+    },
+    {
+      "idx": 7,
+      "tipo": "resposta_falada",
+      "textoFala": "Antes de colocar as luvas e tocar no paciente, diga qual procedimento primordial você realiza.",
+      "audioPath": "/pacientes/marcus/passo_7.wav"
+    },
+    {
+      "idx": 8,
+      "tipo": "multipla_escolha",
+      "textoFala": "Na Escala de Braden para predição do risco de lesão por pressão, qual parâmetro avalia a sensibilidade a desconforto?",
+      "audioPath": "/pacientes/marcus/passo_8.wav"
+    },
+    {
+      "idx": 9,
+      "tipo": "multipla_escolha",
+      "textoFala": "Para manter o leito úmido favorável e estimular a epitelização de lesão estágio 2 sem infecção, qual cobertura é indicada?",
+      "audioPath": "/pacientes/marcus/passo_9.wav"
+    },
+    {
+      "idx": 10,
+      "tipo": "multipla_selecao",
+      "textoFala": "Quais alterações clínicas no leito ou bordas da ferida sugerem infecção bacteriana secundária?",
+      "audioPath": "/pacientes/marcus/passo_10.wav"
+    },
+    {
+      "idx": 11,
+      "tipo": "calculo",
+      "textoFala": "Quantos mL de Enoxaparina você administra para a profilaxia de trombose venosa profunda?",
+      "audioPath": "/pacientes/marcus/passo_11.wav"
+    },
+    {
+      "idx": 12,
+      "tipo": "multipla_escolha",
+      "textoFala": "Em pacientes idosos com feridas dolorosas, qual conduta de enfermagem é prioritária antes de manipular o curativo?",
+      "audioPath": "/pacientes/marcus/passo_12.wav"
+    },
+    {
+      "idx": 13,
+      "tipo": "resposta_falada",
+      "textoFala": "Diga qual cuidado físico de posicionamento você realiza para manter o calcanhar do paciente sem contato com o colchão.",
+      "audioPath": "/pacientes/marcus/passo_13.wav"
+    },
+    {
+      "idx": 14,
+      "tipo": "multipla_selecao",
+      "textoFala": "Quando a gaze ou curativo antigo estiver firmemente aderido ao leito da lesão, quais condutas você adota?",
+      "audioPath": "/pacientes/marcus/passo_14.wav"
+    },
+    {
+      "idx": 15,
+      "tipo": "calculo",
+      "textoFala": "A quantos mL/h você programa a Bomba de Infusão Contínua para infundir o Ciprofloxacino prescrito?",
+      "audioPath": "/pacientes/marcus/passo_15.wav"
+    },
+    {
+      "idx": 16,
+      "tipo": "multipla_escolha",
+      "textoFala": "Como você classifica um exsudato fluido, claro, de coloração amarelada tênue e sem odor desagradável?",
+      "audioPath": "/pacientes/marcus/passo_16.wav"
+    },
+    {
+      "idx": 17,
+      "tipo": "multipla_escolha",
+      "textoFala": "Para proteger as bordas perilesionais contra a maceração causada pelo exsudato contínuo, qual produto é mais apropriado?",
+      "audioPath": "/pacientes/marcus/passo_17.wav"
+    },
+    {
+      "idx": 18,
+      "tipo": "multipla_selecao",
+      "textoFala": "Quais parâmetros devem ser checados no pé do Sr. Marcus para descartar insuficiência arterial associada?",
+      "audioPath": "/pacientes/marcus/passo_18.wav"
+    },
+    {
+      "idx": 19,
+      "tipo": "multipla_escolha",
+      "textoFala": "Para prevenir o cisalhamento sacral e no calcâneo em pacientes acamados, qual o limite recomendado de inclinação da cabeceira?",
+      "audioPath": "/pacientes/marcus/passo_19.wav"
+    },
+    {
+      "idx": 20,
+      "tipo": "calculo",
+      "textoFala": "Quantas gotas por minuto você regula para infundir 1000 mL de Soro Glicosado 5% em 12 horas?",
+      "audioPath": "/pacientes/marcus/passo_20.wav"
+    },
+    {
+      "idx": 21,
+      "tipo": "multipla_escolha",
+      "textoFala": "Segundo o COFEN, qual elemento é obrigatório na anotação de enfermagem referente à troca de curativo?",
+      "audioPath": "/pacientes/marcus/passo_21.wav"
+    }
+  ],
+  "teresinha": [
+    {
+      "idx": 0,
+      "tipo": "fala",
+      "textoFala": "Oi, filha! O médico disse que preciso tomar esse antibiótico na veia para a infecção urinária. Meu braço está meio dolorido perto do cateter e sinto um formigamento. Você pode olhar para mim antes de aplicar?",
+      "audioPath": "/pacientes/teresinha/passo_0.wav"
+    },
+    {
+      "idx": 1,
+      "tipo": "multipla_escolha",
+      "textoFala": "Ao inspecionar o acesso venoso periférico, qual sinal clínico indica flebite e necessidade de retirada imediata?",
+      "audioPath": "/pacientes/teresinha/passo_1.wav"
+    },
+    {
+      "idx": 2,
+      "tipo": "multipla_selecao",
+      "textoFala": "Identificada a flebite no braço esquerdo, quais ações você executa de imediato?",
+      "audioPath": "/pacientes/teresinha/passo_2.wav"
+    },
+    {
+      "idx": 3,
+      "tipo": "calculo",
+      "textoFala": "Quantos mL você aspira do frasco reconstituído para administrar a dose prescrita?",
+      "audioPath": "/pacientes/teresinha/passo_3.wav"
+    },
+    {
+      "idx": 4,
+      "tipo": "multipla_escolha",
+      "textoFala": "Ao puncionar novo acesso venoso periférico na Dona Teresinha, qual a recomendação técnica de boas práticas?",
+      "audioPath": "/pacientes/teresinha/passo_4.wav"
+    },
+    {
+      "idx": 5,
+      "tipo": "multipla_selecao",
+      "textoFala": "Quais verificações são obrigatórias antes da infusão de antibiótico intravenoso?",
+      "audioPath": "/pacientes/teresinha/passo_5.wav"
+    },
+    {
+      "idx": 6,
+      "tipo": "calculo",
+      "textoFala": "A que velocidade em mL/h você programa a Bomba de Infusão Contínua (BIC)?",
+      "audioPath": "/pacientes/teresinha/passo_6.wav"
+    },
+    {
+      "idx": 7,
+      "tipo": "resposta_falada",
+      "textoFala": "Antes de acoplar a seringa ou o equipo ao conector venoso (hub), qual cuidado asséptico você realiza?",
+      "audioPath": "/pacientes/teresinha/passo_7.wav"
+    },
+    {
+      "idx": 8,
+      "tipo": "multipla_escolha",
+      "textoFala": "Qual achado clínico diferencia uma infiltração venosa de uma flebite?",
+      "audioPath": "/pacientes/teresinha/passo_8.wav"
+    },
+    {
+      "idx": 9,
+      "tipo": "multipla_escolha",
+      "textoFala": "Segundo a Infusion Nurses Society (INS), a presença de dor no local com eritema e/ou edema corresponde a qual grau de flebite?",
+      "audioPath": "/pacientes/teresinha/passo_9.wav"
+    },
+    {
+      "idx": 10,
+      "tipo": "multipla_selecao",
+      "textoFala": "Quais fatores farmacológicos e físicos favorecem o surgimento de flebite química durante infusões periféricas?",
+      "audioPath": "/pacientes/teresinha/passo_10.wav"
+    },
+    {
+      "idx": 11,
+      "tipo": "calculo",
+      "textoFala": "Quantas microgotas por minuto devem ser reguladas para infundir 100 mL de solução em 45 minutos?",
+      "audioPath": "/pacientes/teresinha/passo_11.wav"
+    },
+    {
+      "idx": 12,
+      "tipo": "multipla_escolha",
+      "textoFala": "Qual o tempo mínimo recomendado de fricção mecânica com álcool 70% no conector sem agulha (hub) antes de conectar a linha venosa?",
+      "audioPath": "/pacientes/teresinha/passo_12.wav"
+    },
+    {
+      "idx": 13,
+      "tipo": "resposta_falada",
+      "textoFala": "Diga qual técnica você realiza com seringa de soro para checar se o acesso venoso está pérvio antes de aplicar o antibiótico.",
+      "audioPath": "/pacientes/teresinha/passo_13.wav"
+    },
+    {
+      "idx": 14,
+      "tipo": "multipla_selecao",
+      "textoFala": "Selecione todos os materiais obrigatórios para realizar nova punção venosa periférica estéril.",
+      "audioPath": "/pacientes/teresinha/passo_14.wav"
+    },
+    {
+      "idx": 15,
+      "tipo": "calculo",
+      "textoFala": "Quantos mL de Furosemida você aspira da ampola para administrar a dose prescrita?",
+      "audioPath": "/pacientes/teresinha/passo_15.wav"
+    },
+    {
+      "idx": 16,
+      "tipo": "multipla_escolha",
+      "textoFala": "Considerando a fragilidade capilar da paciente idosa e a infusão de antibiótico não vesicante, qual calibre de cateter periférico é o mais indicado?",
+      "audioPath": "/pacientes/teresinha/passo_16.wav"
+    },
+    {
+      "idx": 17,
+      "tipo": "multipla_selecao",
+      "textoFala": "Quais sinais clínicos em paciente idoso indicam sobrecarga hídrica (hipervolemia) durante terapia intravenosa?",
+      "audioPath": "/pacientes/teresinha/passo_17.wav"
+    },
+    {
+      "idx": 18,
+      "tipo": "multipla_escolha",
+      "textoFala": "Ao retirar o curativo transparente da pele frágil da Dona Teresinha, qual técnica previne lesão por fricção e desnudamento cutâneo?",
+      "audioPath": "/pacientes/teresinha/passo_18.wav"
+    },
+    {
+      "idx": 19,
+      "tipo": "calculo",
+      "textoFala": "A quantos mL/h deve ser programada a Bomba de Infusão para administrar 250 mL de Soro Fisiológico em 4 horas?",
+      "audioPath": "/pacientes/teresinha/passo_19.wav"
+    },
+    {
+      "idx": 20,
+      "tipo": "multipla_escolha",
+      "textoFala": "Para garantir a confiabilidade do diagnóstico microbiológico, quando deve ser colhida a urocultura da Dona Teresinha?",
+      "audioPath": "/pacientes/teresinha/passo_20.wav"
+    },
+    {
+      "idx": 21,
+      "tipo": "multipla_selecao",
+      "textoFala": "Quais orientações você fornece à Dona Teresinha sobre o cuidado com o novo sítio de punção venosa?",
+      "audioPath": "/pacientes/teresinha/passo_21.wav"
+    }
+  ]
+}

@@ -26,6 +26,7 @@ import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import WeeklyActivityChart from "@/components/profile/WeeklyActivityChart";
 import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
+import HistoricoAtividadesTab from "@/components/profile/HistoricoAtividadesTab";
 
 export default function Conta() {
   const { user, logout, checkUserAuth } = useAuth();
@@ -38,6 +39,7 @@ export default function Conta() {
 
   // Controle do acordeão de dedicação semanal
   const [openDedication, setOpenDedication] = useState(true);
+  const [perfilTab, setPerfilTab] = useState("visao_geral"); // "visao_geral" | "historico"
 
   const refreshGameState = () => {
     setGameState(clinicalGamificationService.getState());
@@ -196,8 +198,45 @@ export default function Conta() {
           </div>
         </div>
 
-        {/* Informações Clínicas Reais do Estudante */}
-        <div className="space-y-3.5 animate-in fade-in duration-200">
+        {/* Abas Estilo Plurall / TRT-4: Visão Geral e Histórico */}
+        <div className="flex border-b border-[#1F3045] gap-2 pt-1 pb-1">
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic(10);
+              setPerfilTab("visao_geral");
+            }}
+            className={`px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer ${
+              perfilTab === "visao_geral"
+                ? "border-[#20D5B5] text-[#20D5B5]"
+                : "border-transparent text-[#9FB3C6] hover:text-white"
+            }`}
+          >
+            Visão Geral
+          </button>
+          <button
+            type="button"
+            onClick={() => {
+              triggerHaptic(10);
+              setPerfilTab("historico");
+            }}
+            className={`px-4 py-2.5 text-xs sm:text-sm font-bold border-b-2 transition-all cursor-pointer ${
+              perfilTab === "historico"
+                ? "border-[#20D5B5] text-[#20D5B5]"
+                : "border-transparent text-[#9FB3C6] hover:text-white"
+            }`}
+          >
+            Histórico de Atividades
+          </button>
+        </div>
+
+        {perfilTab === "historico" && (
+          <HistoricoAtividadesTab userId={user?.id} />
+        )}
+
+        {perfilTab === "visao_geral" && (
+          <div className="space-y-3.5 animate-in fade-in duration-200">
+            {/* Informações Clínicas Reais do Estudante */}
           {/* Card de Dias Seguidos (Streak) */}
           <div className="rounded-2xl border border-[#FFC247]/40 bg-[#0E1722] p-4 flex items-center justify-between">
             <div className="flex items-center gap-3">
@@ -324,6 +363,8 @@ export default function Conta() {
               </div>
             </div>
           </div>
+        </div>
+      )}
 
           {/* Ações da Conta: Rever Splash & Sair */}
           <div className="space-y-3 pt-3">
@@ -351,7 +392,6 @@ export default function Conta() {
               )}
             </button>
           </div>
-        </div>
       </main>
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
