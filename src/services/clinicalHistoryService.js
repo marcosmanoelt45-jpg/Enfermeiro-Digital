@@ -44,7 +44,17 @@ function getStorage(userId) {
   try {
     if (typeof localStorage === 'undefined') return [];
     const k = getKey(userId);
-    const raw = localStorage.getItem(k);
+    let raw = localStorage.getItem(k);
+    // Se a chave do usuário estiver vazia, faz fallback para chave global ou legada e importa
+    if (!raw && userId) {
+      raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) {
+        raw = localStorage.getItem('enfermeiro_historico_videochamadas');
+      }
+      if (raw) {
+        localStorage.setItem(k, raw);
+      }
+    }
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];
@@ -59,6 +69,10 @@ function setStorage(items, userId) {
     if (typeof localStorage !== 'undefined') {
       const k = getKey(userId);
       localStorage.setItem(k, JSON.stringify(items));
+      // Mantém chave global sincronizada como backup seguro
+      if (userId) {
+        localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+      }
     }
   } catch (err) {
     console.warn('[clinicalHistoryService] Falha ao salvar histórico:', err);
@@ -69,7 +83,13 @@ function getRevisaoStorage(userId) {
   try {
     if (typeof localStorage === 'undefined') return [];
     const k = getRevisaoKey(userId);
-    const raw = localStorage.getItem(k);
+    let raw = localStorage.getItem(k);
+    if (!raw && userId) {
+      raw = localStorage.getItem(REVISAO_STORAGE_KEY);
+      if (raw) {
+        localStorage.setItem(k, raw);
+      }
+    }
     if (!raw) return [];
     const parsed = JSON.parse(raw);
     return Array.isArray(parsed) ? parsed : [];

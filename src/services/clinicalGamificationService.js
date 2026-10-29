@@ -299,11 +299,19 @@ export const STUDY_POINTS_STORE_ITEMS = [
   },
 ];
 
+function getStorageKey(userId) {
+  if (!userId) return STORAGE_KEY;
+  const cleanId = String(userId).replace(/[^a-zA-Z0-9_-]/g, '_');
+  return `${STORAGE_KEY}_${cleanId}`;
+}
+
 function getDefaultState() {
   return {
     streak: 3,
     bestStreak: 12,
     streakFreezeAvailable: 1,
+    acertosSeguidos: 0,
+    melhorAcertosSeguidos: 0,
     lastActiveDate: getTodayString(),
     weeklyDays: getPast7Days(),
     totalXp: 480, // Mantido para compatibilidade
@@ -343,9 +351,13 @@ export const clinicalGamificationService = {
   /**
    * Obtém todo o estado gamificado consolidado (mesclando storage local com dados reais se houver).
    */
-  getState() {
+  getState(userId = null) {
     try {
-      const raw = localStorage.getItem(STORAGE_KEY);
+      const key = getStorageKey(userId);
+      let raw = localStorage.getItem(key);
+      if (!raw && userId) {
+        raw = localStorage.getItem(STORAGE_KEY);
+      }
       if (raw) {
         const parsed = JSON.parse(raw);
         const def = getDefaultState();
@@ -362,16 +374,41 @@ export const clinicalGamificationService = {
       console.warn('Erro ao carregar estado de gamificação:', e);
     }
     const def = getDefaultState();
-    this.saveState(def);
+    this.saveState(def, userId);
     return def;
   },
 
   /**
    * Salva o estado gamificado no storage local.
    */
-  saveState(state) {
+
+  /**
+   * Incrementa a sequência ininterrupta de acertos da conta (+1).
+   */
+  registrarAcertoQuestao(userId = null) {
+    const state = this.getState(userId);
+    const atual = (state.acertosSeguidos || 0) + 1;
+    const melhor = Math.max(state.melhorAcertosSeguidos || 0, atual);
+    state.acertosSeguidos = atual;
+    state.melhorAcertosSeguidos = melhor;
+    this.saveState(state, userId);
+    return state;
+  },
+
+  /**
+   * Zera a sequência de acertos exclusivamente no erro vermelho (2º erro/revisão).
+   */
+  registrarErroVermelhoQuestao(userId = null) {
+    const state = this.getState(userId);
+    state.acertosSeguidos = 0;
+    this.saveState(state, userId);
+    return state;
+  },
+
+  saveState(state, userId = null) {
     try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+      const key = getStorageKey(userId);
+      localStorage.setItem(key, JSON.stringify(state));
     } catch (e) {
       console.warn('Erro ao salvar estado de gamificação:', e);
     }

@@ -2257,6 +2257,12 @@ export function gerarCasoAleatorio(pacienteId = null, options = {}) {
   // Embaralha as 5 alternativas de cada questão mantendo o gabarito
   const questoesComAlternativasShuffled = selecionadas.map((q, idx) => {
     const qEmbaralhada = embaralharQuestao(q);
+    // Limpeza mandatória de propriedades residuais para garantir questão 100% nova e sem travas
+    delete qEmbaralhada.status;
+    delete qEmbaralhada.escolhaAluno;
+    delete qEmbaralhada.alternativaEscolhidaTexto;
+    delete qEmbaralhada.gabaritoTexto;
+    delete qEmbaralhada.opcoesFalhadas;
     return {
       ...qEmbaralhada,
       numQuestao: idx + 1,

@@ -1,10 +1,16 @@
 import React, { useState, useEffect, useRef, useCallback, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   RotateCcw,
   SkipForward,
-  Sparkles
+  Sparkles,
+  ArrowLeft,
+  Search,
+  Zap,
+  BookOpen,
+  CheckCircle2
 } from "lucide-react";
+import { useAuth } from "@/lib/AuthContext";
 import { PACIENTES, gerarCasoAleatorio } from "@/data/simuladorCasosData";
 import { falar, pararFala } from "@/services/simuladorVozService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
@@ -14,19 +20,69 @@ import PacienteVideoStage from "@/components/simulador/PacienteVideoStage";
 import FalaLegendaBubble from "@/components/simulador/FalaLegendaBubble";
 import PlurallTopBar from "@/components/simulador/PlurallTopBar";
 import PlurallQuestionCard from "@/components/simulador/PlurallQuestionCard";
-import PraticaSelectModal from "@/components/simulador/PraticaSelectModal";
 import RevisaoFinalModal from "@/components/simulador/RevisaoFinalModal";
+
+export const TOPICOS_PRATICA = [
+  {
+    id: "calculo",
+    titulo: "Cálculo de Medicamentos",
+    descricao: "Regras de três, gotejamento (macrogotas/microgotas) e vazão em BIC",
+    tags: ["cálc", "calculo", "medicamento", "dose", "gotejamento", "bic", "solucao", "soro"],
+    badge: "Farmacologia"
+  },
+  {
+    id: "curativo",
+    titulo: "Curativos e Lesões por Pressão",
+    descricao: "Estadiamento NPUAP, técnica asséptica, coberturas e desbridamento",
+    tags: ["curat", "curativo", "ferida", "pressao", "npuap", "lesao", "pele", "estagio", "braden"],
+    badge: "Cirúrgica"
+  },
+  {
+    id: "acesso_venoso",
+    titulo: "Punção Venosa e Flebite",
+    descricao: "Terapia infusional, escalas da INS, técnica push-pause e complicações",
+    tags: ["punc", "puncao", "venosa", "flebite", "acesso", "cateter", "ins", "veia", "infiltracao"],
+    badge: "Terapia EV"
+  },
+  {
+    id: "farmaco",
+    titulo: "Farmacologia Clínica e Diluições",
+    descricao: "Reconstituição, estabilidade, vias de administração e segurança do paciente",
+    tags: ["farm", "farmaco", "diluicao", "antibiotico", "ampola", "reconstituicao"],
+    badge: "Medicamentos"
+  },
+  {
+    id: "sinais_vitais",
+    titulo: "Sinais Vitais e Semiologia",
+    descricao: "Parâmetros hemodinâmicos, saturação, pulsos periféricos e perfusão",
+    tags: ["sin", "sinais", "vitais", "pa", "pressao", "temperatura", "spo2", "pulso"],
+    badge: "Semiologia"
+  },
+  {
+    id: "todos",
+    titulo: "Geral (Todos os Temas Clínicos)",
+    descricao: "Simulação ampla integrando casos cirúrgicos e de clínica médica",
+    tags: ["geral", "todos", "completo", "atendimento", "misto"],
+    badge: "Intensivo"
+  }
+];
 
 export default function Videochamada() {
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const { user } = useAuth();
 
-  // Estados de Controle de Modal e Tela
-  const [modalPraticaAberto, setModalPraticaAberto] = useState(true);
+  // Controle de Visualização: 'selecao' (Aba de Pesquisa Exclusiva) ou 'sessao' (Atendimento Ativo)
+  const [emSessao, setEmSessao] = useState(false);
   const [modalRevisaoFinalAberto, setModalRevisaoFinalAberto] = useState(false);
   const [resumoFinal, setResumoFinal] = useState(null);
 
+  // Estados da Aba de Pesquisa e Seleção de Prática
+  const [searchTerm, setSearchTerm] = useState("");
+  const [topicoSelecionado, setTopicoSelecionado] = useState(null);
+
   // Paciente e Caso Clínico
-  const [pacienteId, setPacienteId] = useState(() => (Math.random() < 0.5 ? "marcus" : "teresinha"));
+  const [pacienteId, setPacienteId] = useState("marcus");
   const [caso, setCaso] = useState(() => gerarCasoAleatorio("marcus", { mode: "normal", categoria: "todos" }));
   const [modalidadeAtiva, setModalidadeAtiva] = useState("Atividade Normal (7 a 9)");
   const [categoriaAtiva, setCategoriaAtiva] = useState("todos");
@@ -36,7 +92,7 @@ export default function Videochamada() {
   const [maxStepAlcancado, setMaxStepAlcancado] = useState(1);
 
   // Estado Individual por Questão (Plurall Engine)
-  // Formato: { [stepIndex]: { selectedChoice, tentativas, status: 'aberta'|'amarela'|'vermelha'|'verde', isFinalizada } }
+  // Formato: { [stepIndex]: { selectedChoice, tentativas, status, isFinalizada, opcoesFalhadas } }
   const [questaoStates, setQuestaoStates] = useState({});
 
   // Estatísticas Globais da Sessão
@@ -53,18 +109,18 @@ export default function Videochamada() {
 
   const mountedRef = useRef(true);
 
-  // Questões válidas do caso (exclui a fala introdutória de passo 0)
+  // Questões válidas do caso
   const todasQuestoes = useMemo(() => {
     return caso.passos.filter((p) => p.tipo !== "fala" && p.tipo !== "fala_paciente");
   }, [caso]);
 
   const totalQuestoes = todasQuestoes.length || 7;
-  // A questão atual mapeia de 1 a N
   const questaoAtual = todasQuestoes[stepIndex - 1] || todasQuestoes[0];
 
+  // Questões pendentes de revisão do usuário logado
   const questoesRevisaoPendentes = useMemo(() => {
-    return clinicalHistoryService.getQuestoesRevisao();
-  }, [modalPraticaAberto]);
+    return clinicalHistoryService.getQuestoesRevisao(user?.id);
+  }, [user?.id, emSessao]);
 
   // Contagem de questões respondidas
   const respondidasCount = useMemo(() => {
@@ -78,10 +134,23 @@ export default function Videochamada() {
     selectedChoice: null,
     tentativas: 0,
     status: "aberta",
-    isFinalizada: false
+    isFinalizada: false,
+    opcoesFalhadas: []
   };
 
   const isReadOnly = stepIndex < maxStepAlcancado && estadoAtual.isFinalizada;
+
+  // Sugestões inteligentes de tópicos com busca preditiva
+  const sugestoesTopicos = useMemo(() => {
+    const term = searchTerm.toLowerCase().trim();
+    if (!term) return TOPICOS_PRATICA;
+    return TOPICOS_PRATICA.filter(
+      (t) =>
+        t.titulo.toLowerCase().includes(term) ||
+        t.descricao.toLowerCase().includes(term) ||
+        t.tags.some((tag) => tag.includes(term) || term.includes(tag))
+    );
+  }, [searchTerm]);
 
   // Limpeza de fala e timers ao desmontar
   useEffect(() => {
@@ -95,7 +164,7 @@ export default function Videochamada() {
   // Iniciar fala do paciente quando a questão mudar
   const executarFala = useCallback(
     (texto, customAudioFile) => {
-      if (!texto) return;
+      if (!texto || !emSessao) return;
       setActiveWordIndex(-1);
 
       falar(texto, pacienteId, {
@@ -115,21 +184,28 @@ export default function Videochamada() {
         }
       });
     },
-    [pacienteId, soundEnabled]
+    [pacienteId, soundEnabled, emSessao]
   );
 
-  // Disparar fala ao trocar de questão
+  // Disparar fala ao trocar de questão SOMENTE se estiver em sessão ativa
   useEffect(() => {
-    if (!modalPraticaAberto && questaoAtual?.pergunta) {
+    if (emSessao && questaoAtual?.pergunta) {
       setClipeAtivo("fala");
       executarFala(questaoAtual.pergunta, questaoAtual.audioPath);
     }
     return () => {
       pararFala();
     };
-  }, [stepIndex, modalPraticaAberto, questaoAtual, executarFala]);
+  }, [stepIndex, emSessao, questaoAtual, executarFala]);
 
-  // Iniciar Atendimento com parâmetros selecionados no modal Plurall
+  // Se vier modo revisão pela URL diretamente
+  useEffect(() => {
+    if (searchParams.get("modo") === "revisao") {
+      handleIniciarSessaoPratica({ mode: "revisao", categoria: "todos", topicoNome: "Revisão Geral" });
+    }
+  }, [searchParams]);
+
+  // Iniciar Atendimento com parâmetros selecionados
   function handleIniciarSessaoPratica({ mode, categoria, topicoNome }) {
     pararFala();
 
@@ -143,7 +219,7 @@ export default function Videochamada() {
     setModalidadeAtiva(labelsModo);
     setCategoriaAtiva(categoria);
 
-    const revisaoQueue = clinicalHistoryService.getQuestoesRevisao();
+    const revisaoQueue = clinicalHistoryService.getQuestoesRevisao(user?.id);
     const novoCaso = gerarCasoAleatorio(novoPaciente, {
       mode,
       categoria,
@@ -158,24 +234,25 @@ export default function Videochamada() {
     setAmarelas(0);
     setVermelhas(0);
     setStartTime(Date.now());
-    setModalPraticaAberto(false);
+    setEmSessao(true);
     setModalRevisaoFinalAberto(false);
   }
 
   // Selecionar alternativa na questão atual
   function handleSelectChoice(choiceIdx) {
     if (estadoAtual.isFinalizada || isReadOnly) return;
+    if ((estadoAtual.opcoesFalhadas || []).includes(choiceIdx)) return;
 
     setQuestaoStates((prev) => ({
       ...prev,
       [stepIndex]: {
-        ...(prev[stepIndex] || { tentativas: 0, status: "aberta" }),
+        ...(prev[stepIndex] || { tentativas: 0, status: "aberta", opcoesFalhadas: [] }),
         selectedChoice: choiceIdx
       }
     }));
   }
 
-  // Verificar Resposta com Sistema de 2 Erros
+  // Verificar Resposta com Sistema de 2 Níveis de Erros
   function handleVerificarResposta() {
     if (estadoAtual.selectedChoice === null || estadoAtual.isFinalizada) return;
 
@@ -188,6 +265,8 @@ export default function Videochamada() {
     if (isCorreta) {
       // ACERTO
       setClipeAtivo("acerto");
+      clinicalGamificationService.registrarAcertoQuestao(user?.id);
+
       if (tentativasAtuais === 0) {
         // Acertou na 1ª tentativa: Verde
         setAcertos((prev) => prev + 1);
@@ -197,11 +276,12 @@ export default function Videochamada() {
             ...prev[stepIndex],
             status: "verde",
             tentativas: 1,
-            isFinalizada: true
+            isFinalizada: true,
+            selectedChoice: escolhaAluno
           }
         }));
         // Remove da fila de revisão se for o caso
-        clinicalHistoryService.removerQuestoesRevisao([questaoAtual]);
+        clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
       } else {
         // Acertou na 2ª tentativa (após dica amarela): Finaliza como amarela resolvida
         setQuestaoStates((prev) => ({
@@ -210,15 +290,18 @@ export default function Videochamada() {
             ...prev[stepIndex],
             status: "amarela",
             tentativas: 2,
-            isFinalizada: true
+            isFinalizada: true,
+            selectedChoice: escolhaAluno
           }
         }));
+        clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
       }
     } else {
       // ERRO
       setClipeAtivo("erro");
+
       if (tentativasAtuais === 0) {
-        // 1º ERRO: Exibir Dica sem gabarito e marcar como amarela
+        // 1º ERRO: Dica ativada, questão amarela aberta, desmarca opção para o aluno escolher outra
         setAmarelas((prev) => prev + 1);
         setQuestaoStates((prev) => ({
           ...prev,
@@ -226,19 +309,25 @@ export default function Videochamada() {
             ...prev[stepIndex],
             status: "amarela",
             tentativas: 1,
-            isFinalizada: false // permite tentar de novo
+            selectedChoice: null, // Limpa para obrigar nova escolha sem queimar a 2ª tentativa
+            isFinalizada: false, // permite 2ª tentativa
+            opcoesFalhadas: [...(prev[stepIndex]?.opcoesFalhadas || []), escolhaAluno]
           }
         }));
       } else {
         // 2º ERRO: Revela resposta, explica e marca para Revisão (Vermelha)
         setVermelhas((prev) => prev + 1);
+        clinicalGamificationService.registrarErroVermelhoQuestao(user?.id); // ZERA acertos seguidos exclusivamente aqui!
+
         setQuestaoStates((prev) => ({
           ...prev,
           [stepIndex]: {
             ...prev[stepIndex],
             status: "vermelha",
             tentativas: 2,
-            isFinalizada: true
+            selectedChoice: escolhaAluno,
+            isFinalizada: true,
+            opcoesFalhadas: [...(prev[stepIndex]?.opcoesFalhadas || []), escolhaAluno]
           }
         }));
       }
@@ -250,7 +339,6 @@ export default function Videochamada() {
     pararFala();
 
     if (stepIndex >= totalQuestoes) {
-      // Fim do simulador: Concluir e abrir Revisão Final
       finalizarAtendimento();
     } else {
       const nextStep = stepIndex + 1;
@@ -281,7 +369,6 @@ export default function Videochamada() {
     const paciente = PACIENTES[pacienteId] || PACIENTES.marcus;
     const taxaAproveitamento = Math.round((acertos / totalQuestoes) * 100);
 
-    // Mapeia todas as questões com suas respostas e status finais
     const listaQuestoesFinal = todasQuestoes.map((q, idx) => {
       const qNum = idx + 1;
       const st = questaoStates[qNum] || { status: "aberta", selectedChoice: null };
@@ -308,9 +395,9 @@ export default function Videochamada() {
       questoes: listaQuestoesFinal
     };
 
-    // Salva no histórico oficial
+    // Salva no histórico oficial vinculado ao usuário
     try {
-      clinicalHistoryService.saveVideochamadaSession(dadosSessao);
+      clinicalHistoryService.saveVideochamadaSession(dadosSessao, user?.id);
       if (acertos > 0) {
         clinicalGamificationService.recordActivity("case_solved", acertos * 25);
       }
@@ -327,7 +414,7 @@ export default function Videochamada() {
     setModalRevisaoFinalAberto(true);
   }
 
-  // Alternar som ligado / desligado
+  // Alternar som
   function handleToggleSound() {
     setSoundEnabled((prev) => {
       const next = !prev;
@@ -339,7 +426,7 @@ export default function Videochamada() {
     });
   }
 
-  // Repetir fala do paciente na pergunta atual
+  // Repetir fala do paciente
   function handleRepetirFala() {
     if (questaoAtual?.pergunta) {
       executarFala(questaoAtual.pergunta, questaoAtual.audioPath);
@@ -353,6 +440,187 @@ export default function Videochamada() {
     setActiveWordIndex(999);
   }
 
+  /* =========================================================================
+     CENÁRIO 1: ABA EXCLUSIVA DE ESCOLHA DE PRÁTICA (SEM PACIENTE OU QUESTÃO NO FUNDO)
+  ========================================================================= */
+  if (!emSessao) {
+    return (
+      <div className="w-full min-h-screen bg-[#0B131D] text-[#EAF2F8] font-['Nunito',sans-serif] flex justify-center p-4 selection:bg-[#20D5B5]/30">
+        <div className="w-full max-w-xl flex flex-col justify-between py-2 sm:py-4 animate-in fade-in duration-200">
+          <div>
+            {/* Header Limpo */}
+            <header className="flex items-center justify-between pb-4 border-b border-[#1F3045]">
+              <button
+                type="button"
+                onClick={() => navigate("/")}
+                className="flex items-center gap-2 px-3 py-1.5 rounded-xl text-[#9FB3C6] hover:text-white hover:bg-[#16222E] transition cursor-pointer"
+                aria-label="Voltar para Início"
+              >
+                <ArrowLeft className="w-4 h-4" />
+                <span className="text-xs font-bold">Voltar ao Início</span>
+              </button>
+              <span className="text-xs font-mono font-bold text-[#20D5B5] bg-[#20D5B5]/10 border border-[#20D5B5]/20 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                Simulador Clínico
+              </span>
+            </header>
+
+            {/* Título Principal */}
+            <div className="pt-6 pb-4">
+              <div className="flex items-center gap-2.5 mb-1.5">
+                <div className="w-8 h-8 rounded-xl bg-[#20D5B5]/15 border border-[#20D5B5]/30 flex items-center justify-center text-[#20D5B5]">
+                  <Sparkles className="w-4 h-4" />
+                </div>
+                <h1 className="text-xl sm:text-2xl font-black text-white">
+                  O que você quer praticar hoje?
+                </h1>
+              </div>
+              <p className="text-xs sm:text-sm text-[#9FB3C6]">
+                Escolha o tema e a intensidade da sua sessão de estudos clínicos
+              </p>
+            </div>
+
+            {/* Campo de Busca Preditiva (Autocomplete) */}
+            <div className="py-2">
+              <div className="relative">
+                <Search className="w-5 h-5 absolute left-3.5 top-1/2 -translate-y-1/2 text-[#9FB3C6]" />
+                <input
+                  type="text"
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    if (topicoSelecionado && e.target.value !== topicoSelecionado.titulo) {
+                      setTopicoSelecionado(null);
+                    }
+                  }}
+                  placeholder="Digite o tema (ex: Cálc, Curativo, Punção...)"
+                  className="w-full pl-11 pr-4 py-3 bg-[#131F2E] border border-[#27394B] rounded-2xl text-sm font-semibold text-white placeholder-[#9FB3C6]/60 focus:outline-hidden focus:border-[#20D5B5] focus:ring-1 focus:ring-[#20D5B5] transition shadow-inner"
+                  autoFocus
+                />
+              </div>
+            </div>
+
+            {/* Seleção do Tópico */}
+            <div className="py-3 space-y-2 max-h-[38vh] overflow-y-auto pr-1">
+              <div className="text-xs font-mono font-bold text-[#9FB3C6] uppercase tracking-wider px-1 mb-2">
+                Temas Clínicos Disponíveis
+              </div>
+              {sugestoesTopicos.map((topico) => {
+                const isSelected = topicoSelecionado?.id === topico.id;
+                return (
+                  <button
+                    key={topico.id}
+                    type="button"
+                    onClick={() => {
+                      setTopicoSelecionado(topico);
+                      setSearchTerm(topico.titulo);
+                    }}
+                    className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 cursor-pointer ${
+                      isSelected
+                        ? "bg-[#20D5B5]/15 border-[#20D5B5] shadow-xs"
+                        : "bg-[#131F2E] border-[#1F3045] hover:border-[#20D5B5]/50 hover:bg-[#16222E]"
+                    }`}
+                  >
+                    <div className="min-w-0 flex-1">
+                      <div className="flex items-center gap-2 mb-0.5">
+                        <span className="text-xs sm:text-sm font-black text-white truncate">
+                          {topico.titulo}
+                        </span>
+                        <span className="text-[10px] font-bold text-[#20D5B5] bg-[#20D5B5]/10 px-2 py-0.5 rounded-md border border-[#20D5B5]/20">
+                          {topico.badge}
+                        </span>
+                      </div>
+                      <p className="text-[11px] text-[#9FB3C6] line-clamp-1">
+                        {topico.descricao}
+                      </p>
+                    </div>
+                    {isSelected && (
+                      <CheckCircle2 className="w-5 h-5 text-[#20D5B5] shrink-0" />
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* Seleção da Intensidade e Ação de Início */}
+          <div className="pt-4 border-t border-[#1F3045] space-y-3">
+            <div className="text-xs font-mono font-bold text-[#9FB3C6] uppercase tracking-wider px-1">
+              Escolha a Intensidade
+            </div>
+            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+              <button
+                type="button"
+                onClick={() =>
+                  handleIniciarSessaoPratica({
+                    mode: "rapida",
+                    categoria: topicoSelecionado?.id || "todos",
+                    topicoNome: topicoSelecionado?.titulo || "Geral"
+                  })
+                }
+                className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#20D5B5] hover:bg-[#16222E] text-left transition flex items-center justify-between gap-2 cursor-pointer group"
+              >
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs font-black text-white group-hover:text-[#20D5B5]">
+                    <Zap className="w-3.5 h-3.5 text-[#20D5B5]" />
+                    <span>Rápida</span>
+                  </div>
+                  <div className="text-[11px] text-[#9FB3C6]">4 a 6 questões</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleIniciarSessaoPratica({
+                    mode: "normal",
+                    categoria: topicoSelecionado?.id || "todos",
+                    topicoNome: topicoSelecionado?.titulo || "Geral"
+                  })
+                }
+                className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#20D5B5] hover:bg-[#16222E] text-left transition flex items-center justify-between gap-2 cursor-pointer group"
+              >
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs font-black text-white group-hover:text-[#20D5B5]">
+                    <BookOpen className="w-3.5 h-3.5 text-[#20D5B5]" />
+                    <span>Normal</span>
+                  </div>
+                  <div className="text-[11px] text-[#9FB3C6]">7 a 9 questões</div>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                onClick={() =>
+                  handleIniciarSessaoPratica({
+                    mode: "revisao",
+                    categoria: topicoSelecionado?.id || "todos",
+                    topicoNome: topicoSelecionado?.titulo || "Revisão de Erros"
+                  })
+                }
+                className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#FFC247] hover:bg-[#16222E] text-left transition flex items-center justify-between gap-2 cursor-pointer group"
+              >
+                <div>
+                  <div className="flex items-center gap-1.5 text-xs font-black text-white group-hover:text-[#FFC247]">
+                    <RotateCcw className="w-3.5 h-3.5 text-[#FFC247]" />
+                    <span>Revisão</span>
+                  </div>
+                  <div className="text-[11px] text-[#9FB3C6]">
+                    {questoesRevisaoPendentes.length > 0
+                      ? `${questoesRevisaoPendentes.length} pendentes`
+                      : "Só erradas"}
+                  </div>
+                </div>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  /* =========================================================================
+     CENÁRIO 2: ATENDIMENTO CLÍNICO ATIVO (SIMULADOR PLURALL)
+  ========================================================================= */
   return (
     <div className="w-full min-h-screen bg-[#0E1720] text-[#EAF2F8] font-['Nunito',sans-serif] flex justify-center selection:bg-[#20D5B5]/30">
       <div className="w-full max-w-[540px] min-h-screen flex flex-col relative overflow-x-hidden transition-all duration-300">
@@ -363,7 +631,10 @@ export default function Videochamada() {
           acertos={acertos}
           amarelas={amarelas}
           vermelhas={vermelhas}
-          onClose={() => navigate("/")}
+          onClose={() => {
+            setEmSessao(false);
+            pararFala();
+          }}
           soundEnabled={soundEnabled}
           onToggleSound={handleToggleSound}
           podeVoltar={stepIndex > 1}
@@ -450,6 +721,7 @@ export default function Videochamada() {
               totalQuestoes={totalQuestoes}
               selectedChoice={estadoAtual.selectedChoice}
               onSelectChoice={handleSelectChoice}
+              opcoesIncorretasTentadas={estadoAtual.opcoesFalhadas || []}
               tentativas={estadoAtual.tentativas}
               status={estadoAtual.status}
               onVerificar={handleVerificarResposta}
@@ -460,27 +732,12 @@ export default function Videochamada() {
           )}
         </main>
 
-        {/* Modal de Escolha Inicial de Atividade (O que você quer praticar hoje?) */}
-        <PraticaSelectModal
-          isOpen={modalPraticaAberto}
-          onClose={() => {
-            setModalPraticaAberto(false);
-            if (!respondidasCount) {
-              navigate("/");
-            }
-          }}
-          onStartSession={handleIniciarSessaoPratica}
-          questoesRevisaoCount={questoesRevisaoPendentes.length}
-        />
-
         {/* Modal de Revisão Final da Sessão Concluída */}
         <RevisaoFinalModal
           isOpen={modalRevisaoFinalAberto}
           resumo={resumoFinal}
           onRefazerErradas={() => {
-            const erradas = (resumoFinal?.questoes || []).filter(
-              (q) => q.status === "amarela" || q.status === "vermelha"
-            );
+            setModalRevisaoFinalAberto(false);
             handleIniciarSessaoPratica({
               mode: "revisao",
               categoria: categoriaAtiva,
@@ -489,7 +746,7 @@ export default function Videochamada() {
           }}
           onNovaPratica={() => {
             setModalRevisaoFinalAberto(false);
-            setModalPraticaAberto(true);
+            setEmSessao(false);
           }}
           onVoltarHub={() => {
             setModalRevisaoFinalAberto(false);

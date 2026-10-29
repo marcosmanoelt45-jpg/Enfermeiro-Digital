@@ -24,6 +24,7 @@ import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 // Componentes de Estatísticas Clínicas Formativas
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
+import { clinicalHistoryService } from "@/services/clinicalHistoryService";
 import WeeklyActivityChart from "@/components/profile/WeeklyActivityChart";
 import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 import HistoricoAtividadesTab from "@/components/profile/HistoricoAtividadesTab";
@@ -34,7 +35,7 @@ export default function Conta() {
   const navigate = useNavigate();
 
   // Estado da Gamificação Clínica
-  const [gameState, setGameState] = useState(() => clinicalGamificationService.getState());
+  const [gameState, setGameState] = useState(() => clinicalGamificationService.getState(user?.id));
   const [showPeModal, setShowPeModal] = useState(false);
 
   // Controle do acordeão de dedicação semanal
@@ -42,12 +43,12 @@ export default function Conta() {
   const [perfilTab, setPerfilTab] = useState("visao_geral"); // "visao_geral" | "historico"
 
   const refreshGameState = () => {
-    setGameState(clinicalGamificationService.getState());
+    setGameState(clinicalGamificationService.getState(user?.id));
   };
 
   useEffect(() => {
     refreshGameState();
-  }, []);
+  }, [user?.id]);
 
   const [busy, setBusy] = useState(false);
   const [editingName, setEditingName] = useState(false);
@@ -262,11 +263,11 @@ export default function Conta() {
             </button>
           </div>
 
-          {/* Grid 2x2 com as Métricas Formativas Reais */}
+          {/* Grid 2x2 com as Métricas Individuais Reais da Conta */}
           <div className="grid grid-cols-2 gap-3">
             <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
               <div className="text-2xl font-black text-[#20D5B5]">
-                {gameState.solvedCases ?? 7}
+                {clinicalHistoryService.getAllActivities("all", user?.id).length || gameState.solvedCases || 0}
               </div>
               <div className="text-xs font-semibold text-[#9FB3C6]">
                 Casos resolvidos
@@ -275,7 +276,9 @@ export default function Conta() {
 
             <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
               <div className="text-2xl font-black text-[#20D5B5]">
-                {gameState.accuracyRate ? `${gameState.accuracyRate}%` : "88%"}
+                {clinicalHistoryService.getSummaryStats(user?.id).avgScore > 0
+                  ? `${clinicalHistoryService.getSummaryStats(user?.id).avgScore}%`
+                  : `${gameState.accuracyRate || 100}%`}
               </div>
               <div className="text-xs font-semibold text-[#9FB3C6]">
                 Acurácia diagnóstica
@@ -283,20 +286,20 @@ export default function Conta() {
             </div>
 
             <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
-              <div className="text-2xl font-black text-[#20D5B5]">
-                {gameState.safeDosagesCount ?? 14}
+              <div className="text-2xl font-black text-[#FFC247]">
+                {gameState.streak || 0}
               </div>
               <div className="text-xs font-semibold text-[#9FB3C6]">
-                Cálculos seguros
+                Dias de ofensiva
               </div>
             </div>
 
             <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
               <div className="text-2xl font-black text-[#20D5B5]">
-                {gameState.sbarHandoffsCount ?? 4}
+                {gameState.acertosSeguidos || 0}
               </div>
               <div className="text-xs font-semibold text-[#9FB3C6]">
-                Plantões SBAR
+                Acertos seguidos
               </div>
             </div>
           </div>

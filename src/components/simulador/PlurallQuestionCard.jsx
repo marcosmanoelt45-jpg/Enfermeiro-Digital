@@ -19,6 +19,7 @@ export default function PlurallQuestionCard({
   totalQuestoes = 8,
   selectedChoice = null,
   onSelectChoice,
+  opcoesIncorretasTentadas = [],
   tentativas = 0, // 0 = ainda não verificou, 1 = errou a primeira, 2 = errou a segunda ou acertou
   status = "aberta", // 'aberta' | 'amarela' | 'vermelha' | 'verde'
   onVerificar,
@@ -29,7 +30,7 @@ export default function PlurallQuestionCard({
   const [revisaoAberta, setRevisaoAberta] = useState(false);
 
   const isFinalizada = status === "verde" || status === "vermelha" || isReadOnly;
-  const isPrimeiroErro = status === "amarela";
+  const isPrimeiroErro = status === "amarela" && !isFinalizada;
 
   const letras = LETRAS;
 
@@ -65,9 +66,14 @@ export default function PlurallQuestionCard({
               <CheckCircle2 className="w-3.5 h-3.5" /> Acerto
             </span>
           )}
-          {status === "amarela" && (
+          {status === "amarela" && !isFinalizada && (
             <span className="flex items-center gap-1 text-[11px] font-bold text-[#FFC247] bg-[#FFC247]/15 border border-[#FFC247]/30 px-2.5 py-0.5 rounded-full animate-pulse">
-              <Lightbulb className="w-3.5 h-3.5" /> 1º Erro (Dica)
+              <Lightbulb className="w-3.5 h-3.5" /> 1º Erro (Dica Ativa)
+            </span>
+          )}
+          {status === "amarela" && isFinalizada && (
+            <span className="flex items-center gap-1 text-[11px] font-bold text-[#FFC247] bg-[#FFC247]/15 border border-[#FFC247]/30 px-2.5 py-0.5 rounded-full">
+              <CheckCircle2 className="w-3.5 h-3.5" /> Acerto na 2ª Tentativa
             </span>
           )}
           {status === "vermelha" && (
@@ -89,7 +95,7 @@ export default function PlurallQuestionCard({
       </div>
 
       {/* Banner de Dica Clínica no 1º Erro (Amarela) */}
-      {isPrimeiroErro && !isFinalizada && (
+      {isPrimeiroErro && (
         <div className="rounded-2xl border border-[#FFC247]/50 bg-[#FFC247]/10 p-3.5 sm:p-4 animate-in fade-in slide-in-from-top-2 duration-300">
           <div className="flex items-center gap-2 text-xs font-bold text-[#FFC247] uppercase tracking-wide mb-1">
             <Lightbulb className="w-4 h-4 fill-[#FFC247]" />
@@ -98,8 +104,8 @@ export default function PlurallQuestionCard({
           <p className="text-xs sm:text-sm text-[#EAF2F8] font-normal leading-relaxed">
             {questao.dica || "Analise com atenção as alternativas: pense nas prioridades de biossegurança e farmacocinética antes de responder novamente."}
           </p>
-          <div className="text-[11px] text-[#FFC247]/80 mt-2 font-mono">
-            Você tem mais 1 tentativa para responder com sucesso.
+          <div className="text-[11px] text-[#FFC247]/90 mt-2 font-mono font-semibold">
+            Selecione outra alternativa para confirmar sua 2ª tentativa.
           </div>
         </div>
       )}
@@ -109,6 +115,7 @@ export default function PlurallQuestionCard({
         {questao.opcoes.map((opcaoTexto, idx) => {
           const isSelected = selectedChoice === idx;
           const isGabarito = idx === questao.correta;
+          const jaTentouIncorreta = opcoesIncorretasTentadas.includes(idx);
 
           // Estilização condicional baseada no status
           let optStyle = "bg-[#131F2E] border-[#1F3045] text-[#EAF2F8] hover:border-[#20D5B5]/60 hover:bg-[#16222E]";
@@ -124,18 +131,24 @@ export default function PlurallQuestionCard({
             } else {
               optStyle = "bg-[#131F2E]/60 border-[#1F3045]/60 text-[#9FB3C6] opacity-60";
             }
+          } else if (jaTentouIncorreta) {
+            // Opção tentada no 1º erro: desabilitada e marcada
+            optStyle = "bg-[#F25F5C]/10 border-[#F25F5C]/30 text-[#9FB3C6] opacity-60 cursor-not-allowed";
+            letterStyle = "bg-[#F25F5C]/20 border-[#F25F5C]/40 text-[#F25F5C] font-black line-through";
           } else if (isSelected) {
             optStyle = "bg-[#20D5B5]/15 border-[#20D5B5] text-white shadow-xs ring-1 ring-[#20D5B5]";
             letterStyle = "bg-[#20D5B5] border-[#20D5B5] text-[#0E1722] font-black";
           }
 
+          const isDisabled = isFinalizada || jaTentouIncorreta;
+
           return (
             <li key={idx}>
               <button
                 type="button"
-                disabled={isFinalizada}
+                disabled={isDisabled}
                 onClick={() => onSelectChoice(idx)}
-                className={`w-full text-left p-3 sm:p-3.5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer disabled:cursor-default ${optStyle}`}
+                className={`w-full text-left p-3 sm:p-3.5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer disabled:cursor-not-allowed ${optStyle}`}
                 aria-checked={isSelected}
                 role="radio"
               >
@@ -161,13 +174,13 @@ export default function PlurallQuestionCard({
           <div className="flex items-center justify-end gap-2">
             <button
               type="button"
-              disabled={selectedChoice === null}
+              disabled={selectedChoice === null || opcoesIncorretasTentadas.includes(selectedChoice)}
               onClick={onVerificar}
               className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-[#20D5B5] hover:bg-[#20D5B5]/90 text-[#0E1722] font-black text-sm transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
             >
               {isPrimeiroErro ? (
                 <>
-                  <RotateCcw className="w-4 h-4" /> Tentar Novamente
+                  <RotateCcw className="w-4 h-4" /> Confirmar 2ª Tentativa
                 </>
               ) : (
                 <>
@@ -263,4 +276,3 @@ export default function PlurallQuestionCard({
     </article>
   );
 }
-
