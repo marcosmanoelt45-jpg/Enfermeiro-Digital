@@ -25,9 +25,8 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
-  const [showGoogleSetupModal, setShowGoogleSetupModal] = useState(
-    urlParams?.get("setupGoogle") === "true"
-  );
+  const [googleLoading, setGoogleLoading] = useState(false);
+  const [showGoogleSetupModal, setShowGoogleSetupModal] = useState(false);
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -46,7 +45,7 @@ export default function Login() {
 
   const handleGoogle = async () => {
     setError("");
-    setLoading(true);
+    setGoogleLoading(true);
     try {
       if (typeof localStorage !== "undefined") {
         localStorage.removeItem("enfermeiro_digital_local_user");
@@ -58,7 +57,7 @@ export default function Login() {
       } else {
         setError(err.message || "Falha ao autenticar com Google");
       }
-      setLoading(false);
+      setGoogleLoading(false);
     }
   };
 
@@ -98,10 +97,19 @@ export default function Login() {
         variant="outline"
         className="w-full h-12 text-sm font-semibold mb-5 rounded-xl border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition shadow-2xs"
         onClick={handleGoogle}
-        disabled={loading}
+        disabled={loading || googleLoading}
       >
-        <GoogleIcon className="w-5 h-5 mr-2 shrink-0" />
-        Continuar com o Google
+        {googleLoading ? (
+          <>
+            <Loader2 className="w-5 h-5 mr-2 animate-spin text-teal-600" />
+            Conectando com o Google...
+          </>
+        ) : (
+          <>
+            <GoogleIcon className="w-5 h-5 mr-2 shrink-0" />
+            Continuar com o Google
+          </>
+        )}
       </Button>
 
       <div className="relative mb-5">
@@ -217,9 +225,7 @@ export default function Login() {
       <GoogleOAuthModal
         isOpen={showGoogleSetupModal}
         onClose={() => setShowGoogleSetupModal(false)}
-        userType="aluno"
-        returnTo={returnTo}
-        initialEmail={email}
+        onRetry={handleGoogle}
       />
     </AuthLayout>
   );

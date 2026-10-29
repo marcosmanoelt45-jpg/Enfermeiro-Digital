@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 /**
  * Mapeamento das poses oficiais em Ultra HD do Mascote Goti
@@ -150,15 +150,44 @@ export default function GotiAnimated({
 
   const canvasRef = useRef(null);
   const videoRef = useRef(null);
+  const [useImageFallback, setUseImageFallback] = useState(false);
 
   useEffect(() => {
-    if (!currentPose.videoSrc) return;
+    // Se a pose não tiver vídeo, ativa o render de imagem direto
+    if (!currentPose.videoSrc) {
+      setUseImageFallback(true);
+      return;
+    }
+
+    // Detecção rápida de dispositivos iOS Safari / WebKit móvel
+    // No iOS, WebM com transparência alfa não é suportado pelo motor gráfico e vídeos de 1px são suspensos.
+    const isSafariOrIos = typeof navigator !== "undefined" && (
+      /iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      (/^((?!chrome|android).)*safari/i.test(navigator.userAgent))
+    );
+
+    if (isSafariOrIos) {
+      setUseImageFallback(true);
+      return;
+    }
+
+    // Reseta o fallback para tentar vídeo caso mude a pose em navegadores compatíveis
+    setUseImageFallback(false);
+
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
     let animId;
     let isActive = true;
+
+    // Garante atributos estritos de mídia móvel para autoplay sem bloqueio
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    try {
+      video.setAttribute("webkit-playsinline", "true");
+    } catch {}
 
     const ctx = canvas.getContext("2d", { alpha: true });
 
@@ -193,15 +222,34 @@ export default function GotiAnimated({
       if (isActive) animId = requestAnimationFrame(drawFrame);
     };
 
+    const handleError = () => {
+      if (isActive) setUseImageFallback(true);
+    };
+
     video.addEventListener("play", handlePlay);
-    video.play().catch(() => {});
+    video.addEventListener("error", handleError);
+
+    // Timeout de segurança: se o vídeo demorar mais de 350ms sem quadros prontos, ativa imagem
+    const safetyTimeout = setTimeout(() => {
+      if (isActive && video.readyState < 2) {
+        setUseImageFallback(true);
+      }
+    }, 350);
+
+    video.play().catch(() => {
+      // Autoplay bloqueado pelo sistema operacional móvel ou modo de economia de energia
+      if (isActive) setUseImageFallback(true);
+    });
+
     animId = requestAnimationFrame(drawFrame);
 
     return () => {
       isActive = false;
+      clearTimeout(safetyTimeout);
       cancelAnimationFrame(animId);
       if (video) {
         video.removeEventListener("play", handlePlay);
+        video.removeEventListener("error", handleError);
       }
     };
   }, [currentPose.videoSrc]);
@@ -215,8 +263,9 @@ export default function GotiAnimated({
       onClick={onClick}
       title={currentPose.label}
     >
-      {/* Vídeo invisível offscreen: serve estritamente de fonte para o Canvas, impedindo detecção de overlays */}
-      {currentPose.videoSrc ? (
+      {/* Exibição: Se for compatível e sem falha, utiliza o Canvas gráfico alimentado pelo vídeo WebM.
+          Em smartphones com restrição, iOS Safari ou conexões lentas, exibe instantaneamente a imagem WebP Ultra HD com transparência pura */}
+      {currentPose.videoSrc && !useImageFallback ? (
         <>
           <video
             ref={videoRef}
@@ -232,6 +281,7 @@ export default function GotiAnimated({
             controls={false}
             tabIndex={-1}
             aria-hidden="true"
+            onError={() => setUseImageFallback(true)}
             style={{
               position: "absolute",
               width: "1px",
@@ -259,6 +309,7 @@ export default function GotiAnimated({
           alt={currentPose.label}
           className={`w-full h-full object-contain pointer-events-none select-none ${currentPose.animationClass} transition-transform duration-300`}
           loading="eager"
+          decoding="async"
         />
       )}
 

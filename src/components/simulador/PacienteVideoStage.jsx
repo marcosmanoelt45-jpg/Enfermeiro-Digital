@@ -23,11 +23,22 @@ export default function PacienteVideoStage({
   const videoAcertoRef = useRef(null);
   const videoErroRef = useRef(null);
 
-  // Controle de reprodução e pausa sem loop e sem saltos bruscos de zoom
+  // Controle de reprodução e garantia de compatibilidade móvel (iOS Safari e Android)
   useEffect(() => {
     const videoFala = videoFalaRef.current;
     const videoAcerto = videoAcertoRef.current;
     const videoErro = videoErroRef.current;
+
+    [videoFala, videoAcerto, videoErro].forEach((vid) => {
+      if (vid) {
+        vid.muted = true;
+        vid.defaultMuted = true;
+        vid.playsInline = true;
+        try {
+          vid.setAttribute("webkit-playsinline", "true");
+        } catch {}
+      }
+    });
 
     if (!videoFala || !videoAcerto || !videoErro) return;
 
@@ -87,6 +98,15 @@ export default function PacienteVideoStage({
         aria-hidden="true"
       />
 
+      {/* Camada de Fundo Estilizada do Paciente: Evita tela preta enquanto os clipes carregam em conexões móveis */}
+      <div className="absolute inset-0 z-0 flex flex-col items-center justify-center p-4 text-center bg-[#16222E]">
+        <div className="w-16 h-16 rounded-full bg-[#1C2C3C] border border-[#2B3F54] flex items-center justify-center text-teal-400 font-bold text-xl mb-2 shadow-inner">
+          {paciente.nome.charAt(0)}
+        </div>
+        <p className="text-sm font-bold text-slate-200">{paciente.nome}</p>
+        <p className="text-xs text-slate-400">{paciente.leito} · {paciente.sinaisVitais}</p>
+      </div>
+
       {/* 1. Clipes Fala */}
       <video
         key={`fala-${pacienteId}`}
@@ -96,7 +116,7 @@ export default function PacienteVideoStage({
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload noplaybackrate nofullscreen"
-        preload="metadata"
+        preload="auto"
         onEnded={() => {
           if (videoFalaRef.current) {
             videoFalaRef.current.pause();
@@ -106,8 +126,8 @@ export default function PacienteVideoStage({
           clipeAtivo === "fala" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
         }`}
       >
-        <source src={paciente.videos.fala.webm} type="video/webm" />
         <source src={paciente.videos.fala.mp4} type="video/mp4" />
+        <source src={paciente.videos.fala.webm} type="video/webm" />
       </video>
 
       {/* 2. Clipes Acerto */}
@@ -119,7 +139,7 @@ export default function PacienteVideoStage({
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload noplaybackrate nofullscreen"
-        preload="metadata"
+        preload="auto"
         onEnded={() => {
           if (onClipeEnded) onClipeEnded("acerto");
         }}
@@ -127,8 +147,8 @@ export default function PacienteVideoStage({
           clipeAtivo === "acerto" ? "opacity-100 z-20" : "opacity-0 z-0 pointer-events-none"
         }`}
       >
-        <source src={paciente.videos.acerto.webm} type="video/webm" />
         <source src={paciente.videos.acerto.mp4} type="video/mp4" />
+        <source src={paciente.videos.acerto.webm} type="video/webm" />
       </video>
 
       {/* 3. Clipes Erro */}
@@ -140,7 +160,7 @@ export default function PacienteVideoStage({
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload noplaybackrate nofullscreen"
-        preload="metadata"
+        preload="auto"
         onEnded={() => {
           if (onClipeEnded) onClipeEnded("erro");
         }}
@@ -148,8 +168,8 @@ export default function PacienteVideoStage({
           clipeAtivo === "erro" ? "opacity-100 z-20" : "opacity-0 z-0 pointer-events-none"
         }`}
       >
-        <source src={paciente.videos.erro.webm} type="video/webm" />
         <source src={paciente.videos.erro.mp4} type="video/mp4" />
+        <source src={paciente.videos.erro.webm} type="video/webm" />
       </video>
     </div>
   );

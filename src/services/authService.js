@@ -2,6 +2,12 @@ import { supabase, supabaseUrl, supabaseAnonKey, isSupabaseConfigured, markSupab
 
 const LOCAL_STORAGE_USER_KEY = 'enfermeiro_digital_local_user';
 
+const providerStatusCache = {
+  data: {},
+  timestamp: 0,
+  TTL_MS: 5 * 60 * 1000, // 5 minutos de cache
+};
+
 function createLocalFallbackUser(email, extra = {}) {
   const defaultType = extra.user_type || 'aluno';
   const defaultName = extra.full_name || (defaultType === 'professor' ? 'Professor' : 'Aluno');
@@ -343,18 +349,55 @@ export const authService = {
       if (!isSupabaseConfigured() || !supabaseUrl || !supabaseAnonKey) {
         return false;
       }
-      const res = await fetch(`${supabaseUrl}/auth/v1/settings`, {
-        method: 'GET',
-        headers: {
-          apikey: supabaseAnonKey,
-        },
-      });
-      if (!res.ok) return false;
-      const data = await res.json();
-      return Boolean(data?.external?.[provider]);
+
+      const now = Date.now();
+      if (
+        providerStatusCache.data[provider] !== undefined &&
+        now - providerStatusCache.timestamp < providerStatusCache.TTL_MS
+      ) {
+        return providerStatusCache.data[provider];
+      }
+
+      const controller = new AbortController();
+      const timeoutId = setTimeout(() => controller.abort(), 3500);
+
+      try {
+        const res = await fetch(`${supabaseUrl}/auth/v1/settings`, {
+          method: 'GET',
+          headers: {
+            apikey: supabaseAnonKey,
+          },
+          signal: controller.signal,
+        });
+        clearTimeout(timeoutId);
+
+        if (res.ok) {
+          const data = await res.json();
+          const isEnabled = Boolean(data?.external?.[provider]);
+          providerStatusCache.data[provider] = isEnabled;
+          providerStatusCache.timestamp = now;
+          return isEnabled;
+        }
+      } catch (fetchErr) {
+        clearTimeout(timeoutId);
+        console.warn(`[authService] Aviso ao consultar /auth/v1/settings para ${provider}:`, fetchErr?.message || fetchErr);
+      }
+
+      // Se já tínhamos status em cache, mantém
+      if (providerStatusCache.data[provider] !== undefined) {
+        return providerStatusCache.data[provider];
+      }
+
+      // O provedor Google está permanentemente ativo no Supabase do projeto. Em oscilações de 3G/4G,
+      // evita falso-positivo que bloquearia o usuário, prosseguindo com o OAuth nativo.
+      if (provider === 'google') {
+        return true;
+      }
+
+      return false;
     } catch (err) {
       console.warn(`[authService] Erro ao verificar status do provedor ${provider}:`, err);
-      return false;
+      return provider === 'google';
     }
   },
 
