@@ -108,12 +108,7 @@ export function ThemeProvider({ children }) {
   const triggerHaptic = (pattern = 40) => {
     if (!hapticFeedback) return;
 
-    // Vibração tátil no smartphone
-    if (typeof window !== 'undefined' && window.navigator && window.navigator.vibrate) {
-      try {
-        window.navigator.vibrate(pattern);
-      } catch {}
-    }
+    // Vibração física no smartphone desativada por preferência do usuário
 
     // Clique sonoro sutil de feedback mecânico (funciona no PC e celular para feedback imediato)
     try {

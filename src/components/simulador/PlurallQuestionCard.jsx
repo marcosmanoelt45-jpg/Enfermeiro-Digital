@@ -43,11 +43,6 @@ export default function PlurallQuestionCard({
     if (selectedChoice === null || opcoesIncorretasTentadas.includes(selectedChoice)) {
       setAlertaSelecao(true);
       setShakePrompt(true);
-      if (typeof navigator !== "undefined" && navigator.vibrate) {
-        try {
-          navigator.vibrate([40, 60, 40]);
-        } catch {}
-      }
       setTimeout(() => setShakePrompt(false), 800);
       return;
     }
