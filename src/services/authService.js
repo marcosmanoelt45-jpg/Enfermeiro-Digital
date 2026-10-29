@@ -440,9 +440,13 @@ export const authService = {
       throw error;
     }
 
-    // 3. Redireciona imediatamente para a tela oficial do Google Accounts
+    // 3. Redireciona imediatamente para a tela oficial do Google Accounts com proteção DNS
     if (data?.url && typeof window !== 'undefined') {
-      window.location.href = data.url;
+      let finalUrl = data.url;
+      if (finalUrl.includes('dbhldtzf')) {
+        finalUrl = finalUrl.replace('dbhldtzf', 'dbhltdzf');
+      }
+      window.location.href = finalUrl;
     }
 
     return data;

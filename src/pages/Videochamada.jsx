@@ -252,87 +252,99 @@ export default function Videochamada() {
     }));
   }
 
-  // Verificar Resposta com Sistema de 2 Níveis de Erros
-  function handleVerificarResposta() {
-    if (estadoAtual.selectedChoice === null || estadoAtual.isFinalizada) return;
+  // Verificar Resposta com Sistema de 2 Níveis de Erros (Blindado contra travas de 2ª tentativa)
+  function handleVerificarResposta(choiceOverride = null) {
+    const estado = questaoStates[stepIndex] || estadoAtual;
+    const escolhaAluno = (choiceOverride !== null && choiceOverride !== undefined)
+      ? choiceOverride
+      : (estado.selectedChoice !== null && estado.selectedChoice !== undefined ? estado.selectedChoice : estadoAtual.selectedChoice);
 
-    pararFala();
-    const escolhaAluno = estadoAtual.selectedChoice;
-    const gabarito = questaoAtual.correta;
-    const isCorreta = escolhaAluno === gabarito;
-    const tentativasAtuais = estadoAtual.tentativas || 0;
+    if (escolhaAluno === null || escolhaAluno === undefined) return;
+    if (estado.isFinalizada) return;
 
-    if (isCorreta) {
-      // ACERTO
-      setClipeAtivo("acerto");
-      clinicalGamificationService.registrarAcertoQuestao(user?.id);
+    try {
+      pararFala();
+      const gabarito = Number(questaoAtual?.correta ?? 0);
+      const isCorreta = Number(escolhaAluno) === gabarito;
+      const tentativasAtuais = estado.tentativas || 0;
 
-      if (tentativasAtuais === 0) {
-        // Acertou na 1ª tentativa: Verde
-        setAcertos((prev) => prev + 1);
-        setQuestaoStates((prev) => ({
-          ...prev,
-          [stepIndex]: {
-            ...prev[stepIndex],
-            status: "verde",
-            tentativas: 1,
-            isFinalizada: true,
-            selectedChoice: escolhaAluno
+      if (isCorreta) {
+        // ACERTO
+        setClipeAtivo("acerto");
+        clinicalGamificationService.registrarAcertoQuestao(user?.id);
+
+        if (tentativasAtuais === 0) {
+          // Acertou na 1ª tentativa: Verde
+          setAcertos((prev) => prev + 1);
+          setQuestaoStates((prev) => ({
+            ...prev,
+            [stepIndex]: {
+              ...prev[stepIndex],
+              status: "verde",
+              tentativas: 1,
+              isFinalizada: true,
+              selectedChoice: escolhaAluno
+            }
+          }));
+          if (questaoAtual) {
+            clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
           }
-        }));
-        // Remove da fila de revisão se for o caso
-        clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
+        } else {
+          // Acertou na 2ª tentativa (após dica amarela): Finaliza como amarela resolvida
+          setAcertos((prev) => prev + 1);
+          setQuestaoStates((prev) => ({
+            ...prev,
+            [stepIndex]: {
+              ...prev[stepIndex],
+              status: "amarela",
+              tentativas: 2,
+              isFinalizada: true,
+              selectedChoice: escolhaAluno
+            }
+          }));
+          if (questaoAtual) {
+            clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
+          }
+        }
       } else {
-        // Acertou na 2ª tentativa (após dica amarela): Finaliza como amarela resolvida
-        setAcertos((prev) => prev + 1);
-        setQuestaoStates((prev) => ({
-          ...prev,
-          [stepIndex]: {
-            ...prev[stepIndex],
-            status: "amarela",
-            tentativas: 2,
-            isFinalizada: true,
-            selectedChoice: escolhaAluno
-          }
-        }));
-        clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
-      }
-    } else {
-      // ERRO
-      setClipeAtivo("erro");
+        // ERRO
+        setClipeAtivo("erro");
 
-      if (tentativasAtuais === 0) {
-        // 1º ERRO: Dica ativada, questão amarela aberta, desmarca opção para o aluno escolher outra
-        setAmarelas((prev) => prev + 1);
-        setQuestaoStates((prev) => ({
-          ...prev,
-          [stepIndex]: {
-            ...prev[stepIndex],
-            status: "amarela",
-            tentativas: 1,
-            selectedChoice: null, // Limpa para obrigar nova escolha sem queimar a 2ª tentativa
-            isFinalizada: false, // permite 2ª tentativa
-            opcoesFalhadas: [...(prev[stepIndex]?.opcoesFalhadas || []), escolhaAluno]
-          }
-        }));
-      } else {
-        // 2º ERRO: Revela resposta, explica e marca para Revisão (Vermelha)
-        setVermelhas((prev) => prev + 1);
-        setAmarelas((prev) => Math.max(0, prev - 1));
-        clinicalGamificationService.registrarErroVermelhoQuestao(user?.id); // ZERA acertos seguidos exclusivamente aqui!
+        if (tentativasAtuais === 0) {
+          // 1º ERRO: Dica ativada, questão amarela aberta, desmarca opção para o aluno escolher outra
+          setAmarelas((prev) => prev + 1);
+          setQuestaoStates((prev) => ({
+            ...prev,
+            [stepIndex]: {
+              ...prev[stepIndex],
+              status: "amarela",
+              tentativas: 1,
+              selectedChoice: null, // Limpa para obrigar nova escolha sem queimar a 2ª tentativa
+              isFinalizada: false, // permite 2ª tentativa
+              opcoesFalhadas: [...(prev[stepIndex]?.opcoesFalhadas || []), escolhaAluno]
+            }
+          }));
+        } else {
+          // 2º ERRO: Revela resposta, explica e marca para Revisão (Vermelha)
+          setVermelhas((prev) => prev + 1);
+          setAmarelas((prev) => Math.max(0, prev - 1));
+          clinicalGamificationService.registrarErroVermelhoQuestao(user?.id); // ZERA acertos seguidos exclusivamente no erro fatal
 
-        setQuestaoStates((prev) => ({
-          ...prev,
-          [stepIndex]: {
-            ...prev[stepIndex],
-            status: "vermelha",
-            tentativas: 2,
-            selectedChoice: escolhaAluno,
-            isFinalizada: true,
-            opcoesFalhadas: [...(prev[stepIndex]?.opcoesFalhadas || []), escolhaAluno]
-          }
-        }));
+          setQuestaoStates((prev) => ({
+            ...prev,
+            [stepIndex]: {
+              ...prev[stepIndex],
+              status: "vermelha",
+              tentativas: 2,
+              selectedChoice: escolhaAluno,
+              isFinalizada: true,
+              opcoesFalhadas: [...(prev[stepIndex]?.opcoesFalhadas || []), escolhaAluno]
+            }
+          }));
+        }
       }
+    } catch (verifErr) {
+      console.error("[Videochamada] Erro ao verificar resposta:", verifErr);
     }
   }
 

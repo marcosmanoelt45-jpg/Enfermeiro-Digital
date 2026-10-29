@@ -244,10 +244,10 @@ export default function Conta() {
               <Flame className="w-7 h-7 text-[#FFC247] shrink-0 fill-[#FFC247]" />
               <div>
                 <h3 className="text-sm font-black text-[#FFC247]">
-                  {gameState.streak || 3} dias seguidos
+                  {gameState.streak ?? 0} dias seguidos
                 </h3>
                 <p className="text-[11px] text-[#9FB3C6]">
-                  Recorde: {gameState.bestStreak || 12} dias · {gameState.streakFreezeAvailable ?? 1} congelamento{(gameState.streakFreezeAvailable || 1) !== 1 ? "s" : ""} disponível
+                  Recorde: {gameState.bestStreak ?? 0} dias · {gameState.streakFreezeAvailable ?? 1} congelamento{(gameState.streakFreezeAvailable || 1) !== 1 ? "s" : ""} disponível
                 </p>
               </div>
             </div>
@@ -259,7 +259,7 @@ export default function Conta() {
               }}
               className="px-3 py-1.5 rounded-xl bg-[#131F2E] border border-[#1F3045] text-xs font-black text-[#FFC247] hover:border-[#FFC247]/50 transition cursor-pointer"
             >
-              {gameState.studyPoints ?? gameState.totalXp ?? 120} PE
+              {gameState.studyPoints ?? gameState.totalXp ?? 0} PE
             </button>
           </div>
 
@@ -329,7 +329,7 @@ export default function Conta() {
                   Dedicação semanal
                 </div>
                 <div className="text-[11px] text-[#9FB3C6]">
-                  {gameState.studyPoints ?? 290} PE acumulados na escala
+                  {gameState.studyPoints ?? 0} PE acumulados na escala
                 </div>
               </div>
               {openDedication ? (

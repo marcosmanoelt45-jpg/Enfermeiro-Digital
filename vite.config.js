@@ -69,6 +69,9 @@ export default defineConfig({
       '@': fileURLToPath(new URL('./src', import.meta.url)),
     },
   },
+  define: {
+    'import.meta.env.VITE_SUPABASE_URL': JSON.stringify('https://xwqgyvqofxdqdbhltdzf.supabase.co'),
+  },
   build: {
     cssCodeSplit: true,
     rollupOptions: {

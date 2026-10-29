@@ -38,6 +38,7 @@ import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
+import { useAuth } from "@/lib/AuthContext";
 import {
   NANDA_COMPLETE_CATALOG,
   COMPREHENSIVE_ETIOLOGIES,
@@ -48,6 +49,7 @@ import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 export default function CaseStudySimulator() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   // Inicialização 100% aleatória do caso clínico (desafio cego)
   const [selectedCaseIdx, setSelectedCaseIdx] = useState(() => Math.floor(Math.random() * CASE_LIBRARY.length));
@@ -427,6 +429,7 @@ export default function CaseStudySimulator() {
       progress,
       durationSeconds: activitySeconds,
       step: activeStep,
+      userId: user?.id,
       formData: {
         selectedCaseIdx,
         activeStep,

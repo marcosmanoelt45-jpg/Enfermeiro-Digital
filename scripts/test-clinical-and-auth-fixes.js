@@ -68,3 +68,4 @@ if (caseCode.includes('Recalcular (30 min)')) {
 console.log('  ✓ Botão "Recalcular (30 min)" removido da Etapa 5 de evolução.');
 
 console.log('\n🎉 TODOS OS TESTES PASSARAM COM SUCESSO! INTEGRIDADE TOTAL GARANTIDA!');
+

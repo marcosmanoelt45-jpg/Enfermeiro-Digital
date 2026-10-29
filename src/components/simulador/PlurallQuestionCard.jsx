@@ -177,7 +177,7 @@ export default function PlurallQuestionCard({
             <button
               type="button"
               disabled={selectedChoice === null || opcoesIncorretasTentadas.includes(selectedChoice)}
-              onClick={onVerificar}
+              onClick={() => onVerificar && onVerificar(selectedChoice)}
               className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-[#20D5B5] hover:bg-[#20D5B5]/90 text-[#0E1722] font-black text-sm transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
             >
               {isPrimeiroErro ? (

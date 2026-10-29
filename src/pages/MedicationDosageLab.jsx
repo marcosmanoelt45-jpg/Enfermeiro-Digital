@@ -17,6 +17,8 @@ import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
+import { clinicalGamificationService } from "@/services/clinicalGamificationService";
+import { useAuth } from "@/lib/AuthContext";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 import { getDosageProblems } from "@/data/dosageProblems";
@@ -43,6 +45,7 @@ const CONVERSIONS = [
 ];
 
 export default function MedicationDosageLab() {
+  const { user } = useAuth();
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState("desafios"); // "desafios" | "calculadora"
 
@@ -104,6 +107,7 @@ export default function MedicationDosageLab() {
       patientInfo: `${problem.category} • Solução: ${problem.solutionName}`,
       progress: studentInput.trim() ? 50 : 25,
       durationSeconds: activitySeconds,
+      userId: user?.id,
       formData: { selectedIdx, studentInput, calcForm, activeTab }
     });
     setCurrentActivityId(draft.id);
@@ -200,6 +204,13 @@ export default function MedicationDosageLab() {
         setShowFormula(true);
       }
 
+      // Atualiza ofensiva e acertos seguidos da conta
+      if (isCorrect) {
+        clinicalGamificationService.registrarAcertoQuestao(user?.id);
+      } else {
+        clinicalGamificationService.registrarErroVermelhoQuestao(user?.id);
+      }
+
       clinicalHistoryService.submitActivity({
         id: currentActivityId,
         moduleType: MODULE_TYPES.DOSAGE,
@@ -208,6 +219,7 @@ export default function MedicationDosageLab() {
         durationSeconds: activitySeconds,
         score: isCorrect ? 100 : 50,
         evaluation: res.feedback,
+        userId: user?.id,
         formData: { selectedIdx, studentInput, selectedOption, isCorrect }
       });
     } finally {

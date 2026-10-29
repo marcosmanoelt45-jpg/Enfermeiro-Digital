@@ -305,45 +305,83 @@ function getStorageKey(userId) {
   return `${STORAGE_KEY}_${cleanId}`;
 }
 
-function getDefaultState() {
+function isDemoUser(userId) {
+  if (!userId) return false;
+  return String(userId).startsWith('aluno-demo') || String(userId).startsWith('prof-demo');
+}
+
+function getDefaultState(userId = null) {
+  const isDemo = isDemoUser(userId);
+  if (isDemo) {
+    return {
+      streak: 3,
+      bestStreak: 12,
+      streakFreezeAvailable: 1,
+      acertosSeguidos: 0,
+      melhorAcertosSeguidos: 0,
+      lastActiveDate: getTodayString(),
+      weeklyDays: getPast7Days(),
+      totalXp: 480, // Mantido para compatibilidade
+      studyPoints: 480, // Pontos de Estudo (PE)
+      spentStudyPoints: 0,
+      unlockedItems: ['goti_hint'],
+      solvedCases: 7,
+      accuracyRate: 88, // %
+      safeDosagesCount: 14,
+      sbarHandoffsCount: 4,
+      encouragementsSent: 3,
+      encouragementsReceived: 6,
+      achievements: INITIAL_ACHIEVEMENTS.map((a) => ({
+        ...a,
+        current: a.id === 'safe_dosage' ? 14 : a.id === 'nanda_master' ? 11 : a.id === 'streak_titan' ? 3 : a.id === 'sbar_clarity' ? 4 : 3,
+        completedLevel: a.id === 'safe_dosage' ? 1 : a.id === 'nanda_master' ? 1 : a.id === 'streak_titan' ? 1 : a.id === 'sbar_clarity' ? 1 : 1,
+      })),
+      colleagues: INITIAL_COLLEAGUES,
+      feedEvents: INITIAL_FEED_EVENTS,
+      weeklyLeaderboard: INITIAL_LEADERBOARD,
+      friendQuest: {
+        id: 'quest-weekly-1',
+        title: 'Mãos Dadas no Plantão',
+        description: 'Resolvam juntos 8 casos clínicos simulados nesta semana.',
+        partnerName: 'Mariana Duarte',
+        partnerAvatar: 'https://images.unsplash.com/photo-1594824813583-0952939d8928?auto=format&fit=crop&q=80&w=150',
+        current: 5,
+        target: 8,
+        rewardXp: 150,
+        rewardBadge: 'Sinergia Clínica',
+        expiresInDays: 3,
+      },
+    };
+  }
+
+  // Conta Individual Real: inicia limpa e autêntica
   return {
-    streak: 3,
-    bestStreak: 12,
+    streak: 0,
+    bestStreak: 0,
     streakFreezeAvailable: 1,
     acertosSeguidos: 0,
     melhorAcertosSeguidos: 0,
     lastActiveDate: getTodayString(),
     weeklyDays: getPast7Days(),
-    totalXp: 480, // Mantido para compatibilidade
-    studyPoints: 480, // Pontos de Estudo (PE)
+    totalXp: 0,
+    studyPoints: 0,
     spentStudyPoints: 0,
-    unlockedItems: ['goti_hint'],
-    solvedCases: 7,
-    accuracyRate: 88, // %
-    safeDosagesCount: 14,
-    sbarHandoffsCount: 4,
-    encouragementsSent: 3,
-    encouragementsReceived: 6,
+    unlockedItems: [],
+    solvedCases: 0,
+    accuracyRate: 100, // Inicia em 100% até a 1ª atividade
+    safeDosagesCount: 0,
+    sbarHandoffsCount: 0,
+    encouragementsSent: 0,
+    encouragementsReceived: 0,
     achievements: INITIAL_ACHIEVEMENTS.map((a) => ({
       ...a,
-      current: a.id === 'safe_dosage' ? 14 : a.id === 'nanda_master' ? 11 : a.id === 'streak_titan' ? 3 : a.id === 'sbar_clarity' ? 4 : 3,
-      completedLevel: a.id === 'safe_dosage' ? 1 : a.id === 'nanda_master' ? 1 : a.id === 'streak_titan' ? 1 : a.id === 'sbar_clarity' ? 1 : 1,
+      current: 0,
+      completedLevel: 0,
     })),
     colleagues: INITIAL_COLLEAGUES,
-    feedEvents: INITIAL_FEED_EVENTS,
+    feedEvents: [],
     weeklyLeaderboard: INITIAL_LEADERBOARD,
-    friendQuest: {
-      id: 'quest-weekly-1',
-      title: 'Mãos Dadas no Plantão',
-      description: 'Resolvam juntos 8 casos clínicos simulados nesta semana.',
-      partnerName: 'Mariana Duarte',
-      partnerAvatar: 'https://images.unsplash.com/photo-1594824813583-0952939d8928?auto=format&fit=crop&q=80&w=150',
-      current: 5,
-      target: 8,
-      rewardXp: 150,
-      rewardBadge: 'Sinergia Clínica',
-      expiresInDays: 3,
-    },
+    friendQuest: null,
   };
 }
 
@@ -352,15 +390,12 @@ export const clinicalGamificationService = {
    * Obtém todo o estado gamificado consolidado (mesclando storage local com dados reais se houver).
    */
   getState(userId = null) {
+    const def = getDefaultState(userId);
     try {
       const key = getStorageKey(userId);
       let raw = localStorage.getItem(key);
-      if (!raw && userId) {
-        raw = localStorage.getItem(STORAGE_KEY);
-      }
       if (raw) {
         const parsed = JSON.parse(raw);
-        const def = getDefaultState();
         return {
           ...def,
           ...parsed,
@@ -373,7 +408,6 @@ export const clinicalGamificationService = {
     } catch (e) {
       console.warn('Erro ao carregar estado de gamificação:', e);
     }
-    const def = getDefaultState();
     this.saveState(def, userId);
     return def;
   },

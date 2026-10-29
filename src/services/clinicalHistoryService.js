@@ -8,13 +8,29 @@
 const STORAGE_KEY = 'enfere_clinical_history_v1';
 const REVISAO_STORAGE_KEY = 'enfere_questoes_revisao_v1';
 
+function resolveCurrentUserId(providedUserId = null) {
+  if (providedUserId) return providedUserId;
+  try {
+    if (typeof localStorage !== 'undefined') {
+      const raw = localStorage.getItem('enfermeiro_digital_local_user');
+      if (raw) {
+        const u = JSON.parse(raw);
+        if (u?.id) return u.id;
+      }
+    }
+  } catch {}
+  return null;
+}
+
 function getKey(userId) {
+  userId = resolveCurrentUserId(userId);
   if (!userId) return STORAGE_KEY;
   const cleanId = String(userId).replace(/[^a-zA-Z0-9_-]/g, '_');
   return `${STORAGE_KEY}_${cleanId}`;
 }
 
 function getRevisaoKey(userId) {
+  userId = resolveCurrentUserId(userId);
   if (!userId) return REVISAO_STORAGE_KEY;
   const cleanId = String(userId).replace(/[^a-zA-Z0-9_-]/g, '_');
   return `${REVISAO_STORAGE_KEY}_${cleanId}`;
@@ -43,21 +59,44 @@ export const MODULE_LABELS = {
 function getStorage(userId) {
   try {
     if (typeof localStorage === 'undefined') return [];
+    userId = resolveCurrentUserId(userId);
     const k = getKey(userId);
     let raw = localStorage.getItem(k);
-    // Se a chave do usuário estiver vazia, faz fallback para chave global ou legada e importa
-    if (!raw && userId) {
-      raw = localStorage.getItem(STORAGE_KEY);
-      if (!raw) {
-        raw = localStorage.getItem('enfermeiro_historico_videochamadas');
-      }
-      if (raw) {
-        localStorage.setItem(k, raw);
+    let userItems = [];
+    if (raw) {
+      try {
+        const p = JSON.parse(raw);
+        if (Array.isArray(p)) userItems = p;
+      } catch {}
+    }
+
+    // Se o usuário estiver logado, também verifica a chave global para importar itens realizados
+    if (userId) {
+      const globalRaw = localStorage.getItem(STORAGE_KEY);
+      if (globalRaw) {
+        try {
+          const globalItems = JSON.parse(globalRaw);
+          if (Array.isArray(globalItems) && globalItems.length > 0) {
+            const mapById = new Map(userItems.map((it) => [it.id, it]));
+            let changed = false;
+            globalItems.forEach((it) => {
+              if (!mapById.has(it.id)) {
+                mapById.set(it.id, { ...it, userId });
+                changed = true;
+              }
+            });
+            if (changed) {
+              userItems = Array.from(mapById.values()).sort(
+                (a, b) => new Date(b.updatedAt || b.finishedAt).getTime() - new Date(a.updatedAt || a.finishedAt).getTime()
+              );
+              localStorage.setItem(k, JSON.stringify(userItems));
+            }
+          }
+        } catch {}
       }
     }
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? parsed : [];
+
+    return userItems;
   } catch (err) {
     console.warn('[clinicalHistoryService] Falha ao ler histórico:', err);
     return [];
