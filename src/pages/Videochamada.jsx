@@ -284,6 +284,7 @@ export default function Videochamada() {
         clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
       } else {
         // Acertou na 2ª tentativa (após dica amarela): Finaliza como amarela resolvida
+        setAcertos((prev) => prev + 1);
         setQuestaoStates((prev) => ({
           ...prev,
           [stepIndex]: {
@@ -317,6 +318,7 @@ export default function Videochamada() {
       } else {
         // 2º ERRO: Revela resposta, explica e marca para Revisão (Vermelha)
         setVermelhas((prev) => prev + 1);
+        setAmarelas((prev) => Math.max(0, prev - 1));
         clinicalGamificationService.registrarErroVermelhoQuestao(user?.id); // ZERA acertos seguidos exclusivamente aqui!
 
         setQuestaoStates((prev) => ({
@@ -724,6 +726,7 @@ export default function Videochamada() {
               opcoesIncorretasTentadas={estadoAtual.opcoesFalhadas || []}
               tentativas={estadoAtual.tentativas}
               status={estadoAtual.status}
+              isFinalizada={estadoAtual.isFinalizada}
               onVerificar={handleVerificarResposta}
               onProxima={handleProximaQuestao}
               isReadOnly={isReadOnly}

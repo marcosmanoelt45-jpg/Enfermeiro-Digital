@@ -22,6 +22,7 @@ export default function PlurallQuestionCard({
   opcoesIncorretasTentadas = [],
   tentativas = 0, // 0 = ainda não verificou, 1 = errou a primeira, 2 = errou a segunda ou acertou
   status = "aberta", // 'aberta' | 'amarela' | 'vermelha' | 'verde'
+  isFinalizada: propIsFinalizada = false,
   onVerificar,
   onProxima,
   isReadOnly = false,
@@ -29,7 +30,8 @@ export default function PlurallQuestionCard({
 }) {
   const [revisaoAberta, setRevisaoAberta] = useState(false);
 
-  const isFinalizada = status === "verde" || status === "vermelha" || isReadOnly;
+  // A questão é finalizada se a prop for true, se acertou/errou de vez (verde/vermelha), se completou 2 tentativas ou está em leitura
+  const isFinalizada = Boolean(propIsFinalizada || status === "verde" || status === "vermelha" || tentativas >= 2 || isReadOnly);
   const isPrimeiroErro = status === "amarela" && !isFinalizada;
 
   const letras = LETRAS;
