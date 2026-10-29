@@ -238,18 +238,30 @@ export default function Videochamada() {
     setModalRevisaoFinalAberto(false);
   }
 
-  // Selecionar alternativa na questão atual
+  // Selecionar alternativa na questão atual (reativo e imune a condições de corrida)
   function handleSelectChoice(choiceIdx) {
-    if (estadoAtual.isFinalizada || isReadOnly) return;
-    if ((estadoAtual.opcoesFalhadas || []).includes(choiceIdx)) return;
+    if (isReadOnly) return;
 
-    setQuestaoStates((prev) => ({
-      ...prev,
-      [stepIndex]: {
-        ...(prev[stepIndex] || { tentativas: 0, status: "aberta", opcoesFalhadas: [] }),
-        selectedChoice: choiceIdx
-      }
-    }));
+    setQuestaoStates((prev) => {
+      const cur = prev[stepIndex] || {
+        selectedChoice: null,
+        tentativas: 0,
+        status: "aberta",
+        isFinalizada: false,
+        opcoesFalhadas: []
+      };
+
+      if (cur.isFinalizada) return prev;
+      if ((cur.opcoesFalhadas || []).includes(choiceIdx)) return prev;
+
+      return {
+        ...prev,
+        [stepIndex]: {
+          ...cur,
+          selectedChoice: choiceIdx
+        }
+      };
+    });
   }
 
   // Verificar Resposta com Sistema de 2 Níveis de Erros (Blindado contra travas de 2ª tentativa)

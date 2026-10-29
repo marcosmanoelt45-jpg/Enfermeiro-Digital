@@ -37,7 +37,7 @@
       ]
     },
     {
-      "source": "/(index\\.html|sw\\.js|registerSW\\.js|manifest\\.webmanifest)",
+      "source": "/(sw\\.js|registerSW\\.js|manifest\\.webmanifest|index\\.html)?",
       "headers": [
         {
           "key": "Cache-Control",

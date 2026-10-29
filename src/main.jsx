@@ -7,6 +7,9 @@ import './index.css'
 if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
   navigator.serviceWorker.ready.then((registration) => {
     registration.update();
+    if (registration.waiting) {
+      registration.waiting.postMessage({ type: 'SKIP_WAITING' });
+    }
   }).catch(() => {});
 
   let refreshing = false;

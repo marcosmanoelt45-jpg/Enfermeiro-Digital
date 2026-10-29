@@ -130,3 +130,4 @@ runTests().catch((err) => {
   console.error('\n❌ FALHA NO TESTE TDD:', err);
   process.exit(1);
 });
+

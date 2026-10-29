@@ -14,7 +14,9 @@ export default defineConfig({
         skipWaiting: true,
         clientsClaim: true,
         maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
-        globPatterns: ['**/*.{js,css,html,svg,png,ico}'],
+        cleanupOutdatedCaches: true,
+        navigateFallback: null,
+        globPatterns: ['**/*.{js,css,svg,png,ico,woff2}'],
         globIgnores: [
           '**/pacientes/**',
           '**/audio/**',

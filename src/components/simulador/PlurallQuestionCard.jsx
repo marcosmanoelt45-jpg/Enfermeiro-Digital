@@ -8,7 +8,8 @@ import {
   ChevronUp,
   RotateCcw,
   Sparkles,
-  ArrowRight
+  ArrowRight,
+  AlertCircle
 } from "lucide-react";
 
 const LETRAS = ["A", "B", "C", "D", "E"];
@@ -29,12 +30,46 @@ export default function PlurallQuestionCard({
   isLastQuestion = false
 }) {
   const [revisaoAberta, setRevisaoAberta] = useState(false);
+  const [alertaSelecao, setAlertaSelecao] = useState(false);
+  const [shakePrompt, setShakePrompt] = useState(false);
 
   // A questão é finalizada se a prop for true, se acertou/errou de vez (verde/vermelha), se completou 2 tentativas ou está em leitura
   const isFinalizada = Boolean(propIsFinalizada || status === "verde" || status === "vermelha" || tentativas >= 2 || isReadOnly);
   const isPrimeiroErro = status === "amarela" && !isFinalizada;
 
   const letras = LETRAS;
+
+  function handleActionClick() {
+    if (selectedChoice === null || opcoesIncorretasTentadas.includes(selectedChoice)) {
+      setAlertaSelecao(true);
+      setShakePrompt(true);
+      if (typeof navigator !== "undefined" && navigator.vibrate) {
+        try {
+          navigator.vibrate([40, 60, 40]);
+        } catch {}
+      }
+      setTimeout(() => setShakePrompt(false), 800);
+      return;
+    }
+    setAlertaSelecao(false);
+    if (onVerificar) {
+      onVerificar(selectedChoice);
+    }
+  }
+
+  function handleOptionClick(idx) {
+    setAlertaSelecao(false);
+    // Se a mesma opção já estiver selecionada e clicar novamente, verifica imediatamente
+    if (selectedChoice === idx && !isFinalizada) {
+      if (onVerificar) {
+        onVerificar(idx);
+      }
+      return;
+    }
+    if (onSelectChoice) {
+      onSelectChoice(idx);
+    }
+  }
 
   return (
     <article
@@ -138,8 +173,12 @@ export default function PlurallQuestionCard({
             optStyle = "bg-[#F25F5C]/10 border-[#F25F5C]/30 text-[#9FB3C6] opacity-60 cursor-not-allowed";
             letterStyle = "bg-[#F25F5C]/20 border-[#F25F5C]/40 text-[#F25F5C] font-black line-through";
           } else if (isSelected) {
-            optStyle = "bg-[#20D5B5]/15 border-[#20D5B5] text-white shadow-xs ring-1 ring-[#20D5B5]";
-            letterStyle = "bg-[#20D5B5] border-[#20D5B5] text-[#0E1722] font-black";
+            optStyle = "bg-[#20D5B5]/20 border-[#20D5B5] text-white shadow-md ring-2 ring-[#20D5B5] scale-[1.01]";
+            letterStyle = "bg-[#20D5B5] border-[#20D5B5] text-[#0E1722] font-black scale-105";
+          } else if (shakePrompt) {
+            // Destaque pulsante nas alternativas disponíveis quando o usuário tenta confirmar sem selecionar
+            optStyle = "bg-[#131F2E] border-[#FFC247] ring-1 ring-[#FFC247]/50 text-white animate-pulse";
+            letterStyle = "bg-[#FFC247]/20 border-[#FFC247] text-[#FFC247] font-bold";
           }
 
           const isDisabled = isFinalizada || jaTentouIncorreta;
@@ -149,14 +188,14 @@ export default function PlurallQuestionCard({
               <button
                 type="button"
                 disabled={isDisabled}
-                onClick={() => onSelectChoice(idx)}
-                className={`w-full text-left p-3 sm:p-3.5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer disabled:cursor-not-allowed ${optStyle}`}
+                onClick={() => handleOptionClick(idx)}
+                className={`w-full text-left p-3 sm:p-3.5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer disabled:cursor-not-allowed active:scale-[0.99] ${optStyle}`}
                 aria-checked={isSelected}
                 role="radio"
               >
                 {/* Badge com a Letra da Alternativa */}
                 <span
-                  className={`w-7 h-7 rounded-xl border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${letterStyle}`}
+                  className={`w-7 h-7 rounded-xl border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-all ${letterStyle}`}
                 >
                   {letras[idx]}
                 </span>
@@ -173,23 +212,56 @@ export default function PlurallQuestionCard({
       <div className="pt-2 flex flex-col gap-3">
         {/* Caso ainda não tenha finalizado a questão */}
         {!isFinalizada && (
-          <div className="flex items-center justify-end gap-2">
-            <button
-              type="button"
-              disabled={selectedChoice === null || opcoesIncorretasTentadas.includes(selectedChoice)}
-              onClick={() => onVerificar && onVerificar(selectedChoice)}
-              className="w-full sm:w-auto px-6 py-3 rounded-2xl bg-[#20D5B5] hover:bg-[#20D5B5]/90 text-[#0E1722] font-black text-sm transition shadow-md disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer flex items-center justify-center gap-2"
-            >
-              {isPrimeiroErro ? (
-                <>
-                  <RotateCcw className="w-4 h-4" /> Confirmar 2ª Tentativa
-                </>
-              ) : (
-                <>
-                  <CheckCircle2 className="w-4 h-4" /> Verificar Resposta
-                </>
-              )}
-            </button>
+          <div className="flex flex-col gap-2.5">
+            {/* Alerta animado de orientação se clicar sem selecionar */}
+            {alertaSelecao && (
+              <div className="p-3 rounded-2xl bg-[#FFC247]/15 border border-[#FFC247]/50 text-xs text-[#FFC247] flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-1">
+                <AlertCircle className="w-4 h-4 shrink-0 text-[#FFC247]" />
+                <span className="font-semibold">
+                  {isPrimeiroErro
+                    ? "Por favor, selecione outra alternativa acima antes de confirmar sua 2ª tentativa."
+                    : "Por favor, selecione uma alternativa acima antes de verificar a resposta."}
+                </span>
+              </div>
+            )}
+
+            <div className="flex items-center justify-end gap-2">
+              <button
+                type="button"
+                onClick={handleActionClick}
+                className={`w-full sm:w-auto px-6 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-98 ${
+                  shakePrompt ? "animate-bounce ring-2 ring-[#FFC247]" : ""
+                } ${
+                  selectedChoice !== null && !opcoesIncorretasTentadas.includes(selectedChoice)
+                    ? isPrimeiroErro
+                      ? "bg-[#20D5B5] hover:bg-[#20D5B5]/90 text-[#0E1722] ring-2 ring-[#20D5B5]/50 shadow-[#20D5B5]/20 animate-pulse"
+                      : "bg-[#20D5B5] hover:bg-[#20D5B5]/90 text-[#0E1722] shadow-[#20D5B5]/20"
+                    : isPrimeiroErro
+                    ? "bg-[#1A293D] hover:bg-[#22354E] text-[#FFC247] border border-[#FFC247]/40 shadow-xs"
+                    : "bg-[#16222E] hover:bg-[#1E2E3E] text-[#9FB3C6] border border-[#27394B]"
+                }`}
+              >
+                {selectedChoice !== null && !opcoesIncorretasTentadas.includes(selectedChoice) ? (
+                  isPrimeiroErro ? (
+                    <>
+                      <RotateCcw className="w-4 h-4 text-[#0E1722]" /> Confirmar 2ª Tentativa (Opção {letras[selectedChoice]}) ➔
+                    </>
+                  ) : (
+                    <>
+                      <CheckCircle2 className="w-4 h-4 text-[#0E1722]" /> Verificar Resposta (Opção {letras[selectedChoice]}) ➔
+                    </>
+                  )
+                ) : isPrimeiroErro ? (
+                  <>
+                    <RotateCcw className="w-4 h-4 text-[#FFC247]" /> 👉 Escolha uma Alternativa para Confirmar
+                  </>
+                ) : (
+                  <>
+                    <CheckCircle2 className="w-4 h-4 text-[#9FB3C6]" /> 👉 Selecione uma Alternativa
+                  </>
+                )}
+              </button>
+            </div>
           </div>
         )}
 
