@@ -26,9 +26,9 @@ const CANONICAL_SUPABASE_URL = `https://${CANONICAL_SUPABASE_REF}.supabase.co`;
  */
 function resolveSupabaseUrl(url, key) {
   let clean = (url || '').trim();
-  // Corrige erro de digitação de DNS conhecido no domínio do projeto
-  if (clean.includes('dbhldtzf')) {
-    clean = clean.replace(/dbhldtzf/g, 'dbhltdzf');
+  // Corrige erros de digitação de DNS conhecidos no domínio do projeto
+  if (clean.includes('dbhldtzf') || clean.includes('dbhidtzf')) {
+    clean = clean.replace(/dbhldtzf|dbhidtzf/g, 'dbhltdzf');
   }
   // Qualquer referência ao projeto oficial ou ausência de URL usa sempre o endpoint canônico verificado
   if (
@@ -36,7 +36,9 @@ function resolveSupabaseUrl(url, key) {
     clean.includes('placeholder') ||
     clean.includes('seu-projeto') ||
     clean.includes('xwqgyvq') ||
-    clean.includes('dbhltdzf')
+    clean.includes('dbhltdzf') ||
+    clean.includes('dbhldtzf') ||
+    clean.includes('dbhidtzf')
   ) {
     return CANONICAL_SUPABASE_URL;
   }
@@ -124,8 +126,8 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
       if (targetUrl.includes('placeholder-enfermeiro-digital')) {
         return Promise.reject(new Error('Supabase offline circuit breaker active'));
       }
-      if (targetUrl.includes('dbhldtzf')) {
-        targetUrl = targetUrl.replace(/dbhldtzf/g, 'dbhltdzf');
+      if (targetUrl.includes('dbhldtzf') || targetUrl.includes('dbhidtzf')) {
+        targetUrl = targetUrl.replace(/dbhldtzf|dbhidtzf/g, 'dbhltdzf');
         return fetch(targetUrl, init);
       }
       return fetch(input, init);

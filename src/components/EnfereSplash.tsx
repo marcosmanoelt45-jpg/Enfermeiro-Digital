@@ -9,7 +9,7 @@ import gotiPoseWave from "@/assets/goti-pose-wave.png";
  * Renderização em alta fidelidade:
  * - Olhos SVG do Goti despertando no fundo escuro #0B131D.
  * - Anéis ciano e expansão radial.
- * - Goti em Ultra HD 100% sólido e sem piscar (usando goti-pose-wave.png com cache-busting do Vite).
+ * - Goti animado em Ultra HD (/goti/goti-wave.webm com poster instantâneo sólido e fallback .webp).
  * - Suporte dinâmico para usuário autenticado (boas-vindas com nome) e visitante (Começar / Já tenho conta).
  */
 
@@ -22,7 +22,7 @@ export interface EnfereSplashProps {
   isAuthenticated?: boolean;
   /** Nome do usuário conectado para exibição calorosa */
   userName?: string;
-  /** Caminho da imagem do Goti acenando */
+  /** Caminho do vídeo do Goti acenando */
   waveSrc?: string;
   className?: string;
   style?: CSSProperties;
@@ -44,7 +44,8 @@ const CSS = `
 .enfere-splash .es-g1 svg{display:block;width:100%;overflow:visible}
 .enfere-splash .es-c2{position:absolute;left:0;right:0;top:32%;transform:translateY(-50%);display:flex;justify-content:center;pointer-events:none}
 .enfere-splash .es-g2{position:relative;width:min(64vw,260px,36vh);aspect-ratio:1/1;opacity:0;transform-origin:50% 92%}
-.enfere-splash .es-wave-fallback{display:block;width:100%;height:100%;object-fit:contain;position:relative;filter:drop-shadow(0 8px 24px rgba(32,213,181,0.3))}
+.enfere-splash .es-wave{display:block;width:100%;height:100%;object-fit:contain;position:relative;filter:drop-shadow(0 8px 24px rgba(32,213,181,0.3))}
+.enfere-splash .es-wave-fallback{display:block;width:100%;height:100%;object-fit:contain;position:absolute;inset:0;filter:drop-shadow(0 8px 24px rgba(32,213,181,0.3));transition:opacity 180ms ease}
 .enfere-splash .es-sh{position:absolute;left:14%;right:14%;bottom:1%;height:7%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.6),rgba(0,0,0,0));opacity:0}
 .enfere-splash .pu{transition:transform .30s cubic-bezier(.25,1,.5,1)}
 .enfere-splash .eye{transform-box:fill-box;transform-origin:center;transition:transform 110ms ease-in-out,opacity 90ms}
@@ -86,6 +87,7 @@ const MARKUP = `
   <div class="es-g2">
     <i class="es-sh"></i>
     <img class="es-wave-fallback" alt="Goti acenando" draggable="false">
+    <video class="es-wave" muted playsinline loop preload="auto"></video>
   </div>
 </div>
 <h1 class="es-ttl">Enfere</h1><p class="es-tag">Enfermagem, passo a passo.</p>
@@ -139,6 +141,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   const $ = <T extends HTMLElement = HTMLElement>(sel: string) => root.querySelector(sel) as T;
   const bg = $(".es-bg"), paper = $(".es-paper"), mark = $(".es-mark");
   const g1 = $(".es-g1"), g2 = $(".es-g2"), sh = $(".es-sh");
+  const vid = $<HTMLVideoElement>(".es-wave");
   const fallback = $<HTMLImageElement>(".es-wave-fallback");
   const ttl = $(".es-ttl"), tag = $(".es-tag"), btns = $(".es-btns");
   const skipHint = $(".es-skip-hint");
@@ -148,6 +151,36 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
 
   g1.innerHTML = eyesSvg();
   fallback.src = gotiPoseWave;
+
+  const isSafariOrIos =
+    typeof navigator !== "undefined" &&
+    (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+      /^((?!chrome|android).)*safari/i.test(navigator.userAgent));
+
+  if (isSafariOrIos) {
+    vid.style.display = "none";
+    fallback.src = "/goti/goti-wave.webp";
+    fallback.style.opacity = "1";
+  } else {
+    vid.src = o.waveSrc;
+    vid.muted = true;
+    vid.defaultMuted = true;
+    vid.playsInline = true;
+    try {
+      vid.setAttribute("webkit-playsinline", "true");
+    } catch {}
+    vid.addEventListener("playing", () => {
+      fallback.style.opacity = "0";
+    });
+    vid.addEventListener("error", () => {
+      vid.style.display = "none";
+      fallback.src = "/goti/goti-wave.webp";
+      fallback.style.opacity = "1";
+    });
+    try {
+      vid.load();
+    } catch {}
+  }
 
   // Personalização para usuário autenticado vs visitante
   if (o.isAuthenticated) {
@@ -189,19 +222,24 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     anims = [];
   };
 
-  // Animação suave de flutuação contínua do Goti sólido em alta definição
-  const startIdleFloat = () => {
-    A(
-      fallback,
-      [
-        { transform: "translateY(0px) rotate(0deg)" },
-        { transform: "translateY(-6px) rotate(1.5deg)" },
-        { transform: "translateY(0px) rotate(0deg)" },
-        { transform: "translateY(-4px) rotate(-1.5deg)" },
-        { transform: "translateY(0px) rotate(0deg)" }
-      ],
-      { duration: 3600, iterations: Infinity, easing: "ease-in-out" }
-    );
+  const playWaveVideo = () => {
+    if (!isSafariOrIos && vid.style.display !== "none") {
+      try {
+        vid.currentTime = 0;
+        const p = vid.play();
+        if (p && typeof p.catch === "function") {
+          p.catch(() => {
+            vid.style.display = "none";
+            fallback.src = "/goti/goti-wave.webp";
+            fallback.style.opacity = "1";
+          });
+        }
+      } catch {
+        vid.style.display = "none";
+        fallback.src = "/goti/goti-wave.webp";
+        fallback.style.opacity = "1";
+      }
+    }
   };
 
   const done = () => {
@@ -233,7 +271,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     g2.style.opacity = "1";
     g2.style.transform = "none";
     sh.style.opacity = "1";
-    startIdleFloat();
+    playWaveVideo();
     ready();
   };
 
@@ -285,7 +323,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     // 2,85s: O Goti surge acenando com salto fluido
     at(2850, () => {
       g2.style.opacity = "1";
-      startIdleFloat();
+      playWaveVideo();
 
       A(g2, [
         { opacity: 0, transform: "translateY(45px) scale(.95,1.05)" },
@@ -332,6 +370,9 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
 
   return () => {
     clearAll();
+    try {
+      vid.pause();
+    } catch {}
     root.removeEventListener("pointerdown", onPointerDown as EventListener);
     if (skipHint) skipHint.removeEventListener("click", onSkip);
     b1Btn.removeEventListener("click", b1);
@@ -348,7 +389,7 @@ export default function EnfereSplash({
   onIntroComplete,
   isAuthenticated = false,
   userName = "",
-  waveSrc = gotiPoseWave,
+  waveSrc = "/goti/goti-wave.webm",
   className = "",
   style
 }: EnfereSplashProps) {

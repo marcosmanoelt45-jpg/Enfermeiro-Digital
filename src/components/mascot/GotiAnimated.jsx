@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useRef, useState } from "react";
 import gotiPoseNeutral from "@/assets/goti-pose-neutral.png";
 import gotiPoseWave from "@/assets/goti-pose-wave.png";
 import gotiPoseHappy from "@/assets/goti-pose-happy.png";
@@ -7,60 +7,87 @@ import gotiLogoOficial from "@/assets/goti-icone-oficial.png";
 
 /**
  * Mapeamento das poses oficiais em Ultra HD do Mascote Goti
- * Renderização estática/suave via assets com hash do Vite (zero flicker/piscadas de vídeo WebM corrompido,
- * cores 100% sólidas no corpo azul e jaleco branco, e canal alfa puro).
+ * - Reprodução primária via vídeo WebM com canal alfa nativo no Canvas HTML5 (60 FPS, 100% sólido).
+ * - Poster instantâneo em PNG com hash do Vite enquanto o vídeo carrega (zero telas vazias ou piscadas).
+ * - Fallback animado em WebP RGBA sólido para iOS Safari / navegadores sem suporte a WebM Alpha.
  */
 const GOTI_POSES = {
   idle: {
-    src: gotiPoseNeutral,
+    videoSrc: "/goti/goti-idle.webm",
+    webpSrc: "/goti/goti-idle.webp",
+    posterSrc: gotiPoseNeutral,
     label: "Goti em plantão de simulação",
   },
   breathing: {
-    src: gotiPoseNeutral,
+    videoSrc: "/goti/goti-idle.webm",
+    webpSrc: "/goti/goti-idle.webp",
+    posterSrc: gotiPoseNeutral,
     label: "Goti respirando fundo e focado",
   },
   neutral: {
-    src: gotiPoseNeutral,
+    videoSrc: "/goti/goti-idle.webm",
+    webpSrc: "/goti/goti-idle.webp",
+    posterSrc: gotiPoseNeutral,
     label: "Goti sorridente e receptivo",
   },
   wave: {
-    src: gotiPoseWave,
+    videoSrc: "/goti/goti-wave.webm",
+    webpSrc: "/goti/goti-wave.webp",
+    posterSrc: gotiPoseWave,
     label: "Goti acenando e dando as boas-vindas",
   },
   love: {
-    src: gotiPoseHappy,
+    videoSrc: "/goti/goti-jumping.webm",
+    webpSrc: "/goti/goti-jumping.webp",
+    posterSrc: gotiPoseHappy,
     label: "Goti comemorando com alegria",
   },
   happy: {
-    src: gotiPoseHappy,
+    videoSrc: "/goti/goti-jumping.webm",
+    webpSrc: "/goti/goti-jumping.webp",
+    posterSrc: gotiPoseHappy,
     label: "Goti vibrando com a conquista",
   },
   jumping: {
-    src: gotiPoseHappy,
+    videoSrc: "/goti/goti-jumping.webm",
+    webpSrc: "/goti/goti-jumping.webp",
+    posterSrc: gotiPoseHappy,
     label: "Goti radiante comemorando",
   },
   celebrate: {
-    src: gotiPoseHappy,
+    videoSrc: "/goti/goti-jumping.webm",
+    webpSrc: "/goti/goti-jumping.webp",
+    posterSrc: gotiPoseHappy,
     label: "Goti comemorando sua conquista",
   },
   pointing: {
-    src: gotiPoseWave,
+    videoSrc: "/goti/goti-pointing.webm",
+    webpSrc: "/goti/goti-pointing.webp",
+    posterSrc: gotiPoseWave,
     label: "Goti orientando uma diretriz clínica",
   },
   thinking: {
-    src: gotiPoseThinking,
+    videoSrc: "/goti/goti-thinking.webm",
+    webpSrc: "/goti/goti-thinking.webp",
+    posterSrc: gotiPoseThinking,
     label: "Goti formulando hipótese diagnóstica",
   },
   angry: {
-    src: gotiPoseThinking,
-    label: "Goti em alerta de segurança do paciente",
+    videoSrc: "/goti/goti-angry.webm",
+    webpSrc: "/goti/goti-angry.webp",
+    posterSrc: gotiPoseThinking,
+    label: "Goti bravo em alerta de segurança do paciente",
   },
   error: {
-    src: gotiPoseThinking,
-    label: "Goti em alerta de segurança do paciente",
+    videoSrc: "/goti/goti-angry.webm",
+    webpSrc: "/goti/goti-angry.webp",
+    posterSrc: gotiPoseThinking,
+    label: "Goti bravo em alerta de segurança do paciente",
   },
   avatar: {
-    src: gotiLogoOficial,
+    videoSrc: null,
+    webpSrc: gotiLogoOficial,
+    posterSrc: gotiLogoOficial,
     label: "Avatar oficial do Goti",
   },
 };
@@ -110,6 +137,105 @@ export default function GotiAnimated({
       }
     : {};
 
+  const canvasRef = useRef(null);
+  const videoRef = useRef(null);
+  const [isCanvasReady, setIsCanvasReady] = useState(false);
+  const [useWebpFallback, setUseWebpFallback] = useState(false);
+
+  useEffect(() => {
+    if (!currentPose.videoSrc) {
+      setUseWebpFallback(true);
+      setIsCanvasReady(false);
+      return;
+    }
+
+    const isSafariOrIos =
+      typeof navigator !== "undefined" &&
+      (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
+        /^((?!chrome|android).)*safari/i.test(navigator.userAgent));
+
+    if (isSafariOrIos) {
+      setUseWebpFallback(true);
+      setIsCanvasReady(false);
+      return;
+    }
+
+    setUseWebpFallback(false);
+    setIsCanvasReady(false);
+
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
+    if (!video || !canvas) return;
+
+    let animId;
+    let isActive = true;
+    let markedReady = false;
+
+    video.muted = true;
+    video.defaultMuted = true;
+    video.playsInline = true;
+    try {
+      video.setAttribute("webkit-playsinline", "true");
+    } catch {}
+
+    const ctx = canvas.getContext("2d", { alpha: true });
+
+    const drawFrame = () => {
+      if (!isActive) return;
+      if (video.readyState >= 2) {
+        const vw = video.videoWidth;
+        const vh = video.videoHeight;
+        if (vw > 0 && vh > 0) {
+          const isWidescreen = vw >= 1400 && vh >= 700;
+          const sDim = isWidescreen ? Math.min(vw, Math.floor(vh * 0.96)) : Math.min(vw, vh);
+          const sx = isWidescreen ? Math.floor((vw - sDim) / 2) : 0;
+          const sy = isWidescreen ? Math.floor(vh * 0.03) : 0;
+          const sw = sDim;
+          const sh = sDim;
+
+          if (canvas.width !== sw || canvas.height !== sh) {
+            canvas.width = sw;
+            canvas.height = sh;
+          }
+          ctx.clearRect(0, 0, sw, sh);
+          ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+
+          if (!markedReady) {
+            markedReady = true;
+            setIsCanvasReady(true);
+          }
+        }
+      }
+      animId = requestAnimationFrame(drawFrame);
+    };
+
+    const handlePlay = () => {
+      if (isActive) animId = requestAnimationFrame(drawFrame);
+    };
+
+    const handleError = () => {
+      if (isActive) setUseWebpFallback(true);
+    };
+
+    video.addEventListener("play", handlePlay);
+    video.addEventListener("error", handleError);
+
+    video.play().catch(() => {
+      if (isActive) setUseWebpFallback(true);
+    });
+
+    animId = requestAnimationFrame(drawFrame);
+
+    return () => {
+      isActive = false;
+      cancelAnimationFrame(animId);
+      if (video) {
+        video.removeEventListener("play", handlePlay);
+        video.removeEventListener("error", handleError);
+      }
+    };
+  }, [currentPose.videoSrc]);
+
   return (
     <div
       style={customStyle}
@@ -119,13 +245,62 @@ export default function GotiAnimated({
       onClick={onClick}
       title={currentPose.label}
     >
-      <img
-        src={currentPose.src}
-        alt={currentPose.label}
-        className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300"
-        loading="eager"
-        decoding="async"
-      />
+      {currentPose.videoSrc && !useWebpFallback ? (
+        <>
+          <video
+            ref={videoRef}
+            key={currentPose.videoSrc}
+            src={currentPose.videoSrc}
+            autoPlay
+            loop
+            muted
+            playsInline
+            preload="auto"
+            disablePictureInPicture={true}
+            disableRemotePlayback={true}
+            controls={false}
+            tabIndex={-1}
+            aria-hidden="true"
+            onError={() => setUseWebpFallback(true)}
+            style={{
+              position: "absolute",
+              width: "1px",
+              height: "1px",
+              opacity: 0,
+              pointerEvents: "none",
+              zIndex: -1,
+            }}
+          />
+          {!isCanvasReady && (
+            <img
+              src={currentPose.posterSrc}
+              alt={currentPose.label}
+              className="w-full h-full object-contain pointer-events-none select-none"
+              loading="eager"
+              decoding="async"
+            />
+          )}
+          <canvas
+            ref={canvasRef}
+            aria-label={currentPose.label}
+            style={{
+              transform: "translateZ(0)",
+              willChange: "transform",
+              backfaceVisibility: "hidden",
+              display: isCanvasReady ? "block" : "none",
+            }}
+            className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300"
+          />
+        </>
+      ) : (
+        <img
+          src={currentPose.webpSrc || currentPose.posterSrc}
+          alt={currentPose.label}
+          className="w-full h-full object-contain pointer-events-none select-none transition-transform duration-300"
+          loading="eager"
+          decoding="async"
+        />
+      )}
 
       {showBadge && (
         <span className="absolute -top-1 -right-1 px-2 py-0.5 rounded-full text-[10px] font-black bg-teal-600 text-white shadow-md border border-white/20">

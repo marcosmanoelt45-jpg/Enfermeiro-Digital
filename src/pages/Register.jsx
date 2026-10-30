@@ -42,10 +42,15 @@ export default function Register() {
     }
     setLoading(true);
     try {
-      await authService.register(email, password, {
+      const res = await authService.register(email, password, {
         full_name: fullName.trim() || "Estudante de Enfermagem",
         user_type: "aluno",
       });
+      if (res?.autoLoggedIn || res?.session) {
+        if (checkUserAuth) await checkUserAuth();
+        navigate(returnTo || "/", { replace: true });
+        return;
+      }
       // Direciona para a área de login com mensagem de sucesso
       navigate(`/login?registered=true&email=${encodeURIComponent(email)}`);
     } catch (err) {

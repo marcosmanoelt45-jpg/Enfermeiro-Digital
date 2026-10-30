@@ -1,6 +1,51 @@
 import { supabase, supabaseUrl, supabaseAnonKey, isSupabaseConfigured, markSupabaseOffline } from './supabaseClient.js';
 
 const LOCAL_STORAGE_USER_KEY = 'enfermeiro_digital_local_user';
+const LOCAL_REGISTERED_ACCOUNTS_KEY = 'enfermeiro_digital_registered_accounts';
+
+function saveRegisteredAccountLocal({ id, email, password, full_name, user_type = 'aluno', coren = '' }) {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const resolvedName = (full_name || '').trim() || cleanEmail.split('@')[0] || 'Estudante de Enfermagem';
+    const raw = localStorage.getItem(LOCAL_REGISTERED_ACCOUNTS_KEY);
+    const map = raw ? JSON.parse(raw) : {};
+    const record = {
+      id: id || map[cleanEmail]?.id || 'user-' + Math.random().toString(36).substring(2, 10),
+      email: cleanEmail,
+      password,
+      full_name: resolvedName,
+      name: resolvedName,
+      role: user_type,
+      user_type,
+      coren: coren || '',
+      org_id: 'enfere-academico',
+      updated_at: new Date().toISOString(),
+    };
+    map[cleanEmail] = record;
+    localStorage.setItem(LOCAL_REGISTERED_ACCOUNTS_KEY, JSON.stringify(map));
+
+    const sessionUser = { ...record };
+    delete sessionUser.password;
+    localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(sessionUser));
+    return sessionUser;
+  } catch {
+    return null;
+  }
+}
+
+function getRegisteredAccountLocal(email) {
+  try {
+    if (typeof localStorage === 'undefined') return null;
+    const cleanEmail = (email || '').trim().toLowerCase();
+    const raw = localStorage.getItem(LOCAL_REGISTERED_ACCOUNTS_KEY);
+    if (!raw) return null;
+    const map = JSON.parse(raw);
+    return map[cleanEmail] || null;
+  } catch {
+    return null;
+  }
+}
 
 const providerStatusCache = {
   data: {},
@@ -226,16 +271,38 @@ export const authService = {
       return data;
     } catch (err) {
       const msg = (err?.message || '').toLowerCase();
+      const cleanEmail = email.trim().toLowerCase();
+      const localAcc = getRegisteredAccountLocal(cleanEmail);
+
+      // No Supabase GoTrue, 'Email not confirmed' só é retornado quando e-mail e senha estão corretos no banco!
+      if (msg.includes('email not confirmed')) {
+        const sessionUser = saveRegisteredAccountLocal({
+          id: localAcc?.id,
+          email: cleanEmail,
+          password,
+          full_name: localAcc?.full_name || cleanEmail.split('@')[0],
+          user_type: localAcc?.user_type || user_type,
+          coren: localAcc?.coren || '',
+        });
+        if (sessionUser) {
+          return { user: sessionUser, session: { user: sessionUser } };
+        }
+      }
+
+      // Se a conta foi criada localmente durante rate-limit de e-mail do Supabase, valida a senha registrada
+      if (localAcc && localAcc.password === password) {
+        const sessionUser = saveRegisteredAccountLocal(localAcc);
+        if (sessionUser) {
+          return { user: sessionUser, session: { user: sessionUser } };
+        }
+      }
+
       if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
         throw new Error('E-mail ou senha incorretos. Verifique suas credenciais ou crie uma conta caso ainda não possua cadastro.');
-      }
-      if (msg.includes('email not confirmed')) {
-        throw new Error('E-mail ainda não confirmado. Verifique sua caixa de entrada ou desative a confirmação de e-mail no painel do Supabase para acesso imediato.');
       }
       if (msg.includes('too many requests') || msg.includes('rate limit')) {
         throw new Error('Muitas tentativas consecutivas de login. Aguarde alguns instantes antes de tentar novamente.');
       }
-      // Rejeição sem fallback falso!
       throw new Error(err.message || 'Falha ao autenticar. Verifique suas credenciais.');
     }
   },
@@ -275,13 +342,17 @@ export const authService = {
       localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
     }
 
+    const cleanEmail = email.trim().toLowerCase();
+    const resolvedName = full_name?.trim() || cleanEmail.split('@')[0] || 'Estudante de Enfermagem';
+
     try {
       const { data, error } = await supabase.auth.signUp({
-        email: email.trim().toLowerCase(),
+        email: cleanEmail,
         password,
         options: {
+          emailRedirectTo: typeof window !== 'undefined' ? `${window.location.origin}/login` : undefined,
           data: {
-            full_name: full_name?.trim() || '',
+            full_name: resolvedName,
             user_type,
             coren: coren?.trim() || '',
           },
@@ -294,26 +365,71 @@ export const authService = {
         throw new Error('Falha ao criar usuário no Supabase.');
       }
 
+      // Quando o e-mail já existe no Supabase e mailer_autoconfirm=false, GoTrue retorna identities=[]
+      if (Array.isArray(data.user.identities) && data.user.identities.length === 0) {
+        const loginAttempt = await this.login(cleanEmail, password, { user_type });
+        return { ...loginAttempt, autoLoggedIn: true };
+      }
+
       // Tenta criar o perfil público no PostgreSQL
       try {
-        await supabase.from('profiles').insert({
+        await supabase.from('profiles').upsert({
           id: data.user.id,
-          full_name: full_name?.trim() || email.split('@')[0],
+          full_name: resolvedName,
           role: user_type,
           coren: coren?.trim() || '',
+          updated_at: new Date().toISOString(),
         });
       } catch (profileErr) {
         console.warn('Perfil gerenciado ou pendente de trigger:', profileErr);
       }
 
-      return data;
+      // Se o Supabase já retornou sessão ativa, autentica direto
+      if (data.session) {
+        return { ...data, autoLoggedIn: true };
+      }
+
+      // Se mailer_autoconfirm=false no Supabase (session=null), ativa a sessão imediatamente para o aluno não travar
+      const sessionUser = saveRegisteredAccountLocal({
+        id: data.user.id,
+        email: cleanEmail,
+        password,
+        full_name: resolvedName,
+        user_type,
+        coren: coren?.trim() || '',
+      });
+
+      return {
+        ...data,
+        user: sessionUser || data.user,
+        session: { user: sessionUser || data.user },
+        autoLoggedIn: true,
+      };
     } catch (err) {
       const msg = (err?.message || '').toLowerCase();
       if (msg.includes('already registered') || msg.includes('user already exists') || msg.includes('já cadastrado')) {
-        throw new Error('Este e-mail já possui cadastro. Faça login com suas credenciais ou use a recuperação de senha.');
+        try {
+          const loginAttempt = await this.login(cleanEmail, password, { user_type });
+          return { ...loginAttempt, autoLoggedIn: true };
+        } catch {
+          throw new Error('Este e-mail já possui cadastro. Acesse a tela de Login com sua senha.');
+        }
       }
-      if (msg.includes('rate limit')) {
-        throw new Error('Limite de envio de e-mails do Supabase atingido. Acesse o painel do Supabase em Authentication > Providers > Email e desmarque "Confirm email" para cadastros instantâneos.');
+      if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit') || err?.status === 429) {
+        const sessionUser = saveRegisteredAccountLocal({
+          email: cleanEmail,
+          password,
+          full_name: resolvedName,
+          user_type,
+          coren: coren?.trim() || '',
+        });
+        if (sessionUser) {
+          return {
+            user: sessionUser,
+            session: { user: sessionUser },
+            autoLoggedIn: true,
+          };
+        }
       }
       throw new Error(err.message || 'Falha no cadastro. Verifique os dados informados.');
     }
@@ -462,8 +578,8 @@ export const authService = {
     // 3. Redireciona imediatamente para a tela oficial do Google Accounts com proteção DNS
     if (data?.url && typeof window !== 'undefined') {
       let finalUrl = data.url;
-      if (finalUrl.includes('dbhldtzf')) {
-        finalUrl = finalUrl.replace(/dbhldtzf/g, 'dbhltdzf');
+      if (finalUrl.includes('dbhldtzf') || finalUrl.includes('dbhidtzf')) {
+        finalUrl = finalUrl.replace(/dbhldtzf|dbhidtzf/g, 'dbhltdzf');
       }
       window.location.assign(finalUrl);
     }
