@@ -93,7 +93,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
                 <img
                   src={gotiLogoOficial}
                   alt="Enfere - Mascote Goti"
-                  className="w-12 h-12 sm:w-14 sm:h-14 object-contain filter drop-shadow-[0_2px_12px_rgba(32,213,181,0.35)] group-hover:scale-110 transition-transform"
+                  className="w-14 h-14 sm:w-16 sm:h-16 object-contain filter drop-shadow-[0_2px_12px_rgba(32,213,181,0.35)] group-hover:scale-110 transition-transform"
                 />
               </div>
               <div>
@@ -192,7 +192,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
         <img
           src={gotiLogoOficial}
           alt="Goti IA"
-          className="w-8 h-8 rounded-full object-cover filter drop-shadow-xs group-hover:scale-110 transition-transform"
+          className="w-10 h-10 object-contain filter drop-shadow-xs group-hover:scale-110 transition-transform"
         />
         <div className="hidden sm:block text-left">
           <span className="text-xs font-black block leading-none">Goti IA</span>

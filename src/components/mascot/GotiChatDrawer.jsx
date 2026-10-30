@@ -11,6 +11,7 @@ import { Button } from "@/components/ui/button";
 import { gotiPreceptorService } from "@/services/gotiPreceptorService";
 import { useTheme } from "@/lib/ThemeContext";
 import { useDragScroll } from "@/hooks/useDragScroll";
+import gotiLogoOficial from "@/assets/goti-icone-oficial.png";
 
 const GOTI_NAVIGATION_PROMPTS = [
   "Como estruturar uma intervenção NIC?",
@@ -263,13 +264,13 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
         <div className="sticky top-0 z-20 shrink-0 p-4 sm:p-5 border-b border-slate-800/90 bg-slate-900/95 backdrop-blur-md flex items-center justify-between">
           <div className="flex items-center gap-3.5">
             <div className="relative flex-shrink-0 flex items-center justify-center">
-              {/* Ícone oficial transparente do Goti sem margens brancas e em tamanho ampliado */}
+              {/* Ícone oficial transparente do Goti (apenas rosto, sem margens brancas) em tamanho ampliado */}
               <img
-                src="/goti/goti-face-transparent.png"
+                src={gotiLogoOficial}
                 alt="Goti Preceptor"
                 className="w-14 h-14 sm:w-16 sm:h-16 object-contain filter drop-shadow-[0_4px_16px_rgba(32,213,181,0.35)] transition-transform hover:scale-110"
               />
-              <span className="absolute 0.5 -right-0.5 flex h-3.5 w-3.5 pointer-events-none">
+              <span className="absolute -bottom-0.5 -right-0.5 flex h-3.5 w-3.5 pointer-events-none">
                 <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
                 <span className="relative inline-flex rounded-full h-3.5 w-3.5 bg-emerald-500 ring-2 ring-slate-900"></span>
               </span>
@@ -320,9 +321,9 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
           {/* Card de Boas-Vindas */}
           <div className="p-3.5 rounded-2xl bg-teal-950/40 border border-teal-800/80 flex items-start gap-3.5 shadow-2xs">
             <img
-              src="/goti/goti-face-transparent.png"
+              src={gotiLogoOficial}
               alt="Goti Preceptor"
-              className="w-13 h-13 sm:w-14 sm:h-14 object-contain shrink-0 filter drop-shadow-[0_2px_10px_rgba(32,213,181,0.3)]"
+              className="w-14 h-14 object-contain shrink-0 filter drop-shadow-[0_2px_10px_rgba(32,213,181,0.3)]"
             />
             <div className="space-y-1">
               <p className="font-extrabold text-slate-100 text-sm">
@@ -344,9 +345,9 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
               >
                 {!isUser && (
                   <img
-                    src="/goti/goti-face-transparent.png"
+                    src={gotiLogoOficial}
                     alt="Goti"
-                    className="w-9 h-9 sm:w-10 sm:h-10 object-contain shrink-0 self-end mb-1 filter drop-shadow-xs"
+                    className="w-10 h-10 object-contain shrink-0 self-end mb-1 filter drop-shadow-xs"
                   />
                 )}
 

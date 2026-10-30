@@ -3,6 +3,7 @@ import { Send, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { procedureService } from '@/services/procedureService';
+import gotiLogoOficial from '@/assets/goti-icone-oficial.png';
 
 export default function ProcedureAIChat({ procedure }) {
   const [messages, setMessages] = useState([
@@ -66,9 +67,11 @@ export default function ProcedureAIChat({ procedure }) {
     <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
       <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2.5">
-          <div className="relative flex h-10 w-10 items-center justify-center rounded-xl overflow-hidden bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 shadow-2xs shrink-0">
-            <img src="/goti/goti-face-transparent.png" alt="Goti IA" className="w-full h-full object-cover" />
-          </div>
+          <img
+            src={gotiLogoOficial}
+            alt="Goti IA"
+            className="w-11 h-11 object-contain shrink-0 filter drop-shadow-xs"
+          />
           <div>
             <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
               <span>Goti IA · Dúvidas do Procedimento</span>
@@ -89,9 +92,11 @@ export default function ProcedureAIChat({ procedure }) {
             className={`flex items-start gap-2 text-xs ${m.sender === 'user' ? 'justify-end' : 'justify-start'}`}
           >
             {m.sender === 'goti' && (
-              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full overflow-hidden bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 p-0.5">
-                <img src="/goti/goti-face-transparent.png" alt="Goti" className="w-full h-full object-cover rounded-full" />
-              </div>
+              <img
+                src={gotiLogoOficial}
+                alt="Goti"
+                className="w-8 h-8 shrink-0 object-contain filter drop-shadow-xs"
+              />
             )}
 
             <div

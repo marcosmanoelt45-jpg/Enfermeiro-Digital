@@ -16,13 +16,11 @@ export default function StudentFooter({ onOpenOptions }) {
       <footer className="mt-auto border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-950 pt-6 pb-24 md:py-6 text-slate-500 dark:text-slate-400 transition-colors">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-2">
-            <div className="h-7 w-7 rounded-lg overflow-hidden shrink-0 ring-1 ring-emerald-500/40 shadow-xs">
-              <img
-                src={gotiLogoOficial}
-                alt="Goti"
-                className="w-full h-full object-cover"
-              />
-            </div>
+            <img
+              src={gotiLogoOficial}
+              alt="Goti"
+              className="w-8 h-8 object-contain shrink-0 filter drop-shadow-xs"
+            />
             <span className="font-bold text-slate-800 dark:text-slate-200">Enfere</span>
             <span className="text-slate-300 dark:text-slate-600">•</span>
             <span className="text-emerald-700 dark:text-emerald-400 font-medium">Raciocínio Clínico & Simulação de Enfermagem</span>

@@ -1,6 +1,7 @@
 import React from 'react';
 import { ShieldCheck } from 'lucide-react';
 import { Link } from 'react-router-dom';
+import gotiLogoOficial from '@/assets/goti-icone-oficial.png';
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
@@ -12,13 +13,11 @@ export default function Footer() {
           {/* Coluna 1: Marca & Propósito */}
           <div className="md:col-span-2 space-y-4">
             <div className="flex items-center gap-2.5">
-              <div className="h-9 w-9 rounded-xl overflow-hidden shadow-md shadow-emerald-500/20 ring-1 ring-emerald-500/30 shrink-0">
-                <img
-                  src="/goti/goti-face-transparent.png"
-                  alt="Goti"
-                  className="w-full h-full object-cover"
-                />
-              </div>
+              <img
+                src={gotiLogoOficial}
+                alt="Goti"
+                className="w-11 h-11 object-contain shrink-0 filter drop-shadow-xs"
+              />
               <div>
                 <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">
                   Enfere

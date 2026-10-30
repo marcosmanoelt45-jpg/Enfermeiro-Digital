@@ -2,14 +2,14 @@
 
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
+import gotiPoseWave from "@/assets/goti-pose-wave.png";
 
 /**
  * Enfere · tela de abertura (splash / onboarding)
  * Renderização em alta fidelidade:
- * - Olhos SVG do Goti despertando no fundo azul clássico #1B6DB5.
- * - Anéis brancos e expansão radial.
- * - Goti em Ultra HD no Canvas com vídeo WebM nativo transparente (/goti/goti-wave.webm),
- *   eliminando 100% de ruídos, artefatos de dithering e bordas cortadas.
+ * - Olhos SVG do Goti despertando no fundo escuro #0B131D.
+ * - Anéis ciano e expansão radial.
+ * - Goti em Ultra HD 100% sólido e sem piscar (usando goti-pose-wave.png com cache-busting do Vite).
  * - Suporte dinâmico para usuário autenticado (boas-vindas com nome) e visitante (Começar / Já tenho conta).
  */
 
@@ -22,7 +22,7 @@ export interface EnfereSplashProps {
   isAuthenticated?: boolean;
   /** Nome do usuário conectado para exibição calorosa */
   userName?: string;
-  /** Caminho do WebM com canal alfa transparente */
+  /** Caminho da imagem do Goti acenando */
   waveSrc?: string;
   className?: string;
   style?: CSSProperties;
@@ -44,8 +44,7 @@ const CSS = `
 .enfere-splash .es-g1 svg{display:block;width:100%;overflow:visible}
 .enfere-splash .es-c2{position:absolute;left:0;right:0;top:32%;transform:translateY(-50%);display:flex;justify-content:center;pointer-events:none}
 .enfere-splash .es-g2{position:relative;width:min(64vw,260px,36vh);aspect-ratio:1/1;opacity:0;transform-origin:50% 92%}
-.enfere-splash .es-wave-canvas{display:block;width:100%;height:100%;object-fit:contain;position:relative}
-.enfere-splash .es-wave-fallback{display:none;width:100%;height:100%;object-fit:contain;position:relative}
+.enfere-splash .es-wave-fallback{display:block;width:100%;height:100%;object-fit:contain;position:relative;filter:drop-shadow(0 8px 24px rgba(32,213,181,0.3))}
 .enfere-splash .es-sh{position:absolute;left:14%;right:14%;bottom:1%;height:7%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.6),rgba(0,0,0,0));opacity:0}
 .enfere-splash .pu{transition:transform .30s cubic-bezier(.25,1,.5,1)}
 .enfere-splash .eye{transform-box:fill-box;transform-origin:center;transition:transform 110ms ease-in-out,opacity 90ms}
@@ -86,8 +85,6 @@ const MARKUP = `
 <div class="es-c2">
   <div class="es-g2">
     <i class="es-sh"></i>
-    <video class="es-wave-video" style="position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;z-index:-1" playsinline muted loop preload="auto"></video>
-    <canvas class="es-wave-canvas" role="img" aria-label="Goti acenando"></canvas>
     <img class="es-wave-fallback" alt="Goti acenando" draggable="false">
   </div>
 </div>
@@ -142,8 +139,6 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   const $ = <T extends HTMLElement = HTMLElement>(sel: string) => root.querySelector(sel) as T;
   const bg = $(".es-bg"), paper = $(".es-paper"), mark = $(".es-mark");
   const g1 = $(".es-g1"), g2 = $(".es-g2"), sh = $(".es-sh");
-  const video = $<HTMLVideoElement>(".es-wave-video");
-  const canvas = $<HTMLCanvasElement>(".es-wave-canvas");
   const fallback = $<HTMLImageElement>(".es-wave-fallback");
   const ttl = $(".es-ttl"), tag = $(".es-tag"), btns = $(".es-btns");
   const skipHint = $(".es-skip-hint");
@@ -152,6 +147,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   const rings = Array.from(root.querySelectorAll<HTMLElement>(".es-rings i"));
 
   g1.innerHTML = eyesSvg();
+  fallback.src = gotiPoseWave;
 
   // Personalização para usuário autenticado vs visitante
   if (o.isAuthenticated) {
@@ -166,13 +162,8 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     b2Btn.textContent = "Já tenho uma conta";
   }
 
-  // Configuração do vídeo transparente em WebM
-  video.src = o.waveSrc || "/goti/goti-wave.webm";
-
   let timers: number[] = [];
   let anims: Animation[] = [];
-  let animFrameId: number | null = null;
-  let isVideoPlaying = false;
   let finished = false;
 
   const at = (ms: number, fn: () => void) => {
@@ -191,61 +182,26 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     });
   };
 
-
   const clearAll = () => {
     timers.forEach(clearTimeout);
     timers = [];
     anims.forEach((a) => a.cancel());
     anims = [];
-    if (animFrameId !== null) {
-      cancelAnimationFrame(animFrameId);
-      animFrameId = null;
-    }
-    isVideoPlaying = false;
-    try {
-      video.pause();
-    } catch {}
   };
 
-  // Motor de renderização do Canvas para o vídeo WebM transparente (Ultra HD sem dithering)
-  const startCanvasLoop = () => {
-    if (isVideoPlaying) return;
-    isVideoPlaying = true;
-
-    video.play().catch(() => {
-      // Fallback gracioso para ilustração nítida caso o navegador bloqueie autoplay
-      canvas.style.display = "none";
-      fallback.style.display = "block";
-      fallback.src = "/goti/goti-pose-happy.png";
-    });
-
-    const ctx = canvas.getContext("2d", { alpha: true });
-
-    const render = () => {
-      if (!isVideoPlaying) return;
-      if (video.readyState >= 2 && ctx) {
-        const vw = video.videoWidth;
-        const vh = video.videoHeight;
-        if (vw > 0 && vh > 0) {
-          const isWidescreen = vw >= 1400 && vh >= 700;
-          const sDim = isWidescreen ? Math.min(vw, Math.floor(vh * 0.96)) : Math.min(vw, vh);
-          const sx = isWidescreen ? Math.floor((vw - sDim) / 2) : 0;
-          const sy = isWidescreen ? Math.floor(vh * 0.03) : 0;
-          const sw = sDim;
-          const sh = sDim;
-
-          if (canvas.width !== sw || canvas.height !== sh) {
-            canvas.width = sw;
-            canvas.height = sh;
-          }
-          ctx.clearRect(0, 0, sw, sh);
-          ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
-        }
-      }
-      animFrameId = requestAnimationFrame(render);
-    };
-
-    animFrameId = requestAnimationFrame(render);
+  // Animação suave de flutuação contínua do Goti sólido em alta definição
+  const startIdleFloat = () => {
+    A(
+      fallback,
+      [
+        { transform: "translateY(0px) rotate(0deg)" },
+        { transform: "translateY(-6px) rotate(1.5deg)" },
+        { transform: "translateY(0px) rotate(0deg)" },
+        { transform: "translateY(-4px) rotate(-1.5deg)" },
+        { transform: "translateY(0px) rotate(0deg)" }
+      ],
+      { duration: 3600, iterations: Infinity, easing: "ease-in-out" }
+    );
   };
 
   const done = () => {
@@ -264,7 +220,6 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     A(tag, [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 400, delay: 100 });
     A(btns, [{ opacity: 0, transform: "translateY(48px)" }, { opacity: 1, transform: "none" }], { duration: 600, delay: 150, easing: SPR });
 
-    // Mantém a tela no estado final com os botões visíveis, aguardando a interação do usuário
     done();
   };
 
@@ -278,7 +233,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     g2.style.opacity = "1";
     g2.style.transform = "none";
     sh.style.opacity = "1";
-    startCanvasLoop();
+    startIdleFloat();
     ready();
   };
 
@@ -303,7 +258,6 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     // 1,75s: Olhinhos fecham alegremente (^ ^) e fazem uma transição fluida contínua sem quebras
     at(1750, () => {
       g1.classList.add("happy");
-      // Pulinho alegre dos olhinhos fechados seguido diretamente do encolhimento no ponto de luz (uma só animação contínua)
       A(g1, [
         { transform: tf(1), opacity: 1 },
         { transform: "translateY(4px) scale(1.05,.95)", opacity: 1, offset: 0.2 },
@@ -312,12 +266,10 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
         { transform: tf(0.02), opacity: 0, offset: 1 }
       ], { duration: 800, easing: "cubic-bezier(.25,1,.5,1)" });
 
-      // Oculta a marca Enfere junto com o encolhimento
       at(520, () => {
         A(mark, [{ opacity: 1 }, { opacity: 0 }], { duration: 240 });
       });
 
-      // Desativa g1 definitivamente para impedir qualquer render residual antes do Goti surgir
       at(800, () => {
         g1.style.display = "none";
       });
@@ -333,7 +285,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     // 2,85s: O Goti surge acenando com salto fluido
     at(2850, () => {
       g2.style.opacity = "1";
-      startCanvasLoop();
+      startIdleFloat();
 
       A(g2, [
         { opacity: 0, transform: "translateY(45px) scale(.95,1.05)" },
@@ -351,7 +303,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     at(3400, ready);
   };
 
-  const onPointerDown = (e: MouseEvent | TouchEvent) => {
+  const onPointerDown = () => {
     if (root.classList.contains("es-ready")) return;
     toEnd();
   };
@@ -371,7 +323,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     toEnd();
   };
 
-  root.addEventListener("pointerdown", onPointerDown as any);
+  root.addEventListener("pointerdown", onPointerDown as EventListener);
   if (skipHint) skipHint.addEventListener("click", onSkip);
   b1Btn.addEventListener("click", b1);
   b2Btn.addEventListener("click", b2);
@@ -380,7 +332,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
 
   return () => {
     clearAll();
-    root.removeEventListener("pointerdown", onPointerDown as any);
+    root.removeEventListener("pointerdown", onPointerDown as EventListener);
     if (skipHint) skipHint.removeEventListener("click", onSkip);
     b1Btn.removeEventListener("click", b1);
     b2Btn.removeEventListener("click", b2);
@@ -396,7 +348,7 @@ export default function EnfereSplash({
   onIntroComplete,
   isAuthenticated = false,
   userName = "",
-  waveSrc = "/goti/goti-wave.webm",
+  waveSrc = gotiPoseWave,
   className = "",
   style
 }: EnfereSplashProps) {
