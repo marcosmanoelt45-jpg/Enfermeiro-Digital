@@ -171,7 +171,7 @@ export default function Register() {
               id="email"
               type="email"
               autoComplete="email"
-              placeholder="seu.email@exemplo.com"
+              placeholder="seu.email@gmail.com"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
               className="pl-10 h-11 rounded-xl dark:bg-slate-800/90 dark:border-slate-700 dark:text-slate-100"

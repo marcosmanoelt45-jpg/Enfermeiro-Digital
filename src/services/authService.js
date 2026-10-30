@@ -415,7 +415,12 @@ export const authService = {
           throw new Error('Este e-mail já possui cadastro. Acesse a tela de Login com sua senha.');
         }
       }
-      if (msg.includes('rate limit') || msg.includes('over_email_send_rate_limit') || err?.status === 429) {
+      if (
+        msg.includes('rate limit') ||
+        msg.includes('over_email_send_rate_limit') ||
+        err?.status === 429 ||
+        (msg.includes('email') && msg.includes('invalid') && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail))
+      ) {
         const sessionUser = saveRegisteredAccountLocal({
           email: cleanEmail,
           password,
