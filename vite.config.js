@@ -8,45 +8,14 @@ export default defineConfig({
   plugins: [
     react(),
     VitePWA({
+      selfDestroying: true,
       registerType: 'autoUpdate',
       includeAssets: ['favicon.svg'],
       workbox: {
         skipWaiting: true,
         clientsClaim: true,
-        maximumFileSizeToCacheInBytes: 3 * 1024 * 1024,
         cleanupOutdatedCaches: true,
         navigateFallback: null,
-        globPatterns: ['**/*.{js,css,svg,png,ico,woff2}'],
-        globIgnores: [
-          '**/pacientes/**',
-          '**/audio/**',
-          '**/goti/**',
-          '**/*.{webp,webm,mp4,wav,mp3}'
-        ],
-        runtimeCaching: [
-          {
-            urlPattern: /\.(?:png|jpg|jpeg|svg|webp|ico)$/,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'images-cache',
-              expiration: {
-                maxEntries: 60,
-                maxAgeSeconds: 30 * 24 * 60 * 60,
-              },
-            },
-          },
-          {
-            urlPattern: /^https:\/\/fonts\.(?:googleapis|gstatic)\.com\/.*/i,
-            handler: 'CacheFirst',
-            options: {
-              cacheName: 'google-fonts-cache',
-              expiration: {
-                maxEntries: 20,
-                maxAgeSeconds: 365 * 24 * 60 * 60,
-              },
-            },
-          },
-        ],
       },
       manifest: {
         name: 'Enfere · Simulação & Raciocínio Clínico de Enfermagem',

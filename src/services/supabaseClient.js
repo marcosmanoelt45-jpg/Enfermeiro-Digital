@@ -28,10 +28,16 @@ function resolveSupabaseUrl(url, key) {
   let clean = (url || '').trim();
   // Corrige erro de digitação de DNS conhecido no domínio do projeto
   if (clean.includes('dbhldtzf')) {
-    clean = clean.replace('dbhldtzf', 'dbhltdzf');
+    clean = clean.replace(/dbhldtzf/g, 'dbhltdzf');
   }
-  // Se contiver placeholder ou for vazio, usa a URL oficial do projeto
-  if (!clean || clean.includes('placeholder') || clean.includes('seu-projeto')) {
+  // Qualquer referência ao projeto oficial ou ausência de URL usa sempre o endpoint canônico verificado
+  if (
+    !clean ||
+    clean.includes('placeholder') ||
+    clean.includes('seu-projeto') ||
+    clean.includes('xwqgyvq') ||
+    clean.includes('dbhltdzf')
+  ) {
     return CANONICAL_SUPABASE_URL;
   }
   // Se a chave for um JWT válido, extrai o ref do payload assinado pelo Supabase
@@ -44,7 +50,7 @@ function resolveSupabaseUrl(url, key) {
           : Buffer.from(parts[1], 'base64').toString('utf8');
         const payload = JSON.parse(jsonStr);
         if (payload?.ref && payload.ref.startsWith('xwqgyvq')) {
-          return `https://${payload.ref}.supabase.co`;
+          return CANONICAL_SUPABASE_URL;
         }
       }
     } catch {}
@@ -97,9 +103,12 @@ export function isLocalDemoSession() {
 
 export const isSupabaseConfigured = () => {
   if (isKnownOfflineOrPlaceholder) return false;
-  const url = safeGetEnv('VITE_SUPABASE_URL');
-  const key = safeGetEnv('VITE_SUPABASE_ANON_KEY');
-  return Boolean(url && key && !url.includes('placeholder'));
+  return Boolean(
+    supabaseUrl &&
+    supabaseAnonKey &&
+    !supabaseUrl.includes('placeholder') &&
+    supabaseAnonKey !== 'placeholder-anon-key'
+  );
 };
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
@@ -109,13 +118,17 @@ export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
     detectSessionInUrl: !isKnownOfflineOrPlaceholder,
   },
   global: {
-    fetch: (...args) => {
-      const targetUrl = String(args[0] || '');
+    fetch: (input, init) => {
+      let targetUrl = typeof input === 'string' ? input : (input?.url || String(input || ''));
       // Se for especificamente a rota de placeholder falsa, rejeita imediatamente
       if (targetUrl.includes('placeholder-enfermeiro-digital')) {
         return Promise.reject(new Error('Supabase offline circuit breaker active'));
       }
-      return fetch(...args);
+      if (targetUrl.includes('dbhldtzf')) {
+        targetUrl = targetUrl.replace(/dbhldtzf/g, 'dbhltdzf');
+        return fetch(targetUrl, init);
+      }
+      return fetch(input, init);
     },
   },
 });

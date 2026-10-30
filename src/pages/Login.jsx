@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { authService } from "@/services/authService";
 import { useAuth } from "@/lib/AuthContext";
@@ -12,8 +12,14 @@ import { safeReturnTo } from "@/lib/authReturnTo";
 
 export default function Login() {
   const navigate = useNavigate();
-  const { checkUserAuth } = useAuth();
+  const { checkUserAuth, isAuthenticated } = useAuth();
   const returnTo = safeReturnTo();
+
+  useEffect(() => {
+    if (isAuthenticated) {
+      navigate(returnTo || "/", { replace: true });
+    }
+  }, [isAuthenticated, navigate, returnTo]);
   const urlParams = typeof window !== "undefined"
     ? new URLSearchParams(window.location.search)
     : null;

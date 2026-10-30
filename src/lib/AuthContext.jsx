@@ -3,6 +3,31 @@ import { authService } from '@/services/authService';
 
 const AuthContext = createContext();
 
+function hasPendingSupabaseOrOAuthSession() {
+  try {
+    if (typeof window !== 'undefined') {
+      const hash = window.location.hash || '';
+      const search = window.location.search || '';
+      if (
+        hash.includes('access_token=') ||
+        hash.includes('refresh_token=') ||
+        search.includes('code=')
+      ) {
+        return true;
+      }
+    }
+    if (typeof localStorage !== 'undefined') {
+      for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          return true;
+        }
+      }
+    }
+  } catch {}
+  return false;
+}
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(() => {
     try {
@@ -15,23 +40,42 @@ export const AuthProvider = ({ children }) => {
       return Boolean(typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_digital_local_user'));
     } catch { return false; }
   });
-  const [isLoadingAuth, setIsLoadingAuth] = useState(false);
-  const [isLoadingPublicSettings, setIsLoadingPublicSettings] = useState(false);
-  const [authError, setAuthError] = useState(null);
-  const [authChecked, setAuthChecked] = useState(true);
-  const [appPublicSettings, setAppPublicSettings] = useState({ id: 'enfermeiro-digital' });
+  const [isLoadingAuth, setIsLoadingAuth] = useState(() => hasPendingSupabaseOrOAuthSession());
+  const [isLoadingPublicSettings] = useState(false);
+  const [authError] = useState(null);
+  const [authChecked, setAuthChecked] = useState(() => !hasPendingSupabaseOrOAuthSession());
+  const [appPublicSettings] = useState({ id: 'enfermeiro-digital' });
 
   useEffect(() => {
     checkUserAuth();
 
     const { data: authListener } = authService.onAuthStateChange(async (event, session) => {
       if (session?.user) {
-        const fullUser = await authService.getCurrentUser();
-        setUser(fullUser);
+        const fallbackName =
+          session.user.user_metadata?.full_name ||
+          session.user.user_metadata?.name ||
+          session.user.email?.split('@')[0] ||
+          'Estudante de Enfermagem';
+        setUser((prev) => prev || {
+          ...session.user,
+          name: fallbackName,
+          full_name: fallbackName,
+          role: session.user.user_metadata?.user_type || 'aluno',
+          user_type: session.user.user_metadata?.user_type || 'aluno',
+        });
         setIsAuthenticated(true);
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
+
+        const fullUser = await authService.getCurrentUser();
+        if (fullUser) {
+          setUser(fullUser);
+        }
       } else if (event === 'SIGNED_OUT') {
         setUser(null);
         setIsAuthenticated(false);
+        setIsLoadingAuth(false);
+        setAuthChecked(true);
       }
     });
 

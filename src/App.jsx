@@ -72,8 +72,15 @@ const AuthenticatedApp = () => {
   const [showInitialSplash, setShowInitialSplash] = React.useState(() => {
     if (typeof window === "undefined") return false;
     const path = window.location.pathname;
+    const hash = window.location.hash || "";
     const search = new URLSearchParams(window.location.search);
-    if (search.get("nosplash") === "1" || sessionStorage.getItem("enfere_splash_passed")) {
+    if (
+      search.get("nosplash") === "1" ||
+      sessionStorage.getItem("enfere_splash_passed") ||
+      hash.includes("access_token=") ||
+      search.has("code")
+    ) {
+      sessionStorage.setItem("enfere_splash_passed", "true");
       return false;
     }
     // Se o usuário estiver acessando rotas de login ou registro, não sobrepõe a animação de splash

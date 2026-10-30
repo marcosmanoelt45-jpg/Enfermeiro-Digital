@@ -86,6 +86,18 @@ export const authService = {
           }
 
           const finalRole = profile?.role || user.user_metadata?.user_type || pendingRole || 'aluno';
+          const resolvedName =
+            profile?.full_name ||
+            user.user_metadata?.full_name ||
+            user.user_metadata?.name ||
+            user.email?.split('@')[0] ||
+            'Estudante de Enfermagem';
+          const resolvedAvatar =
+            profile?.avatar_url ||
+            user.user_metadata?.avatar_url ||
+            user.user_metadata?.picture ||
+            '';
+
           // Limpa qualquer resíduo obsoleto de mock do localStorage
           if (typeof localStorage !== 'undefined') {
             const currentStored = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
@@ -99,7 +111,9 @@ export const authService = {
             ...profile,
             user_type: finalRole,
             role: finalRole,
-            name: profile?.full_name || user.user_metadata?.full_name || user.email?.split('@')[0],
+            name: resolvedName,
+            full_name: resolvedName,
+            avatar_url: resolvedAvatar,
             coren: profile?.coren || user.user_metadata?.coren || '',
             org_id: profile?.org_id || null,
           };
@@ -306,11 +320,12 @@ export const authService = {
   },
 
   async logout() {
-    const hadLocalUser = Boolean(typeof localStorage !== 'undefined' && localStorage.getItem(LOCAL_STORAGE_USER_KEY));
-    localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
-    localStorage.removeItem('pending_oauth_role');
+    if (typeof localStorage !== 'undefined') {
+      localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
+      localStorage.removeItem('pending_oauth_role');
+    }
     try {
-      if (!hadLocalUser && isSupabaseConfigured()) {
+      if (isSupabaseConfigured()) {
         await supabase.auth.signOut();
       }
     } catch {
@@ -407,7 +422,10 @@ export const authService = {
       localStorage.setItem('pending_oauth_role', user_type);
     }
 
-    const targetUrl = redirectTo || (typeof window !== 'undefined' ? `${window.location.origin}/` : '/');
+    let targetUrl = redirectTo || '/';
+    if (typeof window !== 'undefined' && targetUrl.startsWith('/')) {
+      targetUrl = `${window.location.origin}${targetUrl}`;
+    }
 
     if (!isSupabaseConfigured()) {
       throw new Error('Supabase não está configurado.');
@@ -424,11 +442,12 @@ export const authService = {
       throw err;
     }
 
-    // 2. Inicia o fluxo OAuth oficial com tela de seleção de contas Google (select_account)
+    // 2. Inicia o fluxo OAuth oficial com skipBrowserRedirect para blindagem total de URL antes de navegar
     const { data, error } = await supabase.auth.signInWithOAuth({
       provider,
       options: {
         redirectTo: targetUrl,
+        skipBrowserRedirect: true,
         queryParams: {
           prompt: 'select_account',
           access_type: 'offline',
@@ -444,9 +463,9 @@ export const authService = {
     if (data?.url && typeof window !== 'undefined') {
       let finalUrl = data.url;
       if (finalUrl.includes('dbhldtzf')) {
-        finalUrl = finalUrl.replace('dbhldtzf', 'dbhltdzf');
+        finalUrl = finalUrl.replace(/dbhldtzf/g, 'dbhltdzf');
       }
-      window.location.href = finalUrl;
+      window.location.assign(finalUrl);
     }
 
     return data;
