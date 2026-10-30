@@ -1,39 +1,11 @@
 import { defineConfig } from 'vite'
 import react from '@vitejs/plugin-react'
-import { VitePWA } from 'vite-plugin-pwa'
 import { fileURLToPath, URL } from 'node:url'
 
 // https://vitejs.dev/config/
 export default defineConfig({
   plugins: [
     react(),
-    VitePWA({
-      selfDestroying: true,
-      registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg'],
-      workbox: {
-        skipWaiting: true,
-        clientsClaim: true,
-        cleanupOutdatedCaches: true,
-        navigateFallback: null,
-      },
-      manifest: {
-        name: 'Enfere · Simulação & Raciocínio Clínico de Enfermagem',
-        short_name: 'Enfere',
-        description: 'Plataforma de raciocínio clínico, Processo de Enfermagem COFEN nº 736/2024, simulações realísticas e videoteca de habilidades de enfermagem.',
-        theme_color: '#0d9488',
-        background_color: '#0b1329',
-        display: 'standalone',
-        orientation: 'portrait',
-        icons: [
-          {
-            src: '/favicon.svg',
-            sizes: 'any',
-            type: 'image/svg+xml'
-          }
-        ]
-      }
-    })
   ],
   resolve: {
     alias: {
