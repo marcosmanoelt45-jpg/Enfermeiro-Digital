@@ -4,6 +4,7 @@ import {
   Play,
   ArrowLeft,
   Video,
+  ExternalLink,
 } from 'lucide-react';
 import StudentHeader from '@/components/StudentHeader';
 import StudentFooter from '@/components/StudentFooter';
@@ -67,12 +68,13 @@ export default function ProcedimentosLab() {
     { id: 'all', label: 'Todos os Procedimentos' },
     { id: 'watched', label: '✓ Já Assistidos' },
     { id: 'unwatched', label: 'Pendentes' },
-    { id: 'urgencia', label: 'Urgência & Emergência' },
+    { id: 'semiotecnica', label: 'Semiotécnica & Biossegurança' },
     { id: 'eliminacoes', label: 'Cateterismos & Eliminações' },
     { id: 'vasculares', label: 'Acessos Vasculares' },
-    { id: 'medicamentos', label: 'Terapia Medicamentosa' },
     { id: 'respiratorio', label: 'Vias Aéreas & Ventilação' },
     { id: 'curativos', label: 'Curativos & Lesões' },
+    { id: 'medicamentos', label: 'Terapia Medicamentosa' },
+    { id: 'urgencia', label: 'Urgência & Emergência' },
   ];
 
   const filtered = useMemo(() => {
@@ -81,7 +83,8 @@ export default function ProcedimentosLab() {
         !searchQuery.trim() ||
         p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
         p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.categoryLabel.toLowerCase().includes(searchQuery.toLowerCase());
+        p.categoryLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
+        (p.institutionalBadge && p.institutionalBadge.toLowerCase().includes(searchQuery.toLowerCase()));
 
       let matchesCategory = true;
       if (selectedCategory === 'watched') {
@@ -103,13 +106,6 @@ export default function ProcedimentosLab() {
     setActiveProcedure(proc);
   };
 
-  const handleToggleWatched = (e, procId) => {
-    e.stopPropagation();
-    triggerHaptic(20);
-    procedureService.toggleWatched(procId);
-    setWatchedIds(procedureService.getWatchedList());
-  };
-
   return (
     <div className="min-h-screen bg-[#0B131D] text-[#EAF2F8] pb-28 md:pb-8 flex flex-col">
       <div className="hidden md:block">
@@ -117,7 +113,7 @@ export default function ProcedimentosLab() {
       </div>
 
       <main className="flex-1 mx-auto max-w-xl md:max-w-4xl w-full px-4 sm:px-6 py-4 space-y-5">
-        {/* Se estiver visualizando um procedimento ativo (Modo Treinamento - Página 20 do PDF) */}
+        {/* Se estiver visualizando um procedimento ativo (Modo Treinamento) */}
         {activeProcedure ? (
           <div className="space-y-5 animate-in fade-in duration-200">
             {/* Barra superior de navegação de volta */}
@@ -150,8 +146,8 @@ export default function ProcedimentosLab() {
               />
             </div>
 
-            {/* Informações Institucionais do POP (Página 20 do PDF) */}
-            <div className="space-y-1">
+            {/* Informações Institucionais e Créditos Acadêmicos do POP */}
+            <div className="space-y-1.5 bg-[#0E1722] border border-[#1F3045] rounded-2xl p-4">
               {activeProcedure.institutionalBadge && (
                 <span className="text-[10px] font-black uppercase text-[#20D5B5] tracking-wider block">
                   {activeProcedure.institutionalBadge}
@@ -160,9 +156,23 @@ export default function ProcedimentosLab() {
               <h1 className="text-base sm:text-lg font-black text-white leading-tight">
                 {activeProcedure.title}
               </h1>
-              <p className="text-xs text-[#9FB3C6]">
-                Produção acadêmica: {activeProcedure.videoSource || "Hospital Israelita Albert Einstein"} · Dr. Rafael Rafaini Lloret
+              <p className="text-xs text-[#9FB3C6] leading-relaxed">
+                <strong className="text-[#EAF2F8]">Produção acadêmica & créditos:</strong>{' '}
+                {activeProcedure.videoSource || 'Acervo Institucional de Enfermagem'}
               </p>
+              {activeProcedure.officialGuideUrl && (
+                <div className="pt-1">
+                  <a
+                    href={activeProcedure.officialGuideUrl}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#20D5B5] hover:underline"
+                  >
+                    <ExternalLink className="w-3.5 h-3.5" />
+                    Acessar fonte institucional oficial (UFSM LabEnf / Diretrizes)
+                  </a>
+                </div>
+              )}
             </div>
 
             {/* Roteiro de Habilidade Prática & Checklist */}
@@ -178,7 +188,7 @@ export default function ProcedimentosLab() {
               <ProcedureAIChat procedure={activeProcedure} />
             </div>
 
-            {/* Recompensa e Botão 3D Tátil "Concluir treinamento" (Página 20 do PDF) */}
+            {/* Recompensa e Botão 3D Tátil "Concluir treinamento" */}
             <div className="pt-2 space-y-3">
               <div className="text-center text-xs font-black text-[#FFC247]">
                 Recompensa: +30 com o Goti
@@ -198,34 +208,34 @@ export default function ProcedimentosLab() {
             </div>
           </div>
         ) : (
-          /* Modo Catálogo & Lista de Procedimentos (Página 19 do PDF) */
+          /* Modo Catálogo & Lista de Procedimentos */
           <div className="space-y-5">
-            {/* Cabeçalho da Videoteca 1:1 com Página 19 do PDF */}
+            {/* Cabeçalho da Videoteca */}
             <div className="space-y-1.5 pt-1">
               <span className="inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
-                Skills Lab
+                Skills Lab · Acervo LabEnf UFSM & Hospitais de Excelência
               </span>
               <h1 className="text-xl sm:text-2xl font-black text-white">
                 Videoteca de Procedimentos & POPs
               </h1>
               <p className="text-xs text-[#9FB3C6] leading-relaxed max-w-2xl">
-                Vídeos com chancela de hospitais e universidades de excelência. Toque em "ver mais" para a descrição completa.
+                Vídeos didáticos oficiais do Laboratório de Enfermagem da UFSM (LabEnf), UFRGS e instituições de referência, para fins exclusivamente educacionais e sem fins lucrativos.
               </p>
             </div>
 
-            {/* Campo de Busca (Página 19 do PDF) */}
+            {/* Campo de Busca */}
             <div className="relative">
               <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9FB3C6]" />
               <input
                 type="text"
-                placeholder="Buscar procedimento..."
+                placeholder="Buscar procedimento, técnica ou instituição (ex: UFSM, sonda, curativo, traqueostomia)..."
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 className="w-full pl-10 pr-4 py-3 rounded-2xl text-xs sm:text-sm bg-[#0E1722] border border-[#1F3045] text-white placeholder:text-[#9FB3C6]/60 focus:outline-none focus:border-[#20D5B5]"
               />
             </div>
 
-            {/* Contador de Assistidos (Página 19 do PDF) */}
+            {/* Contador de Assistidos */}
             <div className="text-xs font-bold text-[#20D5B5]">
               {watchedIds.length} de {procedures.length} vídeos assistidos
             </div>
@@ -262,7 +272,7 @@ export default function ProcedimentosLab() {
               })}
             </div>
 
-            {/* Lista de Cards de Procedimentos (Página 19 do PDF) */}
+            {/* Lista de Cards de Procedimentos */}
             {filtered.length === 0 ? (
               <div className="rounded-3xl border border-[#1F3045] bg-[#0E1722] p-10 text-center space-y-2">
                 <Video className="h-10 w-10 text-[#9FB3C6] mx-auto opacity-60" />
@@ -294,6 +304,11 @@ export default function ProcedimentosLab() {
                           <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                             {proc.categoryLabel}
                           </span>
+                          {proc.institutionalBadge && (
+                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#0E1722] text-[#9FB3C6] border border-[#1F3045]">
+                              {proc.institutionalBadge}
+                            </span>
+                          )}
                           <span className="text-[10px] font-semibold text-[#9FB3C6]">
                             {proc.duration}
                           </span>
