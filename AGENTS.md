@@ -67,6 +67,9 @@ Este manifesto é a **Fonte Única da Verdade (SSOT)** do projeto Enfermeiro Dig
 - **Respostas em Português do Brasil**: Manter sempre comunicação e interfaces em PT-BR.
 - **Mobile-First Tátil**: Preservar a experiência responsiva e feedback tátil (haptic, botões 3D que afundam, dock inferior no mobile).
 - **Cache-Busting de Assets (Imports com Hash do Vite)**: Novos ícones, avatares ou logotipos oficiais devem ser armazenados em `src/assets/` e importados diretamente nos componentes React (`import logo from "@/assets/logo.png"`). Evitar confiar exclusivamente em URLs estáticas em `public/`, garantindo que o bundle do Vite gere hashes à prova de cache.
+- **Blindagem Visual do Mascote e Logotipo Goti**:
+  1. **Logotipo Oficial (`src/assets/goti-icone-oficial.png`)**: Deve ser EXCLUSIVAMENTE o ícone aproximado do rosto do Goti (chapéu de enfermeiro com cruz verde, fundo verde-água arredondado com a pontinha da gota azul no topo, recortado em `669x669` com **100% de transparência externa e sem nenhuma borda branca**). Tanto o cabeçalho superior esquerdo (`StudentHeader.jsx`) quanto o cabeçalho/mensagens do chat (`GotiChatDrawer.jsx`) devem importar este mesmo arquivo via `@/assets/goti-icone-oficial.png` em tamanho grande (`w-14 h-14 sm:w-16 sm:h-16` com `object-contain`).
+  2. **Proibição de Vídeos `.webm`/`.webp` com Chroma-Key Corrompido**: NUNCA usar `/goti/goti-*.webm` ou `/goti/goti-*.webp` em `GotiAnimated.jsx` ou `EnfereSplash.tsx`, pois possuem canal alfa defeituoso que deixa o mascote transparente/oco e piscando. Usar sempre as poses PNG sólidas e nítidas importadas de `src/assets/` (`goti-pose-neutral.png`, `goti-pose-wave.png`, `goti-pose-happy.png`, `goti-pose-thinking.png`).
 - **Sincronização e Deploy Pré-Entrega**: Sempre que uma alteração envolver feedback visual do usuário que valida em produção (Vercel), a entrega requer `npm run build`, sincronização remota via `git push origin main` e confirmação dos assets compilados.
 
 ### 5. Ecossistema Multi-Agente (Padrão Claude Code / Hub-and-Spoke)
@@ -85,5 +88,3 @@ O desenvolvimento e a manutenção do Enfermeiro Digital operam através de uma 
 - **Workflows e Regras**:
   - Regra de orquestração: `.agents/rules/subagent-orchestrator.md`
   - Workflow de invocação: `.agents/workflows/orquestrador.md` e `/agente`
-
-
