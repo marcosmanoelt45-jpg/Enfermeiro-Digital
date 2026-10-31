@@ -42,3 +42,4 @@ self.addEventListener('fetch', (event) => {
     event.respondWith(fetch(url.replace(/dbhldtzf/g, 'dbhltdzf'), event.request));
   }
 });
+

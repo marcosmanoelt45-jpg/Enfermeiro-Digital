@@ -123,37 +123,35 @@ export const authService = {
           const user = session.user;
           const profile = await this.getProfile(user.id);
           const pendingRole = typeof localStorage !== 'undefined' ? localStorage.getItem('pending_oauth_role') : null;
-          if (pendingRole && (!profile || !profile.role)) {
-            localStorage.removeItem('pending_oauth_role');
-            try {
-              await this.updateProfile(user.id, { role: pendingRole });
-            } catch {}
-          }
-
-          const finalRole = profile?.role || user.user_metadata?.user_type || pendingRole || 'aluno';
           const resolvedName =
             profile?.full_name ||
             user.user_metadata?.full_name ||
             user.user_metadata?.name ||
             user.email?.split('@')[0] ||
             'Estudante de Enfermagem';
+
+          if (pendingRole && (!profile || !profile.role)) {
+            localStorage.removeItem('pending_oauth_role');
+            try {
+              await this.updateProfile(user.id, {
+                full_name: resolvedName,
+                role: pendingRole,
+              });
+            } catch {}
+          }
+
+          const finalRole = profile?.role || user.user_metadata?.user_type || pendingRole || 'aluno';
           const resolvedAvatar =
             profile?.avatar_url ||
             user.user_metadata?.avatar_url ||
             user.user_metadata?.picture ||
             '';
 
-          // Limpa qualquer resíduo obsoleto de mock do localStorage
-          if (typeof localStorage !== 'undefined') {
-            const currentStored = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
-            if (currentStored && (currentStored.includes('hospital.digital') || currentStored.includes('user-'))) {
-              localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
-            }
-          }
-
-          return {
+          const authenticatedUser = {
             ...user,
             ...profile,
+            id: user.id,
+            email: user.email,
             user_type: finalRole,
             role: finalRole,
             name: resolvedName,
@@ -162,6 +160,14 @@ export const authService = {
             coren: profile?.coren || user.user_metadata?.coren || '',
             org_id: profile?.org_id || null,
           };
+
+          if (typeof localStorage !== 'undefined') {
+            try {
+              localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(authenticatedUser));
+            } catch {}
+          }
+
+          return authenticatedUser;
         }
       }
 
@@ -264,9 +270,21 @@ export const authService = {
       // 3. Atualiza perfil caso necessário
       if (user_type) {
         try {
-          await this.updateProfile(data.user.id, { role: user_type });
+          const fallbackName =
+            data.user.user_metadata?.full_name ||
+            data.user.user_metadata?.name ||
+            data.user.email?.split('@')[0] ||
+            'Estudante de Enfermagem';
+          await this.updateProfile(data.user.id, {
+            full_name: fallbackName,
+            role: user_type,
+          });
         } catch {}
       }
+
+      try {
+        await this.getCurrentUser();
+      } catch {}
 
       return data;
     } catch (err) {

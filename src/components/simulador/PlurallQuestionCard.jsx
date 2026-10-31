@@ -6,10 +6,8 @@ import {
   HelpCircle,
   ChevronDown,
   ChevronUp,
-  RotateCcw,
   Sparkles,
-  ArrowRight,
-  AlertCircle
+  ArrowRight
 } from "lucide-react";
 
 const LETRAS = ["A", "B", "C", "D", "E"];
@@ -27,11 +25,12 @@ export default function PlurallQuestionCard({
   onVerificar,
   onProxima,
   isReadOnly = false,
-  isLastQuestion = false
+  isLastQuestion = false,
+  showHintButton = false,
+  hintVisible = false,
+  onToggleHint = null
 }) {
   const [revisaoAberta, setRevisaoAberta] = useState(false);
-  const [alertaSelecao, setAlertaSelecao] = useState(false);
-  const [shakePrompt, setShakePrompt] = useState(false);
 
   // A questão é finalizada se a prop for true, se acertou/errou de vez (verde/vermelha), se completou 2 tentativas ou está em leitura
   const isFinalizada = Boolean(propIsFinalizada || status === "verde" || status === "vermelha" || tentativas >= 2 || isReadOnly);
@@ -39,36 +38,21 @@ export default function PlurallQuestionCard({
 
   const letras = LETRAS;
 
-  function handleActionClick() {
-    if (selectedChoice === null || opcoesIncorretasTentadas.includes(selectedChoice)) {
-      setAlertaSelecao(true);
-      setShakePrompt(true);
-      setTimeout(() => setShakePrompt(false), 800);
-      return;
-    }
-    setAlertaSelecao(false);
-    if (onVerificar) {
-      onVerificar(selectedChoice);
-    }
-  }
-
   function handleOptionClick(idx) {
-    setAlertaSelecao(false);
-    // Se a mesma opção já estiver selecionada e clicar novamente, verifica imediatamente
-    if (selectedChoice === idx && !isFinalizada) {
-      if (onVerificar) {
-        onVerificar(idx);
-      }
-      return;
-    }
+    if (isFinalizada) return;
+    if (opcoesIncorretasTentadas.includes(idx)) return;
     if (onSelectChoice) {
       onSelectChoice(idx);
+    }
+    // Verificação imediata ao clicar na alternativa
+    if (onVerificar) {
+      onVerificar(idx);
     }
   }
 
   return (
     <article
-      className={`rounded-3xl border transition-all duration-300 p-4 sm:p-5 flex flex-col gap-4 shadow-lg ${
+      className={`rounded-3xl border transition-colors duration-200 p-4 sm:p-5 flex flex-col gap-4 shadow-lg ${
         status === "verde"
           ? "bg-[#0E1722] border-[#20D5B5]/60 shadow-[#20D5B5]/5"
           : status === "vermelha"
@@ -78,39 +62,34 @@ export default function PlurallQuestionCard({
           : "bg-[#0E1722] border-[#1F3045]"
       }`}
     >
-      {/* Topo do Card: Número da Questão, Badges e Status */}
+      {/* Topo do Card: Somente o Número da Questão e Badge de Status (sem temas específicos) */}
       <div className="flex items-center justify-between gap-2 border-b border-[#1F3045]/60 pb-3">
-        <div className="flex items-center gap-2 flex-wrap">
+        <div className="flex items-center gap-2">
           <span className="text-xs font-mono font-bold text-white bg-[#16222E] border border-[#27394B] px-2.5 py-1 rounded-lg">
             Questão {numQuestao}
           </span>
-          {questao.tema && (
-            <span className="text-[11px] font-bold text-[#20D5B5] bg-[#20D5B5]/10 border border-[#20D5B5]/20 px-2 py-0.5 rounded-full uppercase tracking-wider">
-              {questao.tema}
-            </span>
-          )}
         </div>
 
         {/* Badge de Situação da Questão */}
         <div>
           {status === "verde" && (
             <span className="flex items-center gap-1 text-[11px] font-bold text-[#20D5B5] bg-[#20D5B5]/15 border border-[#20D5B5]/30 px-2.5 py-0.5 rounded-full">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Acerto
+              <CheckCircle2 className="w-3.5 h-3.5" /> Acerto de Primeira
             </span>
           )}
           {status === "amarela" && !isFinalizada && (
-            <span className="flex items-center gap-1 text-[11px] font-bold text-[#FFC247] bg-[#FFC247]/15 border border-[#FFC247]/30 px-2.5 py-0.5 rounded-full animate-pulse">
-              <Lightbulb className="w-3.5 h-3.5" /> 1º Erro (Dica Ativa)
+            <span className="flex items-center gap-1 text-[11px] font-bold text-[#FFC247] bg-[#FFC247]/15 border border-[#FFC247]/30 px-2.5 py-0.5 rounded-full">
+              <Lightbulb className="w-3.5 h-3.5" /> 1ª Tentativa Incorreta
             </span>
           )}
           {status === "amarela" && isFinalizada && (
             <span className="flex items-center gap-1 text-[11px] font-bold text-[#FFC247] bg-[#FFC247]/15 border border-[#FFC247]/30 px-2.5 py-0.5 rounded-full">
-              <CheckCircle2 className="w-3.5 h-3.5" /> Acerto na 2ª Tentativa
+              <CheckCircle2 className="w-3.5 h-3.5" /> Acertou de Segunda
             </span>
           )}
           {status === "vermelha" && (
             <span className="flex items-center gap-1 text-[11px] font-bold text-[#F25F5C] bg-[#F25F5C]/15 border border-[#F25F5C]/30 px-2.5 py-0.5 rounded-full">
-              <XCircle className="w-3.5 h-3.5" /> Revisão
+              <XCircle className="w-3.5 h-3.5" /> Errou
             </span>
           )}
           {status === "aberta" && (
@@ -121,14 +100,14 @@ export default function PlurallQuestionCard({
         </div>
       </div>
 
-      {/* Enunciado da Questão (Stem) */}
+      {/* Enunciado da Questão */}
       <div className="text-sm sm:text-base font-medium text-[#EAF2F8] leading-relaxed">
         {questao.pergunta}
       </div>
 
-      {/* Banner de Dica Clínica no 1º Erro (Amarela) */}
-      {isPrimeiroErro && (
-        <div className="rounded-2xl border border-[#FFC247]/50 bg-[#FFC247]/10 p-3.5 sm:p-4 animate-in fade-in slide-in-from-top-2 duration-300">
+      {/* Banner de Dica Clínica sob Demanda (somente se hintVisible for true) */}
+      {isPrimeiroErro && hintVisible && (
+        <div className="rounded-2xl border border-[#FFC247]/50 bg-[#FFC247]/10 p-3.5 sm:p-4 animate-in fade-in duration-200">
           <div className="flex items-center gap-2 text-xs font-bold text-[#FFC247] uppercase tracking-wide mb-1">
             <Lightbulb className="w-4 h-4 fill-[#FFC247]" />
             Dica do Preceptor Goti
@@ -136,9 +115,6 @@ export default function PlurallQuestionCard({
           <p className="text-xs sm:text-sm text-[#EAF2F8] font-normal leading-relaxed">
             {questao.dica || "Analise com atenção as alternativas: pense nas prioridades de biossegurança e farmacocinética antes de responder novamente."}
           </p>
-          <div className="text-[11px] text-[#FFC247]/90 mt-2 font-mono font-semibold">
-            Selecione outra alternativa para confirmar sua 2ª tentativa.
-          </div>
         </div>
       )}
 
@@ -149,7 +125,6 @@ export default function PlurallQuestionCard({
           const isGabarito = idx === questao.correta;
           const jaTentouIncorreta = opcoesIncorretasTentadas.includes(idx);
 
-          // Estilização condicional baseada no status
           let optStyle = "bg-[#131F2E] border-[#1F3045] text-[#EAF2F8] hover:border-[#20D5B5]/60 hover:bg-[#16222E]";
           let letterStyle = "bg-[#1A293D] border-[#27394B] text-[#9FB3C6]";
 
@@ -164,16 +139,11 @@ export default function PlurallQuestionCard({
               optStyle = "bg-[#131F2E]/60 border-[#1F3045]/60 text-[#9FB3C6] opacity-60";
             }
           } else if (jaTentouIncorreta) {
-            // Opção tentada no 1º erro: desabilitada e marcada
             optStyle = "bg-[#F25F5C]/10 border-[#F25F5C]/30 text-[#9FB3C6] opacity-60 cursor-not-allowed";
             letterStyle = "bg-[#F25F5C]/20 border-[#F25F5C]/40 text-[#F25F5C] font-black line-through";
           } else if (isSelected) {
-            optStyle = "bg-[#20D5B5]/20 border-[#20D5B5] text-white shadow-md ring-2 ring-[#20D5B5] scale-[1.01]";
-            letterStyle = "bg-[#20D5B5] border-[#20D5B5] text-[#0E1722] font-black scale-105";
-          } else if (shakePrompt) {
-            // Destaque pulsante nas alternativas disponíveis quando o usuário tenta confirmar sem selecionar
-            optStyle = "bg-[#131F2E] border-[#FFC247] ring-1 ring-[#FFC247]/50 text-white animate-pulse";
-            letterStyle = "bg-[#FFC247]/20 border-[#FFC247] text-[#FFC247] font-bold";
+            optStyle = "bg-[#20D5B5]/20 border-[#20D5B5] text-white shadow-md ring-2 ring-[#20D5B5]";
+            letterStyle = "bg-[#20D5B5] border-[#20D5B5] text-[#0E1722] font-black";
           }
 
           const isDisabled = isFinalizada || jaTentouIncorreta;
@@ -184,13 +154,12 @@ export default function PlurallQuestionCard({
                 type="button"
                 disabled={isDisabled}
                 onClick={() => handleOptionClick(idx)}
-                className={`w-full text-left p-3 sm:p-3.5 rounded-2xl border transition-all flex items-start gap-3 cursor-pointer disabled:cursor-not-allowed active:scale-[0.99] ${optStyle}`}
+                className={`w-full text-left p-3 sm:p-3.5 rounded-2xl border transition-colors duration-150 flex items-start gap-3 cursor-pointer disabled:cursor-not-allowed active:scale-[0.99] ${optStyle}`}
                 aria-checked={isSelected}
                 role="radio"
               >
-                {/* Badge com a Letra da Alternativa */}
                 <span
-                  className={`w-7 h-7 rounded-xl border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-all ${letterStyle}`}
+                  className={`w-7 h-7 rounded-xl border flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${letterStyle}`}
                 >
                   {letras[idx]}
                 </span>
@@ -203,67 +172,28 @@ export default function PlurallQuestionCard({
         })}
       </ul>
 
-      {/* Ações Inferiores (Verificar / Continuar / Revisar) */}
+      {/* Ações Inferiores (Botão de Dica sob demanda e Avançar) */}
       <div className="pt-2 flex flex-col gap-3">
-        {/* Caso ainda não tenha finalizado a questão */}
-        {!isFinalizada && (
-          <div className="flex flex-col gap-2.5">
-            {/* Alerta animado de orientação se clicar sem selecionar */}
-            {alertaSelecao && (
-              <div className="p-3 rounded-2xl bg-[#FFC247]/15 border border-[#FFC247]/50 text-xs text-[#FFC247] flex items-center gap-2.5 animate-in fade-in slide-in-from-bottom-1">
-                <AlertCircle className="w-4 h-4 shrink-0 text-[#FFC247]" />
-                <span className="font-semibold">
-                  {isPrimeiroErro
-                    ? "Por favor, selecione outra alternativa acima antes de confirmar sua 2ª tentativa."
-                    : "Por favor, selecione uma alternativa acima antes de verificar a resposta."}
-                </span>
-              </div>
-            )}
-
-            <div className="flex items-center justify-end gap-2">
-              <button
-                type="button"
-                onClick={handleActionClick}
-                className={`w-full sm:w-auto px-6 py-3 rounded-2xl font-black text-xs sm:text-sm transition-all duration-200 shadow-md flex items-center justify-center gap-2 cursor-pointer active:scale-98 ${
-                  shakePrompt ? "animate-bounce ring-2 ring-[#FFC247]" : ""
-                } ${
-                  selectedChoice !== null && !opcoesIncorretasTentadas.includes(selectedChoice)
-                    ? isPrimeiroErro
-                      ? "bg-[#20D5B5] hover:bg-[#20D5B5]/90 text-[#0E1722] ring-2 ring-[#20D5B5]/50 shadow-[#20D5B5]/20 animate-pulse"
-                      : "bg-[#20D5B5] hover:bg-[#20D5B5]/90 text-[#0E1722] shadow-[#20D5B5]/20"
-                    : isPrimeiroErro
-                    ? "bg-[#1A293D] hover:bg-[#22354E] text-[#FFC247] border border-[#FFC247]/40 shadow-xs"
-                    : "bg-[#16222E] hover:bg-[#1E2E3E] text-[#9FB3C6] border border-[#27394B]"
-                }`}
-              >
-                {selectedChoice !== null && !opcoesIncorretasTentadas.includes(selectedChoice) ? (
-                  isPrimeiroErro ? (
-                    <>
-                      <RotateCcw className="w-4 h-4 text-[#0E1722]" /> Confirmar 2ª Tentativa (Opção {letras[selectedChoice]}) ➔
-                    </>
-                  ) : (
-                    <>
-                      <CheckCircle2 className="w-4 h-4 text-[#0E1722]" /> Verificar Resposta (Opção {letras[selectedChoice]}) ➔
-                    </>
-                  )
-                ) : isPrimeiroErro ? (
-                  <>
-                    <RotateCcw className="w-4 h-4 text-[#FFC247]" /> 👉 Escolha uma Alternativa para Confirmar
-                  </>
-                ) : (
-                  <>
-                    <CheckCircle2 className="w-4 h-4 text-[#9FB3C6]" /> 👉 Selecione uma Alternativa
-                  </>
-                )}
-              </button>
-            </div>
+        {/* Botão de Dica Sob Demanda no 1º Erro */}
+        {isPrimeiroErro && (
+          <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#1F3045]/60">
+            <button
+              type="button"
+              onClick={onToggleHint}
+              className="px-4 py-2.5 rounded-xl border border-[#FFC247]/40 bg-[#FFC247]/10 hover:bg-[#FFC247]/20 text-[#FFC247] text-xs font-bold transition flex items-center gap-1.5 cursor-pointer"
+            >
+              <Lightbulb className="w-4 h-4 fill-[#FFC247]" />
+              {hintVisible ? "Ocultar Dica" : "Ver Dica do Preceptor Goti"}
+            </button>
+            <span className="text-[11px] text-[#9FB3C6] font-semibold">
+              Selecione outra alternativa acima
+            </span>
           </div>
         )}
 
         {/* Caso já tenha finalizado a questão */}
         {isFinalizada && (
           <div className="space-y-3">
-            {/* Linha com Botão Revisar e Botão Próxima */}
             <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#1F3045]/60">
               <button
                 type="button"
@@ -271,7 +201,7 @@ export default function PlurallQuestionCard({
                 className="px-4 py-2.5 rounded-xl border border-[#27394B] bg-[#16222E] hover:bg-[#1A293D] text-xs font-bold text-[#EAF2F8] hover:text-[#20D5B5] transition flex items-center gap-1.5 cursor-pointer"
               >
                 <HelpCircle className="w-4 h-4 text-[#20D5B5]" />
-                {revisaoAberta ? "Ocultar Revisão" : "Revisar Alternativas"}
+                {revisaoAberta ? "Ocultar Resolução" : "Ver Resolução Completa"}
                 {revisaoAberta ? (
                   <ChevronUp className="w-3.5 h-3.5" />
                 ) : (
@@ -291,12 +221,11 @@ export default function PlurallQuestionCard({
               )}
             </div>
 
-            {/* Gaveta de Revisão Alternativa por Alternativa (com Letras Vermelhas e Verdes) */}
             {revisaoAberta && (
               <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-3 animate-in fade-in duration-200">
                 <div className="text-xs font-bold text-white uppercase tracking-wider border-b border-[#1F3045] pb-2 flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-[#20D5B5]" />
-                  Comentário Clínico Manual Alternativa por Alternativa
+                  Comentário Clínico Alternativa por Alternativa
                 </div>
 
                 <div className="space-y-3">
@@ -330,7 +259,6 @@ export default function PlurallQuestionCard({
                         )}
                       </div>
 
-                      {/* Texto da Justificativa com Letras Coloridas para Erros e Acertos */}
                       <p className="text-xs text-[#EAF2F8] pl-0.5">
                         {alt.explicacao}
                       </p>

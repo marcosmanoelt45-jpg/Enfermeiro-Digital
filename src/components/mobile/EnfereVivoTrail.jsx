@@ -14,23 +14,29 @@ import {
 import { useTheme } from "@/lib/ThemeContext";
 import { useAuth } from "@/lib/AuthContext";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
+import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 
-/**
- * EnfereVivoTrail · Tela Inicial do Hub do Estudante (Mobile-First)
- * - Topbar: Avatar circular ciano, Ofensiva (🔥 3 dias), PE (⚡ 120 PE)
- * - Saudação: Mascote Goti em destaque ampliado + "Olá, {userName}" + "Pronto para a prática clínica hoje?"
- * - Meta do dia: "1 de 3 atividades hoje" com barra de progresso ciano
- * - Card Continuar de Onde Parou Dinâmico (ou Boas-vindas "Comece por aqui" para novos usuários)
- * - Sugestões de Hoje: Atendimento por Voz (NOVO) e módulos recomendados
- * - Rodapé com autoria oficial
- */
-export default function EnfereVivoTrail({ userName = "Marcos", onOpenAIChat }) {
+export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }) {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { triggerHaptic } = useTheme();
 
-  const userInitial = userName && userName.trim() ? userName.trim().charAt(0).toUpperCase() : "M";
+  const userInitial = userName && userName.trim() ? userName.trim().charAt(0).toUpperCase() : "E";
+
+  const gameState = useMemo(() => clinicalGamificationService.getState(user?.id), [user?.id]);
+  const todayActivitiesCount = useMemo(() => {
+    const all = clinicalHistoryService.getAllActivities("all", user?.id);
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    return all.filter((a) => {
+      if (!a?.completedAt) return false;
+      const d = new Date(a.completedAt);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return k === todayKey;
+    }).length;
+  }, [user?.id]);
+  const dailyGoalPercent = Math.min(100, Math.round((todayActivitiesCount / 3) * 100));
 
   // Busca a última atividade em andamento no histórico individual do usuário
   const latestActivity = useMemo(() => {
@@ -122,16 +128,16 @@ export default function EnfereVivoTrail({ userName = "Marcos", onOpenAIChat }) {
 
         {/* Chips de Ofensiva e PE */}
         <div className="flex items-center gap-2">
-          {/* Chip Ofensiva (🔥 3 dias) */}
+          {/* Chip Ofensiva */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-xs font-black shadow-xs">
             <Flame className="w-4 h-4 fill-current text-[#FFC247]" />
-            <span>3 dias</span>
+            <span>{gameState.streak || 0} dias</span>
           </div>
 
-          {/* Chip PE (⚡ 120 PE) */}
+          {/* Chip PE */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-xs font-black shadow-xs">
             <Zap className="w-4 h-4 fill-current text-[#20D5B5]" />
-            <span>120 PE</span>
+            <span>{gameState.studyPoints ?? 0} PE</span>
           </div>
         </div>
       </div>
@@ -171,12 +177,12 @@ export default function EnfereVivoTrail({ userName = "Marcos", onOpenAIChat }) {
       <div className="space-y-1.5 px-0.5">
         <div className="flex items-center justify-between text-xs font-extrabold">
           <span className="text-[#EAF2F8]">Meta do dia</span>
-          <span className="text-[#9FB3C6]">1 de 3 atividades hoje</span>
+          <span className="text-[#9FB3C6]">{todayActivitiesCount} de 3 atividades hoje</span>
         </div>
         <div className="h-2.5 w-full bg-[#16222E] border border-[#27394B] rounded-full overflow-hidden p-0.5">
           <div
             className="h-full bg-gradient-to-r from-[#1FC7B6] to-[#20D5B5] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(32,213,181,0.4)]"
-            style={{ width: "35%" }}
+            style={{ width: `${dailyGoalPercent}%` }}
           />
         </div>
       </div>

@@ -14,11 +14,15 @@ const safeGetEnv = (key) => {
   return '';
 };
 
-const rawEnvUrl = safeGetEnv('VITE_SUPABASE_URL');
-const supabaseAnonKey = safeGetEnv('VITE_SUPABASE_ANON_KEY') || 'placeholder-anon-key';
-
 const CANONICAL_SUPABASE_REF = 'xwqgyvqofxdqdbhltdzf';
 const CANONICAL_SUPABASE_URL = `https://${CANONICAL_SUPABASE_REF}.supabase.co`;
+const CANONICAL_SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inh3cWd5dnFvZnhkcWRiaGx0ZHpmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3OTE3MjkxMzEsImV4cCI6MjEwNzMwNTEzMX0.VnUFG1QLb2UZ8DHrBhHZDqX_YLuA3EVBkgC69yPOUcc';
+
+const rawEnvUrl = safeGetEnv('VITE_SUPABASE_URL');
+const rawAnonKey = safeGetEnv('VITE_SUPABASE_ANON_KEY');
+const supabaseAnonKey = (rawAnonKey && !rawAnonKey.includes('placeholder') && !rawAnonKey.includes('sua-chave'))
+  ? rawAnonKey
+  : CANONICAL_SUPABASE_ANON_KEY;
 
 /**
  * Normaliza e protege a URL do Supabase contra erros de digitação de DNS

@@ -13,3 +13,4 @@ if ('caches' in window) {
     }
   }).catch(function () {});
 }
+

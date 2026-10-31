@@ -25,6 +25,30 @@ import { getDosageProblems } from "@/data/dosageProblems";
 import { generateProceduralDosageProblem } from "@/services/proceduralDosageGenerator";
 
 const INITIAL_PROBLEMS = getDosageProblems();
+const DOSAGE_SOLVED_KEY = "enfere_dosage_solved_ids_v1";
+
+function getSolvedDosageIds(userId) {
+  try {
+    if (typeof localStorage === "undefined") return new Set();
+    const cleanId = userId ? String(userId).replace(/[^a-zA-Z0-9_-]/g, "_") : "anon";
+    const raw = localStorage.getItem(`${DOSAGE_SOLVED_KEY}_${cleanId}`);
+    return raw ? new Set(JSON.parse(raw)) : new Set();
+  } catch {
+    return new Set();
+  }
+}
+
+function markDosageIdSolved(id, userId) {
+  try {
+    if (typeof localStorage === "undefined" || !id) return;
+    const cleanId = userId ? String(userId).replace(/[^a-zA-Z0-9_-]/g, "_") : "anon";
+    const k = `${DOSAGE_SOLVED_KEY}_${cleanId}`;
+    const raw = localStorage.getItem(k);
+    const set = raw ? new Set(JSON.parse(raw)) : new Set();
+    set.add(String(id));
+    localStorage.setItem(k, JSON.stringify(Array.from(set)));
+  } catch {}
+}
 
 
 const CALC_TYPES = [
@@ -145,11 +169,25 @@ export default function MedicationDosageLab() {
   }
 
   function handleRandomProblem() {
-    let nextIdx = Math.floor(Math.random() * problemsList.length);
-    if (nextIdx === selectedIdx && problemsList.length > 1) {
-      nextIdx = (selectedIdx + 1) % problemsList.length;
+    const solvedSet = getSolvedDosageIds(user?.id);
+    const unSolvedIndices = [];
+    problemsList.forEach((p, i) => {
+      if (!solvedSet.has(String(p.id)) && i !== selectedIdx) {
+        unSolvedIndices.push(i);
+      }
+    });
+
+    if (unSolvedIndices.length > 0) {
+      const pick = unSolvedIndices[Math.floor(Math.random() * unSolvedIndices.length)];
+      setSelectedIdx(pick);
+    } else {
+      // Se já resolveu todas do banco estático, gera procedural automaticamente para nunca repetir!
+      const newProblem = generateProceduralDosageProblem();
+      setProblemsList((prev) => [newProblem, ...prev]);
+      setSelectedIdx(0);
+      setToastMessage("🎉 Você concluiu todos os problemas do banco! Geramos um desafio inédito.");
+      setTimeout(() => setToastMessage(""), 3500);
     }
-    setSelectedIdx(nextIdx);
     handleReset();
   }
 
@@ -211,6 +249,8 @@ export default function MedicationDosageLab() {
         clinicalGamificationService.registrarErroVermelhoQuestao(user?.id);
       }
 
+      markDosageIdSolved(problem.id, user?.id);
+
       clinicalHistoryService.submitActivity({
         id: currentActivityId,
         moduleType: MODULE_TYPES.DOSAGE,
@@ -220,7 +260,7 @@ export default function MedicationDosageLab() {
         score: isCorrect ? 100 : 50,
         evaluation: res.feedback,
         userId: user?.id,
-        formData: { selectedIdx, studentInput, selectedOption, isCorrect }
+        formData: { selectedIdx, problemId: problem.id, studentInput, selectedOption, isCorrect }
       });
     } finally {
       setEvaluating(false);

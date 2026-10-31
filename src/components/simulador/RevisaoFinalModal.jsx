@@ -63,7 +63,7 @@ export default function RevisaoFinalModal({
               {acertos}
             </span>
             <span className="text-[11px] font-bold text-[#9FB3C6] uppercase">
-              Acertos (1ª)
+              Acertou de primeira
             </span>
           </div>
           <div className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] text-center">
@@ -71,7 +71,7 @@ export default function RevisaoFinalModal({
               {amarelas}
             </span>
             <span className="text-[11px] font-bold text-[#9FB3C6] uppercase">
-              1º Erro (Dica)
+              Acertou de segunda
             </span>
           </div>
           <div className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] text-center">
@@ -79,7 +79,7 @@ export default function RevisaoFinalModal({
               {vermelhas}
             </span>
             <span className="text-[11px] font-bold text-[#9FB3C6] uppercase">
-              2º Erro / Revisão
+              Errou
             </span>
           </div>
           <div className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] text-center">
@@ -157,12 +157,12 @@ export default function RevisaoFinalModal({
                       )}
                       {q.status === "amarela" && (
                         <span className="text-[10px] font-bold text-[#FFC247] bg-[#FFC247]/15 border border-[#FFC247]/30 px-2 py-0.2 rounded-full">
-                          1º Erro (Amarela)
+                          Acertou de segunda
                         </span>
                       )}
                       {q.status === "vermelha" && (
                         <span className="text-[10px] font-bold text-[#F25F5C] bg-[#F25F5C]/15 border border-[#F25F5C]/30 px-2 py-0.2 rounded-full">
-                          2º Erro (Vermelha)
+                          Errou
                         </span>
                       )}
                     </div>

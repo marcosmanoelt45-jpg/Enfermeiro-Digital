@@ -16,6 +16,7 @@ import StudentFooter from "@/components/StudentFooter";
 import { useAuth } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/ThemeContext";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
+import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 
 import EnfereVivoTrail from "@/components/mobile/EnfereVivoTrail";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
@@ -25,7 +26,21 @@ export default function StudentDashboard() {
   const { user } = useAuth();
   const { triggerHaptic } = useTheme();
 
-  const cleanUserName = user?.name ? user.name.split(" ")[0] : (user?.full_name ? user.full_name.split(" ")[0] : "Marcos");
+  const cleanUserName = user?.name ? user.name.split(" ")[0] : (user?.full_name ? user.full_name.split(" ")[0] : "Estudante");
+
+  const gameState = useMemo(() => clinicalGamificationService.getState(user?.id), [user?.id]);
+  const todayActivitiesCount = useMemo(() => {
+    const all = clinicalHistoryService.getAllActivities("all", user?.id);
+    const now = new Date();
+    const todayKey = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+    return all.filter((a) => {
+      if (!a?.completedAt) return false;
+      const d = new Date(a.completedAt);
+      const k = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+      return k === todayKey;
+    }).length;
+  }, [user?.id]);
+  const dailyGoalPercent = Math.min(100, Math.round((todayActivitiesCount / 3) * 100));
 
   // Busca a última atividade em andamento no histórico do usuário
   const latestActivity = useMemo(() => {
@@ -160,10 +175,10 @@ export default function StudentDashboard() {
                   <div className="h-2.5 w-48 bg-[#16222E] border border-[#27394B] rounded-full overflow-hidden p-0.5">
                     <div
                       className="h-full bg-gradient-to-r from-[#1FC7B6] to-[#20D5B5] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(32,213,181,0.4)]"
-                      style={{ width: "35%" }}
+                      style={{ width: `${dailyGoalPercent}%` }}
                     />
                   </div>
-                  <span className="text-xs font-bold text-[#9FB3C6]">1 de 3 atividades</span>
+                  <span className="text-xs font-bold text-[#9FB3C6]">{todayActivitiesCount} de 3 atividades</span>
                 </div>
               </div>
             </div>
@@ -172,11 +187,11 @@ export default function StudentDashboard() {
             <div className="flex items-center gap-3 z-10">
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-sm font-black shadow-sm">
                 <Flame className="w-5 h-5 fill-current text-[#FFC247]" />
-                <span>3 dias seguidos</span>
+                <span>{gameState.streak || 0} dias seguidos</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-sm font-black shadow-sm">
                 <Zap className="w-5 h-5 fill-current text-[#20D5B5]" />
-                <span>120 PE</span>
+                <span>{gameState.studyPoints ?? 0} PE</span>
               </div>
             </div>
           </div>

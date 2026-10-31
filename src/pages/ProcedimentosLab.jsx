@@ -17,6 +17,8 @@ import ProcedureChecklist from '@/components/procedures/ProcedureChecklist';
 import ProcedureSafetyAlerts from '@/components/procedures/ProcedureSafetyAlerts';
 import ProcedureAIChat from '@/components/procedures/ProcedureAIChat';
 import MobileBottomDock from '@/components/mobile/MobileBottomDock';
+import CaseHistoryModal from '@/components/history/CaseHistoryModal';
+import { History } from 'lucide-react';
 
 export default function ProcedimentosLab() {
   const { triggerHaptic } = useTheme();
@@ -25,6 +27,7 @@ export default function ProcedimentosLab() {
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeProcedure, setActiveProcedure] = useState(null);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
 
   const categoriesRef = useRef(null);
   const isDraggingRef = useRef(false);
@@ -236,8 +239,18 @@ export default function ProcedimentosLab() {
             </div>
 
             {/* Contador de Assistidos */}
-            <div className="text-xs font-bold text-[#20D5B5]">
-              {watchedIds.length} de {procedures.length} vídeos assistidos
+            <div className="flex items-center justify-between gap-2">
+              <div className="text-xs font-bold text-[#20D5B5]">
+                {watchedIds.length} de {procedures.length} vídeos assistidos
+              </div>
+              <button
+                type="button"
+                onClick={() => setIsHistoryOpen(true)}
+                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#27394B] bg-[#16222E] text-xs font-bold text-[#20D5B5] hover:bg-[#1F3045] transition cursor-pointer"
+              >
+                <History className="w-3.5 h-3.5" />
+                <span>Histórico de Treinamentos</span>
+              </button>
             </div>
 
             {/* Chips de Categorias Deslizáveis */}
@@ -330,6 +343,13 @@ export default function ProcedimentosLab() {
 
       <StudentFooter />
       <MobileBottomDock />
+
+      {/* Modal de Histórico de Treinamentos */}
+      <CaseHistoryModal
+        isOpen={isHistoryOpen}
+        onClose={() => setIsHistoryOpen(false)}
+        defaultCategory="procedimentos"
+      />
     </div>
   );
 }

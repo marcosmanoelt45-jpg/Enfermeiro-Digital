@@ -264,86 +264,110 @@ export default function Conta() {
           </div>
 
           {/* Grid 2x2 com as Métricas Individuais Reais da Conta */}
-          <div className="grid grid-cols-2 gap-3">
-            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
-              <div className="text-2xl font-black text-[#20D5B5]">
-                {clinicalHistoryService.getAllActivities("all", user?.id).length || gameState.solvedCases || 0}
-              </div>
-              <div className="text-xs font-semibold text-[#9FB3C6]">
-                Casos resolvidos
-              </div>
-            </div>
+          {(() => {
+            const userActivities = clinicalHistoryService.getAllActivities("all", user?.id);
+            const summaryStats = clinicalHistoryService.getSummaryStats(user?.id);
+            const realCasesCount = userActivities.length || gameState.solvedCases || 0;
+            const realAccuracy = userActivities.length > 0
+              ? summaryStats.avgScore
+              : (gameState.solvedCases > 0 ? (gameState.accuracyRate || 0) : 0);
+            const levelInfo = clinicalGamificationService.getLevelInfo(gameState.studyPoints ?? gameState.totalXp ?? 0);
+            const weeklyPeTotal = (gameState.weeklyDays || []).reduce((acc, d) => acc + (Number(d.xp) || 0), 0);
+            const activeWeeklyDays = (gameState.weeklyDays || []).filter((d) => d.completed || (Number(d.xp) || 0) > 0).length;
 
-            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
-              <div className="text-2xl font-black text-[#20D5B5]">
-                {clinicalHistoryService.getSummaryStats(user?.id).avgScore > 0
-                  ? `${clinicalHistoryService.getSummaryStats(user?.id).avgScore}%`
-                  : `${gameState.accuracyRate || 100}%`}
-              </div>
-              <div className="text-xs font-semibold text-[#9FB3C6]">
-                Acurácia diagnóstica
-              </div>
-            </div>
+            return (
+              <>
+                <div className="grid grid-cols-2 gap-3">
+                  <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+                    <div className="text-2xl font-black text-[#20D5B5]">
+                      {realCasesCount}
+                    </div>
+                    <div className="text-xs font-semibold text-[#9FB3C6]">
+                      Atividades concluídas
+                    </div>
+                  </div>
 
-            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
-              <div className="text-2xl font-black text-[#FFC247]">
-                {gameState.streak || 0}
-              </div>
-              <div className="text-xs font-semibold text-[#9FB3C6]">
-                Dias de ofensiva
-              </div>
-            </div>
+                  <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+                    <div className="text-2xl font-black text-[#20D5B5]">
+                      {`${realAccuracy}%`}
+                    </div>
+                    <div className="text-xs font-semibold text-[#9FB3C6]">
+                      Acurácia diagnóstica
+                    </div>
+                  </div>
 
-            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
-              <div className="text-2xl font-black text-[#20D5B5]">
-                {gameState.acertosSeguidos || 0}
-              </div>
-              <div className="text-xs font-semibold text-[#9FB3C6]">
-                Acertos seguidos
-              </div>
-            </div>
-          </div>
+                  <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+                    <div className="text-2xl font-black text-[#FFC247]">
+                      {gameState.streak || 0}
+                    </div>
+                    <div className="text-xs font-semibold text-[#9FB3C6]">
+                      Dias de ofensiva
+                    </div>
+                  </div>
 
-          {/* Card de Nível do Estudante */}
-          <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-2.5">
-            <div className="text-xs font-black text-[#20D5B5] uppercase tracking-wide">
-              NÍVEL 1 · Recruta de Enfermagem
-            </div>
-            <div className="w-full h-2 rounded-full bg-[#0E1722] overflow-hidden">
-              <div className="h-full bg-[#20D5B5] rounded-full w-[60%]" />
-            </div>
-          </div>
-
-          {/* Dedicação semanal com dados de atividade real */}
-          <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
-            <button
-              type="button"
-              onClick={() => {
-                triggerHaptic(15);
-                setOpenDedication((prev) => !prev);
-              }}
-              className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
-            >
-              <div>
-                <div className="text-xs sm:text-sm font-bold text-white">
-                  Dedicação semanal
+                  <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-1">
+                    <div className="text-2xl font-black text-[#20D5B5]">
+                      {gameState.acertosSeguidos || 0}
+                    </div>
+                    <div className="text-xs font-semibold text-[#9FB3C6]">
+                      Acertos seguidos
+                    </div>
+                  </div>
                 </div>
-                <div className="text-[11px] text-[#9FB3C6]">
-                  {gameState.studyPoints ?? 0} PE acumulados na escala
+
+                {/* Card de Nível do Estudante (Real por Conta) */}
+                <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-2.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="text-xs font-black text-[#20D5B5] uppercase tracking-wide">
+                      NÍVEL {levelInfo.current.level} · {levelInfo.current.title}
+                    </div>
+                    <span className="text-[11px] font-bold text-[#9FB3C6]">
+                      {levelInfo.next
+                        ? `Faltam ${levelInfo.xpToNext} PE p/ Nível ${levelInfo.next.level}`
+                        : "Nível Máximo"}
+                    </span>
+                  </div>
+                  <div className="w-full h-2 rounded-full bg-[#0E1722] overflow-hidden">
+                    <div
+                      className="h-full bg-[#20D5B5] rounded-full transition-all duration-300"
+                      style={{ width: `${Math.max(4, levelInfo.progressPercent)}%` }}
+                    />
+                  </div>
                 </div>
-              </div>
-              {openDedication ? (
-                <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
-              ) : (
-                <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
-              )}
-            </button>
-            {openDedication && (
-              <div className="p-4 pt-0 border-t border-[#1F3045]/60">
-                <WeeklyActivityChart weeklyDays={gameState.weeklyDays} />
-              </div>
-            )}
-          </div>
+
+                {/* Dedicação semanal com dados de atividade real */}
+                <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
+                  <button
+                    type="button"
+                    onClick={() => {
+                      triggerHaptic(15);
+                      setOpenDedication((prev) => !prev);
+                    }}
+                    className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition"
+                  >
+                    <div>
+                      <div className="text-xs sm:text-sm font-bold text-white">
+                        Dedicação semanal
+                      </div>
+                      <div className="text-[11px] text-[#9FB3C6]">
+                        {weeklyPeTotal} PE nos últimos 7 dias · {activeWeeklyDays}/7 dias ativos
+                      </div>
+                    </div>
+                    {openDedication ? (
+                      <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
+                    ) : (
+                      <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
+                    )}
+                  </button>
+                  {openDedication && (
+                    <div className="p-4 pt-0 border-t border-[#1F3045]/60">
+                      <WeeklyActivityChart weeklyDays={gameState.weeklyDays} />
+                    </div>
+                  )}
+                </div>
+              </>
+            );
+          })()}
 
           {/* Card de Congelamento de Plantão (Informativo, sem compra) */}
           <div className="pt-1">

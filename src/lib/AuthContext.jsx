@@ -56,16 +56,32 @@ export const AuthProvider = ({ children }) => {
           session.user.user_metadata?.name ||
           session.user.email?.split('@')[0] ||
           'Estudante de Enfermagem';
-        setUser((prev) => prev || {
+        const immediateUser = {
           ...session.user,
+          id: session.user.id,
+          email: session.user.email,
           name: fallbackName,
           full_name: fallbackName,
+          avatar_url: session.user.user_metadata?.avatar_url || session.user.user_metadata?.picture || '',
           role: session.user.user_metadata?.user_type || 'aluno',
           user_type: session.user.user_metadata?.user_type || 'aluno',
-        });
+        };
+        try {
+          if (typeof localStorage !== 'undefined') {
+            localStorage.setItem('enfermeiro_digital_local_user', JSON.stringify(immediateUser));
+          }
+        } catch {}
+        setUser((prev) => prev || immediateUser);
         setIsAuthenticated(true);
         setIsLoadingAuth(false);
         setAuthChecked(true);
+
+        // Limpa o hash de OAuth da barra de endereço após processar o token
+        if (typeof window !== 'undefined' && window.location.hash && window.location.hash.includes('access_token=')) {
+          try {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          } catch {}
+        }
 
         const fullUser = await authService.getCurrentUser();
         if (fullUser) {
@@ -85,12 +101,26 @@ export const AuthProvider = ({ children }) => {
   }, []);
 
   const checkUserAuth = async () => {
+    const hasOAuthUrlParams = typeof window !== 'undefined' && (
+      (window.location.hash || '').includes('access_token=') ||
+      (window.location.search || '').includes('code=')
+    );
     try {
       setIsLoadingAuth(true);
-      const currentUser = await authService.getCurrentUser();
+      let currentUser = await authService.getCurrentUser();
+      // Se acabou de voltar do redirecionamento OAuth e o GoTrue ainda está trocando o token, aguarda brevemente
+      if (!currentUser && hasOAuthUrlParams) {
+        await new Promise((r) => setTimeout(r, 600));
+        currentUser = await authService.getCurrentUser();
+      }
       if (currentUser) {
         setUser(currentUser);
         setIsAuthenticated(true);
+        if (typeof window !== 'undefined' && window.location.hash && window.location.hash.includes('access_token=')) {
+          try {
+            window.history.replaceState(null, '', window.location.pathname + window.location.search);
+          } catch {}
+        }
       } else {
         setUser(null);
         setIsAuthenticated(false);

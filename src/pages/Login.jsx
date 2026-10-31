@@ -23,12 +23,19 @@ export default function Login() {
   const urlParams = typeof window !== "undefined"
     ? new URLSearchParams(window.location.search)
     : null;
+  const hashParams = typeof window !== "undefined" && window.location.hash
+    ? new URLSearchParams(window.location.hash.replace(/^#/, ""))
+    : null;
   const isRegistered = urlParams?.get("registered") === "true";
   const initialEmail = urlParams?.get("email") || "";
+  const oauthErrorMsg =
+    urlParams?.get("error_description") ||
+    hashParams?.get("error_description") ||
+    "";
 
   const [email, setEmail] = useState(initialEmail);
   const [password, setPassword] = useState("");
-  const [error, setError] = useState("");
+  const [error, setError] = useState(oauthErrorMsg ? decodeURIComponent(oauthErrorMsg.replace(/\+/g, " ")) : "");
   const [loading, setLoading] = useState(false);
   const [googleLoading, setGoogleLoading] = useState(false);
 

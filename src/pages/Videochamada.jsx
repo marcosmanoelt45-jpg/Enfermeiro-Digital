@@ -21,6 +21,8 @@ import FalaLegendaBubble from "@/components/simulador/FalaLegendaBubble";
 import PlurallTopBar from "@/components/simulador/PlurallTopBar";
 import PlurallQuestionCard from "@/components/simulador/PlurallQuestionCard";
 import RevisaoFinalModal from "@/components/simulador/RevisaoFinalModal";
+import CaseHistoryModal from "@/components/history/CaseHistoryModal";
+import { History } from "lucide-react";
 
 export const TOPICOS_PRATICA = [
   {
@@ -75,6 +77,7 @@ export default function Videochamada() {
   // Controle de Visualização: 'selecao' (Aba de Pesquisa Exclusiva) ou 'sessao' (Atendimento Ativo)
   const [emSessao, setEmSessao] = useState(false);
   const [modalRevisaoFinalAberto, setModalRevisaoFinalAberto] = useState(false);
+  const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [resumoFinal, setResumoFinal] = useState(null);
 
   // Estados da Aba de Pesquisa e Seleção de Prática
@@ -485,9 +488,19 @@ export default function Videochamada() {
                 <ArrowLeft className="w-4 h-4" />
                 <span className="text-xs font-bold">Voltar ao Início</span>
               </button>
-              <span className="text-xs font-mono font-bold text-[#20D5B5] bg-[#20D5B5]/10 border border-[#20D5B5]/20 px-2.5 py-1 rounded-full uppercase tracking-wider">
-                Simulador Clínico
-              </span>
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsHistoryOpen(true)}
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#27394B] bg-[#16222E] text-xs font-bold text-[#20D5B5] hover:bg-[#1F3045] transition cursor-pointer"
+                >
+                  <History className="w-3.5 h-3.5" />
+                  <span>Histórico</span>
+                </button>
+                <span className="text-xs font-mono font-bold text-[#20D5B5] bg-[#20D5B5]/10 border border-[#20D5B5]/20 px-2.5 py-1 rounded-full uppercase tracking-wider">
+                  Simulador Clínico
+                </span>
+              </div>
             </header>
 
             {/* Título Principal */}
@@ -639,6 +652,13 @@ export default function Videochamada() {
               </button>
             </div>
           </div>
+          <CaseHistoryModal
+            isOpen={isHistoryOpen}
+            onClose={() => setIsHistoryOpen(false)}
+            defaultModuleFilter="videochamada"
+            lockModuleFilter={true}
+            title="Histórico de Atendimentos por Voz"
+          />
         </div>
       </div>
     );
@@ -688,32 +708,54 @@ export default function Videochamada() {
               className="w-full text-center"
             />
 
-            {/* Controles de Repetir e Pular Áudio */}
-            <div className="flex items-center justify-between px-1">
-              <div className="flex items-center gap-1.5 text-xs text-[#9FB3C6]">
-                <span className="w-2 h-2 rounded-full bg-[#20D5B5] animate-pulse" />
-                <span className="font-bold text-[#EAF2F8]">
-                  {PACIENTES[pacienteId]?.nome || "Paciente"}
-                </span>
-                <span>· {modalidadeAtiva}</span>
+            {/* Botões Clicáveis e Funcionais para Navegar por Todas as Questões a Qualquer Hora */}
+            <div className="flex items-center justify-between gap-2 px-1 py-1.5 border-y border-[#1F3045]/60 my-1 bg-[#131F2E]/40 rounded-xl">
+              <div className="flex items-center gap-1.5 overflow-x-auto py-0.5 scrollbar-none flex-1">
+                {todasQuestoes.map((_, qIdx) => {
+                  const qNum = qIdx + 1;
+                  const st = questaoStates[qNum] || { status: "aberta", isFinalizada: false };
+                  const isCurrent = stepIndex === qNum;
+                  let dotColor = "bg-[#1A293D] text-[#9FB3C6] border-[#27394B]";
+                  if (st.status === "verde") dotColor = "bg-[#20D5B5] text-[#0E1722] border-[#20D5B5] font-black";
+                  else if (st.status === "amarela" && st.isFinalizada) dotColor = "bg-[#FFC247] text-[#0E1722] border-[#FFC247] font-black";
+                  else if (st.status === "amarela" && !st.isFinalizada) dotColor = "bg-[#FFC247]/20 text-[#FFC247] border-[#FFC247] font-bold";
+                  else if (st.status === "vermelha") dotColor = "bg-[#F25F5C] text-white border-[#F25F5C] font-black";
+
+                  return (
+                    <button
+                      key={qNum}
+                      type="button"
+                      onClick={() => {
+                        pararFala();
+                        setStepIndex(qNum);
+                      }}
+                      className={`w-7 h-7 rounded-lg border text-xs font-mono flex items-center justify-center shrink-0 transition cursor-pointer ${dotColor} ${
+                        isCurrent ? "ring-2 ring-white scale-105 shadow-md" : "hover:border-white/50"
+                      }`}
+                      title={`Ir para Questão ${qNum}`}
+                    >
+                      {qNum}
+                    </button>
+                  );
+                })}
               </div>
-              <div className="flex items-center gap-1.5">
+              <div className="flex items-center gap-1 shrink-0">
                 <button
                   type="button"
                   onClick={handleRepetirFala}
-                  className="px-2.5 py-1 rounded-lg border border-[#27394B] bg-[#16222E] text-[11px] font-bold text-[#9FB3C6] hover:text-[#20D5B5] flex items-center gap-1 transition cursor-pointer"
+                  className="px-2 py-1 rounded-lg border border-[#27394B] bg-[#16222E] text-[11px] font-bold text-[#9FB3C6] hover:text-[#20D5B5] flex items-center gap-1 transition cursor-pointer"
                   title="Ouvir pergunta novamente"
                 >
-                  <RotateCcw className="w-3 h-3" /> Repetir
+                  <RotateCcw className="w-3 h-3" />
                 </button>
                 {isSpeaking && (
                   <button
                     type="button"
                     onClick={handlePularFala}
-                    className="px-2.5 py-1 rounded-lg border border-[#27394B] bg-[#16222E] text-[11px] font-bold text-[#9FB3C6] hover:text-white flex items-center gap-1 transition cursor-pointer"
+                    className="px-2 py-1 rounded-lg border border-[#27394B] bg-[#16222E] text-[11px] font-bold text-[#9FB3C6] hover:text-white flex items-center gap-1 transition cursor-pointer"
                     title="Pular áudio"
                   >
-                    <SkipForward className="w-3 h-3" /> Pular
+                    <SkipForward className="w-3 h-3" />
                   </button>
                 )}
               </div>
@@ -739,7 +781,7 @@ export default function Videochamada() {
             </div>
           )}
 
-          {/* Card da Questão Plurall (5 alternativas, Dica 1º erro, Gabarito 2º erro, Botão Revisão com cores) */}
+          {/* Card da Questão Plurall com Dica sob demanda e Bloqueio após resposta */}
           {questaoAtual && (
             <PlurallQuestionCard
               questao={questaoAtual}
@@ -755,6 +797,16 @@ export default function Videochamada() {
               onProxima={handleProximaQuestao}
               isReadOnly={isReadOnly}
               isLastQuestion={stepIndex === totalQuestoes}
+              hintVisible={Boolean(questaoStates[stepIndex]?.hintVisible)}
+              onToggleHint={() => {
+                setQuestaoStates((prev) => ({
+                  ...prev,
+                  [stepIndex]: {
+                    ...prev[stepIndex],
+                    hintVisible: !prev[stepIndex]?.hintVisible
+                  }
+                }));
+              }}
             />
           )}
         </main>
@@ -779,6 +831,13 @@ export default function Videochamada() {
             setModalRevisaoFinalAberto(false);
             navigate("/");
           }}
+        />
+        <CaseHistoryModal
+          isOpen={isHistoryOpen}
+          onClose={() => setIsHistoryOpen(false)}
+          defaultModuleFilter="videochamada"
+          lockModuleFilter={true}
+          title="Histórico de Atendimentos por Voz"
         />
       </div>
     </div>
