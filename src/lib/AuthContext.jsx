@@ -107,8 +107,10 @@ export const AuthProvider = ({ children }) => {
     );
     try {
       setIsLoadingAuth(true);
+      if (hasOAuthUrlParams) {
+        await authService.handleOAuthRedirectCallback();
+      }
       let currentUser = await authService.getCurrentUser();
-      // Se acabou de voltar do redirecionamento OAuth e o GoTrue ainda está trocando o token, aguarda brevemente
       if (!currentUser && hasOAuthUrlParams) {
         await new Promise((r) => setTimeout(r, 600));
         currentUser = await authService.getCurrentUser();

@@ -20,6 +20,26 @@ export default function Login() {
       navigate(returnTo || "/", { replace: true });
     }
   }, [isAuthenticated, navigate, returnTo]);
+
+  useEffect(() => {
+    const hasOAuth = typeof window !== "undefined" && (
+      (window.location.search || "").includes("code=") ||
+      (window.location.hash || "").includes("access_token=")
+    );
+    if (hasOAuth) {
+      setGoogleLoading(true);
+      authService.handleOAuthRedirectCallback().then(async (u) => {
+        if (u) {
+          if (checkUserAuth) await checkUserAuth();
+          navigate(returnTo || "/", { replace: true });
+        } else {
+          setGoogleLoading(false);
+        }
+      }).catch(() => {
+        setGoogleLoading(false);
+      });
+    }
+  }, [checkUserAuth, navigate, returnTo]);
   const urlParams = typeof window !== "undefined"
     ? new URLSearchParams(window.location.search)
     : null;

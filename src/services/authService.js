@@ -99,6 +99,63 @@ function isNetworkOrDnsError(err) {
 }
 
 export const authService = {
+  async handleOAuthRedirectCallback() {
+    if (typeof window === 'undefined') return null;
+
+    try {
+      // 1. Caso PKCE Flow: Supabase devolve ?code=...
+      const searchParams = new URLSearchParams(window.location.search);
+      const code = searchParams.get('code');
+      const errorParam = searchParams.get('error') || searchParams.get('error_description');
+
+      if (errorParam) {
+        console.warn('[authService] Erro retornado no redirect OAuth:', errorParam);
+        return null;
+      }
+
+      if (code && isSupabaseConfigured()) {
+        try {
+          const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+          if (error) {
+            console.warn('[authService] Erro ao trocar code PKCE por sessao:', error.message);
+          } else if (data?.session) {
+            const cleanUrl = window.location.pathname + (window.location.hash || '');
+            window.history.replaceState(null, '', cleanUrl);
+            return await this.getCurrentUser();
+          }
+        } catch (exchangeErr) {
+          console.warn('[authService] Falha na troca de código PKCE:', exchangeErr);
+        }
+      }
+
+      // 2. Caso Implicit Flow: Supabase devolve #access_token=...&refresh_token=...
+      const hash = window.location.hash || '';
+      if (hash.includes('access_token=') && isSupabaseConfigured()) {
+        try {
+          const hashParams = new URLSearchParams(hash.replace(/^#/, ''));
+          const accessToken = hashParams.get('access_token');
+          const refreshToken = hashParams.get('refresh_token');
+          if (accessToken) {
+            const { data, error } = await supabase.auth.setSession({
+              access_token: accessToken,
+              refresh_token: refreshToken || '',
+            });
+            if (!error && data?.session) {
+              const cleanUrl = window.location.pathname + window.location.search;
+              window.history.replaceState(null, '', cleanUrl);
+              return await this.getCurrentUser();
+            }
+          }
+        } catch (hashErr) {
+          console.warn('[authService] Falha ao processar token no hash:', hashErr);
+        }
+      }
+    } catch (e) {
+      console.warn('[authService] Falha geral no handleOAuthRedirectCallback:', e);
+    }
+    return null;
+  },
+
   async getSession() {
     try {
       if (!isSupabaseConfigured()) {
