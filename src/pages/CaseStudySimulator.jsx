@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useMemo } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import {
   CheckCircle2,
@@ -154,7 +155,7 @@ export default function CaseStudySimulator() {
   // Confirmação Definitiva da Hipótese: trava as escolhas e emite o parecer do Goti
   function handleConfirmDiagnosis() {
     if (!studentHypothesis.trim() || !studentEtiology.trim() || !studentEvidences.trim()) {
-      alert("Por favor, preencha o Título do Diagnóstico, as Causas (Etiologia) e as Evidências antes de confirmar.");
+      toast({ title: "Diagnóstico incompleto", description: "Preencha o título, a etiologia e as evidências antes de confirmar." });
       return;
     }
 

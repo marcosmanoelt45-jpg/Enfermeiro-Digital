@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { Check, HeartPulse, ClipboardCheck, BrainCircuit, Wine, Footprints, Activity, FileText, Mic, MicOff } from "lucide-react";
 import VitalSlider from "@/components/VitalSlider";
 import RiskBadge from "@/components/RiskBadge";
@@ -104,7 +105,7 @@ function VoiceNotesButton({ onText }) {
 
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!SpeechRecognition) {
-      alert("Reconhecimento de fala não suportado neste navegador.");
+      toast({ title: "Microfone indisponível", description: "Este navegador não reconhece fala. Use o Chrome ou digite o texto." });
       return;
     }
 

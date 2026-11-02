@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { evolutionService, authService } from "@/services";
 import { FileText, Loader2, Plus, Trash2, Save, ShieldCheck, CheckCircle2, AlertTriangle, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -73,7 +74,7 @@ export default function EvolutionsTab({ patientId }) {
   async function handleSignConfirm() {
     if (!selectedEvolution) return;
     if (!corenInput.trim()) {
-      alert("Informe seu registro COREN para assinar a evolução.");
+      toast({ title: "COREN obrigatório", description: "Informe seu registro COREN para assinar a evolução." });
       return;
     }
 
@@ -84,7 +85,7 @@ export default function EvolutionsTab({ patientId }) {
       setSelectedEvolution(null);
       load();
     } catch (err) {
-      alert("Erro ao assinar evolução: " + err.message);
+      toast({ variant: "destructive", title: "Não foi possível assinar", description: err.message });
     } finally {
       setSigning(false);
     }

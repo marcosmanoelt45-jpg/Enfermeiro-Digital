@@ -38,6 +38,11 @@ import { evaluateSbarChecklists } from "@/lib/sbarSpeechMatcher";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
+import { AnimatedProgress } from "@/components/ui/animated-progress";
+import { toast } from "@/components/ui/use-toast";
+import { soundEffects } from "@/services/soundEffectsService";
+import { celebrate } from "@/lib/celebrate";
+import { vibrate } from "@/lib/motion";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 import { PRESET_HANDOFF_SCENARIOS } from "@/data/sbarHandoffScenarios";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
@@ -610,7 +615,8 @@ export default function SbarHandoffLab() {
     if (isListening) stopListening();
     const isAnyFilled = sbarData.situation || sbarData.background || sbarData.assessment || sbarData.recommendation;
     if (!isAnyFilled) {
-      alert("Por favor, preencha ao menos uma etapa do SBAR antes de enviar para a auditoria do Goti IA.");
+      toast({ title: "SBAR vazio", description: "Preencha ao menos uma etapa do SBAR antes de enviar para o Goti avaliar." });
+      vibrate([30, 40, 30]);
       return;
     }
 
@@ -621,6 +627,14 @@ export default function SbarHandoffLab() {
         sbar: sbarData
       });
       setTutorEvaluation(evaluation);
+      const safety = Number(evaluation?.safetyScore ?? 0);
+      if (safety >= 80) {
+        soundEffects.playCorrect();
+        vibrate(20);
+        celebrate({ count: 80, spread: 80, y: 0.35 });
+      } else if (safety < 50) {
+        soundEffects.playWrong();
+      }
       setActiveTab("debriefing");
       setShowGotiEvaluationModal(true);
 
@@ -1736,6 +1750,12 @@ export default function SbarHandoffLab() {
                           {data.score} pts
                         </span>
                       </div>
+                      <AnimatedProgress
+                        value={data.score}
+                        tone={data.score >= 80 ? "success" : data.score >= 50 ? "warning" : "danger"}
+                        className="h-2"
+                        label={`Nota de ${pillar.label}`}
+                      />
                       <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-normal">
                         {data.feedback}
                       </p>

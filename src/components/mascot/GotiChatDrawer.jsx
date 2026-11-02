@@ -1,4 +1,6 @@
 import React, { useState, useRef, useEffect } from "react";
+import { motion } from "framer-motion";
+import { spring } from "@/lib/motion";
 import { createPortal } from "react-dom";
 import {
   X,
@@ -39,7 +41,7 @@ function GotiMarkdownRenderer({ content = "", isUser = false }) {
       if (part.startsWith("**") && part.endsWith("**")) {
         const inner = part.slice(2, -2);
         return (
-          <strong key={index} className={`font-extrabold ${isUser ? "text-white" : "text-slate-950 dark:text-white"}`}>
+          <strong key={index} className={`font-extrabold ${isUser ? "text-[#03201E]" : "text-slate-950 dark:text-white"}`}>
             {inner}
           </strong>
         );
@@ -47,7 +49,7 @@ function GotiMarkdownRenderer({ content = "", isUser = false }) {
       if (part.startsWith("*") && part.endsWith("*")) {
         const inner = part.slice(1, -1);
         return (
-          <em key={index} className={`italic ${isUser ? "text-teal-100" : "text-teal-900 dark:text-teal-200"}`}>
+          <em key={index} className={`italic ${isUser ? "text-[#06302E]" : "text-teal-900 dark:text-teal-200"}`}>
             {inner}
           </em>
         );
@@ -96,7 +98,7 @@ function GotiMarkdownRenderer({ content = "", isUser = false }) {
             <ul key={bIdx} className="space-y-1.5 my-2 pl-0.5">
               {block.items.map((item, iIdx) => (
                 <li key={iIdx} className="flex items-start gap-2">
-                  <span className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${isUser ? "bg-white" : "bg-teal-600 dark:bg-teal-400"}`} />
+                  <span className={`w-1.5 h-1.5 rounded-full mt-2 shrink-0 ${isUser ? "bg-[#06302E]" : "bg-teal-600 dark:bg-teal-400"}`} />
                   <span className="flex-1">{parseInline(item)}</span>
                 </li>
               ))}
@@ -106,7 +108,7 @@ function GotiMarkdownRenderer({ content = "", isUser = false }) {
 
         if (block.text.startsWith("### ")) {
           return (
-            <h4 key={bIdx} className={`font-black text-sm mt-2 mb-1 ${isUser ? "text-white" : "text-teal-900 dark:text-teal-200"}`}>
+            <h4 key={bIdx} className={`font-black text-sm mt-2 mb-1 ${isUser ? "text-[#03201E]" : "text-teal-900 dark:text-teal-200"}`}>
               {parseInline(block.text.replace(/^###\s+/, ""))}
             </h4>
           );
@@ -256,8 +258,14 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
       className="fixed inset-0 z-50 flex items-end sm:items-center justify-end sm:p-4 bg-slate-950/75 backdrop-blur-sm animate-in fade-in"
       onClick={onClose}
     >
-      <div
-        className="w-full sm:max-w-lg h-[90dvh] sm:h-[650px] max-h-[92dvh] bg-slate-900 border border-slate-800 rounded-t-[32px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden text-slate-100 transition-all"
+      <motion.div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Chat com o Goti"
+        initial={{ y: "100%" }}
+        animate={{ y: 0 }}
+        transition={spring.sheet}
+        className="w-full sm:max-w-lg h-[90dvh] sm:h-[650px] max-h-[92dvh] bg-slate-900 border border-slate-800 rounded-t-[32px] sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden text-slate-100"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Cabeçalho Fixo do Chat: SEMPRE visível com botão de fechar proeminente */}
@@ -339,9 +347,13 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
           {messages.map((msg, idx) => {
             const isUser = msg.role === "user";
             return (
-              <div
+              <motion.div
                 key={idx}
-                className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"} animate-in fade-in`}
+                initial={idx === messages.length - 1 ? { opacity: 0, y: 10, scale: 0.98 } : false}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                transition={spring.snappy}
+                style={{ transformOrigin: isUser ? "bottom right" : "bottom left" }}
+                className={`flex gap-3 ${isUser ? "justify-end" : "justify-start"}`}
               >
                 {!isUser && (
                   <img
@@ -354,13 +366,13 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
                 <div
                   className={`max-w-[85%] rounded-2xl p-3.5 shadow-2xs leading-relaxed ${
                     isUser
-                      ? "bg-teal-700 text-white rounded-br-xs font-medium"
+                      ? "bg-[#20D5B5] text-[#06302E] rounded-br-xs font-semibold"
                       : "bg-slate-800/90 text-slate-100 rounded-bl-xs border border-slate-700/80"
                   }`}
                 >
                   <GotiMarkdownRenderer content={msg.text} isUser={isUser} />
                 </div>
-              </div>
+              </motion.div>
             );
           })}
 
@@ -423,13 +435,15 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
 
           <Button
             type="submit"
+            size="icon"
+            aria-label="Enviar pergunta"
             disabled={!inputText.trim() || isLoading}
-            className="rounded-2xl hover:bg-teal-500 px-4 py-2.5 h-auto font-bold shadow-xs active:scale-95 transition-all shrink-0"
+            className="h-11 w-11 shrink-0"
           >
             <Send className="w-4 h-4" />
           </Button>
         </form>
-      </div>
+      </motion.div>
     </div>
   );
 

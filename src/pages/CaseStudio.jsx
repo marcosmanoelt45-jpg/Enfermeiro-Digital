@@ -1,4 +1,5 @@
 import React, { useState, useRef } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { useNavigate } from "react-router-dom";
 import {
   ArrowLeft,
@@ -354,7 +355,7 @@ export default function CaseStudio() {
       formData: { profile, data, viewMode }
     });
     setCurrentActivityId(draft.id);
-    alert("Rascunho salvo com sucesso! Você pode retomar este caso a qualquer momento no menu de Histórico.");
+    toast({ title: "Rascunho salvo", description: "Retome este caso quando quiser pelo Histórico." });
   }
 
   function handleConfirmSubmission() {
@@ -1831,7 +1832,7 @@ export default function CaseStudio() {
                       type="button"
                       onClick={() => {
                         if (currentStep === 0 && !profile.initials?.trim() && !profile.name?.trim()) {
-                          alert("Por favor, preencha as Iniciais ou Nome do paciente antes de avançar para o próximo passo.");
+                          toast({ title: "Falta o paciente", description: "Preencha as iniciais ou o nome do paciente para avançar." });
                           return;
                         }
                         setCurrentStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1));
@@ -2215,7 +2216,7 @@ export default function CaseStudio() {
                           type="button"
                           onClick={() => {
                             if (!activeSelectedOption) {
-                              alert("Por favor, selecione uma das alternativas antes de avançar.");
+                              toast({ title: "Escolha uma alternativa", description: "Selecione uma das alternativas para avançar." });
                               return;
                             }
                             handleSubmitCurrentAnswer();
