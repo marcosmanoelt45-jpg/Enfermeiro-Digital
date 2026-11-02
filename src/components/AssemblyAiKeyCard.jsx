@@ -67,7 +67,7 @@ export default function AssemblyAiKeyCard() {
         <Button
           onClick={handleSaveAndTest}
           disabled={saving}
-          className="shrink-0 rounded-lg bg-teal-600 hover:bg-teal-700 text-white font-semibold"
+          className="shrink-0 rounded-lg font-semibold"
         >
           {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : null}
           Salvar &amp; Testar

@@ -314,9 +314,9 @@ export default function CaseBuilder() {
         <div className="mx-auto max-w-2xl px-4 py-3 flex gap-3">
           <Button variant="outline" onClick={prev} disabled={step === 0} className="flex-1 rounded-xl py-5 dark:bg-slate-800 dark:border-slate-700 dark:text-slate-200">Anterior</Button>
           {step < WIZARD_STEPS.length - 1 ? (
-            <Button onClick={next} className="flex-1 rounded-xl bg-teal-600 py-5 hover:bg-teal-700 text-white">Próximo</Button>
+            <Button onClick={next} className="flex-1 rounded-xl py-5">Próximo</Button>
           ) : (
-            <Button onClick={handleSave} disabled={saving} className="flex-1 rounded-xl bg-teal-600 py-5 hover:bg-teal-700 text-white font-bold">
+            <Button onClick={handleSave} disabled={saving} className="flex-1 rounded-xl py-5 font-bold">
               {saving ? <Loader2 className="h-5 w-5 animate-spin" /> : <><Check className="mr-2 h-5 w-5" /> Publicar atividade</>}
             </Button>
           )}

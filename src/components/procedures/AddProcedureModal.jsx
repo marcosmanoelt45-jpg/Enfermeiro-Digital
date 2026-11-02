@@ -180,7 +180,7 @@ export default function AddProcedureModal({ isOpen, onClose, onCreated }) {
               type="button"
               onClick={handleGenerateWithAI}
               disabled={isGenerating || !aiTopic.trim()}
-              className="w-full rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold text-xs py-2.5 shadow-xs"
+              className="w-full rounded-xl font-bold text-xs py-2.5 shadow-xs"
             >
               {isGenerating ? (
                 <span className="flex items-center gap-1.5">

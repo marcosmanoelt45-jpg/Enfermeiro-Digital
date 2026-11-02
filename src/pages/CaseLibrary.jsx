@@ -87,7 +87,7 @@ export default function CaseLibrary() {
               </p>
             </div>
           </div>
-          <Button onClick={importRandom} disabled={importing === "random"} className="mt-3 w-full rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold">
+          <Button onClick={importRandom} disabled={importing === "random"} className="mt-3 w-full rounded-xl font-semibold">
             {importing === "random" ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Shuffle className="mr-2 h-4 w-4" />}
             Gerar e abrir caso
           </Button>

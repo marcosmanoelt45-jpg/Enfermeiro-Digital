@@ -190,7 +190,7 @@ export default function AssignmentAnswer() {
               <Button
                 onClick={handleSubmit}
                 disabled={!selected || submitting}
-                className="w-full rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-bold h-11"
+                className="w-full rounded-xl font-bold h-11"
               >
                 {submitting ? (
                   <Loader2 className="h-4 w-4 animate-spin" />

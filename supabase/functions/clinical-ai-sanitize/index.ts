@@ -189,35 +189,31 @@ serve(async (req) => {
   }
 
   try {
-    // 5.1 Validação de Autenticação / Autorização da Aplicação
+    // 5.1 Autenticação: exige uma SESSÃO de usuário válida. A chave anon é pública (vai no bundle),
+    // então aceitar só "um header presente" transformaria a chave paga do OpenRouter num proxy aberto.
     const authHeader = req.headers.get("Authorization");
-    const apiKeyHeader = req.headers.get("apikey");
-    if (!authHeader && !apiKeyHeader) {
+    if (!authHeader?.startsWith("Bearer ")) {
       return new Response(
-        JSON.stringify({ error: "Cabeçalho Authorization ou apikey obrigatório." }),
+        JSON.stringify({ error: "Sessão obrigatória." }),
         { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
       );
     }
 
     const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
     const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-    
-    // Identificador único para controle de taxa (User ID ou IP do cliente)
-    let callerIdentifier = req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "anonymous-client";
 
-    if (authHeader) {
-      try {
-        const supabase = createClient(supabaseUrl, supabaseAnonKey, {
-          global: { headers: { Authorization: authHeader } },
-        });
-        const { data: { user } } = await supabase.auth.getUser();
-        if (user?.id) {
-          callerIdentifier = user.id;
-        }
-      } catch {
-        // Mantém IP como identificador para controle de taxa
-      }
+    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
+      global: { headers: { Authorization: authHeader } },
+    });
+    const { data: userData, error: userError } = await authClient.auth.getUser();
+    if (userError || !userData?.user?.id) {
+      return new Response(
+        JSON.stringify({ error: "Sessão inválida ou expirada." }),
+        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
+      );
     }
+    // Limite de taxa sempre pelo id do usuário (nunca por X-Forwarded-For, que o cliente controla)
+    const callerIdentifier = userData.user.id;
 
     // 5.2 Validação de Rate Limiting por Usuário / IP
     if (!checkRateLimit(callerIdentifier)) {

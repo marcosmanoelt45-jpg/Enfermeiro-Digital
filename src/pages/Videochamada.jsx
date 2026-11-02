@@ -15,6 +15,9 @@ import { PACIENTES, gerarCasoAleatorio } from "@/data/simuladorCasosData";
 import { falar, pararFala } from "@/services/simuladorVozService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
+import { soundEffects } from "@/services/soundEffectsService";
+import { celebrate } from "@/lib/celebrate";
+import { vibrate } from "@/lib/motion";
 
 import PacienteVideoStage from "@/components/simulador/PacienteVideoStage";
 import FalaLegendaBubble from "@/components/simulador/FalaLegendaBubble";
@@ -286,6 +289,9 @@ export default function Videochamada() {
       if (isCorreta) {
         // ACERTO
         setClipeAtivo("acerto");
+        soundEffects.playCorrect();
+        vibrate(15);
+        if (tentativasAtuais === 0) celebrate({ count: 45, y: 0.55 });
         clinicalGamificationService.registrarAcertoQuestao(user?.id);
 
         if (tentativasAtuais === 0) {
@@ -324,6 +330,8 @@ export default function Videochamada() {
       } else {
         // ERRO
         setClipeAtivo("erro");
+        soundEffects.playWrong();
+        vibrate([30, 40, 30]);
 
         if (tentativasAtuais === 0) {
           // 1º ERRO: Dica ativada, questão amarela aberta, desmarca opção para o aluno escolher outra
@@ -440,6 +448,7 @@ export default function Videochamada() {
       tempoTotal: tempoTotalSegundos
     });
 
+    if (taxaAproveitamento >= 70) celebrate({ count: 90, spread: 85, y: 0.3 });
     setModalRevisaoFinalAberto(true);
   }
 

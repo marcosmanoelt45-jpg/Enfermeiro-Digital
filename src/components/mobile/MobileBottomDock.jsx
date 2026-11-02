@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
+import { AnimatePresence, motion, useDragControls } from 'framer-motion';
 import {
   Home,
   ClipboardList,
@@ -16,6 +17,7 @@ import {
   Mic
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
+import { scrimVariants, sheetVariants, spring, vibrate } from '@/lib/motion';
 
 export default function MobileBottomDock() {
   const location = useLocation();
@@ -23,6 +25,8 @@ export default function MobileBottomDock() {
 
   // Controle do Drawer/Bottom Sheet da aba "Casos" (Página 3 do PDF)
   const [isCasesDrawerOpen, setIsCasesDrawerOpen] = useState(false);
+  // Arraste só pelo puxador, para não brigar com a rolagem da lista
+  const sheetDrag = useDragControls();
 
   // 5 Itens Oficiais da Bottom Navigation Bar (Páginas 2, 3, 4, 15, 19, 21 do PDF)
   const navItems = [
@@ -83,6 +87,16 @@ export default function MobileBottomDock() {
     }
     return location.pathname.startsWith(item.path) && !isCasesDrawerOpen;
   };
+
+  // Fecha a folha com Esc (teclado / leitores de tela)
+  useEffect(() => {
+    if (!isCasesDrawerOpen) return undefined;
+    const onKey = (e) => {
+      if (e.key === 'Escape') setIsCasesDrawerOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, [isCasesDrawerOpen]);
 
   // Opções do Drawer da aba "Casos" (Conforme 01-casos.png e Especificação Oficial)
   const caseDrawerOptions = [
@@ -171,23 +185,30 @@ export default function MobileBottomDock() {
               <button
                 key={item.id}
                 type="button"
-                onClick={item.onClick}
-                className={`flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl transition-all duration-120 active:scale-95 ${
-                  active
-                    ? 'text-[#20D5B5]'
-                    : 'text-[#9FB3C6] hover:text-[#EAF2F8]'
+                onClick={() => {
+                  vibrate(8);
+                  item.onClick();
+                }}
+                aria-current={active ? 'page' : undefined}
+                className={`relative flex-1 flex flex-col items-center justify-center py-1.5 px-1 rounded-2xl min-h-[52px] tap-press ${
+                  active ? 'text-[#20D5B5]' : 'text-[#9FB3C6] hover:text-[#EAF2F8]'
                 }`}
               >
-                <div
-                  className={`p-1.5 rounded-xl transition-all ${
-                    active
-                      ? 'border border-[#20D5B5] bg-[#20D5B5]/10 text-[#20D5B5] shadow-[0_0_12px_rgba(32,213,181,0.2)]'
-                      : 'text-current'
-                  }`}
+                {active && (
+                  <motion.span
+                    layoutId="dock-active-pill"
+                    className="absolute inset-x-1.5 top-0.5 bottom-0.5 rounded-2xl bg-[#20D5B5]/10 border border-[#20D5B5]/50 shadow-[0_0_14px_rgba(32,213,181,0.18)]"
+                    transition={spring.glide}
+                  />
+                )}
+                <motion.span
+                  className="relative p-1"
+                  animate={active ? { y: [0, -3, 0], scale: [1, 1.12, 1] } : { y: 0, scale: 1 }}
+                  transition={{ duration: 0.32, ease: [0.23, 1, 0.32, 1] }}
                 >
                   <Icon className={`w-5 h-5 ${active ? 'stroke-[2.5]' : 'stroke-[2]'}`} />
-                </div>
-                <span className={`text-[11px] mt-1 tracking-tight font-extrabold truncate max-w-[60px] ${
+                </motion.span>
+                <span className={`relative text-[11px] tracking-tight font-extrabold truncate max-w-[60px] ${
                   active ? 'text-[#20D5B5]' : 'text-[#9FB3C6]'
                 }`}>
                   {item.label}
@@ -199,18 +220,45 @@ export default function MobileBottomDock() {
       </nav>
 
       {/* Drawer / Bottom Sheet da aba "Casos" (Página 3 do PDF) */}
+      <AnimatePresence>
       {isCasesDrawerOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
           {/* Backdrop com desfoque */}
-          <div
-            className="fixed inset-0 bg-black/75 backdrop-blur-xs transition-opacity animate-in fade-in duration-200"
+          <motion.div
+            className="fixed inset-0 bg-black/75 backdrop-blur-xs"
+            variants={scrimVariants}
+            initial="hidden"
+            animate="show"
+            exit="exit"
             onClick={() => setIsCasesDrawerOpen(false)}
           />
 
-          {/* Painel que sobe do fundo */}
-          <div className="relative z-10 w-full max-h-[85vh] bg-[#101923] border-t-2 border-[#1F3045] rounded-t-[32px] p-5 pb-[calc(24px+env(safe-area-inset-bottom,0px))] shadow-2xl overflow-y-auto animate-in slide-in-from-bottom duration-300">
+          {/* Painel que sobe do fundo; arrastar para baixo fecha */}
+          <motion.div
+            role="dialog"
+            aria-modal="true"
+            aria-label="Casos"
+            variants={sheetVariants}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            drag="y"
+            dragListener={false}
+            dragControls={sheetDrag}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.05, bottom: 0.6 }}
+            onDragEnd={(_, info) => {
+              if (info.offset.y > 110 || info.velocity.y > 600) setIsCasesDrawerOpen(false);
+            }}
+            className="relative z-10 w-full max-h-[85vh] bg-[#101923] border-t-2 border-[#1F3045] rounded-t-[32px] p-5 pb-[calc(24px+env(safe-area-inset-bottom,0px))] shadow-2xl overflow-y-auto"
+          >
             {/* Puxador superior */}
-            <div className="w-12 h-1.5 bg-[#27394B] rounded-full mx-auto mb-4" />
+            <div
+              className="-mt-2 mb-2 flex justify-center py-2 cursor-grab active:cursor-grabbing touch-none"
+              onPointerDown={(e) => sheetDrag.start(e)}
+            >
+              <div className="w-12 h-1.5 bg-[#27394B] rounded-full" />
+            </div>
 
             {/* Cabeçalho do Drawer */}
             <div className="flex items-center justify-between pb-3">
@@ -236,7 +284,7 @@ export default function MobileBottomDock() {
                     key={opt.id}
                     type="button"
                     onClick={opt.action}
-                    className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-[#16222E] border border-[#1F3045] text-left hover:border-[#20D5B5] active:translate-y-0.5 transition-all group"
+                    className="w-full flex items-center justify-between p-3.5 rounded-2xl bg-[#16222E] border border-[#1F3045] text-left card-press group"
                   >
                     <div className="flex items-center gap-3.5 min-w-0 pr-2">
                       <div className="w-10 h-10 rounded-xl bg-[#20D5B5]/15 text-[#20D5B5] flex items-center justify-center shrink-0 border border-[#20D5B5]/20 group-hover:scale-105 transition-transform">
@@ -261,9 +309,10 @@ export default function MobileBottomDock() {
                 );
               })}
             </div>
-          </div>
+          </motion.div>
         </div>
       )}
+      </AnimatePresence>
     </>
   );
 }

@@ -10,23 +10,9 @@
 import { supabase, isSupabaseConfigured } from './supabaseClient.js';
 
 /**
- * Obtém a chave pessoal do Google Gemini configurada pelo usuário no LocalStorage ou Env.
+ * Obtém a chave pessoal do Google Gemini configurada pelo usuário no LocalStorage.
  * @returns {string}
  */
-const safeGetEnv = (key) => {
-  try {
-    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
-      return import.meta.env[key];
-    }
-  } catch {}
-  try {
-    if (typeof process !== 'undefined' && process.env && process.env[key]) {
-      return process.env[key];
-    }
-  } catch {}
-  return '';
-};
-
 export function getGeminiKey() {
   try {
     if (typeof localStorage !== 'undefined') {
@@ -34,11 +20,12 @@ export function getGeminiKey() {
       if (key && key.trim()) return key.trim();
     }
   } catch {}
-  return safeGetEnv('VITE_GEMINI_API_KEY').trim();
+  // Chaves do projeto nunca vão para o navegador: sem chave pessoal, a IA passa pela Edge Function.
+  return '';
 }
 
 /**
- * Obtém a chave pessoal do OpenRouter configurada pelo usuário no LocalStorage ou Env.
+ * Obtém a chave pessoal do OpenRouter configurada pelo usuário no LocalStorage.
  * @returns {string}
  */
 export function getOpenRouterKey() {
@@ -48,10 +35,7 @@ export function getOpenRouterKey() {
       if (key && key.trim()) return key.trim();
     }
   } catch {}
-  return (
-    safeGetEnv('VITE_OPENROUTER_API_KEY') ||
-    safeGetEnv('OPENROUTER_API_KEY')
-  ).trim();
+  return '';
 }
 
 /**
@@ -205,15 +189,10 @@ async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
     return null;
   }
 
-  const supabaseAnonKey = safeGetEnv('VITE_SUPABASE_ANON_KEY');
-
   try {
-    // Timeout de 10 segundos via Promise.race para blindar a Edge Function
+    // Timeout de 10 segundos via Promise.race para blindar a Edge Function.
+    // Sem headers manuais: o supabase-js envia o JWT da sessão do usuário, que a função exige.
     const invokePromise = supabase.functions.invoke('clinical-ai-sanitize', {
-      headers: supabaseAnonKey ? {
-        'apikey': supabaseAnonKey,
-        'Authorization': `Bearer ${supabaseAnonKey}`
-      } : {},
       body: {
         systemPrompt,
         userPrompt,

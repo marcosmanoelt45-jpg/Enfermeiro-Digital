@@ -13,7 +13,7 @@ O **Enfermeiro Digital** (plataforma **Enfere**) é uma aplicação educacional 
 2. **Goti Preceptor & IA Socrática**: `src/components/mascot/GotiAnimated.jsx` + `src/components/mascot/GotiChatDrawer.jsx` + `src/services/gotiPreceptorService.js` + `src/services/socraticTutorService.js`.
 3. **Simulador de Casos Clínicos**: `src/pages/CaseStudySimulator.jsx` + `src/pages/CaseStudio.jsx` + `src/pages/CaseLibrary.jsx` (NANDA-I, NIC, NOC, raciocínio diagnóstico e evolução da SAE).
 4. **Plantão SBAR**: `src/pages/SbarHandoffLab.jsx` + `src/services/sbarTutorService.js` (passagem de plantão, gravação de áudio e transcrição).
-5. **Cálculo de Doses & Soluções**: `src/pages/MedicationDosageLab.jsx` + `src/data/medicationCatalog.js` (regras de três, gotejamento macrogotas/microgotas, BIC).
+5. **Cálculo de Doses & Soluções**: `src/pages/MedicationDosageLab.jsx` + `src/lib/medicationCatalog.js` (regras de três, gotejamento macrogotas/microgotas, BIC).
 6. **Laboratório de Procedimentos (Skills Lab)**: `src/pages/ProcedimentosLab.jsx` + `src/services/procedureService.js` (POPs, checklists cirúrgicos/clínicos, vídeos UFSM).
 
 ---
@@ -26,7 +26,49 @@ O **Enfermeiro Digital** (plataforma **Enfere**) é uma aplicação educacional 
   npm run typecheck
   npm run build
   ```
-- **Deploy**: Commits na branch `main` (`git push origin main`) realizam deploy automático na Vercel (`https://enfere.vercel.app`).
+- **Deploy**: Commits na branch `main` (`git push origin main`) realizam deploy automático na Vercel (`https://enfere.vercel.app`). Nunca faça push sem pedido explícito do dono: push na `main` é deploy em produção.
+- **Banco de dados**: migrations novas vão em `supabase/migrations/NNN_*.sql`. Nunca aplique migration nem faça deploy de Edge Function em produção sem autorização; teste antes num branch do Supabase.
+- **Escopo**: não mexa em `enfere-simulador-antigravity/` nem nos protótipos da raiz (`Enfere · Atendimento por voz*`, `*.pdf`). São trabalho em andamento do dono no Antigravity.
+
+---
+
+## Sistema de Design & Motion ("Enfere Vivo", inspirado no Duolingo sem copiar)
+- **Tema**: escuro permanente. Fundo `#0B131D`; superfícies `#131F2E`/`#16222E`; linhas `#27394B`; marca `#20D5B5`; acerto `#3DD68C`; erro `#FF6B6B`; alerta e ofensiva `#FFC247`. Fonte Nunito. O `DESIGN.md` está desatualizado (ainda fala em Inter e `#0D9488`).
+- **Botões**: use sempre o `<Button>` de `src/components/ui/button.jsx`.
+  - Variantes: `primary`, `success`, `danger`, `warning`, `info`, `outline`, `locked`, `ghost`, `link`.
+  - Tamanhos: `sm`, `default`, `lg`, `xl`, `icon`. Prop `loading` mostra o spinner.
+  - Em `<button>` cru, use as classes `btn-3d-teal|emerald|amber|rose|sky|outline`.
+  - O lábio 3D é `box-shadow`, não `border-bottom`, então pressionar não desloca o layout.
+  - Não sobrescreva a face com `bg-teal-600 text-white`.
+- **Motion**: os tokens ficam em `src/lib/motion.js` (springs, `fadeUp`, `listStagger`, `sheetVariants`, `shake`, `vibrate()`) e nas variáveis CSS `--ease-*` e `--dur-*` de `src/index.css`.
+  - Só anime `transform` e `opacity`.
+  - Interações ficam abaixo de 300 ms.
+  - Nunca use `scale(0)`; entradas e saídas usam ease-out.
+  - Não anime ações repetidas o dia todo.
+  - O app já é envolvido por `MotionConfig reducedMotion="user"`.
+- **Feedback de resposta**:
+  - Acerto: `soundEffects.playCorrect()` + `vibrate(15)` + pop.
+  - Erro: `playWrong()` + `vibrate([30,40,30])` + `shake`.
+  - Confete (`src/lib/celebrate.js`) só em momentos raros: acerto de primeira, sessão com 70% ou mais, meta do dia.
+- **Progresso**: use `AnimatedProgress` (`ui/animated-progress.jsx`) e `AnimatedNumber` (`ui/animated-number.jsx`) em barras, PE e ofensiva.
+- **Transições de página só com opacidade**: um `transform` num ancestral quebra o `position: fixed` do dock e das folhas inferiores.
+
+---
+
+## Segurança (varredura de 02/11/2026, relatório em `CLAUDE-SECURITY-20261102-031142/`)
+- Nunca use o prefixo `VITE_` em segredos: toda variável `VITE_*` vai para o JS público. As chaves do projeto (OpenRouter, Gemini) ficam só nos secrets da Edge Function `clinical-ai-sanitize`.
+- Nunca leia `import.meta.env[chave]` de forma dinâmica, porque isso embute todas as variáveis no bundle. Acesse `import.meta.env.VITE_X` explicitamente.
+- Nunca guarde senha no cliente. Dados de usuário no localStorage sempre levam o id do usuário na chave.
+- Valide `returnTo` e qualquer redirecionamento com `new URL(valor, location.origin)`, exigindo a mesma origem (`src/lib/authReturnTo.js`).
+- Na RLS, o cliente nunca define `org_id`, `role`, `created_by_id`, `signed_by` nem o hash de assinatura. Isso é papel de trigger ou RPC no banco (ver `008_security_hardening.sql`).
+
+---
+
+## Skills instaladas (`.claude/skills/`, fora do git)
+- Design e motion: comece por `impeccable`, `emil-design-eng`, `animate`, `review-animations`, `improve-animations`, `taste-skill`, `ui-ux-pro-max`, `mobile-native` e `motion-framer`.
+- Textos da interface: `stop-slop` e `humanizer`, adaptando ao PT-BR.
+- Segurança: `/claude-security` e as skills `strix-*`.
+- Fontes originais: `C:\Users\mxmin\.claude\skill-sources\`.
 
 ---
 

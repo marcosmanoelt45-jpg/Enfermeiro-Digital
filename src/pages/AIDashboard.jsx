@@ -276,7 +276,7 @@ export default function AIDashboard() {
                 onClick={importDiagnoses}
                 disabled={importing || imported}
                 size="sm"
-                className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-sm"
+                className="rounded-xl"
               >
                 {importing ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />

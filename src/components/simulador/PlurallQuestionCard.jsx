@@ -1,4 +1,6 @@
-import React, { useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import { motion, useAnimationControls } from "framer-motion";
+import { ease, shake } from "@/lib/motion";
 import {
   Lightbulb,
   CheckCircle2,
@@ -31,6 +33,22 @@ export default function PlurallQuestionCard({
   onToggleHint = null
 }) {
   const [revisaoAberta, setRevisaoAberta] = useState(false);
+  const cardControls = useAnimationControls();
+  const lastFeedbackKey = useRef(`${numQuestao}:${status}:${tentativas}`);
+
+  // Reação física ao resultado: tremida no erro, "pulinho" no acerto (só quando o estado muda nesta questão)
+  useEffect(() => {
+    const key = `${numQuestao}:${status}:${tentativas}`;
+    if (key === lastFeedbackKey.current) return;
+    const sameQuestion = lastFeedbackKey.current.split(":")[0] === String(numQuestao);
+    lastFeedbackKey.current = key;
+    if (!sameQuestion || isReadOnly) return;
+    if (status === "verde" || (status === "amarela" && tentativas >= 2)) {
+      cardControls.start({ scale: [1, 1.025, 1], transition: { duration: 0.4, ease: ease.out } });
+    } else if (status === "amarela" || status === "vermelha") {
+      cardControls.start(shake);
+    }
+  }, [numQuestao, status, tentativas, isReadOnly, cardControls]);
 
   // A questão é finalizada se a prop for true, se acertou/errou de vez (verde/vermelha), se completou 2 tentativas ou está em leitura
   const isFinalizada = Boolean(propIsFinalizada || status === "verde" || status === "vermelha" || tentativas >= 2 || isReadOnly);
@@ -51,7 +69,8 @@ export default function PlurallQuestionCard({
   }
 
   return (
-    <article
+    <motion.article
+      animate={cardControls}
       className={`rounded-3xl border transition-colors duration-200 p-4 sm:p-5 flex flex-col gap-4 shadow-lg ${
         status === "verde"
           ? "bg-[#0E1722] border-[#20D5B5]/60 shadow-[#20D5B5]/5"
@@ -154,7 +173,7 @@ export default function PlurallQuestionCard({
                 type="button"
                 disabled={isDisabled}
                 onClick={() => handleOptionClick(idx)}
-                className={`w-full text-left p-3 sm:p-3.5 rounded-2xl border transition-colors duration-150 flex items-start gap-3 cursor-pointer disabled:cursor-not-allowed active:scale-[0.99] ${optStyle}`}
+                className={`w-full text-left p-3 sm:p-3.5 rounded-2xl border-2 border-b-4 press-lip transition-colors duration-150 flex items-start gap-3 cursor-pointer disabled:cursor-not-allowed ${optStyle}`}
                 aria-checked={isSelected}
                 role="radio"
               >
@@ -213,7 +232,7 @@ export default function PlurallQuestionCard({
                 <button
                   type="button"
                   onClick={onProxima}
-                  className="px-5 py-2.5 rounded-xl bg-[#20D5B5] hover:bg-[#20D5B5]/90 text-[#0E1722] font-black text-xs sm:text-sm transition shadow-sm flex items-center gap-1.5 cursor-pointer ml-auto"
+                  className="btn-3d-teal px-5 h-11 text-xs sm:text-sm flex items-center gap-1.5 cursor-pointer ml-auto"
                 >
                   {isLastQuestion ? "Ver Resumo Final" : "Próxima Questão"}
                   <ArrowRight className="w-4 h-4" />
@@ -270,6 +289,6 @@ export default function PlurallQuestionCard({
           </div>
         )}
       </div>
-    </article>
+    </motion.article>
   );
 }

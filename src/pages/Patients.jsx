@@ -100,7 +100,7 @@ export default function Patients() {
               <Button onClick={() => navigate("/banco-casos")} variant="outline" size="sm" className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800">
                 <Library className="h-4 w-4" /> Banco de Casos
               </Button>
-              <Button onClick={() => setOpen(true)} size="sm" className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white font-semibold">
+              <Button onClick={() => setOpen(true)} size="sm" className="rounded-xl font-semibold">
                 <Plus className="h-4 w-4" /> Novo caso
               </Button>
             </div>
@@ -186,7 +186,7 @@ export default function Patients() {
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setOpen(false)} className="border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200">Cancelar</Button>
-            <Button onClick={handleSave} disabled={saving || !form.name.trim()} className="bg-teal-600 hover:bg-teal-700 text-white font-semibold">
+            <Button onClick={handleSave} disabled={saving || !form.name.trim()} className="font-semibold">
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}
             </Button>
           </DialogFooter>

@@ -23,20 +23,18 @@ export const audioTranscriptionService = {
     ).trim();
   },
 
-  // Retorna a chave do Gemini se configurada no localStorage do usuário ou no ambiente
+  // Retorna a chave do Gemini pessoal (localStorage); chaves do projeto ficam só no servidor
   getGeminiKey() {
     return (
       (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_gemini_api_key')) ||
-      (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GEMINI_API_KEY) ||
       ''
     ).trim();
   },
 
-  // Retorna a chave do OpenRouter se configurada no localStorage do usuário ou no ambiente
+  // Retorna a chave do OpenRouter pessoal (localStorage); chaves do projeto ficam só no servidor
   getOpenRouterKey() {
     return (
       (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_openrouter_api_key')) ||
-      (typeof import.meta !== 'undefined' && (import.meta.env?.VITE_OPENROUTER_API_KEY || import.meta.env?.OPENROUTER_API_KEY)) ||
       ''
     ).trim();
   },

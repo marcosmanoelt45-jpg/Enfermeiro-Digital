@@ -42,7 +42,7 @@ export default function PreviousAnamnesisTab({ patient, onSaved }) {
           className="rounded-xl min-h-[280px] text-sm leading-relaxed border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100"
         />
         <div className="flex gap-2">
-          <Button onClick={save} disabled={saving} className="flex-1 rounded-xl bg-teal-600 hover:bg-teal-700">
+          <Button onClick={save} disabled={saving} className="flex-1 rounded-xl">
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} Salvar anamnese
           </Button>
           <Button onClick={() => setEditing(false)} variant="outline" className="rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800">Cancelar</Button>

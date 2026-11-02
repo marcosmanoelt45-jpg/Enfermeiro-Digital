@@ -240,7 +240,7 @@ export default function DischargeTab({ patientId }) {
           </div>
 
           <div className="flex gap-2">
-            <Button onClick={save} disabled={saving} className="flex-1 rounded-xl bg-teal-600 hover:bg-teal-700 text-white">
+            <Button onClick={save} disabled={saving} className="flex-1 rounded-xl">
               {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} Salvar plano
             </Button>
             <Button onClick={() => { setEditing(null); setForm(blank); }} variant="outline" className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
@@ -254,7 +254,7 @@ export default function DischargeTab({ patientId }) {
 
   return (
     <div className="space-y-4">
-      <Button onClick={startNew} className="w-full rounded-2xl bg-teal-600 py-5 hover:bg-teal-700 text-white">
+      <Button onClick={startNew} className="w-full rounded-2xl py-5">
         <Plus className="mr-2 h-5 w-5" /> Novo Plano de Alta
       </Button>
 

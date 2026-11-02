@@ -107,7 +107,7 @@ export default function MobileHeader({
           <button
             type="button"
             onClick={onOpenAIChat}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-teal-50 dark:bg-teal-950/80 border-2 border-teal-200 dark:border-teal-800 border-b-4 border-b-teal-300 dark:border-b-teal-900 text-teal-900 dark:text-teal-200 hover:bg-teal-100 text-xs font-black transition-all active:translate-y-1 active:border-b-2 shadow-2xs select-none cursor-pointer"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-teal-50 dark:bg-teal-950/80 border-2 border-teal-200 dark:border-teal-800 border-b-4 border-b-teal-300 dark:border-b-teal-900 text-teal-900 dark:text-teal-200 hover:bg-teal-100 text-xs font-black transition-all press-lip shadow-2xs select-none cursor-pointer"
             aria-label="Abrir Chat com o Goti"
             title="Dúvidas sobre o site? Conversar com o Goti"
           >
@@ -120,7 +120,7 @@ export default function MobileHeader({
 
           <button
             onClick={onOpenOptions}
-            className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-4 border-b-slate-300 dark:border-b-slate-700/90 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:border-emerald-300 active:translate-y-1 active:border-b-2 transition-all shadow-2xs select-none cursor-pointer"
+            className="p-2.5 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-200 dark:border-slate-800 border-b-4 border-b-slate-300 dark:border-b-slate-700/90 text-slate-700 dark:text-slate-300 hover:text-emerald-700 dark:hover:text-emerald-400 hover:border-emerald-300 press-lip transition-all shadow-2xs select-none cursor-pointer"
             aria-label="Abrir Ajustes e Opções de Tema"
             title="Ajustes de Tema & Opções Clínicas"
           >

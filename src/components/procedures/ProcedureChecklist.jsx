@@ -3,6 +3,10 @@ import { CheckCircle2, Circle, PackageCheck, ListOrdered, Award, Sparkles } from
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { procedureService } from '@/services/procedureService';
+import { soundEffects } from '@/services/soundEffectsService';
+import { AnimatedProgress } from '@/components/ui/animated-progress';
+import { celebrate } from '@/lib/celebrate';
+import { vibrate } from '@/lib/motion';
 
 export default function ProcedureChecklist({ procedure, onComplete }) {
   const [tab, setTab] = useState('steps'); // 'steps' | 'materials'
@@ -31,6 +35,9 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
   const handleFinishTraining = () => {
     const res = procedureService.completeProcedure();
     setCompleted(true);
+    soundEffects.playCorrect();
+    vibrate(20);
+    celebrate({ count: 80, spread: 80, y: 0.6 });
     toast({
       title: '🎉 Treinamento Prático Concluído!',
       description: 'O Goti creditou +30 XP na sua carreira e manteve seu plantão em dia!',
@@ -56,12 +63,7 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
           <span className="text-xs font-bold text-teal-700 dark:text-teal-400">
             {percent}% Concluído
           </span>
-          <div className="w-20 h-2 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden">
-            <div
-              className="h-full bg-gradient-to-r from-teal-500 to-emerald-500 transition-all duration-300"
-              style={{ width: `${percent}%` }}
-            />
-          </div>
+          <AnimatedProgress value={percent} tone={percent >= 100 ? "success" : "brand"} className="w-24 h-2.5" label="Progresso do roteiro" />
         </div>
       </div>
 
@@ -168,11 +170,8 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
           type="button"
           onClick={handleFinishTraining}
           disabled={completed}
-          className={`w-full sm:w-auto rounded-xl font-bold text-xs px-5 py-2.5 shadow-sm transition-all ${
-            completed
-              ? 'bg-teal-100 text-teal-800 dark:bg-teal-950 dark:text-teal-300 border border-teal-300 cursor-not-allowed'
-              : 'bg-teal-600 hover:bg-teal-700 text-white'
-          }`}
+          variant={percent >= 100 ? 'success' : 'primary'}
+          className="w-full sm:w-auto text-xs px-5"
         >
           {completed ? (
             <span className="flex items-center gap-1.5">

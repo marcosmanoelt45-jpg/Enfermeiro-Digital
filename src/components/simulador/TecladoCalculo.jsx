@@ -43,7 +43,7 @@ export default function TecladoCalculo({
             key={k}
             type="button"
             onClick={() => onKeyPress(k)}
-            className="h-10 sm:h-10.5 rounded-[12px] border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-black text-lg flex items-center justify-center active:translate-y-[2px] active:border-b-2 hover:bg-[#1E2E3E] transition-all cursor-pointer"
+            className="h-10 sm:h-10.5 rounded-[12px] border-2 border-[#27394B] border-b-[3px] border-b-[#0A1118] bg-[#16222E] text-[#EAF2F8] font-black text-lg flex items-center justify-center press-lip hover:bg-[#1E2E3E] transition-all cursor-pointer"
           >
             {k === "BACKSPACE" ? (
               <Delete className="w-5 h-5 stroke-[2.3] text-[#9FB3C6]" />

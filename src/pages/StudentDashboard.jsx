@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Calculator,
@@ -20,6 +21,9 @@ import { clinicalGamificationService } from "@/services/clinicalGamificationServ
 
 import EnfereVivoTrail from "@/components/mobile/EnfereVivoTrail";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
+import { AnimatedNumber } from "@/components/ui/animated-number";
+import { AnimatedProgress } from "@/components/ui/animated-progress";
+import { fadeUp, listStagger } from "@/lib/motion";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -148,7 +152,7 @@ export default function StudentDashboard() {
                   triggerHaptic(20);
                   window.dispatchEvent(new CustomEvent("open-goti-chat"));
                 }}
-                className="cursor-pointer group shrink-0 transition-transform hover:scale-105 active:scale-95"
+                className="cursor-pointer group shrink-0 tap-press"
                 title="Conversar com o Preceptor Goti"
               >
                 <GotiAnimated
@@ -172,12 +176,7 @@ export default function StudentDashboard() {
                 {/* Meta do Dia no Desktop */}
                 <div className="flex items-center gap-3 pt-1">
                   <span className="text-xs font-black text-[#EAF2F8]">Meta do dia:</span>
-                  <div className="h-2.5 w-48 bg-[#16222E] border border-[#27394B] rounded-full overflow-hidden p-0.5">
-                    <div
-                      className="h-full bg-gradient-to-r from-[#1FC7B6] to-[#20D5B5] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(32,213,181,0.4)]"
-                      style={{ width: `${dailyGoalPercent}%` }}
-                    />
-                  </div>
+                  <AnimatedProgress value={dailyGoalPercent} tone={dailyGoalPercent >= 100 ? "success" : "brand"} className="w-48 h-2.5" label="Meta do dia" />
                   <span className="text-xs font-bold text-[#9FB3C6]">{todayActivitiesCount} de 3 atividades</span>
                 </div>
               </div>
@@ -186,12 +185,12 @@ export default function StudentDashboard() {
             {/* Badges de Ofensiva e Pontos de Estudo (PE) */}
             <div className="flex items-center gap-3 z-10">
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-sm font-black shadow-sm">
-                <Flame className="w-5 h-5 fill-current text-[#FFC247]" />
-                <span>{gameState.streak || 0} dias seguidos</span>
+                <Flame className={`w-5 h-5 fill-current text-[#FFC247] ${gameState.streak ? "animate-flame-subtle" : ""}`} />
+                <span><AnimatedNumber value={gameState.streak || 0} /> {gameState.streak === 1 ? "dia seguido" : "dias seguidos"}</span>
               </div>
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-sm font-black shadow-sm">
                 <Zap className="w-5 h-5 fill-current text-[#20D5B5]" />
-                <span>{gameState.studyPoints ?? 0} PE</span>
+                <span><AnimatedNumber value={gameState.studyPoints ?? 0} /> PE</span>
               </div>
             </div>
           </div>
@@ -223,12 +222,7 @@ export default function StudentDashboard() {
               </div>
 
               {/* Barra de Progresso Real */}
-              <div className="h-2.5 w-full bg-[#16222E] rounded-full overflow-hidden">
-                <div
-                  className="h-full bg-[#20D5B5] rounded-full transition-all duration-300"
-                  style={{ width: `${Math.max(latestActivity.progressPercentage || 0, 10)}%` }}
-                />
-              </div>
+              <AnimatedProgress value={latestActivity.progressPercentage || 0} minVisible={10} label="Progresso do caso" />
 
               {/* Botão de Ação Primária em Ciano 3D */}
               <div className="pt-1 flex gap-3">
@@ -243,7 +237,7 @@ export default function StudentDashboard() {
                       navigate("/simulador-casos");
                     }
                   }}
-                  className="flex-1 h-12 rounded-2xl bg-[#20D5B5] hover:bg-[#1bc4a6] text-[#06302E] font-black text-sm tracking-wide border-0 border-b-4 border-b-[#149F86] active:translate-y-1 active:border-b-2 transition-all flex items-center justify-center gap-2 select-none shadow-[0_4px_14px_rgba(32,213,181,0.25)] cursor-pointer"
+                  className="btn-3d-teal flex-1 h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <span>Continuar Simulação</span>
                   <ChevronRight className="w-4 h-4 stroke-[3]" />
@@ -253,7 +247,7 @@ export default function StudentDashboard() {
                     triggerHaptic(15);
                     navigate("/montar-caso");
                   }}
-                  className="px-5 h-12 rounded-2xl bg-[#16222E] hover:bg-[#1b2b3a] text-[#EAF2F8] font-bold text-sm border border-[#27394B] border-b-4 border-b-[#0A1118] active:translate-y-1 active:border-b-2 transition-all flex items-center gap-2 cursor-pointer select-none"
+                  className="btn-3d-outline px-5 h-12 text-sm flex items-center gap-2 cursor-pointer"
                 >
                   <PlusCircle className="w-4 h-4 text-[#20D5B5]" />
                   <span>Novo Caso</span>
@@ -286,7 +280,7 @@ export default function StudentDashboard() {
                     triggerHaptic(20);
                     navigate("/montar-caso");
                   }}
-                  className="px-6 h-12 rounded-2xl bg-[#20D5B5] hover:bg-[#1bc4a6] text-[#06302E] font-black text-sm tracking-wide border-0 border-b-4 border-b-[#149F86] active:translate-y-1 active:border-b-2 transition-all flex items-center justify-center gap-2 select-none shadow-[0_4px_14px_rgba(32,213,181,0.25)] cursor-pointer"
+                  className="btn-3d-teal px-6 h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
                   <PlusCircle className="w-4.5 h-4.5 stroke-[2.5]" />
                   <span>Montar Caso Clínico</span>
@@ -296,7 +290,7 @@ export default function StudentDashboard() {
                     triggerHaptic(15);
                     navigate("/videochamada");
                   }}
-                  className="px-5 h-12 rounded-2xl bg-[#16222E] hover:bg-[#1b2b3a] text-[#EAF2F8] font-bold text-sm border border-[#27394B] border-b-4 border-b-[#0A1118] active:translate-y-1 active:border-b-2 transition-all flex items-center gap-2 cursor-pointer select-none"
+                  className="btn-3d-outline px-5 h-12 text-sm flex items-center gap-2 cursor-pointer"
                 >
                   <Mic className="w-4 h-4 text-[#20D5B5]" />
                   <span>Atendimento por Voz</span>
@@ -316,14 +310,17 @@ export default function StudentDashboard() {
               </p>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+            <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" variants={listStagger} initial="hidden" animate="show">
               {desktopSuggestions.map((item) => {
                 const Icon = item.icon;
                 return (
-                  <button
+                  <motion.button
                     key={item.id}
+                    variants={fadeUp}
+                    whileHover={{ y: -3 }}
+                    whileTap={{ scale: 0.98 }}
                     onClick={item.action}
-                    className={`flex flex-col justify-between p-5 min-h-[160px] rounded-2xl border text-left active:translate-y-0.5 transition-all group cursor-pointer shadow-md ${
+                    className={`flex flex-col justify-between p-5 min-h-[160px] rounded-2xl border text-left transition-colors group cursor-pointer shadow-md ${
                       item.highlight
                         ? "bg-gradient-to-br from-[#162838] to-[#131F2E] border-[#20D5B5]/60 hover:border-[#20D5B5]"
                         : "bg-[#131F2E] border-[#1F3045] hover:border-[#20D5B5]"
@@ -360,10 +357,10 @@ export default function StudentDashboard() {
                         {item.subtitle}
                       </p>
                     </div>
-                  </button>
+                  </motion.button>
                 );
               })}
-            </div>
+            </motion.div>
           </div>
         </div>
 

@@ -72,7 +72,7 @@ export default function StreakHeroCard({ streakData, onUpdate }) {
             disabled={freezing || streakFreezeAvailable <= 0}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border-2 transition-all select-none ${
               streakFreezeAvailable > 0
-                ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-300 dark:border-sky-800 border-b-4 border-b-sky-400 dark:border-b-sky-900 text-sky-800 dark:text-sky-300 hover:bg-sky-100 active:translate-y-1 active:border-b-2 shadow-xs cursor-pointer'
+                ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-300 dark:border-sky-800 border-b-4 border-b-sky-400 dark:border-b-sky-900 text-sky-800 dark:text-sky-300 hover:bg-sky-100 press-lip shadow-xs cursor-pointer'
                 : 'bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-400 cursor-not-allowed opacity-70'
             }`}
             title="Protege a ofensiva em dias de plantão hospitalar de 24h ou 36h"

@@ -9,6 +9,8 @@ import { UserPlus, Mail, Lock, User, Loader2, Sparkles } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { safeReturnTo } from "@/lib/authReturnTo";
+import { passwordPolicyError } from "@/lib/passwordPolicy";
+import PasswordChecklist from "@/components/auth/PasswordChecklist";
 
 export default function Register() {
   const navigate = useNavigate();
@@ -36,8 +38,9 @@ export default function Register() {
       setError("As senhas digitadas não coincidem");
       return;
     }
-    if (password.length < 6) {
-      setError("A senha deve ter no mínimo 6 caracteres");
+    const policyError = passwordPolicyError(password);
+    if (policyError) {
+      setError(policyError);
       return;
     }
     setLoading(true);
@@ -190,13 +193,15 @@ export default function Register() {
               id="password"
               type="password"
               autoComplete="new-password"
-              placeholder="Mínimo 6 caracteres"
+              placeholder="Crie uma senha forte"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              aria-describedby="password-rules"
               className="pl-10 h-11 rounded-xl dark:bg-slate-800/90 dark:border-slate-700 dark:text-slate-100"
               required
             />
           </div>
+          {password.length > 0 && <PasswordChecklist id="password-rules" password={password} />}
         </div>
 
         <div className="space-y-1.5">
@@ -220,7 +225,7 @@ export default function Register() {
 
         <Button
           type="submit"
-          className="w-full h-12 font-bold rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-sm transition mt-2"
+          className="w-full h-12 font-bold rounded-xl transition mt-2"
           disabled={loading}
         >
           {loading ? (

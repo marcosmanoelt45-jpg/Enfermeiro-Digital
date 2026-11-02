@@ -59,8 +59,8 @@ npm install
 ### Passo 4: Manter o arquivo `.env.local`
 Certifique-se de que o seu arquivo `.env.local` esteja presente na raiz do projeto (ele não sobe pro GitHub por segurança). Ele contém as variáveis de ambiente necessárias para o Supabase e OpenRouter:
 ```env
-OPENROUTER_API_KEY=sua_chave_openrouter_aqui
-VITE_OPENROUTER_API_KEY=sua_chave_openrouter_aqui
+# NUNCA use o prefixo VITE_ em chaves secretas: o Vite embute VITE_* no JS público.
+# A chave OpenRouter do projeto fica só nos secrets da Edge Function (supabase secrets set OPENROUTER_API_KEY=...).
 VITE_SUPABASE_URL=https://xwqgyvqofxdqdbhltdzf.supabase.co
 VITE_SUPABASE_ANON_KEY=sua_chave_anon_supabase_aqui
 ```

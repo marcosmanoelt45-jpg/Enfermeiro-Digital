@@ -52,7 +52,7 @@ export default function TranscriptPanel({ value, onChange, vitals, onConfirm, on
         <Button
           onClick={onConfirm}
           disabled={!value.trim()}
-          className="h-11 flex-1 rounded-xl bg-teal-600 text-base font-semibold hover:bg-teal-700 text-white shadow-sm"
+          className="h-11 flex-1 rounded-xl text-base font-semibold"
         >
           <Sparkles className="mr-2 h-5 w-5" /> Confirmar e gerar plano
         </Button>

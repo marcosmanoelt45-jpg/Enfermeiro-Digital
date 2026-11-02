@@ -1,18 +1,11 @@
 import { createClient } from '@supabase/supabase-js';
 
-const safeGetEnv = (key) => {
-  try {
-    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
-      return import.meta.env[key];
-    }
-  } catch {}
-  try {
-    if (typeof process !== 'undefined' && process.env && process.env[key]) {
-      return process.env[key];
-    }
-  } catch {}
-  return '';
+// Acesso explícito: `import.meta.env[key]` dinâmico faria o Vite embutir TODAS as variáveis VITE_* no bundle.
+const PUBLIC_ENV = {
+  VITE_SUPABASE_URL: import.meta.env.VITE_SUPABASE_URL || '',
+  VITE_SUPABASE_ANON_KEY: import.meta.env.VITE_SUPABASE_ANON_KEY || '',
 };
+const safeGetEnv = (key) => PUBLIC_ENV[key] || '';
 
 const CANONICAL_SUPABASE_REF = 'xwqgyvqofxdqdbhltdzf';
 const CANONICAL_SUPABASE_URL = `https://${CANONICAL_SUPABASE_REF}.supabase.co`;

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { toast } from "@/components/ui/use-toast";
 import { evolutionService, authService } from "@/services";
 import { FileText, Loader2, Plus, Trash2, Save, ShieldCheck, CheckCircle2, AlertTriangle, KeyRound } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -73,7 +74,7 @@ export default function EvolutionsTab({ patientId }) {
   async function handleSignConfirm() {
     if (!selectedEvolution) return;
     if (!corenInput.trim()) {
-      alert("Informe seu registro COREN para assinar a evolução.");
+      toast({ title: "COREN obrigatório", description: "Informe seu registro COREN para assinar a evolução." });
       return;
     }
 
@@ -84,7 +85,7 @@ export default function EvolutionsTab({ patientId }) {
       setSelectedEvolution(null);
       load();
     } catch (err) {
-      alert("Erro ao assinar evolução: " + err.message);
+      toast({ variant: "destructive", title: "Não foi possível assinar", description: err.message });
     } finally {
       setSigning(false);
     }
@@ -93,7 +94,7 @@ export default function EvolutionsTab({ patientId }) {
   return (
     <div className="space-y-4">
       {!showForm ? (
-        <Button onClick={() => setShowForm(true)} className="w-full rounded-2xl bg-teal-600 py-5 hover:bg-teal-700 text-white shadow-sm transition">
+        <Button onClick={() => setShowForm(true)} className="w-full rounded-2xl py-5 transition">
           <Plus className="mr-2 h-5 w-5" /> Nova Evolução Estruturada (SOAP)
         </Button>
       ) : (
@@ -123,7 +124,7 @@ export default function EvolutionsTab({ patientId }) {
           ))}
 
           <div className="flex gap-2 pt-2">
-            <Button onClick={save} disabled={saving} className="flex-1 rounded-xl bg-teal-600 hover:bg-teal-700 text-white">
+            <Button onClick={save} disabled={saving} className="flex-1 rounded-xl">
               {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} Salvar Rascunho
             </Button>
             <Button onClick={() => setShowForm(false)} variant="outline" className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
@@ -277,7 +278,7 @@ export default function EvolutionsTab({ patientId }) {
             <Button
               onClick={handleSignConfirm}
               disabled={signing || !corenInput.trim()}
-              className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white"
+              className="rounded-xl"
             >
               {signing ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <ShieldCheck className="mr-2 h-4 w-4" />}
               Revisar, Aceitar e Assinar

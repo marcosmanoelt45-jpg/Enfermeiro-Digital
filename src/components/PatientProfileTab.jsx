@@ -88,7 +88,7 @@ export default function PatientProfileTab({ patient, onSaved }) {
         })}
 
         <div className="flex gap-2">
-          <Button onClick={save} disabled={saving} className="flex-1 rounded-xl bg-teal-600 hover:bg-teal-700 text-white">
+          <Button onClick={save} disabled={saving} className="flex-1 rounded-xl">
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} Salvar
           </Button>
           <Button onClick={() => setEditing(false)} variant="outline" className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">

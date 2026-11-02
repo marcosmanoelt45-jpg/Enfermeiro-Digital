@@ -1,4 +1,5 @@
 import React, { useMemo } from "react";
+import { motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Flame,
@@ -16,6 +17,9 @@ import { useAuth } from "@/lib/AuthContext";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
+import { AnimatedNumber } from "@/components/ui/animated-number";
+import { AnimatedProgress } from "@/components/ui/animated-progress";
+import { fadeUp, listStagger } from "@/lib/motion";
 
 export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }) {
   const navigate = useNavigate();
@@ -119,7 +123,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
             triggerHaptic(15);
             navigate("/conta");
           }}
-          className="w-11 h-11 rounded-full bg-[#20D5B5] text-[#06302E] font-black text-lg flex items-center justify-center shadow-md border-2 border-white/20 active:scale-95 transition-transform cursor-pointer"
+          className="w-11 h-11 rounded-full bg-[#20D5B5] text-[#06302E] font-black text-lg flex items-center justify-center shadow-[0_3px_0_#149F86] border-2 border-white/20 tap-press cursor-pointer"
           title="Minha Conta"
           aria-label="Minha Conta"
         >
@@ -130,14 +134,14 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
         <div className="flex items-center gap-2">
           {/* Chip Ofensiva */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-xs font-black shadow-xs">
-            <Flame className="w-4 h-4 fill-current text-[#FFC247]" />
-            <span>{gameState.streak || 0} dias</span>
+            <Flame className={`w-4 h-4 fill-current text-[#FFC247] ${gameState.streak ? "animate-flame-subtle" : ""}`} />
+            <span><AnimatedNumber value={gameState.streak || 0} /> {gameState.streak === 1 ? "dia" : "dias"}</span>
           </div>
 
           {/* Chip PE */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-xs font-black shadow-xs">
             <Zap className="w-4 h-4 fill-current text-[#20D5B5]" />
-            <span>{gameState.studyPoints ?? 0} PE</span>
+            <span><AnimatedNumber value={gameState.studyPoints ?? 0} /> PE</span>
           </div>
         </div>
       </div>
@@ -150,8 +154,18 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
             if (onOpenAIChat) onOpenAIChat();
             else window.dispatchEvent(new CustomEvent("open-goti-chat"));
           }}
-          className="cursor-pointer shrink-0 transition-transform hover:scale-105 active:scale-95"
+          className="cursor-pointer shrink-0 tap-press"
           title="Falar com o Preceptor Goti"
+          role="button"
+          tabIndex={0}
+          aria-label="Falar com o Preceptor Goti"
+          onKeyDown={(e) => {
+            if (e.key === "Enter" || e.key === " ") {
+              e.preventDefault();
+              if (onOpenAIChat) onOpenAIChat();
+              else window.dispatchEvent(new CustomEvent("open-goti-chat"));
+            }
+          }}
         >
           {/* Goti ampliado com tamanho expressivo e amigável */}
           <GotiAnimated
@@ -177,14 +191,11 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
       <div className="space-y-1.5 px-0.5">
         <div className="flex items-center justify-between text-xs font-extrabold">
           <span className="text-[#EAF2F8]">Meta do dia</span>
-          <span className="text-[#9FB3C6]">{todayActivitiesCount} de 3 atividades hoje</span>
+          <span className={dailyGoalPercent >= 100 ? "text-[#3DD68C]" : "text-[#9FB3C6]"}>
+            {dailyGoalPercent >= 100 ? "Meta batida! " : ""}{todayActivitiesCount} de 3 atividades hoje
+          </span>
         </div>
-        <div className="h-2.5 w-full bg-[#16222E] border border-[#27394B] rounded-full overflow-hidden p-0.5">
-          <div
-            className="h-full bg-gradient-to-r from-[#1FC7B6] to-[#20D5B5] rounded-full transition-all duration-500 shadow-[0_0_8px_rgba(32,213,181,0.4)]"
-            style={{ width: `${dailyGoalPercent}%` }}
-          />
-        </div>
+        <AnimatedProgress value={dailyGoalPercent} tone={dailyGoalPercent >= 100 ? "success" : "brand"} label="Meta do dia" />
       </div>
 
       {/* 4. Card "Continuar de Onde Parou" Inteligente e Individual */}
@@ -209,12 +220,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
           </div>
 
           {/* Barra de Progresso Real */}
-          <div className="h-2 w-full bg-[#16222E] rounded-full overflow-hidden">
-            <div
-              className="h-full bg-[#20D5B5] rounded-full transition-all duration-300"
-              style={{ width: `${Math.max(latestActivity.progressPercentage || 0, 10)}%` }}
-            />
-          </div>
+          <AnimatedProgress value={latestActivity.progressPercentage || 0} minVisible={10} className="h-2.5" label="Progresso do caso" />
 
           {/* Botão Largo "Continuar" em Ciano 3D */}
           <button
@@ -228,7 +234,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
                 navigate("/simulador-casos");
               }
             }}
-            className="w-full h-12 rounded-2xl bg-[#20D5B5] hover:bg-[#1bc4a6] text-[#06302E] font-black text-sm tracking-wide border-0 border-b-4 border-b-[#149F86] active:translate-y-1 active:border-b-2 transition-all flex items-center justify-center gap-2 select-none shadow-[0_4px_14px_rgba(32,213,181,0.25)] cursor-pointer"
+            className="btn-3d-teal w-full h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
           >
             <span>Continuar</span>
             <ChevronRight className="w-4 h-4 stroke-[3]" />
@@ -260,7 +266,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
               triggerHaptic(20);
               navigate("/montar-caso");
             }}
-            className="w-full h-12 rounded-2xl bg-[#20D5B5] hover:bg-[#1bc4a6] text-[#06302E] font-black text-sm tracking-wide border-0 border-b-4 border-b-[#149F86] active:translate-y-1 active:border-b-2 transition-all flex items-center justify-center gap-2 select-none shadow-[0_4px_14px_rgba(32,213,181,0.25)] cursor-pointer"
+            className="btn-3d-teal w-full h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
           >
             <PlusCircle className="w-4.5 h-4.5 stroke-[2.5]" />
             <span>Montar Caso Clínico</span>
@@ -281,14 +287,16 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
           </div>
         </div>
 
-        <div className="space-y-2">
+        <motion.div className="space-y-2" variants={listStagger} initial="hidden" animate="show">
           {suggestions.map((item) => {
             const Icon = item.icon;
             return (
-              <button
+              <motion.button
                 key={item.id}
+                variants={fadeUp}
+                whileTap={{ scale: 0.98 }}
                 onClick={item.action}
-                className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left active:translate-y-0.5 transition-all group cursor-pointer ${
+                className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left transition-colors group cursor-pointer ${
                   item.highlight
                     ? "bg-gradient-to-r from-[#162838] to-[#131F2E] border-[#20D5B5]/50 shadow-md"
                     : "bg-[#131F2E] border-[#1F3045] hover:border-[#20D5B5]/60"
@@ -327,10 +335,10 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
                   </div>
                 </div>
                 <ChevronRight className="w-4 h-4 text-[#52667A] group-hover:text-[#20D5B5] group-hover:translate-x-0.5 transition-all shrink-0" />
-              </button>
+              </motion.button>
             );
           })}
-        </div>
+        </motion.div>
       </div>
 
       {/* 6. Rodapé com Autoria Oficial */}
