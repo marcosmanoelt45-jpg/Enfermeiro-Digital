@@ -220,7 +220,7 @@ export default function Register() {
 
         <Button
           type="submit"
-          className="w-full h-12 font-bold rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-sm transition mt-2"
+          className="w-full h-12 font-bold rounded-xl transition mt-2"
           disabled={loading}
         >
           {loading ? (

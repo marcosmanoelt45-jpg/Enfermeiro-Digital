@@ -63,7 +63,7 @@ export default function DiagnosesTab({ patientId }) {
         <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-300">
           Diagnósticos ({diagnoses.length})
         </p>
-        <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }} className="rounded-xl bg-teal-600 hover:bg-teal-700">
+        <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }} className="rounded-xl">
           <Plus className="h-4 w-4" /> Adicionar
         </Button>
       </div>

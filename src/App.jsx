@@ -2,7 +2,9 @@ import React, { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
-import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
+import { MotionConfig, motion } from 'framer-motion';
+import { ease } from '@/lib/motion';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { ThemeProvider } from '@/lib/ThemeContext';
@@ -69,6 +71,7 @@ const SplashPage = () => {
 const AuthenticatedApp = () => {
   const { user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
   const navigate = useNavigate();
+  const location = useLocation();
   const [showInitialSplash, setShowInitialSplash] = React.useState(() => {
     if (typeof window === "undefined") return false;
     const path = window.location.pathname;
@@ -135,6 +138,13 @@ const AuthenticatedApp = () => {
 
   return (
     <Suspense fallback={<PageLoader />}>
+      {/* Só opacidade: transform num ancestral quebraria os elementos position:fixed (dock, folhas inferiores) */}
+      <motion.div
+        key={location.pathname}
+        initial={{ opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ duration: 0.18, ease: ease.out }}
+      >
       <Routes>
         <Route path="/splash" element={<SplashPage />} />
         <Route path="/login" element={<Login />} />
@@ -187,6 +197,7 @@ const AuthenticatedApp = () => {
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>
+      </motion.div>
     </Suspense>
   );
 };
@@ -194,6 +205,7 @@ const AuthenticatedApp = () => {
 function App() {
   return (
     <ErrorBoundary>
+      <MotionConfig reducedMotion="user">
       <ThemeProvider>
         <AuthProvider>
           <QueryClientProvider client={queryClientInstance}>
@@ -205,6 +217,7 @@ function App() {
           </QueryClientProvider>
         </AuthProvider>
       </ThemeProvider>
+      </MotionConfig>
     </ErrorBoundary>
   );
 }

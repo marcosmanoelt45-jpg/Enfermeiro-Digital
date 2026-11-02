@@ -217,7 +217,7 @@ export default function Login() {
 
         <Button
           type="submit"
-          className="w-full h-12 font-bold rounded-xl bg-teal-600 hover:bg-teal-700 text-white shadow-sm transition"
+          className="w-full h-12 font-bold rounded-xl transition"
           disabled={loading}
         >
           {loading ? (

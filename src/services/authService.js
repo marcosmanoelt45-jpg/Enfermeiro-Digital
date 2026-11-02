@@ -3,17 +3,74 @@ import { supabase, supabaseUrl, supabaseAnonKey, isSupabaseConfigured, markSupab
 const LOCAL_STORAGE_USER_KEY = 'enfermeiro_digital_local_user';
 const LOCAL_REGISTERED_ACCOUNTS_KEY = 'enfermeiro_digital_registered_accounts';
 
-function saveRegisteredAccountLocal({ id, email, password, full_name, user_type = 'aluno', coren = '' }) {
+// Contas locais (fallback quando o Supabase limita envio de e-mail) nunca guardam a senha em texto:
+// só um hash PBKDF2-SHA-256 com sal aleatório, suficiente para validar o login offline.
+const PBKDF2_ITERATIONS = 120000;
+
+function toHex(buffer) {
+  return Array.from(new Uint8Array(buffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
+}
+
+async function hashLocalPassword(password, saltHex) {
+  const salt = saltHex || toHex(crypto.getRandomValues(new Uint8Array(16)));
+  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt: new TextEncoder().encode(salt), iterations: PBKDF2_ITERATIONS },
+    key,
+    256
+  );
+  return { passwordHash: toHex(bits), passwordSalt: salt };
+}
+
+async function verifyLocalPassword(record, password) {
+  if (!record?.passwordHash || !record?.passwordSalt || !password) return false;
+  try {
+    const { passwordHash } = await hashLocalPassword(password, record.passwordSalt);
+    return passwordHash === record.passwordHash;
+  } catch {
+    return false;
+  }
+}
+
+// Migração única: versões antigas gravavam a senha em texto puro. Converte para hash e apaga o texto.
+async function migrateLegacyPlaintextPasswords() {
+  try {
+    if (typeof localStorage === 'undefined' || !globalThis.crypto?.subtle) return;
+    const raw = localStorage.getItem(LOCAL_REGISTERED_ACCOUNTS_KEY);
+    if (!raw) return;
+    const map = JSON.parse(raw);
+    let changed = false;
+    for (const email of Object.keys(map)) {
+      const record = map[email];
+      if (record && typeof record.password === 'string') {
+        Object.assign(record, await hashLocalPassword(record.password));
+        delete record.password;
+        changed = true;
+      }
+    }
+    if (changed) localStorage.setItem(LOCAL_REGISTERED_ACCOUNTS_KEY, JSON.stringify(map));
+  } catch {
+    try {
+      localStorage.removeItem(LOCAL_REGISTERED_ACCOUNTS_KEY);
+    } catch {}
+  }
+}
+migrateLegacyPlaintextPasswords();
+
+async function saveRegisteredAccountLocal({ id, email, password, passwordHash, passwordSalt, full_name, user_type = 'aluno', coren = '' }) {
   try {
     if (typeof localStorage === 'undefined') return null;
     const cleanEmail = (email || '').trim().toLowerCase();
     const resolvedName = (full_name || '').trim() || cleanEmail.split('@')[0] || 'Estudante de Enfermagem';
     const raw = localStorage.getItem(LOCAL_REGISTERED_ACCOUNTS_KEY);
     const map = raw ? JSON.parse(raw) : {};
+    const credentials = password
+      ? await hashLocalPassword(password)
+      : { passwordHash: passwordHash || map[cleanEmail]?.passwordHash, passwordSalt: passwordSalt || map[cleanEmail]?.passwordSalt };
     const record = {
       id: id || map[cleanEmail]?.id || 'user-' + Math.random().toString(36).substring(2, 10),
       email: cleanEmail,
-      password,
+      ...credentials,
       full_name: resolvedName,
       name: resolvedName,
       role: user_type,
@@ -26,7 +83,8 @@ function saveRegisteredAccountLocal({ id, email, password, full_name, user_type 
     localStorage.setItem(LOCAL_REGISTERED_ACCOUNTS_KEY, JSON.stringify(map));
 
     const sessionUser = { ...record };
-    delete sessionUser.password;
+    delete sessionUser.passwordHash;
+    delete sessionUser.passwordSalt;
     localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(sessionUser));
     return sessionUser;
   } catch {
@@ -351,7 +409,7 @@ export const authService = {
 
       // No Supabase GoTrue, 'Email not confirmed' só é retornado quando e-mail e senha estão corretos no banco!
       if (msg.includes('email not confirmed')) {
-        const sessionUser = saveRegisteredAccountLocal({
+        const sessionUser = await saveRegisteredAccountLocal({
           id: localAcc?.id,
           email: cleanEmail,
           password,
@@ -365,8 +423,8 @@ export const authService = {
       }
 
       // Se a conta foi criada localmente durante rate-limit de e-mail do Supabase, valida a senha registrada
-      if (localAcc && localAcc.password === password) {
-        const sessionUser = saveRegisteredAccountLocal(localAcc);
+      if (localAcc && (await verifyLocalPassword(localAcc, password))) {
+        const sessionUser = await saveRegisteredAccountLocal(localAcc);
         if (sessionUser) {
           return { user: sessionUser, session: { user: sessionUser } };
         }
@@ -465,7 +523,7 @@ export const authService = {
       }
 
       // Se mailer_autoconfirm=false no Supabase (session=null), ativa a sessão imediatamente para o aluno não travar
-      const sessionUser = saveRegisteredAccountLocal({
+      const sessionUser = await saveRegisteredAccountLocal({
         id: data.user.id,
         email: cleanEmail,
         password,
@@ -496,7 +554,7 @@ export const authService = {
         err?.status === 429 ||
         (msg.includes('email') && msg.includes('invalid') && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail))
       ) {
-        const sessionUser = saveRegisteredAccountLocal({
+        const sessionUser = await saveRegisteredAccountLocal({
           email: cleanEmail,
           password,
           full_name: resolvedName,
@@ -519,6 +577,8 @@ export const authService = {
     if (typeof localStorage !== 'undefined') {
       localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
       localStorage.removeItem('pending_oauth_role');
+      // Chave global antiga do chat do Goti (antes de ser separada por usuário)
+      localStorage.removeItem('enfermeiro_goti_chat_history');
     }
     try {
       if (isSupabaseConfigured()) {

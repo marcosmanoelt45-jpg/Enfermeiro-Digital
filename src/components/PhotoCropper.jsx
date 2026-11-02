@@ -134,7 +134,7 @@ export default function PhotoCropper({ file, onConfirm, onCancel }) {
           <Button variant="outline" onClick={onCancel} className="flex-1 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800" disabled={busy}>
             Cancelar
           </Button>
-          <Button onClick={handleConfirm} className="flex-1 rounded-xl bg-teal-600 hover:bg-teal-700" disabled={busy || !imgEl}>
+          <Button onClick={handleConfirm} className="flex-1 rounded-xl" disabled={busy || !imgEl}>
             {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar"}
           </Button>
         </div>

@@ -110,7 +110,7 @@ export default function DiagnosisFormDialog({ open, onOpenChange, onSave, editin
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={saving || !form.code.trim() || !form.title.trim()} className="bg-teal-600 hover:bg-teal-700">
+          <Button onClick={handleSave} disabled={saving || !form.code.trim() || !form.title.trim()} className="">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}
           </Button>
         </DialogFooter>

@@ -281,7 +281,7 @@ export default function Turmas() {
                 <Button
                   onClick={handleJoin}
                   disabled={joining || !joinCode.trim()}
-                  className="shrink-0 rounded-xl bg-teal-600 hover:bg-teal-700 text-white"
+                  className="shrink-0 rounded-xl"
                 >
                   {joining ? <Loader2 className="h-4 w-4 animate-spin" /> : "Entrar"}
                 </Button>
@@ -421,7 +421,7 @@ export default function Turmas() {
             <Button
               onClick={handleCreate}
               disabled={saving || !form.name.trim()}
-              className="bg-teal-600 hover:bg-teal-700 text-white"
+              className=""
             >
               {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Criar turma"}
             </Button>

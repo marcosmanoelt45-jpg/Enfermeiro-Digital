@@ -424,7 +424,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
           <Button
             type="submit"
             disabled={!inputText.trim() || isLoading}
-            className="rounded-2xl bg-teal-600 hover:bg-teal-500 text-white px-4 py-2.5 h-auto font-bold shadow-xs active:scale-95 transition-all shrink-0"
+            className="rounded-2xl hover:bg-teal-500 px-4 py-2.5 h-auto font-bold shadow-xs active:scale-95 transition-all shrink-0"
           >
             <Send className="w-4 h-4" />
           </Button>

@@ -19,8 +19,8 @@ export default function ClinicalModuleCard({
       onClick={onClick}
       className={`group block p-4 bg-white dark:bg-slate-900 rounded-2xl sm:rounded-3xl border-2 transition-all duration-150 select-none cursor-pointer ${
         featured
-          ? 'border-emerald-200 dark:border-emerald-800/80 border-b-4 border-b-emerald-400 dark:border-b-emerald-600 shadow-sm shadow-emerald-100/50 dark:shadow-none hover:border-emerald-300 active:translate-y-1 active:border-b-2'
-          : 'border-slate-200 dark:border-slate-800 border-b-4 border-b-slate-300 dark:border-b-slate-700/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 dark:hover:border-slate-700 hover:-translate-y-0.5 active:translate-y-1 active:border-b-2'
+          ? 'border-emerald-200 dark:border-emerald-800/80 border-b-4 border-b-emerald-400 dark:border-b-emerald-600 shadow-sm shadow-emerald-100/50 dark:shadow-none hover:border-emerald-300 press-lip'
+          : 'border-slate-200 dark:border-slate-800 border-b-4 border-b-slate-300 dark:border-b-slate-700/90 shadow-[0_2px_8px_rgba(0,0,0,0.03)] hover:border-slate-300 dark:hover:border-slate-700 hover:-translate-y-0.5 press-lip'
       }`}
     >
       <div className="flex items-start gap-3.5">

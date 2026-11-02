@@ -222,7 +222,7 @@ export default function ExpressAssessment() {
           {step < ASSESSMENT_STEPS.length - 1 ? (
             <Button
               onClick={next}
-              className="flex-1 rounded-xl bg-teal-600 py-5 font-semibold text-white hover:bg-teal-700"
+              className="flex-1 rounded-xl py-5 font-semibold"
             >
               Próximo: {ASSESSMENT_STEPS[step + 1]?.label}
             </Button>

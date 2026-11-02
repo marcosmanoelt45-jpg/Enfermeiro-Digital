@@ -17,7 +17,7 @@ export default function RecorderPanel({ recording, seconds, audioUrl, busy, onSt
         <Button
           onClick={onTranscribe}
           disabled={busy}
-          className="mt-5 h-12 w-full rounded-xl bg-teal-600 text-base font-semibold hover:bg-teal-700 text-white"
+          className="mt-5 h-12 w-full rounded-xl text-base font-semibold"
         >
           <Sparkles className="mr-2 h-5 w-5" /> Transcrever &amp; Gerar Plano
         </Button>

@@ -67,7 +67,7 @@ export default function DlpShieldModal({ open, onOpenChange, matches = [], onAno
           <Button
             type="button"
             onClick={onAnonymizeAndProceed}
-            className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white flex items-center gap-2"
+            className="rounded-xl flex items-center gap-2"
           >
             <Lock className="h-4 w-4" />
             Anonimizar e Prosseguir

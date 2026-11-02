@@ -48,6 +48,15 @@
     --ring: 174 73% 45%;
 
     --radius: 1rem;
+
+    /* Movimento (espelha src/lib/motion.js) */
+    --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+    --ease-in-out: cubic-bezier(0.77, 0, 0.175, 1);
+    --ease-drawer: cubic-bezier(0.32, 0.72, 0, 1);
+    --ease-overshoot: cubic-bezier(0.34, 1.56, 0.64, 1);
+    --dur-press: 110ms;
+    --dur-fast: 160ms;
+    --dur-base: 220ms;
   }
 
   .dark {
@@ -213,30 +222,12 @@ html.dark textarea {
   box-shadow: 0 10px 25px -5px rgba(31, 199, 182, 0.16), 0 8px 10px -6px rgba(31, 199, 182, 0.08);
 }
 
+/* Pressão genérica para elementos planos (chips, ícones, linhas de lista) */
 .tap-press {
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1);
-  will-change: transform;
+  transition: transform var(--dur-press) var(--ease-out);
 }
 .tap-press:active {
-  transform: translateY(3px);
-}
-
-/* Botão clínico principal com física tátil Enfere Vivo */
-.btn-clinical {
-  background-color: var(--vivo-aqua);
-  color: var(--vivo-aqua-label);
-  border: 2px solid var(--vivo-aqua);
-  border-bottom: 5px solid var(--vivo-aqua-base);
-  border-radius: 16px;
-  font-weight: 800;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
-}
-.btn-clinical:hover {
-  filter: brightness(1.05);
-}
-.btn-clinical:active {
-  transform: translateY(4px);
-  border-bottom-width: 2px;
+  transform: scale(0.97);
 }
 
 /* Superfície Enfere Vivo */
@@ -362,130 +353,98 @@ video::-webkit-media-controls-overlay-play-button {
 
 /* ==========================================================================
    DESIGN SYSTEM 3D TÁTIL "ENFERE VIVO"
-   Física de botões: borda 2px topo/laterais, 5px base, compressão 4px em 120ms
+   A "borda" de baixo é um box-shadow (lábio), não border-bottom: ao pressionar,
+   a face desce exatamente a altura do lábio e nada ao redor muda de posição.
+   Cada variante só define --btn-face / --btn-lip / --btn-ink / --btn-edge.
    ========================================================================== */
+@layer components {
+  .btn-3d,
+  .btn-clinical,
+  .btn-3d-teal,
+  .btn-3d-sky,
+  .btn-3d-emerald,
+  .btn-3d-amber,
+  .btn-3d-rose,
+  .btn-3d-outline,
+  .btn-3d-locked {
+    --btn-face: #20D5B5;
+    --btn-lip: #149F86;
+    --btn-ink: #06302E;
+    --btn-edge: transparent;
+    --lip: 4px;
+    position: relative;
+    background-color: var(--btn-face);
+    color: var(--btn-ink);
+    border: 2px solid var(--btn-edge);
+    border-radius: 16px;
+    box-shadow: 0 var(--lip) 0 var(--btn-lip);
+    font-weight: 800;
+    letter-spacing: 0.01em;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    transition:
+      transform var(--dur-press) var(--ease-out),
+      box-shadow var(--dur-press) var(--ease-out),
+      filter var(--dur-fast) ease,
+      border-color var(--dur-fast) ease,
+      background-color var(--dur-fast) ease;
+  }
 
-/* Botão 3D Primário (Aqua Enfere Vivo) */
-.btn-3d-teal {
-  background-color: var(--vivo-aqua);
-  color: var(--vivo-aqua-label);
-  border: 2px solid var(--vivo-aqua);
-  border-bottom: 5px solid var(--vivo-aqua-base);
-  border-radius: 16px;
-  font-weight: 800;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
-  user-select: none;
-}
-.btn-3d-teal:hover {
-  filter: brightness(1.05);
-}
-.btn-3d-teal:active {
-  transform: translateY(4px);
-  border-bottom-width: 2px;
-}
+  .btn-3d-emerald { --btn-face: #3DD68C; --btn-lip: #1E9A5E; --btn-ink: #062819; }
+  .btn-3d-amber { --btn-face: #FFC247; --btn-lip: #C98E12; --btn-ink: #2B1700; }
+  .btn-3d-rose { --btn-face: #FF6B6B; --btn-lip: #C24848; --btn-ink: #2B1619; }
+  .btn-3d-sky { --btn-face: #5AC8FA; --btn-lip: #1D8FC4; --btn-ink: #04263A; }
+  .btn-3d-outline { --btn-face: #16222E; --btn-lip: #0A1118; --btn-ink: #EAF2F8; --btn-edge: #27394B; }
+  .btn-3d-locked { --btn-face: #16222E; --btn-lip: #0A1118; --btn-ink: #52667A; --btn-edge: #1F3045; cursor: not-allowed; }
 
-/* Botão 3D Verde (Correto / Estável — #1F9D63 claro | #3DD68C escuro) */
-.btn-3d-emerald {
-  background-color: var(--vivo-green);
-  color: #062819;
-  border: 2px solid var(--vivo-green);
-  border-bottom: 5px solid #147A4B;
-  border-radius: 16px;
-  font-weight: 800;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
-  user-select: none;
-}
-.btn-3d-emerald:hover {
-  filter: brightness(1.05);
-}
-.btn-3d-emerald:active {
-  transform: translateY(4px);
-  border-bottom-width: 2px;
-}
+  html:not(.dark) .btn-3d-outline { --btn-face: #FFFFFF; --btn-lip: #C4D1DC; --btn-ink: #1B2B3A; --btn-edge: #DCE5EC; }
 
-/* Botão 3D Âmbar (Ofensiva / Alerta — #D97706 claro | #FFC247 escuro) */
-.btn-3d-amber {
-  background-color: var(--vivo-amber);
-  color: #2B1700;
-  border: 2px solid var(--vivo-amber);
-  border-bottom: 5px solid #B45309;
-  border-radius: 16px;
-  font-weight: 800;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
-  user-select: none;
-}
-.btn-3d-amber:hover {
-  filter: brightness(1.05);
-}
-.btn-3d-amber:active {
-  transform: translateY(4px);
-  border-bottom-width: 2px;
-}
+  @media (hover: hover) {
+    :is(.btn-3d, .btn-clinical, .btn-3d-teal, .btn-3d-sky, .btn-3d-emerald, .btn-3d-amber, .btn-3d-rose):hover:not(:disabled) {
+      filter: brightness(1.06);
+    }
+    .btn-3d-outline:hover:not(:disabled) {
+      --btn-edge: #20D5B5;
+    }
+  }
 
-/* Botão 3D Índigo / Sky (Raciocínio / Procedimentos) */
-.btn-3d-sky {
-  background-color: var(--vivo-aqua);
-  color: var(--vivo-aqua-label);
-  border: 2px solid var(--vivo-aqua);
-  border-bottom: 5px solid var(--vivo-aqua-base);
-  border-radius: 16px;
-  font-weight: 800;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
-  user-select: none;
-}
-.btn-3d-sky:hover {
-  filter: brightness(1.05);
-}
-.btn-3d-sky:active {
-  transform: translateY(4px);
-  border-bottom-width: 2px;
-}
+  :is(.btn-3d, .btn-clinical, .btn-3d-teal, .btn-3d-sky, .btn-3d-emerald, .btn-3d-amber, .btn-3d-rose, .btn-3d-outline):active:not(:disabled) {
+    transform: translateY(var(--lip));
+    box-shadow: 0 0 0 var(--btn-lip);
+    filter: none;
+  }
 
-/* Botão 3D Coral (Erro / Crítico — #D63B3B claro | #F0645F escuro) */
-.btn-3d-rose {
-  background-color: var(--vivo-coral);
-  color: #ffffff;
-  border: 2px solid var(--vivo-coral);
-  border-bottom: 5px solid #A82828;
-  border-radius: 16px;
-  font-weight: 800;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, filter 120ms ease;
-  user-select: none;
-}
-.btn-3d-rose:hover {
-  filter: brightness(1.05);
-}
-.btn-3d-rose:active {
-  transform: translateY(4px);
-  border-bottom-width: 2px;
-}
+  :is(.btn-3d, .btn-clinical, .btn-3d-teal, .btn-3d-sky, .btn-3d-emerald, .btn-3d-amber, .btn-3d-rose, .btn-3d-outline):disabled {
+    --btn-face: #1B2938;
+    --btn-lip: #0A1118;
+    --btn-ink: #52667A;
+    --btn-edge: #1F3045;
+    opacity: 1;
+  }
 
-/* Botão 3D Outline com superfície e base Enfere Vivo */
-.btn-3d-outline {
-  background-color: var(--vivo-surface);
-  color: var(--vivo-text);
-  border: 2px solid var(--vivo-line);
-  border-bottom: 5px solid var(--vivo-base);
-  border-radius: 16px;
-  font-weight: 800;
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-width 120ms ease, border-color 120ms ease;
-  user-select: none;
-}
-.dark .btn-3d-outline {
-  background-color: #16222E;
-  color: #EAF2F8;
-  border: 2px solid #27394B;
-  border-bottom: 5px solid #0A1118;
-}
-.btn-3d-outline:hover {
-  border-color: var(--vivo-aqua);
-}
-.dark .btn-3d-outline:hover {
-  border-color: #2AD3C1;
-}
-.btn-3d-outline:active {
-  transform: translateY(4px);
-  border-bottom-width: 2px;
+  /* Botões inline legados (border-b-4 + active:border-b-2): afunda sem empurrar vizinhos */
+  .press-lip {
+    transition: transform var(--dur-press) var(--ease-out), border-width var(--dur-press) var(--ease-out), filter var(--dur-fast) ease;
+  }
+  .press-lip:active:not(:disabled) {
+    transform: translateY(2px);
+    border-bottom-width: 2px;
+    margin-bottom: 2px;
+  }
+
+  /* Cartão pressionável genérico (listas de módulos, sugestões) */
+  .card-press {
+    transition: transform var(--dur-press) var(--ease-out), border-color var(--dur-fast) ease, background-color var(--dur-fast) ease;
+  }
+  .card-press:active {
+    transform: scale(0.98);
+  }
+  @media (hover: hover) {
+    .card-press:hover {
+      border-color: rgba(32, 213, 181, 0.6);
+    }
+  }
 }
 
 /* ==========================================================================
@@ -497,7 +456,7 @@ video::-webkit-media-controls-overlay-play-button {
   border-bottom: 5px solid #C4D1DC;
   border-radius: 18px;
   box-shadow: 0 2px 8px -2px rgba(27, 43, 58, 0.05);
-  transition: transform 120ms cubic-bezier(0.2, 0.8, 0.4, 1), border-color 120ms ease, box-shadow 120ms ease;
+  transition: transform var(--dur-press) var(--ease-out), border-color var(--dur-fast) ease, box-shadow var(--dur-fast) ease;
 }
 .dark .card-3d {
   background-color: #16222E;
@@ -520,8 +479,9 @@ video::-webkit-media-controls-overlay-play-button {
   border-bottom-color: #17A99A;
 }
 .card-3d-interactive:active {
-  transform: translateY(4px);
+  transform: translateY(3px);
   border-bottom-width: 2px;
+  margin-bottom: 3px;
 }
 
 /* ==========================================================================
@@ -587,10 +547,20 @@ html, body {
   text-rendering: optimizeLegibility;
 }
 
-/* Aceleração de hardware em botões táteis e cards 3D */
-.card-3d, .card-3d-interactive, button {
-  transform: translateZ(0);
-  backface-visibility: hidden;
+/* Brilho que percorre a barra de progresso quando ela avança */
+@keyframes progress-shine {
+  from { transform: translateX(0); }
+  to { transform: translateX(300%); }
+}
+.progress-shine {
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.45), transparent);
+  animation: progress-shine 900ms var(--ease-out) 1 forwards;
+}
+
+/* Foco visível consistente para teclado */
+:where(button, a, [role="button"], [role="radio"], [tabindex]):focus-visible {
+  outline: 2px solid #20D5B5;
+  outline-offset: 2px;
 }
 
 /* Respeito estrito a economia de bateria e redução de movimento no mobile */

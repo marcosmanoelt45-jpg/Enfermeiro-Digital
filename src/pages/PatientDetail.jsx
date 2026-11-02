@@ -134,7 +134,7 @@ export default function PatientDetail() {
               </div>
             )}
 
-            <Button onClick={() => navigate(`/patient/${id}/assessment`)} className="w-full rounded-2xl bg-teal-600 py-6 text-base text-white hover:bg-teal-700 shadow-sm">
+            <Button onClick={() => navigate(`/patient/${id}/assessment`)} className="w-full rounded-2xl py-6 text-base">
               <ClipboardList className="mr-2 h-5 w-5" /> {hasDraft ? "Retomar Avaliação Express" : "Iniciar Avaliação Express"}
             </Button>
 

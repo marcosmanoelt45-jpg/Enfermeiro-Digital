@@ -54,7 +54,28 @@ MISSÃO E PRINCÍPIOS PEDAGÓGICOS FUNDAMENTAIS:
    - Tom de voz: motivador, profissional, acolhedor e em português do Brasil.
 `;
 
-const GOTI_CHAT_STORAGE_KEY = 'enfermeiro_goti_chat_history';
+const GOTI_CHAT_STORAGE_PREFIX = 'enfermeiro_goti_chat_history';
+
+// O histórico é separado por conta: num aparelho compartilhado, quem entra depois não vê
+// (nem envia ao LLM) a conversa de outra pessoa.
+function currentUserId() {
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith('sb-') && key.endsWith('-auth-token')) {
+        const id = JSON.parse(localStorage.getItem(key) || 'null')?.user?.id;
+        if (id) return id;
+      }
+    }
+    return JSON.parse(localStorage.getItem('enfermeiro_digital_local_user') || 'null')?.id || 'anon';
+  } catch {
+    return 'anon';
+  }
+}
+
+function chatStorageKey() {
+  return `${GOTI_CHAT_STORAGE_PREFIX}:${currentUserId()}`;
+}
 
 /**
  * Recupera o resumo dos atendimentos recentes em videochamada salvos no storage.
@@ -95,7 +116,7 @@ export const gotiPreceptorService = {
   getHistory() {
     try {
       if (typeof localStorage === 'undefined') return [DEFAULT_GREETING];
-      const raw = localStorage.getItem(GOTI_CHAT_STORAGE_KEY);
+      const raw = localStorage.getItem(chatStorageKey());
       if (!raw) return [DEFAULT_GREETING];
       const parsed = JSON.parse(raw);
       return Array.isArray(parsed) && parsed.length > 0 ? parsed : [DEFAULT_GREETING];
@@ -110,7 +131,7 @@ export const gotiPreceptorService = {
   clearHistory() {
     try {
       if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(GOTI_CHAT_STORAGE_KEY, JSON.stringify([DEFAULT_GREETING]));
+        localStorage.setItem(chatStorageKey(), JSON.stringify([DEFAULT_GREETING]));
       }
     } catch {}
     return [DEFAULT_GREETING];
@@ -122,7 +143,7 @@ export const gotiPreceptorService = {
   saveHistory(messages) {
     try {
       if (typeof localStorage !== 'undefined') {
-        localStorage.setItem(GOTI_CHAT_STORAGE_KEY, JSON.stringify(messages));
+        localStorage.setItem(chatStorageKey(), JSON.stringify(messages));
       }
     } catch {}
   },
