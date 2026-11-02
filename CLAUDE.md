@@ -47,8 +47,9 @@ O **Enfermeiro Digital** (plataforma **Enfere**) é uma aplicação educacional 
   - Não anime ações repetidas o dia todo.
   - O app já é envolvido por `MotionConfig reducedMotion="user"`.
 - **Feedback de resposta**:
-  - Acerto: `soundEffects.playCorrect()` + `vibrate(15)` + pop.
-  - Erro: `playWrong()` + `vibrate([30,40,30])` + `shake`.
+  - Acerto: `vibrate(15)` + pop.
+  - Erro: `vibrate([30,40,30])` + `shake`.
+  - Sem sons de acerto/erro: foram removidos a pedido do dono. Não reintroduzir.
   - Confete (`src/lib/celebrate.js`) só em momentos raros: acerto de primeira, sessão com 70% ou mais, meta do dia.
 - **Progresso**: use `AnimatedProgress` (`ui/animated-progress.jsx`) e `AnimatedNumber` (`ui/animated-number.jsx`) em barras, PE e ofensiva.
 - **Transições de página só com opacidade**: um `transform` num ancestral quebra o `position: fixed` do dock e das folhas inferiores.

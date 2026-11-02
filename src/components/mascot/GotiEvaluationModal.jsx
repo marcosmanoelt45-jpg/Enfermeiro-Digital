@@ -1,7 +1,6 @@
 import React, { useEffect } from "react";
 import { X, Trophy, Sparkles, ArrowRight, ShieldCheck } from "lucide-react";
 import GotiAnimated from "./GotiAnimated";
-import { soundEffects } from "@/services/soundEffectsService";
 
 /**
  * GotiEvaluationModal
@@ -32,16 +31,6 @@ export default function GotiEvaluationModal({
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [isOpen, onClose]);
 
-  // Efeito sonoro tátil clínico
-  useEffect(() => {
-    if (isOpen) {
-      if (numScore >= 70) {
-        soundEffects.playCorrect();
-      } else {
-        soundEffects.playWrong();
-      }
-    }
-  }, [isOpen, numScore]);
 
   if (!isOpen) return null;
 

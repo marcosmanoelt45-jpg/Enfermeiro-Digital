@@ -15,7 +15,6 @@ import { PACIENTES, gerarCasoAleatorio } from "@/data/simuladorCasosData";
 import { falar, pararFala } from "@/services/simuladorVozService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
-import { soundEffects } from "@/services/soundEffectsService";
 import { celebrate } from "@/lib/celebrate";
 import { vibrate } from "@/lib/motion";
 
@@ -289,7 +288,6 @@ export default function Videochamada() {
       if (isCorreta) {
         // ACERTO
         setClipeAtivo("acerto");
-        soundEffects.playCorrect();
         vibrate(15);
         if (tentativasAtuais === 0) celebrate({ count: 45, y: 0.55 });
         clinicalGamificationService.registrarAcertoQuestao(user?.id);
@@ -330,7 +328,6 @@ export default function Videochamada() {
       } else {
         // ERRO
         setClipeAtivo("erro");
-        soundEffects.playWrong();
         vibrate([30, 40, 30]);
 
         if (tentativasAtuais === 0) {

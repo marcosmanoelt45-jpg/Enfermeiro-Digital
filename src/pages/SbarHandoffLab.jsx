@@ -40,7 +40,6 @@ import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistory
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { toast } from "@/components/ui/use-toast";
-import { soundEffects } from "@/services/soundEffectsService";
 import { celebrate } from "@/lib/celebrate";
 import { vibrate } from "@/lib/motion";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
@@ -629,11 +628,8 @@ export default function SbarHandoffLab() {
       setTutorEvaluation(evaluation);
       const safety = Number(evaluation?.safetyScore ?? 0);
       if (safety >= 80) {
-        soundEffects.playCorrect();
         vibrate(20);
         celebrate({ count: 80, spread: 80, y: 0.35 });
-      } else if (safety < 50) {
-        soundEffects.playWrong();
       }
       setActiveTab("debriefing");
       setShowGotiEvaluationModal(true);
