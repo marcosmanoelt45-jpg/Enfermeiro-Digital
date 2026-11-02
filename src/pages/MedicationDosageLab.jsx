@@ -21,7 +21,6 @@ import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { useAuth } from "@/lib/AuthContext";
-import { soundEffects } from "@/services/soundEffectsService";
 import { celebrate } from "@/lib/celebrate";
 import { shake, spring, vibrate } from "@/lib/motion";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
@@ -241,11 +240,9 @@ export default function MedicationDosageLab() {
 
       setFeedback(res);
       if (isCorrect) {
-        soundEffects.playCorrect();
         vibrate(15);
         celebrate({ count: 50, y: 0.45 });
       } else {
-        soundEffects.playWrong();
         vibrate([30, 40, 30]);
       }
 

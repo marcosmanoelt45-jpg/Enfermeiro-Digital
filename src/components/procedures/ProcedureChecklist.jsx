@@ -3,7 +3,6 @@ import { CheckCircle2, Circle, PackageCheck, ListOrdered, Award, Sparkles } from
 import { Button } from '@/components/ui/button';
 import { toast } from '@/components/ui/use-toast';
 import { procedureService } from '@/services/procedureService';
-import { soundEffects } from '@/services/soundEffectsService';
 import { AnimatedProgress } from '@/components/ui/animated-progress';
 import { celebrate } from '@/lib/celebrate';
 import { vibrate } from '@/lib/motion';
@@ -35,7 +34,6 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
   const handleFinishTraining = () => {
     const res = procedureService.completeProcedure();
     setCompleted(true);
-    soundEffects.playCorrect();
     vibrate(20);
     celebrate({ count: 80, spread: 80, y: 0.6 });
     toast({
