@@ -1,10 +1,10 @@
 import React, { useState } from "react";
 import { Link } from "react-router-dom";
-import { base44 } from "@/api/base44Client";
+import { authService } from "@/services/authService";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Mail, ArrowLeft, Loader2 } from "lucide-react";
+import { Mail, ArrowLeft, MailCheck } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 
 export default function ForgotPassword() {
@@ -16,9 +16,9 @@ export default function ForgotPassword() {
     e.preventDefault();
     setLoading(true);
     try {
-      await base44.auth.resetPasswordRequest(email);
+      await authService.resetPasswordRequest(email.trim().toLowerCase());
     } catch {
-      // Always show success regardless
+      // Sempre mostra a mesma mensagem: não revela se o e-mail tem conta.
     } finally {
       setLoading(false);
       setSent(true);
@@ -27,23 +27,24 @@ export default function ForgotPassword() {
 
   return (
     <AuthLayout
-      icon={Mail}
-      title="Reset password"
-      subtitle="We'll send you a link to reset it"
+      icon={sent ? MailCheck : Mail}
+      title={sent ? "Confira seu e-mail" : "Redefinir senha"}
+      subtitle={sent ? "Enviamos um link, se o e-mail tiver conta" : "Vamos enviar um link para você criar uma nova senha"}
       footer={
-        <Link to="/login" className="text-primary font-medium hover:underline">
-          <ArrowLeft className="w-3 h-3 inline mr-1" />Back to log in
+        <Link to="/login" className="text-[#20D5B5] font-bold hover:underline">
+          <ArrowLeft className="w-3 h-3 inline mr-1" />
+          Voltar para o login
         </Link>
       }
     >
       {sent ? (
-        <p className="text-sm text-foreground text-center">
-          If an account exists with that email, you'll receive a password reset link shortly.
+        <p className="text-sm text-[#9FB3C6] text-center">
+          Se existir uma conta com <strong className="text-[#EAF2F8]">{email}</strong>, o link chega em alguns minutos. Olhe também a caixa de spam.
         </p>
       ) : (
         <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-2">
-            <Label htmlFor="email">Email address</Label>
+          <div className="space-y-1.5">
+            <Label htmlFor="email">E-mail cadastrado</Label>
             <div className="relative">
               <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" aria-hidden="true" />
               <Input
@@ -51,7 +52,7 @@ export default function ForgotPassword() {
                 type="email"
                 autoComplete="email"
                 autoFocus
-                placeholder="you@example.com"
+                placeholder="seu.email@exemplo.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
                 className="pl-10 h-12"
@@ -59,15 +60,8 @@ export default function ForgotPassword() {
               />
             </div>
           </div>
-          <Button type="submit" className="w-full h-12 font-medium" disabled={loading}>
-            {loading ? (
-              <>
-                <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                Sending...
-              </>
-            ) : (
-              "Send reset link"
-            )}
+          <Button type="submit" size="lg" className="w-full" loading={loading}>
+            {loading ? "Enviando…" : "Enviar link"}
           </Button>
         </form>
       )}

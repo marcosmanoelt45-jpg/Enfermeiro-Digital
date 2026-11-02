@@ -1,7 +1,9 @@
 import React, { useState, useEffect } from "react";
+import { motion } from "framer-motion";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import {
   CheckCircle2,
+  XCircle,
   Lightbulb,
   FileText,
   Calculator,
@@ -19,6 +21,9 @@ import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { useAuth } from "@/lib/AuthContext";
+import { soundEffects } from "@/services/soundEffectsService";
+import { celebrate } from "@/lib/celebrate";
+import { shake, spring, vibrate } from "@/lib/motion";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 import { getDosageProblems } from "@/data/dosageProblems";
@@ -235,6 +240,14 @@ export default function MedicationDosageLab() {
       };
 
       setFeedback(res);
+      if (isCorrect) {
+        soundEffects.playCorrect();
+        vibrate(15);
+        celebrate({ count: 50, y: 0.45 });
+      } else {
+        soundEffects.playWrong();
+        vibrate([30, 40, 30]);
+      }
 
       // Se errou, abre automaticamente a Tabela de Conversão e a Fórmula de Apoio
       if (!isCorrect) {
@@ -553,7 +566,7 @@ export default function MedicationDosageLab() {
                 type="button"
                 disabled={evaluating || !studentInput.trim()}
                 onClick={handleEvaluate}
-                className="w-full py-4 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none text-center text-sm transition-all disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer"
+                className="btn-3d-teal w-full py-4 text-center text-sm cursor-pointer disabled:cursor-not-allowed"
               >
                 {evaluating ? "Verificando..." : "Verificar"}
               </button>
@@ -564,16 +577,29 @@ export default function MedicationDosageLab() {
             {/* ========================================================================= */}
             {feedback && (
               <div className="fixed inset-0 z-50 bg-black/75 backdrop-blur-xs flex items-end sm:items-center justify-center p-0 sm:p-4 animate-in fade-in">
-                <div className="bg-[#131F2E] border-t sm:border border-[#1F3045] rounded-t-[32px] sm:rounded-3xl p-6 w-full max-w-lg space-y-5 animate-in slide-in-from-bottom duration-200 shadow-2xl max-h-[90vh] overflow-y-auto">
+                <motion.div
+                  role="dialog"
+                  aria-modal="true"
+                  aria-live="assertive"
+                  initial={{ y: 48, opacity: 0 }}
+                  animate={feedback.isCorrect ? { y: 0, opacity: 1 } : { y: 0, opacity: 1, ...shake }}
+                  transition={spring.sheet}
+                  className={`bg-[#131F2E] border-t-2 sm:border-2 rounded-t-[32px] sm:rounded-3xl p-6 w-full max-w-lg space-y-5 shadow-2xl max-h-[90vh] overflow-y-auto ${
+                    feedback.isCorrect ? "border-[#3DD68C]/70" : "border-[#FF6B6B]/70"
+                  }`}
+                >
                   {/* Cabeçalho do Resultado */}
                   <div className="flex items-center gap-3">
-                    <div
+                    <motion.div
+                      initial={{ scale: 0.6, rotate: feedback.isCorrect ? -12 : 0 }}
+                      animate={{ scale: 1, rotate: 0 }}
+                      transition={spring.pop}
                       className={`w-12 h-12 rounded-full flex items-center justify-center shrink-0 ${
-                        feedback.isCorrect ? "bg-emerald-500 text-[#0B131D]" : "bg-rose-500 text-white"
+                        feedback.isCorrect ? "bg-[#3DD68C] text-[#062819]" : "bg-[#FF6B6B] text-[#2B1619]"
                       }`}
                     >
-                      <CheckCircle2 className="w-7 h-7 stroke-[2.5]" />
-                    </div>
+                      {feedback.isCorrect ? <CheckCircle2 className="w-7 h-7 stroke-[2.5]" /> : <XCircle className="w-7 h-7 stroke-[2.5]" />}
+                    </motion.div>
                     <div>
                       <h3 className="text-xl font-black text-white">
                         {feedback.isCorrect ? "Cálculo Correto!" : "Resposta Incorreta"}
@@ -694,7 +720,7 @@ export default function MedicationDosageLab() {
                       </button>
                     </div>
                   </div>
-                </div>
+                </motion.div>
               </div>
             )}
           </div>

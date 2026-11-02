@@ -1,4 +1,5 @@
 import { supabase, supabaseUrl, supabaseAnonKey, isSupabaseConfigured, markSupabaseOffline } from './supabaseClient.js';
+import { passwordPolicyError } from '@/lib/passwordPolicy';
 
 const LOCAL_STORAGE_USER_KEY = 'enfermeiro_digital_local_user';
 const LOCAL_REGISTERED_ACCOUNTS_KEY = 'enfermeiro_digital_registered_accounts';
@@ -462,8 +463,9 @@ export const authService = {
     if (!email || !password) {
       throw new Error('Informe o e-mail e a senha para realizar o cadastro.');
     }
-    if (password.length < 6) {
-      throw new Error('A senha deve ter no mínimo 6 caracteres.');
+    const policyError = passwordPolicyError(password);
+    if (policyError) {
+      throw new Error(policyError);
     }
 
     if (!isSupabaseConfigured()) {
@@ -602,17 +604,25 @@ export const authService = {
     }
   },
 
+  // Erros sobem para a tela: antes a falha era engolida e o usuário via "senha atualizada" sem ter mudado nada.
   async updatePassword(newPassword) {
-    try {
-      if (!isSupabaseConfigured()) return;
-      const { data, error } = await supabase.auth.updateUser({
-        password: newPassword,
-      });
-      if (error) throw error;
-      return data;
-    } catch {
-      return { message: 'Senha atualizada' };
+    if (!isSupabaseConfigured()) {
+      throw new Error('Serviço de autenticação não configurado no servidor.');
     }
+    const policyError = passwordPolicyError(newPassword);
+    if (policyError) throw new Error(policyError);
+    const { data, error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) {
+      const msg = (error.message || '').toLowerCase();
+      if (msg.includes('same') || msg.includes('different')) {
+        throw new Error('A nova senha precisa ser diferente da atual.');
+      }
+      if (msg.includes('session') || msg.includes('jwt') || msg.includes('reauthent')) {
+        throw new Error('O link de redefinição expirou. Peça um novo link.');
+      }
+      throw new Error(error.message || 'Não foi possível atualizar a senha.');
+    }
+    return data;
   },
 
   async isProviderEnabled(provider = 'google') {

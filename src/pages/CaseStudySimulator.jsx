@@ -36,6 +36,9 @@ import StudentFooter from "@/components/StudentFooter";
 import ClinicalGapRadar from "@/components/ClinicalGapRadar";
 import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
+import { soundEffects } from "@/services/soundEffectsService";
+import { celebrate } from "@/lib/celebrate";
+import { vibrate } from "@/lib/motion";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import { useAuth } from "@/lib/AuthContext";
@@ -494,6 +497,14 @@ export default function CaseStudySimulator() {
       });
 
       setTutorEvaluation(res);
+      const finalScore = typeof res?.score === "number" ? res.score : (res?.overallScore ?? 0);
+      if (finalScore >= 80) {
+        soundEffects.playCorrect();
+        vibrate(20);
+        celebrate({ count: 90, spread: 85, y: 0.35 });
+      } else if (finalScore < 50) {
+        soundEffects.playWrong();
+      }
       setViewingDebriefing(true);
       setShowGotiEvaluationModal(true);
       window.scrollTo({ top: 320, behavior: "smooth" });
