@@ -12,7 +12,7 @@ import {
   Layers,
   Send,
   Plus,
-  Stethoscope,
+  Stethoscope,
   ClipboardList,
   Eye,
   Check,
@@ -38,6 +38,7 @@ import ClinicalGapRadar from "@/components/ClinicalGapRadar";
 import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
 import { celebrate } from "@/lib/celebrate";
+import { computeBradenTotal } from "@/lib/riskEngine";
 import { vibrate } from "@/lib/motion";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
@@ -220,37 +221,43 @@ export default function CaseStudySimulator() {
   // Estado de Parâmetros Adicionados
   const [addedGaps, setAddedGaps] = useState([]);
   const [toastMessage, setToastMessage] = useState("");
-  // Ações de Exame Físico à beira-leito
-  const physicalExamActions = [
-    {
-      id: "ausculta",
-      label: "Auscultar Pulmão",
-      icon: Stethoscope,
-      finding: "Estertores crepitantes bibasais em terço inferior com expansibilidade discretamente diminuída à direita.",
-      clinicalMeaning: "Sugere congestão alveolar ou consolidação inflamatória aguda."
-    },
-    {
-      id: "glicemia",
-      label: "Glicemia Capilar (HGT)",
-      icon: Activity,
-      finding: "HGT: 138 mg/dL (glicemia pós-prandial dentro do limite aceitável de estresse).",
-      clinicalMeaning: "Descarta hipoglicemia aguda como causa primária da alteração do sensório."
-    },
-    {
-      id: "perfusao",
-      label: "Avaliar Perfusão & TEC",
-      icon: HeartPulse,
-      finding: "Tempo de Enchimento Capilar (TEC) de 3,5 segundos com extremidades frias.",
-      clinicalMeaning: "Indica vasoconstrição compensatória periférica e perfusão tissular comprometida."
-    },
-    {
-      id: "pele",
-      label: "Inspecionar Sacro e Calcanhares",
-      icon: Layers,
-      finding: "Hiperemia não branqueável em região sacra (LPP Estágio 1). Calcanhares íntegros.",
-      clinicalMeaning: "Risco de progressão de lesão por pressão nas próximas 12 horas."
-    }
-  ];
+  // Exame à beira-leito montado com os dados do caso sorteado (antes era fixo de IC para todos os casos).
+  const physicalExamActions = useMemo(() => {
+    const v = currentCase.vitals || {};
+    const braden = computeBradenTotal(currentCase.braden || {});
+    const instavel = (v.pa_sistolica && v.pa_sistolica < 90) || (v.fc && v.fc > 120) || (v.sat && v.sat < 90);
+    const bradenLabel = braden <= 9 ? "risco muito alto" : braden <= 12 ? "risco alto" : braden <= 14 ? "risco moderado" : "risco baixo";
+    return [
+      {
+        id: "ausculta",
+        label: "Avaliar Padrão Respiratório",
+        icon: Stethoscope,
+        finding: `FR ${v.fr ?? "não registrada"} irpm · SpO₂ ${v.sat ?? "—"}%. Achados da admissão: ${currentCase.summary}`,
+        clinicalMeaning: v.sat && v.sat < 92 ? "Hipoxemia: priorize oxigenação e reavaliação." : "Oxigenação dentro do esperado para o quadro."
+      },
+      {
+        id: "glicemia",
+        label: "Glicemia Capilar (HGT)",
+        icon: Activity,
+        finding: "HGT não registrado no prontuário deste caso.",
+        clinicalMeaning: "Afira antes de atribuir alteração de sensório a outra causa."
+      },
+      {
+        id: "perfusao",
+        label: "Avaliar Hemodinâmica",
+        icon: HeartPulse,
+        finding: `PA ${v.pa_sistolica ?? "—"}/${v.pa_diastolica ?? "—"} mmHg · FC ${v.fc ?? "—"} bpm · Tax ${v.tax ?? "—"} °C.`,
+        clinicalMeaning: instavel ? "Sinais de instabilidade hemodinâmica: comunique e monitore de perto." : "Parâmetros hemodinâmicos sem critério de instabilidade."
+      },
+      {
+        id: "pele",
+        label: "Risco de Lesão por Pressão",
+        icon: Layers,
+        finding: `Escala de Braden: ${braden} pontos (${bradenLabel}).`,
+        clinicalMeaning: braden <= 14 ? "Planeje mudança de decúbito e superfícies de alívio de pressão." : "Mantenha inspeção diária da pele."
+      }
+    ];
+  }, [currentCase]);
 
   // Parâmetros para conferência do caso
   const caseGaps = [
@@ -902,12 +909,11 @@ export default function CaseStudySimulator() {
 
                     {showClinicalNotes && (
                       <div className="mt-2 pt-2 border-t border-[#1F3045] flex flex-wrap gap-2 text-[11px]">
-                        <span className="bg-[#FFC247]/15 text-[#FFC247] px-2.5 py-1 rounded-md font-semibold border border-[#FFC247]/30">
-                          💡 Pista: Retenção volêmica aguda & dispneia progressiva
-                        </span>
-                        <span className="bg-[#F0645F]/15 text-[#F0645F] px-2.5 py-1 rounded-md font-semibold border border-[#F0645F]/30">
-                          💡 Risco: Descompensação ventilatória iminente
-                        </span>
+                        {(currentCase.learningObjectives || []).slice(0, 2).map((obj) => (
+                          <span key={obj} className="bg-[#FFC247]/15 text-[#FFC247] px-2.5 py-1 rounded-md font-semibold border border-[#FFC247]/30">
+                            💡 {obj}
+                          </span>
+                        ))}
                       </div>
                     )}
 
@@ -1053,17 +1059,14 @@ export default function CaseStudySimulator() {
                   <div className="space-y-1.5 flex-1">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-black text-[#20D5B5] tracking-tight">
-                        Raciocínio Fisiopatológico Preciso!
+                        Pergunta do Preceptor
                       </h3>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                         Preceptoria IA
                       </span>
                     </div>
                     <p className="text-xs text-[#EAF2F8] leading-relaxed">
-                      Muito bom! A hipervolemia é a etiologia central da congestão pulmonar observada na ausculta.
-                    </p>
-                    <p className="text-xs font-semibold text-[#9FB3C6] italic pt-1 border-t border-[#1F3045]">
-                      Quais achados da anamnese ou da ausculta comprovam a sobrecarga hídrica?
+                      {currentCase.guidingQuestions?.[0] || "Quais achados do exame e da anamnese sustentam o seu diagnóstico?"}
                     </p>
                   </div>
                 </div>
