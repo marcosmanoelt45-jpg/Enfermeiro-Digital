@@ -7,6 +7,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import StudentHeader from '@/components/StudentHeader';
+import { Button } from '@/components/ui/button';
 import StudentFooter from '@/components/StudentFooter';
 import { useTheme } from '@/lib/ThemeContext';
 import { procedureService } from '@/services/procedureService';
@@ -20,7 +21,10 @@ import MobileBottomDock from '@/components/mobile/MobileBottomDock';
 import CaseHistoryModal from '@/components/history/CaseHistoryModal';
 import { MODULE_TYPES } from '@/services/clinicalHistoryService';
 import { History } from 'lucide-react';
-import { useSearchParams } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { prefersReducedMotion } from '@/lib/motion';
+import { AnimatedNumber } from '@/components/ui/animated-number';
+import { AnimatedProgress } from '@/components/ui/animated-progress';
 
 export default function ProcedimentosLab() {
   const { triggerHaptic } = useTheme();
@@ -28,9 +32,23 @@ export default function ProcedimentosLab() {
   const [procedures, setProcedures] = useState(() => procedureService.list());
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeProcedure, setActiveProcedure] = useState(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
-  const [searchParams] = useSearchParams();
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  // O procedimento aberto vive na URL (?p=id): o Voltar do celular volta ao catálogo e o link pode ser compartilhado.
+  const activeProcedure = useMemo(
+    () => procedures.find((proc) => proc.id === searchParams.get('p')) || null,
+    [procedures, searchParams]
+  );
+  const openProcedure = (proc, { replace = false } = {}) => {
+    setSearchParams({ p: proc.id }, { replace });
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  };
+  const closeProcedure = () => {
+    // Se entrou pelo catálogo, volta no histórico; se abriu um link direto, só tira o parâmetro.
+    if ((window.history.state?.idx ?? 0) > 0) navigate(-1);
+    else setSearchParams({}, { replace: true });
+  };
 
   // Ações do briefing: "continue" reabre o último POP visto e "review" abre o histórico.
   useEffect(() => {
@@ -40,7 +58,7 @@ export default function ProcedimentosLab() {
     } else if (action === 'continue') {
       const ultimoId = procedureService.getWatchedList().slice(-1)[0];
       const ultimo = ultimoId && procedureService.list().find((p) => p.id === ultimoId);
-      if (ultimo) setActiveProcedure(ultimo);
+      if (ultimo) openProcedure(ultimo, { replace: true });
     }
   }, [searchParams]);
 
@@ -67,13 +85,16 @@ export default function ProcedimentosLab() {
     isDraggingRef.current = false;
   };
   const [watchedIds, setWatchedIds] = useState(() => procedureService.getWatchedList());
+  const concluidosCount = useMemo(
+    () => procedures.filter((proc) => procedureService.isCompleted(proc.id)).length,
+    // watchedIds muda junto quando um procedimento é concluído (refreshList).
+    [procedures, watchedIds]
+  );
 
   const refreshList = () => {
     const list = procedureService.list();
     setProcedures(list);
     setWatchedIds(procedureService.getWatchedList());
-    // Forma funcional: o onComplete guardado pelo player não vê um activeProcedure antigo.
-    setActiveProcedure((prev) => prev && (list.find((p) => p.id === prev.id) || prev));
   };
 
   const categories = [
@@ -112,7 +133,7 @@ export default function ProcedimentosLab() {
   const handleOpenProcedure = (proc) => {
     triggerHaptic(25);
     // Abrir não conta como assistido: isso só acontece ao concluir o roteiro.
-    setActiveProcedure(proc);
+    openProcedure(proc);
   };
 
   return (
@@ -131,7 +152,7 @@ export default function ProcedimentosLab() {
                 type="button"
                 onClick={() => {
                   triggerHaptic(20);
-                  setActiveProcedure(null);
+                  closeProcedure();
                 }}
                 className="inline-flex items-center gap-2 text-xs font-bold text-white hover:text-[#20D5B5] transition"
               >
@@ -226,8 +247,16 @@ export default function ProcedimentosLab() {
 
             {/* Contador de Assistidos */}
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-bold text-[#20D5B5]">
-                {watchedIds.length} de {procedures.length} vídeos assistidos
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold text-[#20D5B5]">
+                  <AnimatedNumber value={concluidosCount} /> de {procedures.length} procedimentos concluídos
+                  <span className="ml-1.5 font-semibold text-[#9FB3C6]">· {watchedIds.length} assistidos</span>
+                </div>
+                <AnimatedProgress
+                  value={procedures.length ? (concluidosCount / procedures.length) * 100 : 0}
+                  label="Procedimentos concluídos"
+                  className="mt-1.5 h-1.5 max-w-xs"
+                />
               </div>
               <button
                 type="button"
@@ -277,6 +306,9 @@ export default function ProcedimentosLab() {
                 <Video className="h-10 w-10 text-[#9FB3C6] mx-auto opacity-60" />
                 <p className="text-sm font-bold text-white">Nenhum procedimento encontrado</p>
                 <p className="text-xs text-[#9FB3C6]">Tente buscar por outro termo ou selecione outra categoria.</p>
+                <Button variant="outline" size="sm" className="mt-2" onClick={() => { setSearchQuery(""); setSelectedCategory("all"); }}>
+                  Limpar filtros
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">
