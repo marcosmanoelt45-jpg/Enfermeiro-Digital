@@ -145,7 +145,7 @@ export default function ClinicalGapRadar({
                         onRemoveGap(item);
                       }}
                       title="Remover parâmetro do prontuário"
-                      className="ml-1 -mr-1 p-0.5 rounded text-[#52667A] hover:text-[#FF6B6B] hover:bg-red-500/10 transition-colors"
+                      className="ml-1 -mr-1 p-0.5 rounded text-[#8A9DB1] hover:text-[#FF6B6B] hover:bg-red-500/10 transition-colors"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -233,7 +233,7 @@ export default function ClinicalGapRadar({
                       } else if (isSelected && !opt.isCorrect) {
                         cardStyle = "border-[#FF6B6B] bg-[#FF6B6B]/15 text-[#FF6B6B] font-bold";
                       } else {
-                        cardStyle = "border-[#1F3045]/40 bg-[#0E1722]/40 text-[#52667A] opacity-50";
+                        cardStyle = "border-[#1F3045]/40 bg-[#0E1722]/40 text-[#8A9DB1] opacity-50";
                       }
                     } else if (isSelected) {
                       cardStyle = "border-[#20D5B5] bg-[#20D5B5]/20 text-[#EAF2F8] ring-1 ring-[#20D5B5] font-semibold";

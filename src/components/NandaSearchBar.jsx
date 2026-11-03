@@ -69,17 +69,17 @@ export default function NandaSearchBar() {
           }}
           onFocus={() => setOpen(true)}
           placeholder="Buscar diagnóstico NANDA-I no banco (ex: risco de infecção, 00004)..."
-          className="rounded-xl border-[#1F3045] bg-[#0E1722] text-[#EAF2F8] placeholder:text-[#52667A] pl-9 pr-9 focus:ring-1 focus:ring-[#20D5B5]"
+          className="rounded-xl border-[#1F3045] bg-[#0E1722] text-[#EAF2F8] placeholder:text-[#8A9DB1] pl-9 pr-9 focus:ring-1 focus:ring-[#20D5B5]"
         />
         {loading && (
-          <Loader2 className="absolute right-9 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[#52667A]" />
+          <Loader2 className="absolute right-9 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[#8A9DB1]" />
         )}
         {query && !loading && (
           <button
             type="button"
             aria-label="Limpar busca"
             onClick={() => { setQuery(""); setOpen(false); }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#52667A] hover:text-[#9FB3C6]"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8A9DB1] hover:text-[#9FB3C6]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -89,9 +89,9 @@ export default function NandaSearchBar() {
       {open && query && (
         <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-2xl border border-[#1F3045] bg-[#131F2E] shadow-lg">
           {loading ? (
-            <p className="px-4 py-6 text-center text-sm text-[#52667A]">Carregando catálogo...</p>
+            <p className="px-4 py-6 text-center text-sm text-[#8A9DB1]">Carregando catálogo...</p>
           ) : results.length === 0 ? (
-            <p className="px-4 py-6 text-center text-sm text-[#52667A]">
+            <p className="px-4 py-6 text-center text-sm text-[#8A9DB1]">
               Nenhum diagnóstico encontrado para &quot;{query}&quot;.
             </p>
           ) : (

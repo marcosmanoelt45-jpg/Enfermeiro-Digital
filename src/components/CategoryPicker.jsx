@@ -61,13 +61,13 @@ export default function CategoryPicker({ value, onChange, catalog, placeholder =
       {/* Busca */}
       <div className="flex gap-1.5">
         <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#52667A]" />
+          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8A9DB1]" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustom(); } }}
             placeholder={placeholder}
-            className="rounded-xl pl-8 bg-[#0B131D] border-[#27394B] text-[#EAF2F8] placeholder:text-[#52667A] focus:ring-1 focus:ring-[#20D5B5]"
+            className="rounded-xl pl-8 bg-[#0B131D] border-[#27394B] text-[#EAF2F8] placeholder:text-[#8A9DB1] focus:ring-1 focus:ring-[#20D5B5]"
           />
         </div>
         <button

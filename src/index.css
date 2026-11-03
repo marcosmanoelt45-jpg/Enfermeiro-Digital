@@ -192,15 +192,6 @@ html.dark button.text-slate-800:not(.bg-white):not([class*="bg-emerald"]):not([c
   color: #EAF2F8;
 }
 
-/* Salvaguarda de contraste estrito para textos secundários no modo escuro */
-html.dark .text-slate-500:not([class*="bg-"]):not(button):not(svg) {
-  color: #9FB3C6;
-}
-
-html.dark .text-slate-400:not([class*="bg-"]):not(button):not(svg) {
-  color: #9FB3C6;
-}
-
 /* Neutralização de inputs nativos e selects no modo escuro */
 html.dark input,
 html.dark select,

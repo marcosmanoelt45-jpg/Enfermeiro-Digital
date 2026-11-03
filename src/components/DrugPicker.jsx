@@ -47,7 +47,7 @@ export default function DrugPicker({ value, onChange, onPick }) {
   return (
     <div className="relative" ref={boxRef}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#52667A]" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8A9DB1]" />
         <Input
           role="combobox"
           aria-expanded={open}
@@ -58,7 +58,7 @@ export default function DrugPicker({ value, onChange, onPick }) {
           onFocus={() => setOpen(true)}
           onKeyDown={onKey}
           placeholder="Buscar medicamento..."
-          className="rounded-xl pl-9 bg-[#0B131D] border-[#27394B] text-[#EAF2F8] placeholder:text-[#52667A] focus:ring-1 focus:ring-[#20D5B5]"
+          className="rounded-xl pl-9 bg-[#0B131D] border-[#27394B] text-[#EAF2F8] placeholder:text-[#8A9DB1] focus:ring-1 focus:ring-[#20D5B5]"
         />
       </div>
       {open && filtered.length > 0 && (

@@ -194,7 +194,7 @@ export default function MedicationsTab({ patientId }) {
                     : "border-[#1F3045] bg-[#0E1722]"
                 }`}
               >
-                <Icon className={`mx-auto h-5 w-5 ${calcType === t.key ? "text-[#20D5B5]" : "text-[#52667A]"}`} />
+                <Icon className={`mx-auto h-5 w-5 ${calcType === t.key ? "text-[#20D5B5]" : "text-[#8A9DB1]"}`} />
                 <p className="mt-1 text-xs font-medium text-[#EAF2F8]">{t.label}</p>
                 <p className="mt-0.5 text-[10px] text-[#9FB3C6]">{t.hint}</p>
               </button>
@@ -275,14 +275,14 @@ export default function MedicationsTab({ patientId }) {
                       <button
                         type="button"
                         onClick={() => update("time_unit", "h")}
-                        className={`rounded-lg px-3 text-sm font-medium ${form.time_unit === "h" ? "bg-[#20D5B5]/20 text-[#20D5B5]" : "text-[#52667A]"}`}
+                        className={`rounded-lg px-3 text-sm font-medium ${form.time_unit === "h" ? "bg-[#20D5B5]/20 text-[#20D5B5]" : "text-[#8A9DB1]"}`}
                       >
                         h
                       </button>
                       <button
                         type="button"
                         onClick={() => update("time_unit", "min")}
-                        className={`rounded-lg px-3 text-sm font-medium ${form.time_unit === "min" ? "bg-[#20D5B5]/20 text-[#20D5B5]" : "text-[#52667A]"}`}
+                        className={`rounded-lg px-3 text-sm font-medium ${form.time_unit === "min" ? "bg-[#20D5B5]/20 text-[#20D5B5]" : "text-[#8A9DB1]"}`}
                       >
                         min
                       </button>
@@ -299,7 +299,7 @@ export default function MedicationsTab({ patientId }) {
                     : "border-[#1F3045] bg-[#0E1722]"
                 }`}
               >
-                <Droplet className={`h-5 w-5 ${form.micro ? "text-sky-400" : "text-[#52667A]"}`} />
+                <Droplet className={`h-5 w-5 ${form.micro ? "text-sky-400" : "text-[#8A9DB1]"}`} />
                 <div className="flex-1 text-left">
                   <p className="text-sm font-medium text-[#EAF2F8]">Equipo de microgotas</p>
                   <p className="text-[11px] text-[#9FB3C6]">{form.micro ? "60 gtt/mL" : "20 gtt/mL (macrogotas)"}</p>
@@ -384,7 +384,7 @@ export default function MedicationsTab({ patientId }) {
         {loading ? (
           <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-[#20D5B5]" /></div>
         ) : records.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-6 text-center text-sm text-[#52667A]">
+          <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-6 text-center text-sm text-[#8A9DB1]">
             Nenhum cálculo salvo.
           </div>
         ) : (
@@ -403,13 +403,13 @@ export default function MedicationsTab({ patientId }) {
                       {r.calc_type === "weight_based" && `Volume: ${r.calculated_volume?.toFixed(2)} mL`}
                       {" · "}{new Date(r.created_date || r.created_at).toLocaleString("pt-BR")}
                     </p>
-                    {r.notes && <p className="mt-1 text-xs text-[#52667A]">{r.notes}</p>}
+                    {r.notes && <p className="mt-1 text-xs text-[#8A9DB1]">{r.notes}</p>}
                   </div>
                   <button
                     type="button"
                     aria-label="Excluir cálculo"
                     onClick={() => remove(r.id)}
-                    className="shrink-0 rounded-lg p-1.5 text-[#52667A] hover:bg-red-500/10 hover:text-[#FF6B6B]"
+                    className="shrink-0 rounded-lg p-1.5 text-[#8A9DB1] hover:bg-red-500/10 hover:text-[#FF6B6B]"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

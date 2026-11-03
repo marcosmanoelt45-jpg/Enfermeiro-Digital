@@ -131,7 +131,7 @@ export default function PatientProfileTab({ patient, onSaved }) {
                 <p className="mt-1.5 text-sm text-[#EAF2F8] whitespace-pre-wrap">{value}</p>
               )
             ) : (
-              <p className="mt-1.5 text-sm text-[#52667A] italic">Não informado</p>
+              <p className="mt-1.5 text-sm text-[#8A9DB1] italic">Não informado</p>
             )}
           </div>
         );

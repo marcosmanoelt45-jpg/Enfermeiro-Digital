@@ -334,7 +334,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
                     </span>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#52667A] group-hover:text-[#20D5B5] group-hover:translate-x-0.5 transition-all shrink-0" />
+                <ChevronRight className="w-4 h-4 text-[#8A9DB1] group-hover:text-[#20D5B5] group-hover:translate-x-0.5 transition-all shrink-0" />
               </motion.button>
             );
           })}
@@ -342,7 +342,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
       </div>
 
       {/* 6. Rodapé com Autoria Oficial */}
-      <div className="text-center pt-3 pb-2 text-[10px] text-[#52667A] font-medium">
+      <div className="text-center pt-3 pb-2 text-[10px] text-[#8A9DB1] font-medium">
         Criado e desenvolvido por <strong className="text-[#9FB3C6]">Marcos Manoel Tavares Neumann</strong>
       </div>
     </div>

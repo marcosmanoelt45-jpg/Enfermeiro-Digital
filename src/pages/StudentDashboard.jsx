@@ -372,7 +372,7 @@ export default function StudentDashboard() {
         )}
 
         {/* Rodapé com Direitos Autorais Oficiais */}
-        <div className="text-center pt-6 pb-2 text-[11px] text-[#52667A] font-medium">
+        <div className="text-center pt-6 pb-2 text-[11px] text-[#8A9DB1] font-medium">
           Criado e desenvolvido por <strong className="text-[#9FB3C6]">Marcos Manoel Tavares Neumann</strong>
         </div>
       </main>

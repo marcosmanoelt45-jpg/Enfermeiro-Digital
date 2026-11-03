@@ -130,7 +130,7 @@ export default function DischargeTab({ patientId }) {
                 type="button"
                 aria-label={`Remover item ${i + 1}`}
                 onClick={() => update(key, items.filter((_, idx) => idx !== i))}
-                className="shrink-0 rounded-lg p-1.5 text-[#52667A] hover:text-[#FF6B6B]"
+                className="shrink-0 rounded-lg p-1.5 text-[#8A9DB1] hover:text-[#FF6B6B]"
               >
                 <Trash2 className="h-4 w-4" />
               </button>
@@ -302,9 +302,9 @@ export default function DischargeTab({ patientId }) {
       <div>
         <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">Planos de Alta ({plans.length})</p>
         {loading ? (
-          <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-[#52667A]" /></div>
+          <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-[#8A9DB1]" /></div>
         ) : plans.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-6 text-center text-sm text-[#52667A]">
+          <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-6 text-center text-sm text-[#8A9DB1]">
             Nenhum plano de alta registrado.
           </div>
         ) : (
@@ -351,7 +351,7 @@ export default function DischargeTab({ patientId }) {
                         type="button"
                         aria-label="Excluir plano de alta"
                         onClick={() => remove(p.id)}
-                        className="rounded-lg p-1.5 text-[#52667A] hover:bg-red-500/10 hover:text-[#FF6B6B]"
+                        className="rounded-lg p-1.5 text-[#8A9DB1] hover:bg-red-500/10 hover:text-[#FF6B6B]"
                       >
                         <Trash2 className="h-4 w-4" />
                       </button>

@@ -24,7 +24,7 @@ export default function PatientCard({ patient, latestRisk }) {
         </div>
         <div className="flex items-center gap-2">
           {latestRisk && <RiskBadge status={latestRisk} size="sm" />}
-          <ChevronRight className="h-4 w-4 text-[#52667A]" />
+          <ChevronRight className="h-4 w-4 text-[#8A9DB1]" />
         </div>
       </div>
     </button>

@@ -110,7 +110,7 @@ export default function DiagnosesTab({ patientId }) {
       {loading ? (
         <div className="flex justify-center py-10"><Loader2 className="h-6 w-6 animate-spin text-[#20D5B5]" /></div>
       ) : sorted.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-6 text-center text-sm text-[#52667A]">
+        <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-6 text-center text-sm text-[#8A9DB1]">
           Nenhum diagnóstico registrado. Adicione manualmente ou importe de um plano de IA.
         </div>
       ) : (
@@ -152,7 +152,7 @@ export default function DiagnosesTab({ patientId }) {
                     variant="ghost"
                     aria-label="Excluir diagnóstico"
                     onClick={() => setDeleteItem(d)}
-                    className="h-8 w-8 rounded-lg text-[#52667A] hover:bg-red-500/10 hover:text-[#FF6B6B]"
+                    className="h-8 w-8 rounded-lg text-[#8A9DB1] hover:bg-red-500/10 hover:text-[#FF6B6B]"
                   >
                     <Trash2 className="h-4 w-4" />
                   </Button>

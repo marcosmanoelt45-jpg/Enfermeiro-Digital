@@ -304,7 +304,7 @@ export default function MobileBottomDock() {
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-[#52667A] group-hover:text-[#20D5B5] group-hover:translate-x-0.5 transition-all shrink-0" />
+                    <ChevronRight className="w-5 h-5 text-[#8A9DB1] group-hover:text-[#20D5B5] group-hover:translate-x-0.5 transition-all shrink-0" />
                   </button>
                 );
               })}

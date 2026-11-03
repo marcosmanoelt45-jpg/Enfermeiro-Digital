@@ -73,7 +73,7 @@ export default function PreviousAnamnesisTab({ patient, onSaved }) {
           <p className="mt-2 whitespace-pre-wrap text-sm text-[#EAF2F8] leading-relaxed">{patient.previous_anamnesis}</p>
         </div>
       ) : (
-        <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-6 text-center text-sm text-[#52667A]">
+        <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-6 text-center text-sm text-[#8A9DB1]">
           Nenhuma anamnese prévia registrada. Adicione o repasse recebido de outro serviço para que a IA considere esses dados nos diagnósticos.
         </div>
       )}

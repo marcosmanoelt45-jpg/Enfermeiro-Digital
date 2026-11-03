@@ -184,7 +184,7 @@ export default function EvolutionsTab({ patientId }) {
         {loading ? (
           <div className="flex justify-center py-8"><Loader2 className="h-6 w-6 animate-spin text-[#20D5B5]" /></div>
         ) : evolutions.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-8 text-center text-sm text-[#52667A]">
+          <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-8 text-center text-sm text-[#8A9DB1]">
             Nenhuma evolução registrada para este paciente.
           </div>
         ) : (
@@ -228,7 +228,7 @@ export default function EvolutionsTab({ patientId }) {
                           type="button"
                           onClick={() => setDeleteId(ev.id)}
                           aria-label="Excluir evolução"
-                          className="rounded-lg p-1.5 text-[#52667A] hover:bg-red-500/10 hover:text-[#FF6B6B] transition"
+                          className="rounded-lg p-1.5 text-[#8A9DB1] hover:bg-red-500/10 hover:text-[#FF6B6B] transition"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -276,7 +276,7 @@ export default function EvolutionsTab({ patientId }) {
                       </span>
                     </div>
                     {ev.signed_by && (
-                      <p className="text-[10px] text-[#52667A]">Assinado por UID: {ev.signed_by}</p>
+                      <p className="text-[10px] text-[#8A9DB1]">Assinado por UID: {ev.signed_by}</p>
                     )}
                     {ev.signature_hash_sha256 && (
                       <div className="flex items-center justify-between gap-2 font-mono text-[10px] text-[#20D5B5] bg-[#131F2E] px-2 py-1 rounded">

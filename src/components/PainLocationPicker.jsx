@@ -81,7 +81,7 @@ export default function PainLocationPicker({ value, onChange }) {
       </div>
 
       {selected.length === 0 && (
-        <p className="text-xs text-[#52667A]">Toque nas regiões acima para selecionar os locais da dor.</p>
+        <p className="text-xs text-[#8A9DB1]">Toque nas regiões acima para selecionar os locais da dor.</p>
       )}
     </div>
   );

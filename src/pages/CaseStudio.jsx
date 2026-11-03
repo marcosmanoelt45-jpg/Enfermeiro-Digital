@@ -1807,24 +1807,24 @@ export default function CaseStudio() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Iniciais</span>
-                          <strong className="text-white font-mono tracking-wider">{profile.initials || profile.name || <span className="italic text-[#52667A] font-normal">Não informado</span>}</strong>
+                          <strong className="text-white font-mono tracking-wider">{profile.initials || profile.name || <span className="italic text-[#8A9DB1] font-normal">Não informado</span>}</strong>
                         </div>
                         <div>
                           <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Idade / Sexo</span>
-                          <strong className="text-white">{profile.age ? `${profile.age} anos` : <span className="italic text-[#52667A] font-normal">Não informado</span>} • {profile.gender === "M" ? "Masculino" : profile.gender === "F" ? "Feminino" : "Sexo não informado"}</strong>
+                          <strong className="text-white">{profile.age ? `${profile.age} anos` : <span className="italic text-[#8A9DB1] font-normal">Não informado</span>} • {profile.gender === "M" ? "Masculino" : profile.gender === "F" ? "Feminino" : "Sexo não informado"}</strong>
                         </div>
                       </div>
                       <div className="text-xs pt-1 border-t border-[#1F3045]">
                         <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Histórico / Doenças</span>
-                        <p className="text-[#EAF2F8] text-xs">{profile.previous_diseases || <span className="italic text-[#52667A] font-normal">Não informado</span>}</p>
+                        <p className="text-[#EAF2F8] text-xs">{profile.previous_diseases || <span className="italic text-[#8A9DB1] font-normal">Não informado</span>}</p>
                       </div>
                       <div className="text-xs">
                         <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Alergias</span>
-                        <p className="text-[#EAF2F8] text-xs font-semibold">{profile.allergies || <span className="italic text-[#52667A] font-normal">Não informado</span>}</p>
+                        <p className="text-[#EAF2F8] text-xs font-semibold">{profile.allergies || <span className="italic text-[#8A9DB1] font-normal">Não informado</span>}</p>
                       </div>
                       <div className="text-xs">
                         <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Admissão / Queixa</span>
-                        <p className="text-[#EAF2F8] text-xs">{profile.previous_anamnesis || profile.notes || <span className="italic text-[#52667A] font-normal">Não informado</span>}</p>
+                        <p className="text-[#EAF2F8] text-xs">{profile.previous_anamnesis || profile.notes || <span className="italic text-[#8A9DB1] font-normal">Não informado</span>}</p>
                       </div>
                     </div>
 
