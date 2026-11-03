@@ -8,14 +8,14 @@ import { CASE_LIBRARY, generateRandomFullCase, buildAssessmentFromCase } from "@
 import NandaSearchBar from "@/components/NandaSearchBar";
 
 const CATEGORY_STYLE = {
-  Cardiologia: "bg-rose-50 text-rose-700 border-rose-200",
+  Cardiologia: "bg-[#F0645F]/10 text-[#F0645F] border-rose-200",
   Neurologia: "bg-violet-50 text-violet-700 border-violet-200",
-  Infectologia: "bg-amber-50 text-amber-700 border-amber-200",
-  Pneumologia: "bg-sky-50 text-sky-700 border-sky-200",
-  Geriatria: "bg-teal-50 text-teal-700 border-teal-200",
-  Cirurgia: "bg-slate-100 text-slate-700 border-slate-300",
-  Endocrinologia: "bg-emerald-50 text-emerald-700 border-emerald-200",
-  Geral: "bg-slate-100 text-slate-600 border-slate-200"
+  Infectologia: "bg-[#FFC247]/10 text-[#FFC247] border-amber-200",
+  Pneumologia: "bg-sky-400/10 text-sky-700 border-sky-200",
+  Geriatria: "bg-[#20D5B5]/10 text-[#20D5B5] border-teal-200",
+  Cirurgia: "bg-[#16222E] text-[#EAF2F8] border-slate-300",
+  Endocrinologia: "bg-[#3DD68C]/10 text-[#3DD68C] border-emerald-200",
+  Geral: "bg-[#16222E] text-[#9FB3C6] border-[#1F3045]"
 };
 
 export default function CaseLibrary() {
@@ -52,11 +52,11 @@ export default function CaseLibrary() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
-      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-white/90 dark:bg-slate-900/90 backdrop-blur">
+    <div className="min-h-screen bg-[#0E1722] text-slate-100 transition-colors">
+      <header className="sticky top-0 z-10 border-b border-[#1F3045] bg-slate-900/90 backdrop-blur">
         <div className="mx-auto max-w-2xl px-4 py-4">
           <div className="flex items-center gap-2">
-            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="rounded-xl text-slate-600 dark:text-slate-300">
+            <Button variant="ghost" size="icon" onClick={() => navigate("/")} className="rounded-xl text-slate-300">
               <ArrowLeft className="h-5 w-5" />
             </Button>
             <div className="flex items-center gap-2">
@@ -64,8 +64,8 @@ export default function CaseLibrary() {
                 <Library className="h-5 w-5" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-slate-800 dark:text-slate-100 leading-none">Banco de Casos</h1>
-                <p className="text-xs text-slate-400">Casos clínicos prontos para praticar</p>
+                <h1 className="text-lg font-semibold text-slate-100 leading-none">Banco de Casos</h1>
+                <p className="text-xs text-[#9FB3C6]">Casos clínicos prontos para praticar</p>
               </div>
             </div>
           </div>
@@ -75,14 +75,14 @@ export default function CaseLibrary() {
       <main className="mx-auto max-w-2xl px-4 py-4 space-y-4">
         <NandaSearchBar />
 
-        <div className="rounded-2xl border border-teal-200 dark:border-teal-800/60 bg-teal-50/60 dark:bg-slate-900 p-4">
+        <div className="rounded-2xl border border-teal-800/60 bg-[#131F2E] p-4">
           <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-100 dark:bg-slate-800 text-teal-700 dark:text-teal-400">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-teal-400">
               <Shuffle className="h-5 w-5" />
             </div>
             <div className="min-w-0 flex-1">
-              <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Gerar caso aleatório completo</p>
-              <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-400">
+              <p className="text-sm font-semibold text-slate-100">Gerar caso aleatório completo</p>
+              <p className="mt-0.5 text-xs text-[#9FB3C6]">
                 Cria um paciente simulado com histórico, anamnese prévia, sinais vitais e escalas calculadas automaticamente.
               </p>
             </div>
@@ -101,7 +101,7 @@ export default function CaseLibrary() {
               className={`whitespace-nowrap rounded-full px-3 py-1.5 text-xs font-semibold border transition ${
                 category === c
                   ? "bg-teal-600 text-white border-teal-600"
-                  : "bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-800 hover:border-slate-300 dark:hover:border-slate-700"
+                  : "bg-[#131F2E] text-slate-300 border-[#1F3045] hover:border-slate-700"
               }`}
             >
               {c}
@@ -111,26 +111,26 @@ export default function CaseLibrary() {
 
         <div className="space-y-2">
           {filtered.map((c) => (
-            <div key={c.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
+            <div key={c.id} className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 shadow-sm">
               <div className="flex items-start gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-50 dark:bg-slate-800 text-slate-600 dark:text-slate-300">
+                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-slate-800 text-slate-300">
                   <Stethoscope className="h-5 w-5" />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="flex flex-wrap items-center gap-1.5">
-                    <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">{c.title}</p>
+                    <p className="text-sm font-semibold text-slate-100">{c.title}</p>
                     <span className={`rounded-full border px-1.5 py-0.5 text-[10px] font-medium ${CATEGORY_STYLE[c.category] || CATEGORY_STYLE.Geral}`}>{c.category}</span>
                     {c.difficulty && <RiskBadge status={c.difficulty} size="sm" />}
                   </div>
-                  <p className="mt-1 text-xs text-slate-500 dark:text-slate-400">{c.summary}</p>
-                  <p className="mt-1 text-[11px] text-slate-400">
+                  <p className="mt-1 text-xs text-[#9FB3C6]">{c.summary}</p>
+                  <p className="mt-1 text-[11px] text-[#9FB3C6]">
                     {c.patient.name} · {c.patient.age} anos · {c.patient.gender === "M" ? "Masculino" : c.patient.gender === "F" ? "Feminino" : "Outro"}
                   </p>
-                  <div className="mt-1.5 flex flex-wrap gap-1 text-[10px] text-slate-500 dark:text-slate-400">
-                    <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5">PA {c.vitals.pa_sistolica}/{c.vitals.pa_diastolica}</span>
-                    <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5">FC {c.vitals.fc}</span>
-                    <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5">Sat {c.vitals.sat}%</span>
-                    <span className="rounded bg-slate-100 dark:bg-slate-800 px-1.5 py-0.5">Tax {c.vitals.tax}°C</span>
+                  <div className="mt-1.5 flex flex-wrap gap-1 text-[10px] text-[#9FB3C6]">
+                    <span className="rounded bg-slate-800 px-1.5 py-0.5">PA {c.vitals.pa_sistolica}/{c.vitals.pa_diastolica}</span>
+                    <span className="rounded bg-slate-800 px-1.5 py-0.5">FC {c.vitals.fc}</span>
+                    <span className="rounded bg-slate-800 px-1.5 py-0.5">Sat {c.vitals.sat}%</span>
+                    <span className="rounded bg-slate-800 px-1.5 py-0.5">Tax {c.vitals.tax}°C</span>
                   </div>
                 </div>
               </div>
@@ -149,7 +149,7 @@ export default function CaseLibrary() {
       </main>
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">
-        <p className="text-[11px] text-slate-400 dark:text-slate-400">
+        <p className="text-[11px] text-[#9FB3C6]">
           © 2026 Marcos Manoel Tavares Neumann — Criador e detentor dos direitos da plataforma Enfere
         </p>
       </footer>

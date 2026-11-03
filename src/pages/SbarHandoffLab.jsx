@@ -654,7 +654,7 @@ export default function SbarHandoffLab() {
       letter: "B",
       title: "Breve Histórico (Background)",
       subtitle: "O escudo contra eventos sentinela e erros fatais",
-      accentBg: "bg-[#FFC247] text-[#3A2A05] text-white",
+      accentBg: "bg-[#FFC247] text-[#3A2A05]",
       badgeColor: "bg-[#FFC247]/10 text-[#FFC247] border-amber-200",
       activeBorder: "border-amber-600 ring-amber-600/20",
       goal: "Forneça o contexto clínico indispensável: comorbidades ativas, cirurgias anteriores e a CONFERÊNCIA OBRIGATÓRIA DE ALERGIAS.",
@@ -692,7 +692,7 @@ export default function SbarHandoffLab() {
       letter: "R",
       title: "Recomendação (Recommendation)",
       subtitle: "A liderança da enfermagem na continuidade do cuidado",
-      accentBg: "bg-[#20D5B5] text-[#06302E] text-white",
+      accentBg: "bg-[#20D5B5] text-[#06302E]",
       badgeColor: "bg-teal-50 text-[#20D5B5] border-teal-200",
       activeBorder: "border-teal-600 ring-teal-600/20",
       goal: "Defina claramente as pendências, cuidados prioritários, horários de medicações e exames que o próximo plantão deve fiscalizar.",
@@ -1468,7 +1468,7 @@ export default function SbarHandoffLab() {
                 size="lg"
                 disabled={isEvaluating}
                 onClick={handleEvaluateSbar}
-                className="rounded-xl bg-[#20D5B5] text-[#06302E] hover:bg-teal-800 text-white font-bold text-xs px-6 h-11 flex items-center gap-2 shadow-sm"
+                className="rounded-xl bg-[#20D5B5] text-[#06302E] hover:brightness-105 font-bold text-xs px-6 h-11 flex items-center gap-2 shadow-sm"
               >
                 {isEvaluating ? (
                   <>
@@ -1567,7 +1567,7 @@ export default function SbarHandoffLab() {
                 <div className="p-4 rounded-2xl bg-[#0E1722] border border-amber-900/60 space-y-2">
                   <div className="flex items-center justify-between border-b border-amber-900/40 pb-2">
                     <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-md bg-[#FFC247] text-[#3A2A05] text-white flex items-center justify-center text-[11px] font-bold">B</span>
+                      <span className="w-5 h-5 rounded-md bg-[#FFC247] text-[#3A2A05] flex items-center justify-center text-[11px] font-bold">B</span>
                       Breve Histórico (Background)
                     </span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.background ? "bg-emerald-950 text-[#3DD68C]" : "bg-[#FFC247]/15 text-[#FFC247]"}`}>
@@ -1599,7 +1599,7 @@ export default function SbarHandoffLab() {
                 <div className="p-4 rounded-2xl bg-[#0E1722] border border-teal-900/60 space-y-2">
                   <div className="flex items-center justify-between border-b border-teal-900/40 pb-2">
                     <span className="text-xs font-bold text-teal-300 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-md bg-[#20D5B5] text-[#06302E] text-white flex items-center justify-center text-[11px] font-bold">R</span>
+                      <span className="w-5 h-5 rounded-md bg-[#20D5B5] text-[#06302E] flex items-center justify-center text-[11px] font-bold">R</span>
                       Recomendação (Recommendation)
                     </span>
                     <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.recommendation ? "bg-emerald-950 text-[#3DD68C]" : "bg-[#FFC247]/15 text-[#FFC247]"}`}>
@@ -1635,7 +1635,7 @@ export default function SbarHandoffLab() {
                   <Button
                     onClick={handleEvaluateSbar}
                     disabled={isEvaluating}
-                    className="rounded-xl bg-[#20D5B5] text-[#06302E] hover:bg-teal-800 text-white text-xs px-6 h-10 font-bold flex items-center gap-2 shadow-sm"
+                    className="rounded-xl bg-[#20D5B5] text-[#06302E] hover:brightness-105 text-xs px-6 h-10 font-bold flex items-center gap-2 shadow-sm"
                   >
                     {isEvaluating ? (
                       <>
@@ -1694,7 +1694,7 @@ export default function SbarHandoffLab() {
                   </span>
                 </div>
                 <div className="h-10 w-px bg-[#149F86]" />
-                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-[#20D5B5] text-[#06302E] text-white">
+                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-[#20D5B5] text-[#06302E]">
                   {tutorEvaluation.grade}
                 </span>
               </div>

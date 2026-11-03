@@ -1073,13 +1073,13 @@ export default function CaseStudySimulator() {
 
                 {/* Dica Revelada pelo Goti */}
                 {currentHint && (
-                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-xs text-amber-950 dark:text-amber-200 flex items-start gap-3.5 animate-in fade-in shadow-2xs">
+                  <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-800 text-xs text-amber-200 flex items-start gap-3.5 animate-in fade-in shadow-2xs">
                     <GotiAnimated animation="pointing" size="sm" className="w-14 h-14 shrink-0 mt-0.5 drop-shadow-sm" />
                     <div className="space-y-1">
-                      <span className="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300 text-xs">
+                      <span className="font-bold flex items-center gap-1.5 text-amber-300 text-xs">
                         <Lightbulb className="h-4 w-4 text-amber-600" /> Dica de Raciocínio Clínico do Preceptor:
                       </span>
-                      <p className="leading-relaxed text-slate-800 dark:text-amber-100">{currentHint.content}</p>
+                      <p className="leading-relaxed text-amber-100">{currentHint.content}</p>
                     </div>
                   </div>
                 )}
@@ -1089,12 +1089,12 @@ export default function CaseStudySimulator() {
                   <div
                     className={`p-4 rounded-2xl border text-xs flex items-start gap-3.5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300 ${
                       detectiveFeedback.type === "success"
-                        ? "bg-emerald-50/90 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100"
+                        ? "bg-emerald-950/50 border-emerald-800 text-emerald-100"
                         : detectiveFeedback.type === "challenge"
-                        ? "bg-amber-50/95 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-100"
+                        ? "bg-amber-950/60 border-amber-700 text-amber-100"
                         : detectiveFeedback.type === "warning"
-                        ? "bg-rose-50/95 dark:bg-rose-950/60 border-rose-300 dark:border-rose-700 text-rose-950 dark:text-rose-100"
-                        : "bg-teal-50/90 dark:bg-teal-950/50 border-teal-300 dark:border-teal-800 text-teal-950 dark:text-teal-100"
+                        ? "bg-rose-950/60 border-rose-700 text-rose-100"
+                        : "bg-teal-950/50 border-teal-800 text-teal-100"
                     }`}
                   >
                     <GotiAnimated
@@ -1111,22 +1111,22 @@ export default function CaseStudySimulator() {
                     <div className="flex-1 space-y-1.5">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-sm flex items-center gap-1.5">
-                          {detectiveFeedback.type === "success" && <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
-                          {detectiveFeedback.type === "challenge" && <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
-                          {detectiveFeedback.type === "warning" && <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />}
+                          {detectiveFeedback.type === "success" && <CheckCircle className="w-4 h-4 text-emerald-400" />}
+                          {detectiveFeedback.type === "challenge" && <HelpCircle className="w-4 h-4 text-amber-400" />}
+                          {detectiveFeedback.type === "warning" && <AlertTriangle className="w-4 h-4 text-rose-400" />}
                           {detectiveFeedback.title}
                         </span>
                         <button
                           type="button"
                           onClick={() => setDetectiveFeedback(null)}
-                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs px-1"
+                          className="text-[#9FB3C6] hover:text-slate-200 text-xs px-1"
                         >
                           ✕
                         </button>
                       </div>
                       <p className="leading-relaxed">{detectiveFeedback.text}</p>
                       {detectiveFeedback.question && (
-                        <p className="font-semibold italic text-[11px] opacity-90 border-t border-slate-200/60 dark:border-slate-800/80 pt-1 mt-1">
+                        <p className="font-semibold italic text-[11px] opacity-90 border-t border-slate-800/80 pt-1 mt-1">
                           💬 {detectiveFeedback.question}
                         </p>
                       )}
@@ -1145,7 +1145,7 @@ export default function CaseStudySimulator() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setDetectiveFeedback(null)}
-                            className="rounded-xl text-xs h-8 text-slate-600 dark:text-slate-300"
+                            className="rounded-xl text-xs h-8 text-slate-300"
                           >
                             Reavaliar Pistas
                           </Button>
@@ -1301,47 +1301,47 @@ export default function CaseStudySimulator() {
 
             {/* ETAPA 3: PLANEJAMENTO (METAS E RESULTADOS ESPERADOS) */}
             {activeStep === 3 && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-5 animate-in fade-in">
-                <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-6 shadow-sm space-y-5 animate-in fade-in">
+                <div className="border-b border-[#1F3045] pb-3">
+                  <span className="text-xs font-bold text-[#3DD68C] bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-800">
                     Etapa 3 do PE: Planejamento
                   </span>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
+                  <h2 className="text-base font-bold text-slate-100 mt-1">
                     Metas Terapêuticas & Resultados Esperados
                   </h2>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
-                  <span className="font-bold text-slate-900 dark:text-slate-100 block mb-0.5">Diagnóstico Selecionado:</span>
+                <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs text-slate-300">
+                  <span className="font-bold text-slate-100 block mb-0.5">Diagnóstico Selecionado:</span>
                   <p>{studentHypothesis || "Nenhum diagnóstico definido na etapa anterior."}</p>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                  <label className="text-xs font-bold text-slate-200 block">
                     Defina as Metas Mensuráveis e Resultados Esperados para este paciente:
                   </label>
                   <Textarea
                     value={studentGoals}
                     onChange={(e) => setStudentGoals(e.target.value)}
                     placeholder="Ex: Paciente apresentará SpO2 ≥ 94% em ar ambiente em até 2 horas. Frequência respiratória entre 16-20 irpm sem sinais de esforço ventilatório nas próximas 4 horas."
-                    className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[100px]"
+                    className="rounded-xl text-xs border-slate-700 bg-[#131F2E] text-slate-100 min-h-[100px]"
                   />
-                  <p className="text-[11px] text-slate-400 dark:text-slate-400">
+                  <p className="text-[11px] text-[#9FB3C6]">
                     Dica: Boas metas devem ser claras, mensuráveis e com prazo definido para a reavaliação.
                   </p>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="pt-3 border-t border-[#1F3045] flex items-center justify-between">
                   <Button
                     variant="outline"
                     onClick={() => setActiveStep(2)}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
                   >
                     <ArrowLeft className="h-4 w-4" /> Voltar para Diagnóstico
                   </Button>
                   <Button
                     onClick={() => setActiveStep(4)}
-                    className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
+                    className="rounded-xl bg-emerald-700 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
                   >
                     Avançar para Implementação <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -1351,13 +1351,13 @@ export default function CaseStudySimulator() {
 
             {/* ETAPA 4: IMPLEMENTAÇÃO (PRESCRIÇÃO DE ENFERMAGEM) */}
             {activeStep === 4 && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-5 animate-in fade-in">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-3">
+              <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-6 shadow-sm space-y-5 animate-in fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-3">
                   <div>
-                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                    <span className="text-xs font-bold text-[#3DD68C] bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-800">
                       Etapa 4 do PE: Implementação
                     </span>
-                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
+                    <h2 className="text-base font-bold text-slate-100 mt-1">
                       Prescrição de Cuidados de Enfermagem & Conduta Prática
                     </h2>
                   </div>
@@ -1383,25 +1383,25 @@ export default function CaseStudySimulator() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                  <label className="text-xs font-bold text-slate-200 block">
                     Prescreva as intervenções de enfermagem com aprazamento de horários:
                   </label>
                   <Textarea
                     value={studentInterventions}
                     onChange={(e) => setStudentInterventions(e.target.value)}
                     placeholder="Ex: 1. Posicionar em decúbito elevado (Fowler a 45°); 2. Instalar oxigenoterapia sob cânula nasal a 2 L/min; 3. Monitorizar oximetria de pulso contínua; 4. Aferir sinais vitais de 2/2h..."
-                    className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[110px]"
+                    className="rounded-xl text-xs border-slate-700 bg-[#131F2E] text-slate-100 min-h-[110px]"
                   />
-                  <p className="text-[11px] text-slate-400 dark:text-slate-400">
+                  <p className="text-[11px] text-[#9FB3C6]">
                     Estruture os cuidados em ações prioritárias imediatas e ações de monitoramento contínuo.
                   </p>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="pt-3 border-t border-[#1F3045] flex flex-col sm:flex-row items-center justify-between gap-3">
                   <Button
                     variant="outline"
                     onClick={() => setActiveStep(3)}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 w-full sm:w-auto shadow-2xs"
+                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 w-full sm:w-auto shadow-2xs"
                   >
                     <ArrowLeft className="h-4 w-4" /> Voltar para Metas
                   </Button>
@@ -1410,7 +1410,7 @@ export default function CaseStudySimulator() {
                     <Button
                       onClick={handleSubmitEvaluation}
                       disabled={isEvaluating || (!studentHypothesis && !studentInterventions)}
-                      className="rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
+                      className="rounded-xl bg-slate-800 hover:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
                     >
                       <Send className="h-4 w-4" />
                       {isEvaluating ? "Avaliando..." : "Submeter para Revisão"}
@@ -1420,7 +1420,7 @@ export default function CaseStudySimulator() {
                         handleSimulatePatientResponse();
                         setActiveStep(5);
                       }}
-                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
+                      className="rounded-xl bg-emerald-700 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
                     >
                       Evoluir Paciente <ArrowRight className="h-4 w-4" />
                     </Button>
@@ -1450,7 +1450,7 @@ export default function CaseStudySimulator() {
                       <span className="text-xs font-bold text-white">
                         Status Fisiológico (30 min após intervenções)
                       </span>
-                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#3DD68C]/100/15 text-emerald-400 border border-emerald-500/30">
                         Estabilização em Curso
                       </span>
                     </div>

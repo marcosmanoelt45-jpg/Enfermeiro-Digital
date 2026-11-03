@@ -62,21 +62,21 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
   };
 
   return (
-    <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm transition-colors">
+    <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] p-5 sm:p-6 shadow-sm transition-colors">
       {/* Cabeçalho do Checklist & Barra de Progresso */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
-          <h4 className="text-sm font-black text-slate-900 dark:text-slate-100 flex items-center gap-1.5 uppercase tracking-wide">
-            <PackageCheck className="h-4 w-4 text-teal-600 dark:text-teal-400" />
+          <h4 className="text-sm font-black text-slate-100 flex items-center gap-1.5 uppercase tracking-wide">
+            <PackageCheck className="h-4 w-4 text-teal-400" />
             O Que Fazer · Roteiro de Habilidade Prática
           </h4>
-          <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5">
+          <p className="text-[11px] text-[#9FB3C6] mt-0.5">
             Marque os passos da técnica asséptica e os materiais da bandeja durante o estudo.
           </p>
         </div>
 
         <div className="flex items-center gap-2 self-start sm:self-auto">
-          <span className="text-xs font-bold text-teal-700 dark:text-teal-400">
+          <span className="text-xs font-bold text-teal-400">
             {percent}% Concluído
           </span>
           <AnimatedProgress value={percent} tone={percent >= 100 ? "success" : "brand"} className="w-24 h-2.5" label="Progresso do roteiro" />
@@ -84,14 +84,14 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
       </div>
 
       {/* Seletor de Sub-Abas do Checklist */}
-      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-100 dark:bg-slate-800 mb-4">
+      <div className="flex items-center gap-2 p-1.5 rounded-2xl bg-slate-800 mb-4">
         <button
           type="button"
           onClick={() => setTab('steps')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all tap-press ${
             tab === 'steps'
-              ? 'bg-white dark:bg-slate-900 text-teal-900 dark:text-teal-200 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-[#131F2E] text-[#20D5B5] shadow-sm'
+              : 'text-[#9FB3C6] hover:text-slate-900'
           }`}
         >
           <ListOrdered className="h-3.5 w-3.5 text-teal-600" />
@@ -103,8 +103,8 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
           onClick={() => setTab('materials')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all tap-press ${
             tab === 'materials'
-              ? 'bg-white dark:bg-slate-900 text-teal-900 dark:text-teal-200 shadow-sm'
-              : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
+              ? 'bg-[#131F2E] text-[#20D5B5] shadow-sm'
+              : 'text-[#9FB3C6] hover:text-slate-900'
           }`}
         >
           <PackageCheck className="h-3.5 w-3.5 text-emerald-600" />
@@ -122,22 +122,22 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
               onClick={() => toggleStep(s.id)}
               className={`w-full flex items-start gap-3 p-3.5 rounded-2xl border text-left transition-all tap-press ${
                 s.checked
-                  ? 'bg-teal-50/70 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800'
-                  : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/70 dark:border-slate-800 hover:border-slate-300'
+                  ? 'bg-teal-950/30 border-teal-800'
+                  : 'bg-slate-800/40 border-[#1F3045] hover:border-slate-300'
               }`}
             >
               <div className="mt-0.5 shrink-0">
                 {s.checked ? (
-                  <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 fill-teal-100 dark:fill-teal-950" />
+                  <CheckCircle2 className="h-4 w-4 text-teal-400 fill-teal-950" />
                 ) : (
-                  <Circle className="h-4 w-4 text-slate-400" />
+                  <Circle className="h-4 w-4 text-[#9FB3C6]" />
                 )}
               </div>
               <div className="min-w-0 flex-1">
-                <span className={`text-xs font-bold block leading-snug ${s.checked ? 'text-teal-950 dark:text-teal-200 line-through' : 'text-slate-900 dark:text-slate-100'}`}>
+                <span className={`text-xs font-bold block leading-snug ${s.checked ? 'text-[#20D5B5] line-through' : 'text-slate-100'}`}>
                   Passo {s.stepNumber}: {s.title}
                 </span>
-                <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-1 leading-relaxed">
+                <p className="text-[11px] text-[#9FB3C6] mt-1 leading-relaxed">
                   {s.desc}
                 </p>
               </div>
@@ -156,18 +156,18 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
               onClick={() => toggleMaterial(m.id)}
               className={`w-full flex items-center gap-3 p-3 rounded-2xl border text-left transition-all tap-press ${
                 m.checked
-                  ? 'bg-teal-50/70 dark:bg-teal-950/30 border-teal-200 dark:border-teal-800'
-                  : 'bg-slate-50/60 dark:bg-slate-800/40 border-slate-200/70 dark:border-slate-800 hover:border-slate-300'
+                  ? 'bg-teal-950/30 border-teal-800'
+                  : 'bg-slate-800/40 border-[#1F3045] hover:border-slate-300'
               }`}
             >
               <div className="shrink-0">
                 {m.checked ? (
-                  <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400 fill-teal-100 dark:fill-teal-950" />
+                  <CheckCircle2 className="h-4 w-4 text-teal-400 fill-teal-950" />
                 ) : (
-                  <Circle className="h-4 w-4 text-slate-400" />
+                  <Circle className="h-4 w-4 text-[#9FB3C6]" />
                 )}
               </div>
-              <span className={`text-xs font-medium truncate ${m.checked ? 'text-teal-900 dark:text-teal-300 line-through' : 'text-slate-800 dark:text-slate-200'}`}>
+              <span className={`text-xs font-medium truncate ${m.checked ? 'text-teal-300 line-through' : 'text-slate-200'}`}>
                 {m.name}
               </span>
             </button>
@@ -176,10 +176,10 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
       )}
 
       {/* Botão de Conclusão do Treinamento & Ganho de XP */}
-      <div className="mt-5 pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
-        <div className="flex items-center gap-2 text-xs text-slate-500 dark:text-slate-400">
-          <Sparkles className="h-4 w-4 text-amber-500" />
-          <span>Recompensa: <strong className="text-amber-700 dark:text-amber-400 font-bold">+30 XP</strong> com o Goti</span>
+      <div className="mt-5 pt-4 border-t border-[#1F3045] flex flex-col sm:flex-row items-center justify-between gap-3">
+        <div className="flex items-center gap-2 text-xs text-[#9FB3C6]">
+          <Sparkles className="h-4 w-4 text-[#FFC247]" />
+          <span>Recompensa: <strong className="text-amber-400 font-bold">+30 XP</strong> com o Goti</span>
         </div>
 
         <Button
