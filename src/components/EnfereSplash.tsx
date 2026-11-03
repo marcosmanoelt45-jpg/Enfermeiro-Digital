@@ -28,7 +28,7 @@ export interface EnfereSplashProps {
   style?: CSSProperties;
 }
 
-const FONT = '"Baloo 2","Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif';
+const FONT = '"Nunito Variable","Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif';
 
 const CSS = `
 .enfere-splash{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#0B131D;font-family:${FONT};user-select:none;-webkit-user-select:none;touch-action:manipulation;box-sizing:border-box}

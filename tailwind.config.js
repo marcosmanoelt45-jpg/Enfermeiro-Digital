@@ -18,7 +18,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ["Nunito", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        sans: ["Nunito Variable", "Nunito", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
       },
       colors: {
         // Mapeamento nativo da paleta "Enfere Vivo" nas escalas do Design System

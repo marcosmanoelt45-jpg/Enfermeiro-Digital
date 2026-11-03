@@ -111,7 +111,7 @@
   }
   html,
   body {
-    font-family: 'Nunito', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    font-family: 'Nunito Variable', 'Nunito', ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
     background-color: var(--vivo-bg);
     color: var(--vivo-text);
     @apply bg-background text-foreground antialiased selection:bg-emerald-100 selection:text-emerald-900;
