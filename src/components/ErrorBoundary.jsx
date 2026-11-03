@@ -29,23 +29,23 @@ export default class ErrorBoundary extends React.Component {
   render() {
     if (this.state.hasError) {
       return (
-        <div className="min-h-screen bg-slate-50 dark:bg-slate-950 flex items-center justify-center p-4 text-slate-800 dark:text-slate-100">
-          <div className="w-full max-w-md bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-5 animate-in fade-in">
-            <div className="w-16 h-16 rounded-3xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200 dark:border-amber-800 text-amber-600 dark:text-amber-400 flex items-center justify-center mx-auto shadow-sm">
+        <div className="min-h-screen bg-[#0E1722] flex items-center justify-center p-4 text-slate-100">
+          <div className="w-full max-w-md bg-[#131F2E] border border-[#1F3045] rounded-3xl p-6 sm:p-8 shadow-xl text-center space-y-5 animate-in fade-in">
+            <div className="w-16 h-16 rounded-3xl bg-amber-950/60 border border-amber-800 text-amber-400 flex items-center justify-center mx-auto shadow-sm">
               <AlertTriangle className="w-8 h-8" />
             </div>
 
             <div className="space-y-1.5">
-              <h2 className="text-xl font-black text-slate-900 dark:text-white">
+              <h2 className="text-xl font-black text-white">
                 Ops! Ocorreu um imprevisto
               </h2>
-              <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
+              <p className="text-xs sm:text-sm text-[#9FB3C6] leading-relaxed font-medium">
                 Detectamos uma falha temporária ao carregar este conteúdo clínico. Você pode tentar recarregar ou retornar com segurança para o início.
               </p>
             </div>
 
             {import.meta.env?.DEV && this.state.error && (
-              <div className="p-3 rounded-xl bg-slate-100 dark:bg-slate-800/80 text-left overflow-auto max-h-32 text-[11px] font-mono text-rose-600 dark:text-rose-400 border border-slate-200 dark:border-slate-700">
+              <div className="p-3 rounded-xl bg-slate-800/80 text-left overflow-auto max-h-32 text-[11px] font-mono text-rose-400 border border-slate-700">
                 {this.state.error.toString()}
               </div>
             )}
@@ -60,7 +60,7 @@ export default class ErrorBoundary extends React.Component {
               <Button
                 onClick={this.handleGoHome}
                 variant="outline"
-                className="flex-1 rounded-2xl border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 font-bold h-11 flex items-center justify-center gap-2"
+                className="flex-1 rounded-2xl border-[#1F3045] text-slate-300 hover:bg-slate-800 font-bold h-11 flex items-center justify-center gap-2"
               >
                 <Home className="w-4 h-4" /> Ir para Início
               </Button>
