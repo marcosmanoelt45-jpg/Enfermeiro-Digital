@@ -69,7 +69,7 @@ export default function DrugPicker({ value, onChange, onPick }) {
             >
               <div className="min-w-0">
                 <p className="truncate text-sm font-medium text-slate-800">{d.name}</p>
-                <p className="truncate text-[11px] text-slate-400">{d.class}{d.concentration ? ` · ${d.concentration} mg/mL` : ""}</p>
+                <p className="truncate text-[11px] text-slate-400">{d.class}{d.concentration ? ` · ${d.concentration} ${d.unit || "mg/mL"}` : ""}</p>
               </div>
             </button>
           ))}

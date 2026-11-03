@@ -19,7 +19,8 @@ O **Enfermeiro Digital** (plataforma **Enfere**) é uma aplicação educacional 
 ---
 
 ## Regras de Qualidade e Desenvolvimento
-- **Comunicação**: Sempre responder em **Português do Brasil (PT-BR)**.
+- **Comunicação**: Sempre responder em **Português do Brasil (PT-BR)**, de forma curta e direta: resultado primeiro, sem repetir o que já foi dito.
+- **Economia de tokens**: não releia arquivos inteiros sem necessidade (use Grep e trechos); reaproveite as auditorias em `docs/auditoria/` em vez de auditar de novo; em workflows, use `model: "sonnet"` para implementação mecânica e reserve o modelo principal para decisões e verificação; trabalho braçal grande vai para o Antigravity via Maestri quando estiver conectado.
 - **Validação Obrigatória**: Antes de dar uma tarefa por concluída, rode:
   ```bash
   npm run lint

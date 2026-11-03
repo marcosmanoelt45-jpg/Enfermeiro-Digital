@@ -191,7 +191,8 @@ export default function MedicationsTab({ patientId }) {
               value={form.drug_name}
               onChange={(name, drug) => {
                 update("drug_name", name);
-                if (drug && drug.concentration && !form.concentration) update("concentration", String(drug.concentration));
+                // A calculadora trabalha em mg: só preenche sozinha concentrações em mg/mL (UI e mEq ficam para o aluno).
+                if (drug && drug.concentration && !form.concentration && (!drug.unit || drug.unit === "mg/mL")) update("concentration", String(drug.concentration));
               }}
             />
           </div>

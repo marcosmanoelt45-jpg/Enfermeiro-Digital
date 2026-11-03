@@ -1,0 +1,98 @@
+# Área: Performance & bundle weight (perf)
+
+**Status:** VERIFICADO (15 confirmados de 16)
+
+**Arquivos desta área (edite só estes):** vite.config.js, package.json, index.html, public/** (assets only), vercel.json
+
+**Foco:** Make the app lighter: analyze the existing dist/ (ls -la dist/assets, read chunk sizes; you may run "npx vite build --outDir C:/Users/mxmin/AppData/Local/Temp/enfere-perf-build" ONLY into that temp dir to measure), find unused dependencies (grep src for each import; do not edit package-lock, just remove unused entries from package.json and say so), heavy eager imports that should be lazy (jspdf, recharts, etc. — you may only edit files you own, so report other-file suggestions instead), manualChunks, heavy public assets (list files > 500KB and recommend; do not re-encode video). Check vercel.json security headers (add a sensible Content-Security-Policy only if you can verify it allows every external host actually used — grep src for external hosts first: Supabase, Google fonts, YouTube/UFSM embeds, personal-key AI providers called from the browser; if unsure, add the other headers and report CSP as a recommendation). prop-types is imported in src but not declared: add it to dependencies with the version in node_modules/prop-types/package.json.
+
+## Achados
+
+### perf-1 [high / performance] vercel.json:40
+- Problema: The no-store rule matches every path except /assets/. That includes the Goti mascot videos (/goti/*.webm, 2.6-3.4 MB each), the patient media (/pacientes/**, about 17 MB) and the fonts and favicons. The browser can never cache them, so every visit and every route that mounts GotiAnimated downloads several MB again on mobile data.
+- Evidência: "source": "/((?!assets/).*)" -> "Cache-Control": "no-cache, no-store, must-revalidate". GotiAnimated.jsx:16 uses videoSrc "/goti/goti-idle.webm" with preload="auto" (line 258). public/goti/goti-idle.webm is 3,408,111 bytes.
+- Correção: Limit no-store to HTML and the service-worker files, and give unhashed media a revalidating cache. Replace the block at line 40 with {"source": "/((?!assets/|goti/|pacientes/|audio/|previews/).*)", headers: no-cache...}. Add {"source": "/(goti|pacientes|audio|previews)/(.*)", "headers": [{"key": "Cache-Control", "value": "public, max-age=604800, stale-while-revalidate=86400"}]}. Keep "/sw.js" and "/registerSW.js" as no-cache. The '/' block at line 57 is redundant with the rewritten rule and can be removed.
+
+### perf-11 [high / performance] public/goti
+- Problema: public/ weighs 88 MB, and about 41 MB of it is never referenced by the app but still ships in every deploy. Several Goti 'moods' are byte-identical copies of each other (verified by md5).
+- Evidência: Unreferenced (0 grep hits in src, index.html and public/*.js): goti-angry.mp4, goti-breathing.mp4/.webm, goti-celebrate.webm/.webp, goti-error.webm/.webp, goti-happy.webm/.webp, goti-love.webm/.webp, goti-neutral.webm, goti-idle.mp4, goti-jumping.mp4, goti-pointing.mp4, goti-avatar-app.png, goti-close-face.png, goti-face-transparent.png, goti-icone.jpg, public/goti/goti-icone-oficial.png and goti-pose-*.png (src imports the src/assets copies instead), public/goti-acenando.webp (4.28 MB), public/audio/goti-welcome.mp3 and public/assets/audio/goti-welcome.mp3 (duplicates), public/previews/*.svg. Identical md5: celebrate/happy/jumping/love .webm (ae2b23e7...), celebrate/happy/jumping/love .webp (ff1608db...), angry/error .webp, pointing/thinking .webp, and avatar-app/face-transparent/icone-oficial .png.
+- Correção: Delete the unreferenced files listed above. Total is about 41 MB, from du -ch. Also delete public/assets/: it collides with Vite's hashed /assets/ output and inherits the 1-year immutable cache, so a change would never reach users. Do not re-encode the video.
+
+### perf-12 [high / performance] public/goti
+- Problema: The Goti mascot that shows on almost every screen is a 2.6-3.4 MB WebM with preload="auto", plus a 2.0-2.3 MB WebP fallback. It renders at about 64-160 px. Combined with the no-store header (perf-1), the dashboard alone pulls several MB on each visit, which hurts LCP and data use on mobile networks.
+- Evidência: GotiAnimated.jsx:258 has preload="auto". Sizes: goti-idle.webm 3,408,111 B, goti-wave.webm 2,637,273 B, goti-jumping.webm 3,364,886 B. The poster PNGs in src/assets are 650x875 and 364-489 kB each. goti-icone-oficial.png is 669x669 (275 kB) and is used as a roughly 40 px header and chat icon in 7 components.
+- Correção: This is not in my files, so I am reporting it to the owners. (a) In GotiAnimated.jsx, set preload="metadata" for non-hero instances, and only mount the <video> once it is in the viewport (IntersectionObserver), with the poster shown until then. (b) Replace src/assets/goti-icone-oficial.png with a 128x128 WebP or AVIF (under 12 kB) and goti-pose-*.png with 400 px-wide WebP (under 40 kB each). (c) Ask design for a lower-resolution WebM export of each mood. Do not re-encode it here.
+
+### perf-2 [medium / security] vercel.json:11
+- Problema: Production has no clickjacking protection (X-Frame-Options or frame-ancestors) and no Permissions-Policy, even though the app records audio in SBAR and AudioAssessment. public/_headers sets X-Frame-Options: DENY, but _headers is a Netlify file and Vercel ignores it. On top of that, every route sends Access-Control-Allow-Origin: * and Cross-Origin-Resource-Policy: cross-origin, which no first-party SPA needs.
+- Evidência: vercel.json headers list only: Access-Control-Allow-Origin "*", Access-Control-Allow-Methods, Cross-Origin-Resource-Policy "cross-origin", X-Content-Type-Options, Referrer-Policy, HSTS. public/_headers line 2: "X-Frame-Options: DENY" (not applied on Vercel). grep getUserMedia/microphone in src returns 10 hits.
+- Correção: In the "/(.*)" block, remove Access-Control-Allow-Origin, Access-Control-Allow-Methods and the CORP cross-origin header (or set CORP to same-origin). Add {"key":"X-Frame-Options","value":"DENY"}, {"key":"Permissions-Policy","value":"camera=(self), microphone=(self), geolocation=(), payment=(), usb=()"} and {"key":"Cross-Origin-Opener-Policy","value":"same-origin-allow-popups"}. Delete public/_headers and public/_redirects (Netlify-only, dead on Vercel).
+
+### perf-3 [medium / security] vercel.json:11
+- Problema: There is no Content-Security-Policy. I am not adding an enforcing CSP blind, because video URLs come from data (procedureService) and the AI hosts take personal keys. The audit below finds the full host list, so a Report-Only CSP can ship safely first.
+- Evidência: External hosts used from the browser (grep of src): xwqgyvqofxdqdbhltdzf.supabase.co, fonts.googleapis.com, fonts.gstatic.com, www.youtube.com and www.youtube-nocookie.com (iframe, EnfereClinicalPlayer.jsx:319), videos.ufrgs.br and videos-transcoder.ufrgs.br (native <video>, EnfereClinicalPlayer.jsx:56), images.unsplash.com (clinicalGamificationService.js:135), api.assemblyai.com (audioTranscriptionService.js:58, lib/assemblyai.js:5), generativelanguage.googleapis.com (aiCoreService.js:72), openrouter.ai. index.html also has an inline script (lines 15-58), so script-src needs a hash or 'unsafe-inline'.
+- Correção: Add a Content-Security-Policy-Report-Only header first, then switch it to enforcing after a week without violations: "default-src 'self'; script-src 'self' 'sha256-<hash of index.html inline script>'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com https://i.ytimg.com; media-src 'self' blob: https://videos.ufrgs.br https://videos-transcoder.ufrgs.br; connect-src 'self' https://xwqgyvqofxdqdbhltdzf.supabase.co wss://xwqgyvqofxdqdbhltdzf.supabase.co https://api.assemblyai.com https://generativelanguage.googleapis.com https://openrouter.ai; frame-src https://www.youtube.com https://www.youtube-nocookie.com; frame-ancestors 'none'; base-uri 'self'; form-action 'self'; object-src 'none'".
+
+### perf-4 [medium / dead-code] package.json:17
+- Problema: Many runtime dependencies have zero imports anywhere in src, the configs or the scripts. They slow npm install on Vercel, widen the supply-chain surface and mislead contributors. jspdf is only imported by src/services/pdfExportService.js, and nothing imports that service, so the build emits no vendor-pdf chunk.
+- Evidência: Import counts (grep "from '<pkg>'" across src/, *.js, scripts/) are 0 for: @hello-pangea/dnd, @hookform/resolvers, @radix-ui/react-aspect-ratio, -avatar, -checkbox, -collapsible, -context-menu, -dropdown-menu, -hover-card, -menubar, -navigation-menu, -popover, -progress, -radio-group, -scroll-area, -select, -separator, -switch, -tabs, -toggle, -toggle-group, -tooltip, cmdk, date-fns, embla-carousel-react, input-otp, next-themes, react-day-picker, react-hook-form, react-hot-toast, react-markdown, react-resizable-panels, recharts, sonner, zod. jspdf (line 56) appears only in pdfExportService.js:8, and `grep -rn pdfExportService src` matches only that file. The temp build shows no vendor-pdf or vendor-charts chunk.
+- Correção: Remove the entries above from "dependencies". Remove jspdf too, unless PDF export is about to be wired up (then keep it and import pdfExportService through a dynamic import() at click time). Delete src/services/pdfExportService.js if it stays unused. Do not edit package-lock.json by hand; it regenerates on the next npm install. Check that no src/components/ui/*.jsx shadcn file imports a removed Radix package (only accordion, alert-dialog, dialog, label, slider, slot and toast have imports today).
+
+### perf-5 [medium / bug] package.json:17
+- Problema: prop-types is imported by 5 simulator components but is not declared. It only resolves today because another package hoists it. A clean install or a dedupe can break the build.
+- Evidência: src/components/simulador/FalaLegendaBubble.jsx:2, FeedbackBottomSheet.jsx:2, PacienteVideoStage.jsx:2, SimuladorTopBar.jsx:2, TecladoCalculo.jsx:2: `import PropTypes from "prop-types";`. node_modules/prop-types/package.json reports "version": "15.8.1". The package is missing from package.json.
+- Correção: Add "prop-types": "^15.8.1" to "dependencies" in alphabetical order, after "next-themes" or wherever is correct after the removals.
+
+### perf-7 [medium / performance] vite.config.js:26
+- Problema: manualChunks puts all Radix, vaul and cmdk code into a single vendor-ui chunk (98.5 kB, 30.4 kB gzip). The entry chunk imports from it, so the whole chunk is modulepreloaded on first paint, even though boot only needs the toast primitives. Dialog, alert-dialog, slider, accordion and vaul are pulled into the critical path. The vendor-charts and vendor-pdf rules are dead because recharts and jspdf are never bundled.
+- Evidência: Built index.html modulepreloads vendor-icons, vendor-react, vendor-motion, vendor-supabase, vendor-ui and vendor-router-query: about 732 kB raw (about 223 kB gzip) before any route chunk. Entry: `import{A as c,C as l,D as u,E as d,O as f,T as p,k as m,w as h}from"./vendor-ui-BOy0qIMX.js"`. Rule: `if (id.includes('@radix-ui') || id.includes('vaul') || id.includes('cmdk')) return 'vendor-ui';`
+- Correção: Delete the vendor-ui, vendor-charts and vendor-pdf rules (and the vendor-icons rule, so lucide icons tree-shake into the page chunks that use them). Rollup then splits Radix per consumer and only @radix-ui/react-toast stays on the entry path. Keep vendor-react, vendor-supabase and vendor-router-query, which are stable and cache well. Add build.chunkSizeWarningLimit: 300 to catch regressions. Re-measure with `npx vite build --outDir <temp>`.
+
+### perf-8 [medium / bug] index.html:6
+- Problema: The viewport meta lacks viewport-fit=cover. On iOS, env(safe-area-inset-*) therefore resolves to 0, so the safe-area padding in MobileBottomDock and EnfereSplash does nothing in standalone or notched layouts. Tap targets can also sit under the home indicator.
+- Evidência: <meta name="viewport" content="width=device-width, initial-scale=1.0" />. safe-area-inset is used in src/components/mobile/MobileBottomDock.jsx and src/components/EnfereSplash.tsx.
+- Correção: <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />. Also add <meta name="theme-color" content="#0b1220" /> (or the Enfere Vivo background token) so the mobile browser chrome matches the dark theme.
+
+### perf-13 [medium / performance] public/pacientes
+- Problema: The simulator voice lines ship as uncompressed PCM WAV: 15 MB across the two patients, 250-430 kB per line. Each Videochamada step downloads hundreds of KB that a compressed codec would cut by roughly 10x.
+- Evidência: public/pacientes/teresinha/passo_0..21.wav, 248-430 kB each. src/data/simuladorCasosData.js:20 has voiceFile: "/pacientes/marcus/fala.wav" and line 73 has "audioPath": "/pacientes/marcus/passo_0.wav". du -ch public/pacientes/*/*.wav reports 15M.
+- Correção: Convert the speech WAVs to Opus in WebM or OGG at 32 kbps mono (an AAC .m4a fallback for old iOS) with the existing scripts/gerar-voz-goti.js pipeline, then point simuladorCasosData.js at the new files. Also remove fala.wav where fala.webm and fala.mp4 already exist.
+
+### perf-6 [low / dead-code] package.json:89
+- Problema: The devDependencies include unused tooling. nitro is a beta server framework this Vite SPA never uses. vite-plugin-pwa is not registered in vite.config.js, and the app actively unregisters every service worker.
+- Evidência: "nitro": "^3.0.260610-beta" (line 89) has no import. The only grep hit is the word inside clinicalQuestionVariants.js (the drug name). "vite-plugin-pwa" (line 95) has no reference in vite.config.js. @breezystack/lamejs and puppeteer-core ARE used by scripts/gerar-voz-goti.js and scripts/screenshot-*.js, so keep those.
+- Correção: Remove "nitro" and "vite-plugin-pwa" from devDependencies. Keep lamejs, puppeteer-core and baseline-browser-mapping (the latter silences the browserslist warning).
+
+### perf-9 [low / performance] index.html:60
+- Problema: The service-worker and CacheStorage purge runs three times per page load: the inline script (lines 41-56), a render-blocking synchronous <script src="/registerSW.js"> in <head>, and again in src/main.jsx:14-40. The external script adds an extra blocking round-trip, uncached because of perf-1, before first paint. The http-equiv cache metas (lines 7-9) are ignored by modern browsers for subresources and duplicate the vercel.json headers. The inline Navigation-API hack that rewrites the 'dbhldtzf' Supabase typo is legacy code.
+- Evidência: <script src="/registerSW.js"></script> in <head> has no defer. public/registerSW.js contains the same getRegistrations()/unregister() and caches.delete loop as the inline block. main.jsx also loops getRegistrations().
+- Correção: Delete line 60 (<script src="/registerSW.js">) and lines 7-9. Keep a single purge, either the inline block or main.jsx, not both. Keep public/sw.js as a kill-switch for old installs, and delete public/registerSW.js once no HTML references it. Remove the window.navigation 'dbhldtzf' interceptor (lines 26-39) once logs show no traffic to the typo host.
+
+### perf-10 [low / performance] index.html:12
+- Problema: Nunito loads as a render-blocking cross-origin stylesheet with 4 weights. Each first visit costs 2 DNS/TLS handshakes plus CSS before text paints, and the third-party request leaks visitor IPs to Google (an LGPD consideration for a Brazilian education app).
+- Evidência: <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@600;700;800;900&display=swap" rel="stylesheet" />. tailwind.config.js:21 sets sans to ["Nunito", ...].
+- Correção: Self-host Nunito as one variable woff2 (latin subset, about 40 kB) under src/assets/fonts with @font-face { font-display: swap } in index.css, and add <link rel="preload" as="font" type="font/woff2" crossorigin>. Then remove the preconnects and the Google stylesheet, and drop fonts.* from the CSP.
+
+### perf-15 [low / performance] src/main.jsx:8
+- Problema: Every restore from the back-forward cache forces a full reload. That throws away the instant back/forward navigation browsers provide for free, and re-downloads all six vendor chunks plus the uncached Goti video.
+- Evidência: window.addEventListener('pageshow', (event) => { if (event.persisted) { window.location.reload(); } });
+- Correção: Owner of main.jsx: remove the pageshow reload. If stale state after bfcache restore is the concern, re-run the auth/session check in a pageshow handler instead of reloading.
+
+### perf-16 [low / performance] src/App.jsx:6
+- Problema: framer-motion ships in full on the critical path (vendor-motion is 119 kB raw, 39.8 kB gzip, modulepreloaded) because the entry imports `motion` and MotionConfig directly.
+- Evidência: import { MotionConfig, motion } from 'framer-motion'; Build output: vendor-motion-C7mF5bAW.js 118.99 kB │ gzip: 39.82 kB, listed in the entry's modulepreload set.
+- Correção: Owner of App.jsx and src/lib/motion.js: wrap the app in <LazyMotion features={() => import('framer-motion').then(m => m.domAnimation)} strict>, and switch components to `m.*` instead of `motion.*` progressively. This typically cuts 25-30 kB gzip from the first load. Layout or drag features can load via domMax only on the pages that need them.
+
+## Plano de redesign
+
+This area has no screens of its own. Its 'screens' are the boot path: index.html, the first paint, the route-loading fallback and the Goti media pipeline. Plan, matching EnfereVivoTrail, MobileBottomDock and ResetPassword:
+
+1) First paint (index.html). Make it dark-first: <html class="dark">, plus an inline critical <style> giving body the Enfere Vivo background token, so the page never flashes white. Use viewport-fit=cover, theme-color equal to the background token and self-hosted Nunito (preloaded woff2). Drop the render-blocking /registerSW.js and the duplicate cache metas. Goal: under 1.5 s FCP on 4G and under 160 kB gzip of critical JS once perf-7 and perf-16 are done.
+
+2) Route loading (App.jsx PageLoader). Replace the light full-screen spinner with a RouteSkeleton component in the dark theme. It mirrors the StudentHeader height and three rounded-2xl card blocks using the same surface and border tokens as the EnfereVivoTrail cards. The shimmer uses the motion.js ease tokens and turns off under prefers-reduced-motion. Content fades in with the existing page transition, not a blur overlay. Prefetch the likely next route on idle and on pointerdown of MobileBottomDock items, so most taps never see the skeleton.
+
+3) Goti media. A static poster (128 px WebP) renders instantly. The video mounts only when in the viewport and after the 'load' event, with preload="metadata". One canonical file per mood; the duplicates are deleted. Media under /goti and /pacientes is served with a 7-day cache plus stale-while-revalidate. The header and chat icon becomes a 128 px WebP. Simulator voice lines become Opus files.
+
+4) Shell and security. vercel.json gets one clear header set: HSTS, nosniff, Referrer-Policy, X-Frame-Options DENY, Permissions-Policy (microphone and camera self only), and a CSP-Report-Only that is promoted to enforcing after verification. The CORS wildcard and Netlify-only files are removed.
+
+5) Bundle hygiene. Prune unused deps (about 35 packages) and declare prop-types. Simplify manualChunks to react, supabase and router-query. Add LazyMotion. Lazy-load jspdf through import() at export time if PDF export ships. Re-measure with `npx vite build --outDir %TEMP%/enfere-perf-build` and keep the entry modulepreload set at or under 4 chunks.
