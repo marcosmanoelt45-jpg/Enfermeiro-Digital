@@ -305,20 +305,24 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
                   Goti IA
                 </h3>
                 <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
-                  {gotiState === "thinking" ? "Raciocinando..." : gotiState === "speaking" ? "Explicando..." : "Online"}
+                  {gotiState === "thinking" ? "Raciocinando..." : gotiState === "speaking" ? "Explicando..." : "Pronto"}
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-medium">
-                Preceptor Clínico Inteligente · Tutoria Socrática (Estilo Plurall)
+                Preceptor clínico · Tutoria socrática
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5">
             <button
-              onClick={handleClearHistory}
-              title="Reiniciar Conversa"
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition tap-press"
+              onClick={() => {
+                if (messages.length > 1 && !window.confirm("Apagar a conversa com o Goti?")) return;
+                handleClearHistory();
+              }}
+              title="Reiniciar conversa"
+              aria-label="Reiniciar conversa"
+              className="w-11 h-11 grid place-items-center rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition tap-press"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -339,6 +343,9 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
         {/* Área de Mensagens com Rolagem Interna Isolada */}
         <div
           ref={messagesContainerRef}
+          role="log"
+          aria-live="polite"
+          aria-busy={isLoading}
           className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs sm:text-sm bg-slate-900/60"
         >
           {/* Card de Boas-Vindas */}

@@ -153,20 +153,22 @@ export default function StudentDashboard() {
 
             <div className="flex items-center gap-6 z-10">
               {/* Mascote Goti Animado em Proporção Destaque Ampliado */}
-              <div
+              <button
+                type="button"
                 onClick={() => {
                   triggerHaptic(20);
                   window.dispatchEvent(new CustomEvent("open-goti-chat"));
                 }}
-                className="cursor-pointer group shrink-0 tap-press"
+                className="cursor-pointer group shrink-0 tap-press rounded-3xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                 title="Conversar com o Preceptor Goti"
+                aria-label="Conversar com o Preceptor Goti"
               >
                 <GotiAnimated
                   animation="wave"
                   size="lg"
                   className="w-24 h-24 lg:w-28 lg:h-28 shrink-0 drop-shadow-[0_4px_20px_rgba(32,213,181,0.35)]"
                 />
-              </div>
+              </button>
 
               <div className="space-y-1.5">
                 <div className="inline-block text-[10.5px] font-black uppercase tracking-wider text-[#20D5B5] bg-[#20D5B5]/10 px-2.5 py-0.5 rounded-md">
@@ -270,7 +272,7 @@ export default function StudentDashboard() {
 
               <div className="space-y-1">
                 <span className="text-xs font-black text-[#20D5B5] uppercase tracking-wider block">
-                  BOAS-VINDAS AO ENFERMEIRO DIGITAL
+                  BOAS-VINDAS AO ENFERE
                 </span>
                 <h2 className="text-xl font-black text-[#EAF2F8] leading-snug">
                   Inicie sua Prática Clínica
@@ -288,7 +290,7 @@ export default function StudentDashboard() {
                   }}
                   className="btn-3d-teal px-6 h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <PlusCircle className="w-4.5 h-4.5 stroke-[2.5]" />
+                  <PlusCircle className="w-[18px] h-[18px] stroke-[2.5]" />
                   <span>Montar Caso Clínico</span>
                 </button>
                 <button
@@ -340,7 +342,7 @@ export default function StudentDashboard() {
                             : "bg-[#162838] border border-[#20D5B5]/30 text-[#20D5B5]"
                         }`}
                       >
-                        <Icon className="w-5.5 h-5.5 stroke-[2.2]" />
+                        <Icon className="w-[22px] h-[22px] stroke-[2.2]" />
                       </div>
                       {item.badge && (
                         <span

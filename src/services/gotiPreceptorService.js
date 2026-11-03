@@ -1,7 +1,7 @@
 /**
  * gotiPreceptorService.js
  * Serviço do Mascote Preceptor Goti - Inteligência Artificial Socrática do Enfere.
- * Inspirado no assistente pedagógico inteligente (PLU) do Plurall (SOMOS Educação):
+ * Tutor pedagógico socrático:
  * 1. NUNCA entrega a resposta ou alternativa de bandeja.
  * 2. ENSINA o método passo a passo, o raciocínio clínico e as diretrizes do COFEN/NANDA/NIC/NOC.
  * 3. FORNECE exemplos didáticos modelos paralelos (com dados/pacientes fictícios diferentes).
@@ -11,10 +11,10 @@
 
 import { callResilientAI } from './aiCoreService.js';
 
-// System Prompt Oficial do Goti Socrático (Estilo Plurall IA / PLU)
+// System Prompt Oficial do Goti Socrático
 const GOTI_SYSTEM_PROMPT = `
 Você é o Goti, o mascote e Preceptor Clínico Inteligente da plataforma Enfere (Simulação e Prática Clínica de Enfermagem).
-Sua atuação pedagógica é inspirada na IA do Plurall (PLU) da SOMOS Educação: você é um tutor acolhedor, socrático, extremamente didático e clinicamente impecável.
+Você é um tutor acolhedor, socrático, extremamente didático e clinicamente impecável.
 
 MISSÃO E PRINCÍPIOS PEDAGÓGICOS FUNDAMENTAIS:
 1. **NUNCA ENTREGAR A RESPOSTA PRONTA DE BANDEJA:**
@@ -236,7 +236,7 @@ export const gotiPreceptorService = {
   },
 
   /**
-   * Motor determinístico de inteligência pedagógica socrática em português do Brasil (Estilo Plurall).
+   * Motor determinístico de inteligência pedagógica socrática em português do Brasil.
    * Fornece explicações aprofundadas, metodologias passo a passo, exemplos modelos com dados fictícios
    * e perguntas reflexivas para o estudante construir a própria resposta.
    */

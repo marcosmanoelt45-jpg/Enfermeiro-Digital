@@ -268,7 +268,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
             }}
             className="btn-3d-teal w-full h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
           >
-            <PlusCircle className="w-4.5 h-4.5 stroke-[2.5]" />
+            <PlusCircle className="w-[18px] h-[18px] stroke-[2.5]" />
             <span>Montar Caso Clínico</span>
           </button>
         </div>
