@@ -365,6 +365,11 @@ export default function CaseStudio() {
   }
 
   function handleConfirmSubmission() {
+    const missing = [!profile.initials && !profile.name && "iniciais", !profile.age && "idade"].filter(Boolean);
+    if (missing.length) {
+      toast({ title: "Faltam dados do paciente", description: `Preencha ${missing.join(" e ")} no passo 1 antes de enviar.` });
+      return;
+    }
     const patientDisplay = profile.initials ? `${profile.initials} (${profile.age ? profile.age + "a" : "?"})` : "Paciente Cadastrado";
     const bradenScore = computeBradenTotal({
       perception: data.braden_perception,
@@ -469,6 +474,20 @@ export default function CaseStudio() {
   const recognitionRef = useRef(null);
   const isListeningRef = useRef(false);
   const speechInterimRef = useRef("");
+
+  // Ao sair da tela, desliga os dois ditados para o microfone não continuar aberto em segundo plano.
+  React.useEffect(() => {
+    return () => {
+      isListeningRef.current = false;
+      isLiveDictatingRef.current = false;
+      for (const rec of [recognitionRef.current, liveAudioRecRef.current]) {
+        if (!rec) continue;
+        rec.onend = null;
+        rec.onresult = null;
+        try { rec.abort(); } catch { /* já parado */ }
+      }
+    };
+  }, []);
 
   const setParam = (key, val) => setData((prev) => ({ ...prev, [key]: val }));
   const setProf = (key, val) => setProfile((prev) => ({ ...prev, [key]: val }));
@@ -1788,24 +1807,24 @@ export default function CaseStudio() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Iniciais</span>
-                          <strong className="text-white font-mono tracking-wider">{profile.initials || profile.name || "R.S.R."}</strong>
+                          <strong className="text-white font-mono tracking-wider">{profile.initials || profile.name || <span className="italic text-[#52667A] font-normal">Não informado</span>}</strong>
                         </div>
                         <div>
                           <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Idade / Sexo</span>
-                          <strong className="text-white">{profile.age ? `${profile.age} anos` : "79 anos"} • {profile.gender === "M" ? "Masculino" : "Feminino"}</strong>
+                          <strong className="text-white">{profile.age ? `${profile.age} anos` : <span className="italic text-[#52667A] font-normal">Não informado</span>} • {profile.gender === "M" ? "Masculino" : profile.gender === "F" ? "Feminino" : "Sexo não informado"}</strong>
                         </div>
                       </div>
                       <div className="text-xs pt-1 border-t border-[#1F3045]">
                         <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Histórico / Doenças</span>
-                        <p className="text-[#EAF2F8] text-xs">{profile.previous_diseases || "HAS estágio 2, DM tipo 2 em uso de metformina."}</p>
+                        <p className="text-[#EAF2F8] text-xs">{profile.previous_diseases || <span className="italic text-[#52667A] font-normal">Não informado</span>}</p>
                       </div>
                       <div className="text-xs">
                         <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Alergias</span>
-                        <p className="text-[#EAF2F8] text-xs font-semibold">{profile.allergies || "Nega alergias conhecidas."}</p>
+                        <p className="text-[#EAF2F8] text-xs font-semibold">{profile.allergies || <span className="italic text-[#52667A] font-normal">Não informado</span>}</p>
                       </div>
                       <div className="text-xs">
                         <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Admissão / Queixa</span>
-                        <p className="text-[#EAF2F8] text-xs">{profile.previous_anamnesis || profile.notes || "Paciente trazido por familiares com relato de astenia importante, diminuição da ingesta hídrica e sonolência nas últimas 24 horas."}</p>
+                        <p className="text-[#EAF2F8] text-xs">{profile.previous_anamnesis || profile.notes || <span className="italic text-[#52667A] font-normal">Não informado</span>}</p>
                       </div>
                     </div>
 
@@ -2022,7 +2041,8 @@ export default function CaseStudio() {
                   DADOS CLÍNICOS DO PACIENTE
                 </span>
                 <p className="text-xs text-[#EAF2F8] leading-relaxed">
-                  Paciente {profile.initials || "M.S.R."}, {profile.age || 79} anos, internado na unidade de cuidados clínicos. Histórico: HAS estágio 2, DM tipo 2 em uso de metformina.
+                  Paciente {profile.initials || "sem iniciais"}{profile.age ? `, ${profile.age} anos` : ""}, internado na unidade de cuidados clínicos.{" "}
+                  {(profile.previous_diseases || profile.previous_anamnesis) ? `Histórico: ${profile.previous_diseases || profile.previous_anamnesis}` : "Histórico não informado."}
                 </p>
                 {(() => {
                   const paStatus = classifyVital("pa_sistolica", data.pa_sistolica) === "critico" || classifyVital("pa_diastolica", data.pa_diastolica) === "critico" ? "critico" : classifyVital("pa_sistolica", data.pa_sistolica) === "alerta" || classifyVital("pa_diastolica", data.pa_diastolica) === "alerta" ? "alerta" : "estavel";
@@ -2131,7 +2151,7 @@ export default function CaseStudio() {
                       Parecer Pedagógico & Desconstrução do Raciocínio
                     </h2>
                     <p className="text-xs text-[#9FB3C6]">
-                      Paciente: {profile.initials || "M.S.R."} ({profile.age || 79} anos) · Bateria de Julgamento Clínico Avançado
+                      Paciente: {profile.initials || "sem iniciais"}{profile.age ? ` (${profile.age} anos)` : ""} · Bateria de Julgamento Clínico Avançado
                     </p>
                   </div>
 

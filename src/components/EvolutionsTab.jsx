@@ -283,6 +283,7 @@ export default function EvolutionsTab({ patientId }) {
                         <div className="flex items-center gap-1 overflow-hidden">
                           <KeyRound className="h-3 w-3 shrink-0" />
                           <span className="truncate">SHA-256: {ev.signature_hash_sha256.slice(0, 16)}…{ev.signature_hash_sha256.slice(-8)}</span>
+                          {ev.signature_origin === "local" && <span className="shrink-0 font-sans text-[#FFC247]">(offline, não verificável)</span>}
                         </div>
                         <button
                           type="button"

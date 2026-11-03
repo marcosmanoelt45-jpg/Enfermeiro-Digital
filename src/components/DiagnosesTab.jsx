@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { base44 } from "@/api/base44Client";
 import { Plus, Pencil, Trash2, ExternalLink, Loader2, ChevronDown, Stethoscope } from "lucide-react";
+import { safeHttpUrl } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import DiagnosisFormDialog from "@/components/DiagnosisFormDialog";
@@ -181,8 +182,8 @@ export default function DiagnosesTab({ patientId }) {
                   )}
                   {d.notes && <p className="text-[#9FB3C6]"><span className="font-medium text-[#EAF2F8]">Obs:</span> {d.notes}</p>}
                   <div className="flex flex-wrap items-center gap-2 border-t border-[#1F3045] pt-2">
-                    {d.source_link && (
-                      <a href={d.source_link} target="_blank" rel="noreferrer" className="inline-flex items-center gap-1 text-xs text-[#20D5B5] hover:underline">
+                    {safeHttpUrl(d.source_link) && (
+                      <a href={safeHttpUrl(d.source_link)} target="_blank" rel="noopener noreferrer" className="inline-flex items-center gap-1 text-xs text-[#20D5B5] hover:underline">
                         <ExternalLink className="h-3 w-3" /> Ver fonte
                       </a>
                     )}

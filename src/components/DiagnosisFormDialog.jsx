@@ -5,6 +5,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { SOURCES } from "@/lib/sources";
+import { safeHttpUrl } from "@/lib/utils";
 
 const empty = { code: "", title: "", domain: "", class: "", status: "ativo", source_link: SOURCES.nanda.url, defining_characteristics: "", related_factors: "", notes: "" };
 
@@ -34,9 +35,11 @@ export default function DiagnosisFormDialog({ open, onOpenChange, onSave, editin
   }, [open, editing]);
 
   const set = (k, v) => setForm((f) => ({ ...f, [k]: v }));
+  const sourceLinkInvalid = Boolean(form.source_link.trim()) && !safeHttpUrl(form.source_link);
 
   async function handleSave() {
     if (!form.code.trim() || !form.title.trim()) return;
+    if (form.source_link.trim() && !safeHttpUrl(form.source_link)) return;
     setSaving(true);
     try {
       await onSave({
@@ -45,7 +48,7 @@ export default function DiagnosisFormDialog({ open, onOpenChange, onSave, editin
         domain: form.domain.trim(),
         class: form.class.trim(),
         status: form.status,
-        source_link: form.source_link.trim(),
+        source_link: safeHttpUrl(form.source_link) || "",
         defining_characteristics: form.defining_characteristics.split("\n").map(s => s.trim()).filter(Boolean),
         related_factors: form.related_factors.split("\n").map(s => s.trim()).filter(Boolean),
         notes: form.notes.trim()
@@ -93,7 +96,8 @@ export default function DiagnosisFormDialog({ open, onOpenChange, onSave, editin
           </div>
           <div>
             <Label className="text-[#9FB3C6]">Link da fonte</Label>
-            <Input value={form.source_link} onChange={(e) => set("source_link", e.target.value)} className="mt-1 bg-[#0B131D] border-[#27394B] text-[#EAF2F8]" />
+            <Input value={form.source_link} onChange={(e) => set("source_link", e.target.value)} aria-invalid={sourceLinkInvalid} className="mt-1 bg-[#0B131D] border-[#27394B] text-[#EAF2F8]" />
+            {sourceLinkInvalid && <p className="mt-1 text-xs text-[#FF6B6B]">Use um link que comece com https://</p>}
           </div>
           <div>
             <Label className="text-[#9FB3C6]">Características definidoras (uma por linha)</Label>

@@ -37,6 +37,7 @@ export default function MedicationsTab({ patientId }) {
     notes: ""
   });
   const [result, setResult] = useState(null);
+  const [suggestedDrug, setSuggestedDrug] = useState(null);
   const [saving, setSaving] = useState(false);
 
   async function load() {
@@ -53,7 +54,11 @@ export default function MedicationsTab({ patientId }) {
 
   useEffect(() => { load(); }, [patientId]);
 
-  function update(k, v) { setForm((f) => ({ ...f, [k]: v })); }
+  // Qualquer mudança nos dados invalida o resultado, para nunca salvar um cálculo feito com valores antigos.
+  function update(k, v) {
+    setForm((f) => ({ ...f, [k]: v }));
+    setResult(null);
+  }
 
   function calculate() {
     const c = Number(form.concentration) || 0;
@@ -118,6 +123,7 @@ export default function MedicationsTab({ patientId }) {
       toast({ title: "Cálculo salvo no prontuário" });
       setForm({ drug_name: "", concentration: "", prescribed_dose: "", weight: "", dose_per_kg: "", volume_ml: "", time_value: "", time_unit: "h", micro: false, notes: "" });
       setResult(null);
+      setSuggestedDrug(null);
       load();
     } catch (err) {
       toast({ variant: "destructive", title: "Erro ao salvar", description: err?.message });
@@ -203,8 +209,11 @@ export default function MedicationsTab({ patientId }) {
               value={form.drug_name}
               onChange={(name, drug) => {
                 update("drug_name", name);
-                // A calculadora trabalha em mg: só preenche sozinha concentrações em mg/mL (UI e mEq ficam para o aluno).
-                if (drug && drug.concentration && !form.concentration && (!drug.unit || drug.unit === "mg/mL")) update("concentration", String(drug.concentration));
+                // A calculadora trabalha em mg: só sugere concentrações em mg/mL (UI e mEq ficam para o aluno).
+                // Trocar de medicamento sempre substitui a concentração anterior.
+                const usable = drug && drug.concentration && (!drug.unit || drug.unit === "mg/mL");
+                update("concentration", usable ? String(drug.concentration) : "");
+                setSuggestedDrug(usable ? drug : null);
               }}
             />
           </div>
@@ -216,11 +225,16 @@ export default function MedicationsTab({ patientId }) {
                 <Input
                   type="number"
                   value={form.concentration}
-                  onChange={(e) => update("concentration", e.target.value)}
+                  onChange={(e) => { update("concentration", e.target.value); setSuggestedDrug(null); }}
                   placeholder="500"
                   className="rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
                 />
               </div>
+              {suggestedDrug && (
+                <p className="col-span-2 rounded-lg border border-[#FFC247]/30 bg-[#FFC247]/10 px-3 py-1.5 text-[11px] text-[#FFC247]">
+                  Concentração sugerida{suggestedDrug.presentation ? ` (${suggestedDrug.presentation})` : ""}. Confira a apresentação no rótulo.
+                </p>
+              )}
               <div>
                 <Label className="text-xs text-[#9FB3C6]">Dose prescrita (mg)</Label>
                 <Input
@@ -324,11 +338,16 @@ export default function MedicationsTab({ patientId }) {
                 <Input
                   type="number"
                   value={form.concentration}
-                  onChange={(e) => update("concentration", e.target.value)}
+                  onChange={(e) => { update("concentration", e.target.value); setSuggestedDrug(null); }}
                   placeholder="10"
                   className="rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
                 />
               </div>
+              {suggestedDrug && (
+                <p className="col-span-2 rounded-lg border border-[#FFC247]/30 bg-[#FFC247]/10 px-3 py-1.5 text-[11px] text-[#FFC247]">
+                  Concentração sugerida{suggestedDrug.presentation ? ` (${suggestedDrug.presentation})` : ""}. Confira a apresentação no rótulo.
+                </p>
+              )}
             </div>
           )}
 
