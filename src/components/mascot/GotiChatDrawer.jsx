@@ -168,7 +168,8 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
 
   useEffect(() => {
     if (isOpen) {
-      setMessages(gotiPreceptorService.getHistory());
+      // Com envio em andamento, recarregar o histórico apagaria a pergunta otimista da tela.
+      if (!sendingRef.current) setMessages(gotiPreceptorService.getHistory());
       setTimeout(() => {
         inputRef.current?.focus();
         scrollToBottom();
@@ -180,10 +181,17 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
     }
   }, [isOpen, initialQuery]);
 
+  // O ouvinte é registrado uma vez: chama sempre a versão mais nova de handleSend.
+  const handleSendRef = useRef(null);
+  const sendingRef = useRef(false);
+  useEffect(() => {
+    handleSendRef.current = handleSend;
+  });
+
   useEffect(() => {
     function handleCustomOpen(e) {
       if (e.detail?.prompt) {
-        handleSend(e.detail.prompt);
+        handleSendRef.current?.(e.detail.prompt);
       }
     }
     window.addEventListener("open-goti-chat", handleCustomOpen);
@@ -202,7 +210,9 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
 
   async function handleSend(textToSend) {
     const text = (textToSend || inputText).trim();
-    if (!text || isLoading) return;
+    // Ref, não estado: duas chamadas no mesmo instante (botão + evento) veriam isLoading ainda falso.
+    if (!text || sendingRef.current) return;
+    sendingRef.current = true;
 
     triggerHaptic(20);
     setInputText("");
@@ -210,8 +220,8 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
     setGotiState("thinking");
 
     // Adiciona temporariamente a mensagem do usuário na tela
-    const updatedHistory = [...messages, { role: "user", sender: "user", text, timestamp: new Date().toISOString() }];
-    setMessages(updatedHistory);
+    const userMsg = { role: "user", sender: "user", text, timestamp: new Date().toISOString() };
+    setMessages((prev) => [...prev, userMsg]);
 
     // Timeout visual de segurança irredutível: nunca deixa a UI presa em loading
     const visualSafetyTimer = setTimeout(() => {
@@ -231,8 +241,12 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
       console.error("Erro no chat do Goti:", err);
       // Fallback gracioso imediato em caso de anomalia
       const fallbackReply = gotiPreceptorService.generateEducationalFallback(text);
+      // Parte do histórico salvo (pode ter mensagens mais novas), não de uma cópia antiga.
+      const salvo = gotiPreceptorService.getHistory();
+      const jaTemPergunta = salvo[salvo.length - 1]?.sender === "user";
       const safeHistory = [
-        ...updatedHistory,
+        ...salvo,
+        ...(jaTemPergunta ? [] : [userMsg]),
         { role: "assistant", sender: "goti", text: fallbackReply, timestamp: new Date().toISOString() }
       ];
       setMessages(safeHistory);
@@ -240,6 +254,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
       setGotiState("idle");
     } finally {
       clearTimeout(visualSafetyTimer);
+      sendingRef.current = false;
       setIsLoading(false);
     }
   }

@@ -4,12 +4,18 @@ import { ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 import MobilePocketDrawer from "@/components/mobile/MobilePocketDrawer";
+import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
 import gotiLogoOficial from "@/assets/goti-icone-oficial.png";
 
 export default function StudentFooter({ onOpenOptions }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isPocketDrawerOpen, setIsPocketDrawerOpen] = useState(false);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+
+  // Nenhuma página passa onOpenOptions: o rodapé abre os ajustes por conta própria,
+  // depois que a gaveta termina de fechar, para as duas folhas não se sobreporem.
+  const abrirAjustes = onOpenOptions || (() => setTimeout(() => setIsOptionsOpen(true), 260));
 
   return (
     <>
@@ -53,8 +59,10 @@ export default function StudentFooter({ onOpenOptions }) {
         onOpenChange={setIsPocketDrawerOpen}
         currentUser={user}
         onLogout={logout}
-        onOpenOptions={onOpenOptions}
+        onOpenOptions={abrirAjustes}
       />
+
+      <ClinicalOptionsModal isOpen={isOptionsOpen} onClose={() => setIsOptionsOpen(false)} />
     </>
   );
 }

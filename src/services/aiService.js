@@ -2,6 +2,7 @@ import { supabase, isSupabaseConfigured } from './supabaseClient.js';
 import { patientService } from './patientService.js';
 import { evolutionService } from './evolutionService.js';
 import { diagnosisService } from './diagnosisService.js';
+import { sanitizeTextForLGPD } from '@/lib/dlpSanitizer';
 
 // Filtro de Sanitização e Anonimização Pré-IA (LGPD & Resolução CFM nº 2.454/2026)
 export function sanitizeClinicalDataForAI(patient, assessment, evolutions = []) {
@@ -12,8 +13,8 @@ export function sanitizeClinicalDataForAI(patient, assessment, evolutions = []) 
     sexo: patient?.gender || 'N/A',
     doencas_previas: maskSensitiveTerms(patient?.previous_diseases || ''),
     historico_previo: maskSensitiveTerms(patient?.medical_history || ''),
-    medicamentos_em_uso: patient?.current_medications || '',
-    alergias: patient?.allergies || '',
+    medicamentos_em_uso: maskSensitiveTerms(patient?.current_medications || ''),
+    alergias: maskSensitiveTerms(patient?.allergies || ''),
     anamnese_previa: maskSensitiveTerms(patient?.previous_anamnesis || ''),
     observacoes: maskSensitiveTerms(patient?.notes || ''),
   };
@@ -87,24 +88,9 @@ export function sanitizeClinicalDataForAI(patient, assessment, evolutions = []) 
   };
 }
 
-// Heurísticas de mascaramento de CPF, RG, CNS, Telefones e Leitos
+// Mesmo filtro de todo o app (CPF, CNS, telefone, e-mail, CEP, leito e nomes).
 function maskSensitiveTerms(text) {
-  if (!text) return '';
-  let clean = String(text);
-
-  // Mascara CPF (formatado ou não)
-  clean = clean.replace(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g, '[CPF_MASCARADO]');
-
-  // Mascara Cartão Nacional de Saúde (CNS - 15 dígitos)
-  clean = clean.replace(/\b[1278]\d{14}\b/g, '[CNS_MASCARADO]');
-
-  // Mascara Leitos / Quartos / Enfermarias
-  clean = clean.replace(/\b(leito|quarto|enfermaria|box|apto|apartamento)\s*([0-9]+[a-zA-Z]?)\b/gi, '[LEITO_MASCARADO]');
-
-  // Mascara Telefones
-  clean = clean.replace(/\b(\(?\d{2}\)?\s*)?(9?\d{4}[-.\s]?\d{4})\b/g, '[TEL_MASCARADO]');
-
-  return clean;
+  return sanitizeTextForLGPD(text ? String(text) : '');
 }
 
 // Chamada direta à API do Google Gemini com análise de raciocínio clínico completo

@@ -197,15 +197,20 @@ export const gotiPreceptorService = {
         ? `${contextPrefix}<historico>\n${recentHistory}\n</historico>\n\n<pergunta>\n${userMessage}\n</pergunta>`
         : `${contextPrefix}<pergunta>\n${userMessage}\n</pergunta>`;
 
-      const aiPromise = callResilientAI(GOTI_SYSTEM_PROMPT, prompt, { maxTokens: 1400, temperature: 0.35 });
-      const safetyTimeoutPromise = new Promise((resolve) =>
-        setTimeout(() => {
+      // Ao estourar os 10 s, cancela as chamadas em andamento (não gastam a cota à toa).
+      const controller = new AbortController();
+      const aiPromise = callResilientAI(GOTI_SYSTEM_PROMPT, prompt, { maxTokens: 1400, temperature: 0.35, signal: controller.signal });
+      let guardId;
+      const safetyTimeoutPromise = new Promise((resolve) => {
+        guardId = setTimeout(() => {
           console.warn('[gotiPreceptorService] Guardrail de timeout ativado, acionando motor socrático local.');
+          controller.abort();
           resolve(null);
-        }, 10000)
-      );
+        }, 10000);
+      });
 
       const result = await Promise.race([aiPromise, safetyTimeoutPromise]);
+      clearTimeout(guardId);
       if (result && result.text) {
         assistantReply = result.text;
       }

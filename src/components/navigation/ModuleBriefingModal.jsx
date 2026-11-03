@@ -40,7 +40,7 @@ const MODULE_DATA = {
     actions: [
       { id: "start", label: "Começar Novo (Manual Guiado)", desc: "Preenchimento passo a passo com sliders de precisão", icon: FileText, primary: true, query: "?mode=manual" },
       { id: "continue", label: "Começar por Áudio (Voz)", desc: "Relate o caso falando que o Enfere extrai com IA", icon: Mic, primary: false, query: "?mode=audio" },
-      { id: "review", label: "Revisão dos Casos Montados", desc: "Ver os casos que você já estruturou na plataforma", icon: RotateCcw, primary: false, query: "?mode=library" }
+      { id: "review", label: "Revisão dos Casos Montados", desc: "Ver os casos que você já estruturou na plataforma", icon: RotateCcw, primary: false, path: "/banco-casos" }
     ]
   },
   casos: {
@@ -61,7 +61,7 @@ const MODULE_DATA = {
     category: "Comunicação Segura & Simulação",
     badge: "Meta 2 OMS • SBAR Multimodal",
     icon: ArrowRightLeft,
-    speech: "A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) evita 80% das falhas de comunicação. Como deseja treinar hoje?",
+    speech: "A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) reduz falhas de comunicação na transição do cuidado (Meta Internacional 2 de Segurança do Paciente). Como deseja treinar hoje?",
     targetPath: "/passagem-plantao",
     isSbarSpecial: true,
     actions: [

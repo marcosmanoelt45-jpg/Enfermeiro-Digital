@@ -72,7 +72,9 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
   function handleBriefingAction(action, targetPath) {
     setIsBriefingOpen(false);
     triggerHaptic(20);
-    const destination = action.query ? `${targetPath}${action.query}` : targetPath;
+    // Uma ação pode levar a outra tela (ex.: revisão dos casos montados fica no Banco de Casos).
+    const basePath = action.path || targetPath;
+    const destination = action.query ? `${basePath}${action.query}` : basePath;
     navigate(destination);
   }
 

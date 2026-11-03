@@ -24,11 +24,14 @@ import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { fadeUp, listStagger } from "@/lib/motion";
+import { useMediaQuery } from "@/hooks/useMediaQuery";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { triggerHaptic } = useTheme();
+  // Só o layout da tela atual é montado: o outro rodaria um segundo Goti em vídeo, escondido.
+  const isDesktop = useMediaQuery("(min-width: 768px)");
 
   const cleanUserName = user?.name ? user.name.split(" ")[0] : (user?.full_name ? user.full_name.split(" ")[0] : "Estudante");
 
@@ -126,6 +129,7 @@ export default function StudentDashboard() {
         {/* ========================================================================= */}
         {/* VISUALIZAÇÃO MOBILE (EnfereVivoTrail com Goti ampliado e Sugestões)       */}
         {/* ========================================================================= */}
+        {!isDesktop && (
         <div className="md:hidden">
           <EnfereVivoTrail
             userName={cleanUserName}
@@ -135,10 +139,12 @@ export default function StudentDashboard() {
             }}
           />
         </div>
+        )}
 
         {/* ========================================================================= */}
         {/* VISUALIZAÇÃO COMPUTADOR (PC / Telas Médias e Grandes)                     */}
         {/* ========================================================================= */}
+        {isDesktop && (
         <div className="hidden md:block space-y-6">
           {/* Header Superior do Painel PC: Saudação, Mascote Goti Ampliado, Ofensiva e PE */}
           <div className="flex items-center justify-between gap-6 bg-[#131F2E] border border-[#1F3045] rounded-3xl p-6 shadow-xl relative overflow-hidden">
@@ -363,6 +369,7 @@ export default function StudentDashboard() {
             </motion.div>
           </div>
         </div>
+        )}
 
         {/* Rodapé com Direitos Autorais Oficiais */}
         <div className="text-center pt-6 pb-2 text-[11px] text-[#52667A] font-medium">

@@ -20,6 +20,7 @@ import MobileBottomDock from '@/components/mobile/MobileBottomDock';
 import CaseHistoryModal from '@/components/history/CaseHistoryModal';
 import { MODULE_TYPES } from '@/services/clinicalHistoryService';
 import { History } from 'lucide-react';
+import { useSearchParams } from 'react-router-dom';
 
 export default function ProcedimentosLab() {
   const { triggerHaptic } = useTheme();
@@ -29,6 +30,19 @@ export default function ProcedimentosLab() {
   const [searchQuery, setSearchQuery] = useState('');
   const [activeProcedure, setActiveProcedure] = useState(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [searchParams] = useSearchParams();
+
+  // Ações do briefing: "continue" reabre o último POP visto e "review" abre o histórico.
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'review') {
+      setIsHistoryOpen(true);
+    } else if (action === 'continue') {
+      const ultimoId = procedureService.getWatchedList().slice(-1)[0];
+      const ultimo = ultimoId && procedureService.list().find((p) => p.id === ultimoId);
+      if (ultimo) setActiveProcedure(ultimo);
+    }
+  }, [searchParams]);
 
   const categoriesRef = useRef(null);
   const isDraggingRef = useRef(false);

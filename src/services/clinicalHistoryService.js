@@ -294,7 +294,9 @@ export const clinicalHistoryService = {
 
     // Também atualiza o banco de questões de revisão pendentes (Amarelas e Vermelhas)
     if (Array.isArray(sessionData.questoes)) {
-      const erradas = sessionData.questoes.filter((q) => q.status === 'amarela' || q.status === 'vermelha');
+      // Na revisão, acertar na 2ª tentativa já resolve a questão: só a vermelha volta para a fila.
+      const voltaParaFila = sessionData.modo === 'revisao' ? ['vermelha'] : ['amarela', 'vermelha'];
+      const erradas = sessionData.questoes.filter((q) => voltaParaFila.includes(q.status));
       if (erradas.length > 0) {
         const revisaoList = getRevisaoStorage(userId);
         const mapExistentes = new Map(revisaoList.map((q) => [q.pergunta || q.id, q]));

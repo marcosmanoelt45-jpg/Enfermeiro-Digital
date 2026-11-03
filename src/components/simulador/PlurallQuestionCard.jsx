@@ -28,7 +28,6 @@ export default function PlurallQuestionCard({
   onProxima,
   isReadOnly = false,
   isLastQuestion = false,
-  showHintButton = false,
   hintVisible = false,
   onToggleHint = null
 }) {

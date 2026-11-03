@@ -23,54 +23,11 @@ import PacienteVideoStage from "@/components/simulador/PacienteVideoStage";
 import FalaLegendaBubble from "@/components/simulador/FalaLegendaBubble";
 import PlurallTopBar from "@/components/simulador/PlurallTopBar";
 import PlurallQuestionCard from "@/components/simulador/PlurallQuestionCard";
+import { TOPICOS_PRATICA } from "@/data/simuladorTopicos";
 import RevisaoFinalModal from "@/components/simulador/RevisaoFinalModal";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { History } from "lucide-react";
 
-export const TOPICOS_PRATICA = [
-  {
-    id: "calculo",
-    titulo: "Cálculo de Medicamentos",
-    descricao: "Regras de três, gotejamento (macrogotas/microgotas) e vazão em BIC",
-    tags: ["cálc", "calculo", "medicamento", "dose", "gotejamento", "bic", "solucao", "soro"],
-    badge: "Farmacologia"
-  },
-  {
-    id: "curativo",
-    titulo: "Curativos e Lesões por Pressão",
-    descricao: "Estadiamento NPUAP, técnica asséptica, coberturas e desbridamento",
-    tags: ["curat", "curativo", "ferida", "pressao", "npuap", "lesao", "pele", "estagio", "braden"],
-    badge: "Cirúrgica"
-  },
-  {
-    id: "acesso_venoso",
-    titulo: "Punção Venosa e Flebite",
-    descricao: "Terapia infusional, escalas da INS, técnica push-pause e complicações",
-    tags: ["punc", "puncao", "venosa", "flebite", "acesso", "cateter", "ins", "veia", "infiltracao"],
-    badge: "Terapia EV"
-  },
-  {
-    id: "farmaco",
-    titulo: "Farmacologia Clínica e Diluições",
-    descricao: "Reconstituição, estabilidade, vias de administração e segurança do paciente",
-    tags: ["farm", "farmaco", "diluicao", "antibiotico", "ampola", "reconstituicao"],
-    badge: "Medicamentos"
-  },
-  {
-    id: "sinais_vitais",
-    titulo: "Sinais Vitais e Semiologia",
-    descricao: "Parâmetros hemodinâmicos, saturação, pulsos periféricos e perfusão",
-    tags: ["sin", "sinais", "vitais", "pa", "pressao", "temperatura", "spo2", "pulso"],
-    badge: "Semiologia"
-  },
-  {
-    id: "todos",
-    titulo: "Geral (Todos os Temas Clínicos)",
-    descricao: "Simulação ampla integrando casos cirúrgicos e de clínica médica",
-    tags: ["geral", "todos", "completo", "atendimento", "misto"],
-    badge: "Intensivo"
-  }
-];
 
 export default function Videochamada() {
   const navigate = useNavigate();
@@ -108,7 +65,16 @@ export default function Videochamada() {
   const [startTime, setStartTime] = useState(() => Date.now());
 
   // Áudio, Fala e Vídeo do Paciente
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try {
+      return localStorage.getItem("enfere_videochamada_som") !== "0";
+    } catch {
+      return true;
+    }
+  });
+  // Lido dentro de executarFala: ligar ou desligar o som não reinicia a pergunta.
+  const soundRef = useRef(soundEnabled);
+  const [modoSessao, setModoSessao] = useState("normal");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const [clipeAtivo, setClipeAtivo] = useState("fala"); // 'fala' | 'acerto' | 'erro'
@@ -174,7 +140,7 @@ export default function Videochamada() {
       setActiveWordIndex(-1);
 
       falar(texto, pacienteId, {
-        soundEnabled,
+        soundEnabled: soundRef.current,
         customAudioFile,
         onStart: () => {
           if (mountedRef.current) setIsSpeaking(true);
@@ -190,7 +156,7 @@ export default function Videochamada() {
         }
       });
     },
-    [pacienteId, soundEnabled, emSessao]
+    [pacienteId, emSessao]
   );
 
   // Disparar fala ao trocar de questão SOMENTE se estiver em sessão ativa
@@ -212,8 +178,9 @@ export default function Videochamada() {
   }, [searchParams]);
 
   // Iniciar Atendimento com parâmetros selecionados
-  function handleIniciarSessaoPratica({ mode, categoria, topicoNome }) {
+  function handleIniciarSessaoPratica({ mode, categoria, revisaoOverride }) {
     pararFala();
+    setModoSessao(mode);
 
     // Com tema escolhido, sorteia só entre pacientes que têm questões suficientes desse tema
     // (cada paciente cobre temas diferentes).
@@ -234,7 +201,10 @@ export default function Videochamada() {
     setModalidadeAtiva(labelsModo);
     setCategoriaAtiva(categoria);
 
-    const revisaoQueue = clinicalHistoryService.getQuestoesRevisao(user?.id);
+    // "Refazer só erradas" revisa as questões desta sessão, não a fila inteira do histórico.
+    const revisaoQueue = revisaoOverride?.length
+      ? revisaoOverride
+      : clinicalHistoryService.getQuestoesRevisao(user?.id);
     const novoCaso = gerarCasoAleatorio(novoPaciente, {
       mode,
       categoria,
@@ -330,7 +300,8 @@ export default function Videochamada() {
               selectedChoice: escolhaAluno
             }
           }));
-          if (questaoAtual) {
+          // Fora da revisão, a amarela vai para a fila ao salvar a sessão; na revisão, acertar resolve.
+          if (questaoAtual && modoSessao === "revisao") {
             clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
           }
         }
@@ -440,6 +411,7 @@ export default function Videochamada() {
       pacienteId: paciente.id,
       pacienteNome: paciente.nome,
       modalidade: modalidadeAtiva,
+      modo: modoSessao,
       totalQuestoes,
       acertos,
       amarelas,
@@ -471,14 +443,18 @@ export default function Videochamada() {
 
   // Alternar som
   function handleToggleSound() {
-    setSoundEnabled((prev) => {
-      const next = !prev;
-      if (!next) {
-        pararFala();
-        setIsSpeaking(false);
-      }
-      return next;
-    });
+    const next = !soundEnabled;
+    soundRef.current = next;
+    setSoundEnabled(next);
+    try {
+      localStorage.setItem("enfere_videochamada_som", next ? "1" : "0");
+    } catch {
+      // Sem armazenamento: a preferência vale só nesta visita.
+    }
+    if (!next) {
+      pararFala();
+      setIsSpeaking(false);
+    }
   }
 
   // Repetir fala do paciente
@@ -704,8 +680,11 @@ export default function Videochamada() {
           amarelas={amarelas}
           vermelhas={vermelhas}
           onClose={() => {
-            setEmSessao(false);
+            // Sair no meio descarta as respostas: pede confirmação se já houver alguma.
+            if (respondidasCount > 0 && !window.confirm("Sair do atendimento? O progresso desta sessão será perdido.")) return;
             pararFala();
+            setIsSpeaking(false);
+            setEmSessao(false);
           }}
           soundEnabled={soundEnabled}
           onToggleSound={handleToggleSound}
@@ -813,6 +792,7 @@ export default function Videochamada() {
           {/* Card da Questão Plurall com Dica sob demanda e Bloqueio após resposta */}
           {questaoAtual && (
             <PlurallQuestionCard
+              key={`${startTime}-${stepIndex}`}
               questao={questaoAtual}
               numQuestao={stepIndex}
               totalQuestoes={totalQuestoes}
@@ -849,7 +829,9 @@ export default function Videochamada() {
             handleIniciarSessaoPratica({
               mode: "revisao",
               categoria: categoriaAtiva,
-              topicoNome: "Revisão de Erros"
+              revisaoOverride: (resumoFinal?.questoes || []).filter(
+                (q) => q.status === "amarela" || q.status === "vermelha"
+              )
             });
           }}
           onNovaPratica={() => {

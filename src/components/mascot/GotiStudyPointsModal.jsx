@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   X,
   Sparkles,
@@ -13,12 +13,19 @@ import {
 } from "lucide-react";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { useTheme } from "@/lib/ThemeContext";
+import { useAuth } from "@/lib/AuthContext";
 import { toast } from "@/components/ui/use-toast";
 import { Button } from "@/components/ui/button";
 
 export default function GotiStudyPointsModal({ isOpen, onClose }) {
   const { triggerHaptic } = useTheme();
-  const [gameState, setGameState] = useState(() => clinicalGamificationService.getState());
+  const { user } = useAuth();
+  const [gameState, setGameState] = useState(() => clinicalGamificationService.getState(user?.id));
+
+  // O modal fica montado no cabeçalho: relê o saldo a cada abertura, senão mostra PE antigo.
+  useEffect(() => {
+    if (isOpen) setGameState(clinicalGamificationService.getState(user?.id));
+  }, [isOpen, user?.id]);
 
   if (!isOpen) return null;
 
@@ -27,9 +34,9 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
 
   const handleBuyStreakFreeze = () => {
     triggerHaptic(25);
-    const result = clinicalGamificationService.spendStudyPoints(30, "streak_freeze");
+    const result = clinicalGamificationService.spendStudyPoints(30, "streak_freeze", user?.id);
     if (result.success) {
-      setGameState(clinicalGamificationService.getState());
+      setGameState(clinicalGamificationService.getState(user?.id));
       toast({
         title: "❄️ Congelamento de Plantão Adquirido!",
         description: "Seu streak de dias está protegido contra imprevistos na escala hospitalar."
