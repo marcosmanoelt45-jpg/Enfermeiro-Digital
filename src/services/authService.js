@@ -83,7 +83,8 @@ async function saveRegisteredAccountLocal({ id, email, password, passwordHash, p
     map[cleanEmail] = record;
     localStorage.setItem(LOCAL_REGISTERED_ACCOUNTS_KEY, JSON.stringify(map));
 
-    const sessionUser = { ...record };
+    // Marca a sessão como local: só ela pode valer sem sessão do Supabase.
+    const sessionUser = { ...record, is_local: true };
     delete sessionUser.passwordHash;
     delete sessionUser.passwordSalt;
     localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(sessionUser));
@@ -291,7 +292,10 @@ export const authService = {
       const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LOCAL_STORAGE_USER_KEY) : null;
       if (stored) {
         const parsed = JSON.parse(stored);
-        if (parsed?.email?.includes('google@hospital.digital')) {
+        // Cópia de um usuário do Supabase cuja sessão acabou (expirou ou saiu em outra aba)
+        // não pode manter o acesso: só sessões locais explícitas continuam valendo.
+        const sessaoSupabaseVencida = isSupabaseConfigured() && !parsed?.is_local;
+        if (parsed?.email?.includes('google@hospital.digital') || sessaoSupabaseVencida) {
           localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
           return null;
         }
@@ -346,9 +350,11 @@ export const authService = {
       if (error) throw error;
       return data;
     } catch {
+      // Falhou no servidor: guarda só o que é do próprio usuário, nunca papel nem organização.
+      const { role: _role, org_id: _org, ...permitidos } = updates || {};
       const stored = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
       if (stored) {
-        const u = { ...JSON.parse(stored), ...updates };
+        const u = { ...JSON.parse(stored), ...permitidos };
         localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(u));
         return u;
       }
@@ -452,6 +458,7 @@ export const authService = {
       coren: 'ESTUDANTE-GRADUAÇÃO',
       org_id: 'enfere-academico',
       is_demo: true,
+      is_local: true,
     };
     if (typeof localStorage !== 'undefined') {
       localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(demoUser));
