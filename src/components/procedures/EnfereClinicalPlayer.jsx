@@ -362,7 +362,8 @@ export default function EnfereClinicalPlayer({
             {previewImage && (
               <img
                 src={previewImage}
-                alt={title}
+                alt=""
+                aria-hidden="true"
                 className="absolute inset-0 w-full h-full object-cover opacity-25"
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
               />
@@ -401,7 +402,7 @@ export default function EnfereClinicalPlayer({
 
         {/* Marca d'água discreta do Enfere Player */}
         <div className="absolute top-3 left-3 z-10 pointer-events-none flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] font-bold text-slate-200">
-          <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-teal-400" />
           <span>{isNativeMp4 ? 'Vídeo Oficial UFRGS • Enfere Player' : 'Enfere Clinical Player'}</span>
         </div>
       </div>
@@ -441,8 +442,10 @@ export default function EnfereClinicalPlayer({
         <div className="flex items-center gap-2.5">
           {/* Botão Play/Pause */}
           <button
+            type="button"
             onClick={togglePlay}
-            className="w-9 h-9 rounded-xl bg-teal-500/10 hover:bg-teal-500/25 border border-teal-500/30 text-teal-400 flex items-center justify-center transition tap-press"
+            aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+            className="w-11 h-11 rounded-xl bg-teal-500/10 hover:bg-teal-500/25 border border-teal-500/30 text-teal-400 flex items-center justify-center transition tap-press"
             title={isPlaying ? 'Pausar' : 'Reproduzir'}
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
@@ -487,8 +490,11 @@ export default function EnfereClinicalPlayer({
               return (
                 <button
                   key={speed}
+                  type="button"
                   onClick={() => handleSpeedChange(speed)}
-                  className={`px-2 py-0.5 rounded-lg text-xs font-bold transition-all tap-press ${
+                  aria-pressed={isCurrent}
+                  aria-label={`Velocidade ${speed}x`}
+                  className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-bold transition-all tap-press ${
                     isCurrent
                       ? 'bg-teal-500 text-slate-950 shadow-sm scale-105'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
@@ -503,8 +509,10 @@ export default function EnfereClinicalPlayer({
 
           {/* Botão Tela Cheia */}
           <button
+            type="button"
             onClick={toggleFullscreen}
-            className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition tap-press"
+            aria-label={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
+            className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition tap-press"
             title={isFullscreen ? 'Sair da Tela Cheia' : 'Tela Cheia'}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}

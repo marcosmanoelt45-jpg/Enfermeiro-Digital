@@ -712,6 +712,8 @@ export default function CaseStudySimulator() {
                 return (
                   <button
                     key={step.num}
+                    type="button"
+                    aria-current={isCurrent ? "step" : undefined}
                     onClick={() => {
                       setActiveStep(step.num);
                       setViewingDebriefing(false);
