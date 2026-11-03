@@ -29,7 +29,7 @@ export default function FalaLegendaBubble({
             key={barIdx}
             className={`w-1 rounded-full bg-[#2AD3C1] transition-all duration-150 ${
               isSpeaking
-                ? "animate-pulse"
+                ? "motion-safe:animate-pulse"
                 : "opacity-45 h-1.5"
             }`}
             style={{
@@ -42,7 +42,7 @@ export default function FalaLegendaBubble({
       </div>
 
       {/* Texto com Efeito Karaokê Centralizado */}
-      <p className="font-extrabold tracking-tight text-center">
+      <p className="font-extrabold tracking-tight text-center" aria-live="polite">
         {words.map((word, idx) => {
           const isSpoken = activeWordIndex === -1 || idx <= activeWordIndex;
           return (

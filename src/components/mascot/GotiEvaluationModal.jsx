@@ -92,7 +92,7 @@ export default function GotiEvaluationModal({
         </button>
 
         {/* Badge de Destaque Superior */}
-        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-white/10 mb-4 shadow-sm backdrop-blur-xs select-none">
+        <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold border border-white/10 mb-4 shadow-sm backdrop-blur-sm select-none">
           <span className={`inline-flex items-center gap-1.5 px-3 py-0.5 rounded-full text-[11px] font-black border ${badgeColor}`}>
             <Sparkles className="w-3.5 h-3.5" />
             {badgeText}

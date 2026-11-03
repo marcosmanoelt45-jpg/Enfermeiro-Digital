@@ -87,18 +87,18 @@ export default function ProcedureAIChat({ procedure }) {
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-colors">
       <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2.5">
           <img
             src={gotiLogoOficial}
             alt="Goti IA"
-            className="w-11 h-11 object-contain shrink-0 filter drop-shadow-xs"
+            className="w-11 h-11 object-contain shrink-0 filter drop-shadow-sm"
           />
           <div>
             <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
               <span>Goti IA · Dúvidas do Procedimento</span>
-              <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-teal-100 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300">Enfere</span>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300">Enfere</span>
             </h4>
             <p className="text-[10px] text-slate-500 dark:text-slate-400">
               Raciocínio clínico sobre variações e dilemas deste procedimento
@@ -118,7 +118,7 @@ export default function ProcedureAIChat({ procedure }) {
               <img
                 src={gotiLogoOficial}
                 alt="Goti"
-                className="w-8 h-8 shrink-0 object-contain filter drop-shadow-xs"
+                className="w-8 h-8 shrink-0 object-contain filter drop-shadow-sm"
               />
             )}
 

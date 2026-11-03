@@ -25,7 +25,7 @@ export default function StudentFooter({ onOpenOptions }) {
             <img
               src={gotiLogoOficial}
               alt="Goti"
-              className="w-8 h-8 object-contain shrink-0 filter drop-shadow-xs"
+              className="w-8 h-8 object-contain shrink-0 filter drop-shadow-sm"
             />
             <span className="font-bold text-slate-800 dark:text-slate-200">Enfere</span>
             <span className="text-slate-300 dark:text-slate-600">•</span>

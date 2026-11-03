@@ -208,7 +208,7 @@ export default function AIDashboard() {
           <>
             {/* Banner de transparência do motor de IA */}
             {!plan.ai_engine?.includes("Gemini") ? (
-              <div className="rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/40 p-3.5 text-xs text-amber-900 dark:text-amber-200 shadow-xs flex items-start gap-2.5">
+              <div className="rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/80 dark:bg-amber-950/40 p-3.5 text-xs text-amber-900 dark:text-amber-200 shadow-sm flex items-start gap-2.5">
                 <Zap className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0 mt-0.5" />
                 <div className="space-y-1">
                   <p className="font-semibold text-amber-950 dark:text-amber-100">Motor Clínico Offline Ativo (Processamento Instantâneo)</p>
@@ -221,7 +221,7 @@ export default function AIDashboard() {
                 </div>
               </div>
             ) : (
-              <div className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/80 dark:bg-teal-950/40 p-3 text-xs text-teal-900 dark:text-teal-200 shadow-xs flex items-center gap-2">
+              <div className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/80 dark:bg-teal-950/40 p-3 text-xs text-teal-900 dark:text-teal-200 shadow-sm flex items-center gap-2">
                 <Sparkles className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
                 <p>
                   Plano gerado com <strong>Inteligência Artificial Generativa ({plan.ai_engine})</strong> via raciocínio clínico adaptativo.

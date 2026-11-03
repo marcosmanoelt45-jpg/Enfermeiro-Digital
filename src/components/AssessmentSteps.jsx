@@ -271,7 +271,7 @@ export function AssessmentStepContent({ data, set, step }) {
         {BRADEN_ITEMS.map((it) => (
           <VitalSlider key={it.key} label={it.label} value={data[it.key]} min={it.min} max={it.max} step={1} onChange={(v) => set(it.key, v)} accentColor={it.color} />
         ))}
-        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-xs">
+        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-sm">
           <p className="text-xs uppercase tracking-wide text-[#9FB3C6] font-bold">Escore Total BRADEN</p>
           <p className="text-4xl font-bold tabular-nums text-[#EAF2F8]">{bradenTotal}</p>
           <p className="mt-1 text-xs text-[#20D5B5] font-medium">
@@ -347,7 +347,7 @@ export function AssessmentStepContent({ data, set, step }) {
             </div>
           </div>
         ))}
-        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-xs">
+        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-sm">
           <p className="text-xs uppercase tracking-wide text-[#9FB3C6] font-bold">Escore Total AUDIT</p>
           <p className="text-4xl font-bold tabular-nums text-[#EAF2F8]">{auditTotal}</p>
           <p className="mt-1 text-xs text-[#20D5B5] font-medium">{auditZone}</p>
@@ -376,7 +376,7 @@ export function AssessmentStepContent({ data, set, step }) {
           </button>
         ))}
         <VitalSlider label="Nº de medicamentos administrados (últimas 24h)" value={data.sak_meds} min={0} max={15} step={1} onChange={(v) => set("sak_meds", v)} accentColor="amber" />
-        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-xs">
+        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-sm">
           <p className="text-xs uppercase tracking-wide text-[#9FB3C6] font-bold">Escore de Risco SAK</p>
           <p className="text-4xl font-bold tabular-nums text-[#EAF2F8]">{sakTotal}</p>
           <p className="mt-1 text-xs text-[#FFC247] font-medium">{sakTotal >= 10.5 ? "Alto risco" : sakTotal >= 6.5 ? "Risco moderado" : "Baixo risco"}</p>
@@ -391,14 +391,14 @@ export function AssessmentStepContent({ data, set, step }) {
       <div className="space-y-5">
         <p className="text-sm text-[#9FB3C6] font-medium">CALOI — escala de dor (intensidade, localização e características).</p>
         <VitalSlider label="Intensidade da Dor" unit="/10" value={data.caloi_pain_intensity} min={0} max={10} step={1} onChange={(v) => set("caloi_pain_intensity", v)} accentColor="rose" />
-        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 shadow-xs">
+        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 shadow-sm">
           <p className="text-sm font-bold text-[#EAF2F8]">Localização da Dor</p>
           <p className="mt-0.5 text-xs text-[#9FB3C6]">Selecione todos os locais aplicáveis</p>
           <div className="mt-2">
             <PainLocationPicker value={data.caloi_pain_location || []} onChange={(locs) => set("caloi_pain_location", locs)} />
           </div>
         </div>
-        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 shadow-xs">
+        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 shadow-sm">
           <p className="text-sm font-bold text-[#EAF2F8]">Características da Dor</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {CALOI_PAIN_CHARS.map((c) => {
@@ -419,7 +419,7 @@ export function AssessmentStepContent({ data, set, step }) {
             })}
           </div>
         </div>
-        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-xs">
+        <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-sm">
           <p className="text-xs uppercase tracking-wide text-[#9FB3C6] font-bold">Escore de Dor CALOI</p>
           <p className="text-4xl font-bold tabular-nums text-[#EAF2F8]">{caloiTotal}/10</p>
           <p className="mt-1 text-xs text-[#FF6B6B] font-medium">{caloiTotal >= 7 ? "Dor severa" : caloiTotal >= 4 ? "Dor moderada" : caloiTotal > 0 ? "Dor leve" : "Sem dor"}</p>

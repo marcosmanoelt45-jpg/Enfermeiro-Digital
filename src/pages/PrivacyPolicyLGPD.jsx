@@ -72,7 +72,7 @@ export default function PrivacyPolicyLGPD() {
             onClick={() => setActiveTab("faq")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "faq"
-                ? "bg-teal-700 text-white shadow-xs"
+                ? "bg-teal-700 text-white shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
@@ -82,7 +82,7 @@ export default function PrivacyPolicyLGPD() {
             onClick={() => setActiveTab("lgpd")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "lgpd"
-                ? "bg-teal-700 text-white shadow-xs"
+                ? "bg-teal-700 text-white shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
@@ -92,7 +92,7 @@ export default function PrivacyPolicyLGPD() {
             onClick={() => setActiveTab("cofen")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "cofen"
-                ? "bg-teal-700 text-white shadow-xs"
+                ? "bg-teal-700 text-white shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
@@ -102,7 +102,7 @@ export default function PrivacyPolicyLGPD() {
             onClick={() => setActiveTab("autoria")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "autoria"
-                ? "bg-emerald-700 text-white shadow-xs"
+                ? "bg-emerald-700 text-white shadow-sm"
                 : "text-slate-600 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-slate-100"
             }`}
           >
@@ -113,7 +113,7 @@ export default function PrivacyPolicyLGPD() {
         {/* ABA 1: PERGUNTAS FREQUENTES (FAQ) */}
         {activeTab === "faq" && (
           <div className="space-y-4 animate-in fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
               <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
                 Dúvidas Comuns sobre o Ambiente de Aprendizagem
               </h2>
@@ -124,7 +124,7 @@ export default function PrivacyPolicyLGPD() {
 
             <div className="space-y-3">
               {faqItems.map((item, idx) => (
-                <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-2">
+                <div key={idx} className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-2">
                   <h3 className="text-xs sm:text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
                     <span className="flex h-5 w-5 items-center justify-center rounded-full bg-slate-100 dark:bg-slate-800 text-teal-800 dark:text-teal-400 text-[10px] font-bold">
                       {idx + 1}
@@ -143,7 +143,7 @@ export default function PrivacyPolicyLGPD() {
         {/* ABA 2: GOVERNANÇA & LGPD */}
         {activeTab === "lgpd" && (
           <div className="space-y-5 animate-in fade-in">
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-xs space-y-2">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 shadow-sm space-y-2">
               <span className="text-xs font-bold text-teal-800 dark:text-teal-400 uppercase tracking-wider block">
                 Privacidade & Proteção de Dados
               </span>
@@ -156,7 +156,7 @@ export default function PrivacyPolicyLGPD() {
             </div>
 
             <div className="space-y-4">
-              <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+              <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
                 <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-sm">
                   <FileText className="h-4 w-4 text-teal-700 dark:text-teal-400" />
                   <h3>1. Natureza do Ambiente e Dados Sintéticos (Art. 12 da LGPD)</h3>
@@ -166,7 +166,7 @@ export default function PrivacyPolicyLGPD() {
                 </p>
               </section>
 
-              <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+              <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
                 <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-sm">
                   <ShieldCheck className="h-4 w-4 text-teal-700 dark:text-teal-400" />
                   <h3>2. Sistema Ativo de DLP (Data Loss Prevention)</h3>
@@ -176,7 +176,7 @@ export default function PrivacyPolicyLGPD() {
                 </p>
               </section>
 
-              <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+              <section className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
                 <div className="flex items-center gap-2 text-slate-900 dark:text-slate-100 font-bold text-sm">
                   <Building2 className="h-4 w-4 text-teal-700 dark:text-teal-400" />
                   <h3>3. Incubação & Parcerias Institucionais (NIT Starts-HCPA)</h3>
@@ -192,7 +192,7 @@ export default function PrivacyPolicyLGPD() {
         {/* ABA 3: DIRETRIZES COFEN 736/2024 */}
         {activeTab === "cofen" && (
           <div className="space-y-4 animate-in fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
               <span className="text-xs font-bold text-teal-800 dark:text-teal-400 uppercase tracking-wider block">
                 Regulamentação Profissional
               </span>
@@ -205,31 +205,31 @@ export default function PrivacyPolicyLGPD() {
             </div>
 
             <div className="grid sm:grid-cols-2 gap-3 text-xs">
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
+              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
                 <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs">1. Avaliação de Enfermagem</span>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                   Coleta metódica, deliberada e contínua de dados subjetivos e objetivos (anamnese, exame físico e dados complementares).
                 </p>
               </div>
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
+              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
                 <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs">2. Diagnóstico de Enfermagem</span>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                   Julgamento clínico sobre as respostas humanas e vulnerabilidades da pessoa, família ou comunidade.
                 </p>
               </div>
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
+              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
                 <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs">3. Planejamento de Enfermagem</span>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                   Determinação das metas e resultados esperados mensuráveis a serem alcançados pela pessoa.
                 </p>
               </div>
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-1">
+              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1">
                 <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs">4. Implementação de Enfermagem</span>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                   Execução e realização das intervenções e cuidados prescritos pelo enfermeiro com rigor e aprazamento.
                 </p>
               </div>
-              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-xs space-y-1 sm:col-span-2">
+              <div className="bg-white dark:bg-slate-900 p-5 rounded-2xl border border-slate-200 dark:border-slate-800 shadow-sm space-y-1 sm:col-span-2">
                 <span className="font-bold text-slate-900 dark:text-slate-100 block text-xs">5. Evolução de Enfermagem</span>
                 <p className="text-slate-600 dark:text-slate-300 leading-relaxed">
                   Avaliação contínua dos resultados obtidos, resposta terapêutica e adequação do plano de cuidados.
@@ -242,7 +242,7 @@ export default function PrivacyPolicyLGPD() {
         {/* ABA 4: AUTORIA & PROPRIEDADE INTELECTUAL */}
         {activeTab === "autoria" && (
           <div className="space-y-4 animate-in fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-2">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-2">
               <span className="text-xs font-bold text-emerald-700 dark:text-emerald-400 uppercase tracking-wider block">
                 Titularidade e Direitos Exclusivos
               </span>
@@ -254,7 +254,7 @@ export default function PrivacyPolicyLGPD() {
               </p>
             </div>
 
-            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-xs space-y-4 text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl p-6 border border-slate-200 dark:border-slate-800 shadow-sm space-y-4 text-xs sm:text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
               <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 flex items-start gap-3">
                 <CheckCircle2 className="w-5 h-5 text-emerald-700 dark:text-emerald-400 flex-shrink-0 mt-0.5" />
                 <div>

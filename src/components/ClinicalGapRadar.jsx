@@ -83,7 +83,7 @@ export default function ClinicalGapRadar({
   }
 
   return (
-    <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-5 shadow-xs space-y-4">
+    <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-5 shadow-sm space-y-4">
       {/* Cabeçalho com Medidor de Completude */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1F3045] pb-3">
         <div className="flex items-center gap-2.5">
@@ -247,7 +247,7 @@ export default function ClinicalGapRadar({
                         onClick={() => handleSelectOption(opt)}
                         className={`w-full text-left p-3 rounded-xl border text-xs leading-relaxed transition-all flex items-start gap-2.5 ${cardStyle}`}
                       >
-                        <div className={`mt-0.5 h-6 w-6 rounded-lg font-black text-xs border flex items-center justify-center shrink-0 transition-colors shadow-xs ${
+                        <div className={`mt-0.5 h-6 w-6 rounded-lg font-black text-xs border flex items-center justify-center shrink-0 transition-colors shadow-sm ${
                           isAnswered && opt.isCorrect
                             ? "bg-[#20D5B5] border-[#20D5B5] text-[#0A1118]"
                             : isAnswered && isSelected && !opt.isCorrect

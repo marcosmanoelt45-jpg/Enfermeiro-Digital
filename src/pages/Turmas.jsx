@@ -299,7 +299,7 @@ export default function Turmas() {
         <div className="rounded-2xl border-2 border-teal-200 dark:border-teal-800/60 bg-gradient-to-r from-teal-50/80 to-sky-50/80 dark:from-slate-900 dark:to-slate-900/90 p-4 shadow-2xs">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
-              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white shadow-xs">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white shadow-sm">
                 <GraduationCap className="h-5 w-5" />
               </div>
               <div>
@@ -355,7 +355,7 @@ export default function Turmas() {
                 <button
                   key={m.id}
                   onClick={() => navigate(`/turma/${m.turma_id}`)}
-                  className="flex w-full items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-left transition hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-xs"
+                  className="flex w-full items-center justify-between rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 text-left transition hover:border-teal-300 dark:hover:border-teal-700 hover:shadow-sm"
                 >
                   <div className="flex items-center gap-3">
                     <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-teal-700 dark:text-teal-400">

@@ -11,7 +11,7 @@ const ICON_MAP = {
 
 export default function AchievementsList({ achievements = [] }) {
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div>
           <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
@@ -57,7 +57,7 @@ export default function AchievementsList({ achievements = [] }) {
               className="flex items-start gap-3.5 p-3 rounded-xl border border-slate-100 dark:border-slate-800/90 bg-slate-50/50 dark:bg-slate-850/40 hover:bg-slate-50 dark:hover:bg-slate-800/60 transition-colors"
             >
               <div className="relative shrink-0 mt-0.5">
-                <div className={`flex h-11 w-11 items-center justify-center rounded-xl border ${tierColor} shadow-xs`}>
+                <div className={`flex h-11 w-11 items-center justify-center rounded-xl border ${tierColor} shadow-sm`}>
                   <Icon className="h-5 w-5" />
                 </div>
                 {ach.completedLevel > 0 && (
@@ -73,7 +73,7 @@ export default function AchievementsList({ achievements = [] }) {
                     <h5 className="text-xs font-bold text-slate-900 dark:text-slate-100 truncate">
                       {ach.title}
                     </h5>
-                    <span className={`text-[9px] font-bold px-1.5 py-0.2 rounded-full border ${tierColor}`}>
+                    <span className={`text-[9px] font-bold px-1.5 py-0.5 rounded-full border ${tierColor}`}>
                       {tierLabel}
                     </span>
                   </div>

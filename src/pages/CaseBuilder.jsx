@@ -243,7 +243,7 @@ export default function CaseBuilder() {
 
         {isQuestionStep && (
           <div className="space-y-4">
-            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-xs">
+            <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 shadow-sm">
               <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Escolha os temas da pergunta</p>
               <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">Toque nos balões para montar a pergunta. Você pode editar o texto depois.</p>
               <div className="mt-3 flex flex-wrap gap-2">

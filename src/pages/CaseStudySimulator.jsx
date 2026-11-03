@@ -548,7 +548,7 @@ export default function CaseStudySimulator() {
 
       <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-6 space-y-6">
         {/* Barra Superior Oficial (Páginas 4 a 7 do PDF) */}
-        <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] px-5 py-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] px-5 py-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-lg sm:text-xl font-black tracking-tight text-white">
@@ -656,7 +656,7 @@ export default function CaseStudySimulator() {
         </div>
 
         {/* Card do Paciente e Caso Clínico (Página 4 do PDF) */}
-        <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-[#0E1722] border border-[#1F3045] flex items-center justify-center shrink-0 text-[#20D5B5]">
               <Stethoscope className="w-6 h-6" />
@@ -698,7 +698,7 @@ export default function CaseStudySimulator() {
         </div>
 
         {/* BARRA HORIZONTAL DAS 5 ETAPAS DO PROCESSO DE ENFERMAGEM (Página 4 do PDF) */}
-        <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-1.5 shadow-xs">
+        <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-1.5 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="grid grid-cols-5 gap-1.5 flex-1 text-center">
               {[
@@ -735,7 +735,7 @@ export default function CaseStudySimulator() {
                   onClick={() => setViewingDebriefing(!viewingDebriefing)}
                   className={`py-1.5 px-3 rounded-xl text-xs font-black flex items-center gap-1.5 transition ${
                     viewingDebriefing
-                      ? "bg-[#20D5B5] text-[#0B131D] shadow-xs"
+                      ? "bg-[#20D5B5] text-[#0B131D] shadow-sm"
                       : "bg-[#16222E] text-[#20D5B5] border border-[#1F3045] hover:bg-[#1E2E3E]"
                   }`}
                 >
@@ -754,7 +754,7 @@ export default function CaseStudySimulator() {
             /* DEBRIEFING CLÍNICO COM O GOTI (FRAMEWORK PEARLS / DML - Miller Nível 3)  */
             /* ========================================================================= */
             <div className="space-y-6 animate-in fade-in">
-              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-xs space-y-5">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-sm space-y-5">
                 {/* Cabeçalho da Conclusão (Página 7 do PDF) */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-4 gap-4">
                   <div className="space-y-1">
@@ -867,7 +867,7 @@ export default function CaseStudySimulator() {
               {activeStep === 1 && (
               <div className="space-y-5 animate-in fade-in">
                 {/* Prontuário do Paciente */}
-                <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-4">
+                <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-2">
                     <div>
                       <span className="text-xs font-bold text-[#20D5B5] bg-[#20D5B5]/15 px-2.5 py-0.5 rounded-full border border-[#20D5B5]/30">
@@ -924,31 +924,31 @@ export default function CaseStudySimulator() {
 
                   {/* Sinais Vitais do Paciente (Monitor 1:1 com a Página 4 do PDF) */}
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
-                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-xs">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-sm">
                       <span className="text-[10px] font-black text-[#FFC247] uppercase block tracking-wider">▲ PA</span>
                       <div className="text-sm sm:text-base font-black text-white mt-0.5">
                         {currentCase.vitals.pa_sistolica}/{currentCase.vitals.pa_diastolica} <span className="text-[10px] font-normal text-[#9FB3C6]">mmHg</span>
                       </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-xs">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-sm">
                       <span className="text-[10px] font-black text-[#FFC247] uppercase block tracking-wider">▲ FC</span>
                       <div className="text-sm sm:text-base font-black text-white mt-0.5">
                         {currentCase.vitals.fc} <span className="text-[10px] font-normal text-[#9FB3C6]">bpm</span>
                       </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-xs">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-sm">
                       <span className="text-[10px] font-black text-[#FFC247] uppercase block tracking-wider">▲ FR</span>
                       <div className="text-sm sm:text-base font-black text-white mt-0.5">
                         {currentCase.vitals.fr} <span className="text-[10px] font-normal text-[#9FB3C6]">irpm</span>
                       </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#1F3045] text-center shadow-xs">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#1F3045] text-center shadow-sm">
                       <span className="text-[10px] font-bold text-[#9FB3C6] uppercase block tracking-wider">Tax</span>
                       <div className="text-sm sm:text-base font-black text-white mt-0.5">
                         {currentCase.vitals.tax} <span className="text-[10px] font-normal text-[#9FB3C6]">°C</span>
                       </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#F0645F]/50 text-center col-span-2 sm:col-span-1 shadow-xs">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#F0645F]/50 text-center col-span-2 sm:col-span-1 shadow-sm">
                       <span className="text-[10px] font-black text-[#F0645F] uppercase block tracking-wider">✕ SatO2</span>
                       <div className="text-sm sm:text-base font-black text-[#F0645F] mt-0.5">
                         {currentCase.vitals.sat} <span className="text-[10px] font-normal text-[#9FB3C6]">%</span>
@@ -974,7 +974,7 @@ export default function CaseStudySimulator() {
                             onClick={() => setActiveExamAction(isSelected ? null : act)}
                             className={`p-3 rounded-2xl border text-left transition-all ${
                               isSelected
-                                ? "bg-[#20D5B5]/15 border-[#20D5B5] ring-1 ring-[#20D5B5] shadow-xs text-white"
+                                ? "bg-[#20D5B5]/15 border-[#20D5B5] ring-1 ring-[#20D5B5] shadow-sm text-white"
                                 : "bg-[#16222E] border-[#1F3045] hover:border-[#20D5B5]/50 text-[#EAF2F8]"
                             }`}
                           >
@@ -1050,7 +1050,7 @@ export default function CaseStudySimulator() {
 
             {/* ETAPA 2: DIAGNÓSTICO DE ENFERMAGEM (1:1 com a Página 5 do PDF) */}
             {activeStep === 2 && (
-              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-xs space-y-6 animate-in fade-in duration-300">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-sm space-y-6 animate-in fade-in duration-300">
                 {/* 1. CALLOUT SOCRÁTICO DO GOTI PRECEPTOR (Página 5 do PDF) */}
                 <div className="rounded-3xl bg-[#0E1722] border border-[#1F3045] p-4 sm:p-5 shadow-sm flex items-start gap-4">
                   <div className="shrink-0 pt-0.5">
@@ -1213,7 +1213,7 @@ export default function CaseStudySimulator() {
                                 value={diagnosisSearchTerm}
                                 onChange={(e) => setDiagnosisSearchTerm(e.target.value)}
                                 placeholder="Filtrar por título..."
-                                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-[#1F3045] bg-[#0B131D] text-xs text-white focus:outline-hidden focus:border-[#20D5B5]"
+                                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-[#1F3045] bg-[#0B131D] text-xs text-white focus:outline-none focus:border-[#20D5B5]"
                                 autoFocus
                               />
                             </div>
@@ -1301,7 +1301,7 @@ export default function CaseStudySimulator() {
 
             {/* ETAPA 3: PLANEJAMENTO (METAS E RESULTADOS ESPERADOS) */}
             {activeStep === 3 && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5 animate-in fade-in">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-5 animate-in fade-in">
                 <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
                   <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
                     Etapa 3 do PE: Planejamento
@@ -1341,7 +1341,7 @@ export default function CaseStudySimulator() {
                   </Button>
                   <Button
                     onClick={() => setActiveStep(4)}
-                    className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs"
+                    className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
                   >
                     Avançar para Implementação <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -1351,7 +1351,7 @@ export default function CaseStudySimulator() {
 
             {/* ETAPA 4: IMPLEMENTAÇÃO (PRESCRIÇÃO DE ENFERMAGEM) */}
             {activeStep === 4 && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5 animate-in fade-in">
+              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-sm space-y-5 animate-in fade-in">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-3">
                   <div>
                     <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
@@ -1410,7 +1410,7 @@ export default function CaseStudySimulator() {
                     <Button
                       onClick={handleSubmitEvaluation}
                       disabled={isEvaluating || (!studentHypothesis && !studentInterventions)}
-                      className="rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs"
+                      className="rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
                     >
                       <Send className="h-4 w-4" />
                       {isEvaluating ? "Avaliando..." : "Submeter para Revisão"}
@@ -1420,7 +1420,7 @@ export default function CaseStudySimulator() {
                         handleSimulatePatientResponse();
                         setActiveStep(5);
                       }}
-                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs"
+                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
                     >
                       Evoluir Paciente <ArrowRight className="h-4 w-4" />
                     </Button>
@@ -1431,7 +1431,7 @@ export default function CaseStudySimulator() {
 
             {/* ETAPA 5: EVOLUÇÃO DE ENFERMAGEM (1:1 com a Página 6 do PDF) */}
             {activeStep === 5 && (
-              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-5 animate-in fade-in">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-5 animate-in fade-in">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-2">
                   <div>
                     <span className="text-xs font-bold text-[#20D5B5] bg-[#20D5B5]/15 px-2.5 py-1 rounded-xl border border-[#20D5B5]/30">

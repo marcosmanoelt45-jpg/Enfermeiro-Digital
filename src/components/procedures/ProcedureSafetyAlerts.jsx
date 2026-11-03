@@ -8,7 +8,7 @@ export default function ProcedureSafetyAlerts({ safetyAlerts = [], cofenNorm = '
     <div className="space-y-4">
       {/* Bloco 'O Que NÃO Fazer' - Erros Críticos & Iatrogenias */}
       {safetyAlerts.length > 0 && (
-        <div className="rounded-3xl border border-rose-200/90 dark:border-rose-900/60 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xs transition-colors">
+        <div className="rounded-3xl border border-rose-200/90 dark:border-rose-900/60 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm transition-colors">
           <div className="flex items-center gap-2 mb-3">
             <span className="p-1.5 rounded-xl bg-rose-100 dark:bg-rose-950/80 text-rose-700 dark:text-rose-400">
               <AlertOctagon className="h-4 w-4" />

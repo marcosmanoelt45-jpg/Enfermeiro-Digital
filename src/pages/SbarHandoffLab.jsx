@@ -857,7 +857,7 @@ export default function SbarHandoffLab() {
         ) : (
           <>
             {/* Barra Superior Limpa e Funcional (Página 15 do PDF) */}
-            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] px-5 py-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] px-5 py-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <button
                   type="button"
@@ -937,7 +937,7 @@ export default function SbarHandoffLab() {
             )}
 
             {/* Painel do Caso Clínico Ativo (Página 15 do PDF) */}
-            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1F3045]">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-[#20D5B5] uppercase tracking-wider">
@@ -1050,7 +1050,7 @@ export default function SbarHandoffLab() {
                     onClick={() => setActiveGuidedStep(idx)}
                     className={`p-3.5 rounded-2xl border text-left transition-all ${
                       isCurrent
-                        ? "bg-[#16222E] border-2 border-[#20D5B5] shadow-xs"
+                        ? "bg-[#16222E] border-2 border-[#20D5B5] shadow-sm"
                         : "bg-[#0E1722] border-[#1F3045] hover:border-[#20D5B5]/40"
                     }`}
                   >
@@ -1080,7 +1080,7 @@ export default function SbarHandoffLab() {
             </div>
 
             {/* Painel Central de Ensino e Formulação (Página 15 do PDF) */}
-            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-5">
               {/* Topo do Passo */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1F3045] pb-4">
                 <div className="space-y-1">
@@ -1339,7 +1339,7 @@ export default function SbarHandoffLab() {
 
         {/* CONTEÚDO DA ABA 2: SIMULAÇÃO RÁPIDA À BEIRA-LEITO (ÁUDIO DIRETO) */}
         {activeTab === "free_voice" && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
             <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
@@ -1386,7 +1386,7 @@ export default function SbarHandoffLab() {
                         onClick={() => toggleVoiceInput(pilar.key)}
                         className={`rounded-lg h-7 px-2.5 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                           isListening && activeListeningField === pilar.key
-                            ? "bg-rose-600 hover:bg-rose-700 text-white shadow-xs animate-pulse ring-2 ring-rose-400"
+                            ? "bg-rose-600 hover:bg-rose-700 text-white shadow-sm animate-pulse ring-2 ring-rose-400"
                             : (isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key
                             ? "bg-teal-50 dark:bg-teal-950/40 border-teal-600 text-teal-900 dark:text-teal-200"
                             : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
@@ -1448,7 +1448,7 @@ export default function SbarHandoffLab() {
                 size="lg"
                 disabled={isEvaluating}
                 onClick={handleEvaluateSbar}
-                className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-6 h-11 flex items-center gap-2 shadow-xs"
+                className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-6 h-11 flex items-center gap-2 shadow-sm"
               >
                 {isEvaluating ? (
                   <>
@@ -1469,7 +1469,7 @@ export default function SbarHandoffLab() {
         {/* CONTEÚDO DA ABA 3: CONFIRMAR ENVIO & RESUMO COMPLETO DO SBAR (100%) */}
         {activeTab === "confirm" && (
           <div className="space-y-6 animate-in fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6">
+            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
               {/* Topo da Confirmação */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
                 <div>
@@ -1615,7 +1615,7 @@ export default function SbarHandoffLab() {
                   <Button
                     onClick={handleEvaluateSbar}
                     disabled={isEvaluating}
-                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-6 h-10 font-bold flex items-center gap-2 shadow-xs"
+                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-6 h-10 font-bold flex items-center gap-2 shadow-sm"
                   >
                     {isEvaluating ? (
                       <>
@@ -1637,7 +1637,7 @@ export default function SbarHandoffLab() {
 
         {/* CONTEÚDO DA ABA 3: DEBRIEFING DO GOTI IA */}
         {activeTab === "debriefing" && tutorEvaluation && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-teal-200 dark:border-teal-900/60 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
+          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-teal-200 dark:border-teal-900/60 p-6 sm:p-8 shadow-sm space-y-6 animate-in fade-in">
             {/* Topo do Feedback com Score e Grade */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
               <div className="space-y-1">

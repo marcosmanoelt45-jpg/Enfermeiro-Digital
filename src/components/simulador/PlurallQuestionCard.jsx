@@ -27,6 +27,8 @@ export default function PlurallQuestionCard({
   onVerificar,
   onProxima,
   isReadOnly = false,
+  // A legenda do paciente já mostra o enunciado durante a sessão: não repete no card.
+  hideStem = false,
   isLastQuestion = false,
   hintVisible = false,
   onToggleHint = null
@@ -119,9 +121,11 @@ export default function PlurallQuestionCard({
       </div>
 
       {/* Enunciado da Questão */}
-      <div className="text-sm sm:text-base font-medium text-[#EAF2F8] leading-relaxed">
-        {questao.pergunta}
-      </div>
+      {!hideStem && (
+        <div className="text-sm sm:text-base font-medium text-[#EAF2F8] leading-relaxed">
+          {questao.pergunta}
+        </div>
+      )}
 
       {/* Banner de Dica Clínica sob Demanda (somente se hintVisible for true) */}
       {isPrimeiroErro && hintVisible && (
@@ -167,7 +171,7 @@ export default function PlurallQuestionCard({
           const isDisabled = isFinalizada || jaTentouIncorreta;
 
           return (
-            <li key={idx}>
+            <li key={idx} role="none">
               <button
                 type="button"
                 disabled={isDisabled}

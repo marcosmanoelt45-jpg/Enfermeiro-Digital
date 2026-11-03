@@ -15,6 +15,7 @@ import { PACIENTES, CASOS_SIMULADOR, gerarCasoAleatorio } from "@/data/simulador
 import { falar, pararFala } from "@/services/simuladorVozService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
 import { celebrate } from "@/lib/celebrate";
 import { vibrate } from "@/lib/motion";
@@ -114,13 +115,15 @@ export default function Videochamada() {
 
   // Sugestões inteligentes de tópicos com busca preditiva
   const sugestoesTopicos = useMemo(() => {
-    const term = searchTerm.toLowerCase().trim();
+    // Sem acento e sem casar pedaços curtos ("pa" dentro de "capacidade").
+    const norm = (v) => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    const term = norm(searchTerm);
     if (!term) return TOPICOS_PRATICA;
     return TOPICOS_PRATICA.filter(
       (t) =>
-        t.titulo.toLowerCase().includes(term) ||
-        t.descricao.toLowerCase().includes(term) ||
-        t.tags.some((tag) => tag.includes(term) || term.includes(tag))
+        norm(t.titulo).includes(term) ||
+        norm(t.descricao).includes(term) ||
+        (term.length >= 3 && t.tags.some((tag) => norm(tag).startsWith(term)))
     );
   }, [searchTerm]);
 
@@ -534,8 +537,7 @@ export default function Videochamada() {
                     }
                   }}
                   placeholder="Digite o tema (ex: Cálc, Curativo, Punção...)"
-                  className="w-full pl-11 pr-4 py-3 bg-[#131F2E] border border-[#27394B] rounded-2xl text-sm font-semibold text-white placeholder-[#9FB3C6]/60 focus:outline-hidden focus:border-[#20D5B5] focus:ring-1 focus:ring-[#20D5B5] transition shadow-inner"
-                  autoFocus
+                  className="w-full pl-11 pr-4 py-3 bg-[#131F2E] border border-[#27394B] rounded-2xl text-sm font-semibold text-white placeholder-[#9FB3C6]/60 focus:outline-none focus:border-[#20D5B5] focus:ring-1 focus:ring-[#20D5B5] transition shadow-inner"
                 />
               </div>
             </div>
@@ -545,6 +547,14 @@ export default function Videochamada() {
               <div className="text-xs font-mono font-bold text-[#9FB3C6] uppercase tracking-wider px-1 mb-2">
                 Temas Clínicos Disponíveis
               </div>
+              {sugestoesTopicos.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-[#27394B] p-4 text-center text-sm text-[#9FB3C6]" role="status">
+                  <p>Nenhum tema para "{searchTerm.trim()}".</p>
+                  <Button variant="ghost" size="sm" className="mt-2" onClick={() => setSearchTerm("")}>
+                    Ver todos os temas
+                  </Button>
+                </div>
+              )}
               {sugestoesTopicos.map((topico) => {
                 const isSelected = topicoSelecionado?.id === topico.id;
                 return (
@@ -557,7 +567,7 @@ export default function Videochamada() {
                     }}
                     className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 cursor-pointer ${
                       isSelected
-                        ? "bg-[#20D5B5]/15 border-[#20D5B5] shadow-xs"
+                        ? "bg-[#20D5B5]/15 border-[#20D5B5] shadow-sm"
                         : "bg-[#131F2E] border-[#1F3045] hover:border-[#20D5B5]/50 hover:bg-[#16222E]"
                     }`}
                   >
@@ -638,7 +648,8 @@ export default function Videochamada() {
                     topicoNome: topicoSelecionado?.titulo || "Revisão de Erros"
                   })
                 }
-                className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#FFC247] hover:bg-[#16222E] text-left transition flex items-center justify-between gap-2 cursor-pointer group"
+                disabled={questoesRevisaoPendentes.length === 0}
+                className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#FFC247] hover:bg-[#16222E] text-left transition flex items-center justify-between gap-2 cursor-pointer group disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-[#1F3045] disabled:hover:bg-[#131F2E]"
               >
                 <div>
                   <div className="flex items-center gap-1.5 text-xs font-black text-white group-hover:text-[#FFC247]">
@@ -648,7 +659,7 @@ export default function Videochamada() {
                   <div className="text-[11px] text-[#9FB3C6]">
                     {questoesRevisaoPendentes.length > 0
                       ? `${questoesRevisaoPendentes.length} pendentes`
-                      : "Só erradas"}
+                      : "Sem questões pendentes"}
                   </div>
                 </div>
               </button>
@@ -737,10 +748,19 @@ export default function Videochamada() {
                       }}
                       disabled={qNum > maxStepAlcancado}
                       aria-disabled={qNum > maxStepAlcancado}
-                      className={`w-7 h-7 rounded-lg border text-xs font-mono flex items-center justify-center shrink-0 transition cursor-pointer ${dotColor} ${
+                      // Chip visual de 28 px com área de toque de 44 px (before:-inset-2).
+                      className={`relative w-7 h-7 rounded-lg border text-xs font-mono flex items-center justify-center shrink-0 transition cursor-pointer before:absolute before:-inset-2 before:content-[''] disabled:cursor-not-allowed ${dotColor} ${
                         isCurrent ? "ring-2 ring-white scale-105 shadow-md" : "hover:border-white/50"
                       }`}
                       title={`Ir para Questão ${qNum}`}
+                      aria-label={`Questão ${qNum}: ${
+                        st.status === "verde" ? "acertou de primeira"
+                          : st.status === "amarela" && st.isFinalizada ? "acertou com dica"
+                          : st.status === "amarela" ? "com dica, em aberto"
+                          : st.status === "vermelha" ? "errou"
+                          : "não respondida"
+                      }`}
+                      aria-current={isCurrent ? "step" : undefined}
                     >
                       {qNum}
                     </button>
@@ -751,19 +771,21 @@ export default function Videochamada() {
                 <button
                   type="button"
                   onClick={handleRepetirFala}
-                  className="px-2 py-1 rounded-lg border border-[#27394B] bg-[#16222E] text-[11px] font-bold text-[#9FB3C6] hover:text-[#20D5B5] flex items-center gap-1 transition cursor-pointer"
+                  className="w-10 h-10 rounded-xl border border-[#27394B] bg-[#16222E] text-[#9FB3C6] hover:text-[#20D5B5] flex items-center justify-center transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                   title="Ouvir pergunta novamente"
+                  aria-label="Ouvir pergunta de novo"
                 >
-                  <RotateCcw className="w-3 h-3" />
+                  <RotateCcw className="w-4 h-4" />
                 </button>
                 {isSpeaking && (
                   <button
                     type="button"
                     onClick={handlePularFala}
-                    className="px-2 py-1 rounded-lg border border-[#27394B] bg-[#16222E] text-[11px] font-bold text-[#9FB3C6] hover:text-white flex items-center gap-1 transition cursor-pointer"
+                    className="w-10 h-10 rounded-xl border border-[#27394B] bg-[#16222E] text-[#9FB3C6] hover:text-white flex items-center justify-center transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                     title="Pular áudio"
+                    aria-label="Pular o áudio"
                   >
-                    <SkipForward className="w-3 h-3" />
+                    <SkipForward className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -805,6 +827,7 @@ export default function Videochamada() {
               onVerificar={handleVerificarResposta}
               onProxima={handleProximaQuestao}
               isReadOnly={isReadOnly}
+              hideStem={!isReadOnly}
               isLastQuestion={stepIndex === totalQuestoes}
               hintVisible={Boolean(questaoStates[stepIndex]?.hintVisible)}
               onToggleHint={() => {

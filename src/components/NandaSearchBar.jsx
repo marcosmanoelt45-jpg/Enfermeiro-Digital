@@ -123,7 +123,7 @@ export default function NandaSearchBar() {
           role="dialog"
           aria-modal="true"
           aria-labelledby="nanda-modal-title"
-          className="fixed inset-0 z-30 flex items-end justify-center bg-black/60 p-4 sm:items-center backdrop-blur-xs"
+          className="fixed inset-0 z-30 flex items-end justify-center bg-black/60 p-4 sm:items-center backdrop-blur-sm"
           onClick={() => setSelected(null)}
         >
           <div className="w-full max-w-md rounded-2xl bg-[#131F2E] border border-[#1F3045] p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>

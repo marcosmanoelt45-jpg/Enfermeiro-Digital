@@ -62,7 +62,7 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
   };
 
   return (
-    <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-xs transition-colors">
+    <div className="rounded-3xl border border-slate-200/90 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 sm:p-6 shadow-sm transition-colors">
       {/* Cabeçalho do Checklist & Barra de Progresso */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
@@ -90,7 +90,7 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
           onClick={() => setTab('steps')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all tap-press ${
             tab === 'steps'
-              ? 'bg-white dark:bg-slate-900 text-teal-900 dark:text-teal-200 shadow-xs'
+              ? 'bg-white dark:bg-slate-900 text-teal-900 dark:text-teal-200 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
           }`}
         >
@@ -103,7 +103,7 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
           onClick={() => setTab('materials')}
           className={`flex-1 flex items-center justify-center gap-1.5 py-2 rounded-xl text-xs font-bold transition-all tap-press ${
             tab === 'materials'
-              ? 'bg-white dark:bg-slate-900 text-teal-900 dark:text-teal-200 shadow-xs'
+              ? 'bg-white dark:bg-slate-900 text-teal-900 dark:text-teal-200 shadow-sm'
               : 'text-slate-600 dark:text-slate-400 hover:text-slate-900'
           }`}
         >

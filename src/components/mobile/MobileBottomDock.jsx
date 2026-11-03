@@ -225,7 +225,7 @@ export default function MobileBottomDock() {
         <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
           {/* Backdrop com desfoque */}
           <motion.div
-            className="fixed inset-0 bg-black/75 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm"
             variants={scrimVariants}
             initial="hidden"
             animate="show"

@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
   Trophy,
   RotateCcw,
@@ -17,6 +17,23 @@ export default function RevisaoFinalModal({
 }) {
   const [filtroSituacao, setFiltroSituacao] = useState("todas"); // 'todas' | 'erradas' | 'acertos'
   const [expandedQuestao, setExpandedQuestao] = useState(null);
+
+  // Cada abertura começa limpa; a página de trás não rola e Esc leva a uma nova prática.
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    setFiltroSituacao("todas");
+    setExpandedQuestao(null);
+    const overflowAntes = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+    const onKey = (e) => {
+      if (e.key === "Escape") onNovaPratica?.();
+    };
+    window.addEventListener("keydown", onKey);
+    return () => {
+      document.body.style.overflow = overflowAntes;
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [isOpen, onNovaPratica]);
 
   if (!isOpen || !resumo) return null;
 
@@ -40,7 +57,12 @@ export default function RevisaoFinalModal({
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-3 sm:p-6 overflow-y-auto animate-in fade-in duration-200">
-      <div className="w-full max-w-2xl bg-[#0E1722] border border-[#1F3045] rounded-3xl p-5 sm:p-7 text-[#EAF2F8] shadow-2xl flex flex-col max-h-[92vh] overflow-hidden my-auto">
+      <div
+        role="dialog"
+        aria-modal="true"
+        aria-label="Resumo do atendimento"
+        className="w-full max-w-2xl bg-[#0E1722] border border-[#1F3045] rounded-3xl p-5 sm:p-7 text-[#EAF2F8] shadow-2xl flex flex-col max-h-[92vh] overflow-hidden my-auto"
+      >
         {/* Cabeçalho do Resumo */}
         <div className="flex items-center gap-3.5 pb-4 border-b border-[#1F3045]">
           <div className="w-12 h-12 rounded-2xl bg-[#20D5B5]/15 border border-[#20D5B5]/30 flex items-center justify-center text-[#20D5B5] shrink-0">
@@ -135,15 +157,19 @@ export default function RevisaoFinalModal({
         {/* Lista de Questões com Revisão Detalhada */}
         <div className="flex-1 overflow-y-auto space-y-3 pr-1">
           {questoesFiltradas.map((q, idx) => {
-            const isExpanded = expandedQuestao === idx;
+            // Chave estável pelo número da questão: trocar o filtro não abre outra linha.
+            const chave = q.numQuestao ?? idx;
+            const isExpanded = expandedQuestao === chave;
             return (
               <div
-                key={idx}
+                key={chave}
                 className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-3.5 sm:p-4 transition hover:border-[#27394B]"
               >
-                <div
-                  className="flex items-start justify-between gap-3 cursor-pointer"
-                  onClick={() => setExpandedQuestao(isExpanded ? null : idx)}
+                <button
+                  type="button"
+                  aria-expanded={isExpanded}
+                  className="w-full text-left flex items-start justify-between gap-3 cursor-pointer rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
+                  onClick={() => setExpandedQuestao(isExpanded ? null : chave)}
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
@@ -151,17 +177,17 @@ export default function RevisaoFinalModal({
                         Questão {q.numQuestao || idx + 1}
                       </span>
                       {q.status === "verde" && (
-                        <span className="text-[10px] font-bold text-[#20D5B5] bg-[#20D5B5]/15 border border-[#20D5B5]/30 px-2 py-0.2 rounded-full">
+                        <span className="text-[10px] font-bold text-[#20D5B5] bg-[#20D5B5]/15 border border-[#20D5B5]/30 px-2 py-0.5 rounded-full">
                           Acerto
                         </span>
                       )}
                       {q.status === "amarela" && (
-                        <span className="text-[10px] font-bold text-[#FFC247] bg-[#FFC247]/15 border border-[#FFC247]/30 px-2 py-0.2 rounded-full">
+                        <span className="text-[10px] font-bold text-[#FFC247] bg-[#FFC247]/15 border border-[#FFC247]/30 px-2 py-0.5 rounded-full">
                           Acertou de segunda
                         </span>
                       )}
                       {q.status === "vermelha" && (
-                        <span className="text-[10px] font-bold text-[#F25F5C] bg-[#F25F5C]/15 border border-[#F25F5C]/30 px-2 py-0.2 rounded-full">
+                        <span className="text-[10px] font-bold text-[#F25F5C] bg-[#F25F5C]/15 border border-[#F25F5C]/30 px-2 py-0.5 rounded-full">
                           Errou
                         </span>
                       )}
@@ -170,14 +196,10 @@ export default function RevisaoFinalModal({
                       {q.pergunta}
                     </p>
                   </div>
-                  <button
-                    type="button"
-                    className="p-1 rounded-lg text-[#9FB3C6] hover:text-white transition shrink-0"
-                    aria-label="Expandir detalhes"
-                  >
+                  <span className="p-1 rounded-lg text-[#9FB3C6] shrink-0" aria-hidden="true">
                     {isExpanded ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
-                  </button>
-                </div>
+                  </span>
+                </button>
 
                 {/* Acordeão de Revisão da Questão */}
                 {isExpanded && (
@@ -197,7 +219,7 @@ export default function RevisaoFinalModal({
                         >
                           <div className="flex items-center gap-1.5 mb-0.5">
                             <span
-                              className={`font-mono font-bold px-1.5 py-0.2 rounded-xs text-[10px] ${
+                              className={`font-mono font-bold px-1.5 py-0.5 rounded-sm text-[10px] ${
                                 alt.isCorreta
                                   ? "bg-[#20D5B5] text-[#0E1722]"
                                   : "bg-[#F25F5C]/20 text-[#F25F5C]"

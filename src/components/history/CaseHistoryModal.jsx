@@ -114,7 +114,7 @@ export default function CaseHistoryModal({
             animate="show"
             exit="exit"
             onClick={onClose}
-            className="fixed inset-0 bg-black/80 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/80 backdrop-blur-sm"
           />
 
           {/* Modal / Folha Inferior Animada */}
@@ -240,7 +240,7 @@ export default function CaseHistoryModal({
                   return (
                     <div
                       key={act.id}
-                      className="p-4 rounded-2xl border border-[#1F3045] bg-[#131F2E] hover:border-[#27394B] shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                      className="p-4 rounded-2xl border border-[#1F3045] bg-[#131F2E] hover:border-[#27394B] shadow-sm transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
                     >
                       <div className="space-y-2 flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">

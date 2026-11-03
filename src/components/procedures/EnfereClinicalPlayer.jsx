@@ -358,7 +358,7 @@ export default function EnfereClinicalPlayer({
 
         {/* Capa / Preview Exclusiva do Procedimento (Antes do Início da Reprodução) */}
         {!isPlaying && currentTime === 0 && !loadError && (
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center z-20 transition-all duration-300">
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20 transition-all duration-300">
             {previewImage && (
               <img
                 src={previewImage}
@@ -490,7 +490,7 @@ export default function EnfereClinicalPlayer({
                   onClick={() => handleSpeedChange(speed)}
                   className={`px-2 py-0.5 rounded-lg text-xs font-bold transition-all tap-press ${
                     isCurrent
-                      ? 'bg-teal-500 text-slate-950 shadow-xs scale-105'
+                      ? 'bg-teal-500 text-slate-950 shadow-sm scale-105'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
                   }`}
                   title={`Reproduzir em ${speed}x`}

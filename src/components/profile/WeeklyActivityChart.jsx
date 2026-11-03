@@ -54,7 +54,7 @@ export default function WeeklyActivityChart({ weeklyDays = [] }) {
                 transition={reduceMotion ? { duration: 0 } : { ...spring.fill, delay: idx * 0.04 }}
                 className={`w-full max-w-[28px] h-full rounded-t-lg ${
                   item.isToday
-                    ? 'bg-[#20D5B5] shadow-xs shadow-[#20D5B5]/20 ring-1 ring-[#20D5B5]'
+                    ? 'bg-[#20D5B5] shadow-sm shadow-[#20D5B5]/20 ring-1 ring-[#20D5B5]'
                     : isActive
                     ? 'bg-[#20D5B5]/60 hover:bg-[#20D5B5]/80'
                     : 'bg-[#16222E] ring-1 ring-inset ring-[#27394B]'

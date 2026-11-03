@@ -374,7 +374,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
                   <img
                     src={gotiLogoOficial}
                     alt="Goti"
-                    className="w-10 h-10 object-contain shrink-0 self-end mb-1 filter drop-shadow-xs"
+                    className="w-10 h-10 object-contain shrink-0 self-end mb-1 filter drop-shadow-sm"
                   />
                 )}
 
@@ -394,7 +394,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
           {/* Indicador de Localização do Goti IA */}
           {isLoading && (
             <div className="flex gap-3 justify-start animate-in fade-in">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shrink-0 self-end mb-1 shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shrink-0 self-end mb-1 shadow-sm">
                 <Sparkles className="w-4 h-4 text-emerald-100 animate-spin" />
               </div>
               <div className="bg-slate-800 rounded-2xl rounded-bl-xs p-3.5 border border-slate-700 flex items-center gap-2.5 text-slate-300">

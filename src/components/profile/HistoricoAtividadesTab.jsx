@@ -402,7 +402,7 @@ export default function HistoricoAtividadesTab({ userId = null }) {
 
       {/* Modal de Dupla Verificação para Exclusão do Histórico */}
       {modalExclusaoAberto && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
           <div className="w-full max-w-md bg-[#0E1722] border border-rose-500/40 rounded-3xl p-6 text-[#EAF2F8] shadow-2xl space-y-4">
             <div className="flex items-center gap-3 text-rose-400">
               <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0">

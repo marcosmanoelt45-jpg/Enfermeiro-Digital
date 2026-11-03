@@ -182,9 +182,9 @@ export default function Conta() {
         </h1>
 
         {/* Card de Identidade do Estudante (profile-15 & Redesign) */}
-        <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-4 flex items-center gap-3.5 shadow-xs">
+        <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-4 flex items-center gap-3.5 shadow-sm">
           <div className="relative shrink-0">
-            <div className="w-14 h-14 rounded-2xl bg-[#20D5B5] ring-2 ring-[#20D5B5]/40 flex items-center justify-center text-[#0B131D] shadow-xs overflow-hidden">
+            <div className="w-14 h-14 rounded-2xl bg-[#20D5B5] ring-2 ring-[#20D5B5]/40 flex items-center justify-center text-[#0B131D] shadow-sm overflow-hidden">
               {user?.photo_url ? (
                 <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -339,7 +339,7 @@ export default function Conta() {
               {/* Card de Dias Seguidos (Streak Hero) */}
               <motion.div
                 variants={fadeUp}
-                className="rounded-2xl border border-[#FFC247]/40 bg-[#0E1722] p-4 flex items-center justify-between shadow-xs"
+                className="rounded-2xl border border-[#FFC247]/40 bg-[#0E1722] p-4 flex items-center justify-between shadow-sm"
               >
                 <div className="flex items-center gap-3">
                   <Flame className="w-8 h-8 text-[#FFC247] shrink-0 fill-[#FFC247]" />
@@ -525,7 +525,7 @@ export default function Conta() {
       {/* Modal de Confirmação de Logout */}
       <AnimatePresence>
         {showLogoutConfirm && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in duration-200">
+          <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200">
             <div className="w-full max-w-sm bg-[#0E1722] border border-[#1F3045] rounded-3xl p-6 text-[#EAF2F8] shadow-2xl space-y-4">
               <div className="flex items-center gap-3 text-[#FF6B6B]">
                 <div className="w-10 h-10 rounded-xl bg-rose-500/15 border border-rose-500/30 flex items-center justify-center shrink-0">

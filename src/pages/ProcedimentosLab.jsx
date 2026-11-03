@@ -287,7 +287,7 @@ export default function ProcedimentosLab() {
                     <div
                       key={proc.id}
                       onClick={() => handleOpenProcedure(proc)}
-                      className="bg-[#131F2E] rounded-2xl border border-[#1F3045] hover:border-[#20D5B5]/50 p-4 transition-all cursor-pointer flex items-center gap-4 group shadow-xs"
+                      className="bg-[#131F2E] rounded-2xl border border-[#1F3045] hover:border-[#20D5B5]/50 p-4 transition-all cursor-pointer flex items-center gap-4 group shadow-sm"
                     >
                       {/* Quadrado do Play */}
                       <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[#0E1722] border border-[#1F3045] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">

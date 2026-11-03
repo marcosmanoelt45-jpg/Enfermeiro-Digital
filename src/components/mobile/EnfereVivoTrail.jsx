@@ -133,13 +133,13 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
         {/* Chips de Ofensiva e PE */}
         <div className="flex items-center gap-2">
           {/* Chip Ofensiva */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-xs font-black shadow-xs">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-xs font-black shadow-sm">
             <Flame className={`w-4 h-4 fill-current text-[#FFC247] ${gameState.streak ? "animate-flame-subtle" : ""}`} />
             <span><AnimatedNumber value={gameState.streak || 0} /> {gameState.streak === 1 ? "dia" : "dias"}</span>
           </div>
 
           {/* Chip PE */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-xs font-black shadow-xs">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-xs font-black shadow-sm">
             <Zap className="w-4 h-4 fill-current text-[#20D5B5]" />
             <span><AnimatedNumber value={gameState.studyPoints ?? 0} /> PE</span>
           </div>

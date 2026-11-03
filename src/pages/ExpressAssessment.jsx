@@ -182,7 +182,7 @@ export default function ExpressAssessment() {
                 {lastSaved ? `Rascunho salvo às ${lastSaved}` : "Rascunho salvo automaticamente"}
               </span>
               {restoredFromDraft && (
-                <span className="rounded bg-teal-50 dark:bg-teal-950/60 px-1 py-0.2 text-[10px] font-medium text-teal-700 dark:text-teal-300">
+                <span className="rounded bg-teal-50 dark:bg-teal-950/60 px-1 py-0.5 text-[10px] font-medium text-teal-700 dark:text-teal-300">
                   Restaurado
                 </span>
               )}

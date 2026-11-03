@@ -130,7 +130,7 @@ export default function ClinicalOptionsModal({ isOpen, onClose }) {
                     }}
                     className={`py-2 px-3 rounded-xl border text-center transition-all ${
                       isActive
-                        ? 'bg-emerald-700 dark:bg-emerald-600 text-white border-emerald-700 dark:border-emerald-600 font-bold shadow-xs ring-2 ring-emerald-500/30'
+                        ? 'bg-emerald-700 dark:bg-emerald-600 text-white border-emerald-700 dark:border-emerald-600 font-bold shadow-sm ring-2 ring-emerald-500/30'
                         : 'bg-white dark:bg-slate-800/70 border-slate-200 dark:border-slate-800 text-slate-700 dark:text-slate-300 hover:border-emerald-300'
                     }`}
                   >

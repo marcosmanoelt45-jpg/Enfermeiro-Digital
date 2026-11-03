@@ -7,7 +7,7 @@ export default function RecorderPanel({ recording, seconds, audioUrl, busy, onSt
 
   if (audioUrl) {
     return (
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center shadow-xs">
+      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center shadow-sm">
         <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">
           <AudioLines className="h-7 w-7" />
         </div>
@@ -44,7 +44,7 @@ export default function RecorderPanel({ recording, seconds, audioUrl, busy, onSt
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center shadow-xs">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center shadow-sm">
       <p className="mb-1 text-sm font-semibold text-slate-800 dark:text-slate-100">
         {recording ? "Gravando..." : "Toque para começar a gravar"}
       </p>

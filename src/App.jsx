@@ -40,7 +40,7 @@ const ProcedimentosLab = lazy(() => import('@/pages/ProcedimentosLab'));
 const Videochamada = lazy(() => import('@/pages/Videochamada'));
 
 const PageLoader = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xs z-50">
+  <div className="fixed inset-0 flex items-center justify-center bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-sm z-50">
     <div className="w-8 h-8 border-4 border-teal-200 dark:border-teal-900 border-t-teal-600 dark:border-t-teal-400 rounded-full animate-spin"></div>
   </div>
 );

@@ -1095,7 +1095,7 @@ export default function CaseStudio() {
               {/* Coluna Direita: Guia Clínico em Abas & Pré-visualização dos Parâmetros Extraídos */}
               <div className="md:col-span-7 space-y-4">
                 {/* Abas com Frases Orientadoras */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs space-y-3">
+                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-sm space-y-3">
                   <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                     <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide">
                       Guia Clínico de Verbalização ("Caring Out Loud")
@@ -1116,7 +1116,7 @@ export default function CaseStudio() {
                   const extracted = parseVitalsFromTranscript(audioTranscript);
                   const hasAny = Object.keys(extracted).length > 0;
                   return (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-3">
+                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-sm space-y-3">
                       <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
                         <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
                           Parâmetros Fisiológicos Extraídos da Fala
@@ -1220,7 +1220,7 @@ export default function CaseStudio() {
         {viewMode === "builder" && (
           <div className="space-y-6">
             {/* Barra de Progresso do Wizard (Páginas 9 e 10 do PDF) */}
-            <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-3 shadow-xs space-y-2.5">
+            <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-3 shadow-sm space-y-2.5">
               <div className="flex items-center justify-between text-xs px-1">
                 <span className="font-bold text-[#EAF2F8]">
                   Passo {currentStep + 1} de {WIZARD_STEPS.length} · {WIZARD_STEPS[currentStep].label}
@@ -1260,7 +1260,7 @@ export default function CaseStudio() {
             </div>
 
             {/* Conteúdo do Passo Ativo */}
-            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-xs space-y-6 animate-in fade-in">
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-sm space-y-6 animate-in fade-in">
               {/* PASSO 0: PERFIL & ANAMNESE */}
               {currentStep === 0 && (
                 <div className="space-y-4">
@@ -1971,7 +1971,7 @@ export default function CaseStudio() {
         {/* MODO 2: BATERIA DE DESAFIOS CLÍNICOS (ESTILO AMBOSS/SIMX) */}
         {/* ======================================================== */}
         {viewMode === "challenge" && isGeneratingChallenge && (
-          <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-10 text-center shadow-xs space-y-4">
+          <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-10 text-center shadow-sm space-y-4">
             <div className="flex justify-center">
               <GotiAnimated animation="thinking" size={96} />
             </div>
@@ -1983,7 +1983,7 @@ export default function CaseStudio() {
         )}
 
         {viewMode === "challenge" && !challenge && !isGeneratingChallenge && (
-          <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-10 text-center shadow-xs space-y-4">
+          <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-10 text-center shadow-sm space-y-4">
             <div className="flex justify-center">
               <GotiAnimated animation="idle" size={80} />
             </div>
@@ -2005,7 +2005,7 @@ export default function CaseStudio() {
         {viewMode === "challenge" && challenge && !isGeneratingChallenge && (
           <div className="space-y-6 animate-in fade-in">
             {/* Vinheta Resumo do Caso & Placar Geral (Página 12 do PDF) */}
-            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-2">
                 <div>
                   <h2 className="text-base sm:text-lg font-black text-white">
@@ -2140,7 +2140,7 @@ export default function CaseStudio() {
 
             {/* ABA DE CONCLUSÃO OU CARD DA QUESTÃO ATIVA (1:1 COM A PÁGINA 13 DO PDF) */}
             {viewingConclusion ? (
-              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-xs space-y-6 animate-in fade-in">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-sm space-y-6 animate-in fade-in">
                 {/* Cabeçalho de Conclusão com o Goti (Página 13 do PDF) */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-5 gap-4">
                   <div className="space-y-1">
@@ -2257,7 +2257,7 @@ export default function CaseStudio() {
               </div>
             ) : (
               activeQuestion && (
-                <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-xs space-y-5">
+                <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-sm space-y-5">
                   <div className="border-b border-[#1F3045] pb-3">
                     <span className="text-xs font-bold text-[#9FB3C6]">
                       Questão {currentQuestionIndex + 1} de {questionsList.length} · {activeQuestion.category}

@@ -10,7 +10,7 @@ export function Panel({ className, children, ...props }) {
   return (
     <div
       className={cn(
-        "rounded-3xl border border-[#1F3045] bg-[#131F2E] p-4 sm:p-5 text-[#EAF2F8] shadow-xs",
+        "rounded-3xl border border-[#1F3045] bg-[#131F2E] p-4 sm:p-5 text-[#EAF2F8] shadow-sm",
         className
       )}
       {...props}

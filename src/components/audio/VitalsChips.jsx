@@ -10,7 +10,7 @@ export default function VitalsChips({ vitals, text = "", onInsertMissing }) {
     <div className="mt-3 space-y-3">
       {/* SINAIS IDENTIFICADOS */}
       {items.length > 0 ? (
-        <div className="rounded-xl border border-teal-200 dark:border-teal-900 bg-teal-50/70 dark:bg-teal-950/40 p-3 shadow-xs">
+        <div className="rounded-xl border border-teal-200 dark:border-teal-900 bg-teal-50/70 dark:bg-teal-950/40 p-3 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-teal-800 dark:text-teal-300">
               <CheckCircle2 className="h-4 w-4 text-teal-600 dark:text-teal-400" /> Sinais Vitais Identificados no Relato
@@ -23,7 +23,7 @@ export default function VitalsChips({ vitals, text = "", onInsertMissing }) {
             {items.map((item) => (
               <span
                 key={item.label}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 dark:border-teal-800/80 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 font-medium shadow-xs"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-teal-200 dark:border-teal-800/80 bg-white dark:bg-slate-900 px-3 py-1.5 text-xs text-slate-800 dark:text-slate-100 font-medium shadow-sm"
               >
                 <span className="font-bold text-teal-700 dark:text-teal-400">{item.label}:</span>
                 <span className="font-semibold text-slate-900 dark:text-white">{item.value}</span>
@@ -45,7 +45,7 @@ export default function VitalsChips({ vitals, text = "", onInsertMissing }) {
 
       {/* SINAIS FALTANTES (CHECKLIST DE SEGURANÇA CLÍNICA) */}
       {missing.length > 0 && (
-        <div className="rounded-xl border border-amber-200/90 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/40 p-3.5 shadow-xs">
+        <div className="rounded-xl border border-amber-200/90 dark:border-amber-900/60 bg-amber-50/60 dark:bg-amber-950/40 p-3.5 shadow-sm">
           <div className="flex items-center justify-between">
             <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-amber-900 dark:text-amber-200">
               <AlertCircle className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Parâmetros Faltantes no Relato ({missing.length})

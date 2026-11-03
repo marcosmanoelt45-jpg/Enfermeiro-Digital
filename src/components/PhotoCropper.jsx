@@ -97,7 +97,7 @@ export default function PhotoCropper({ file, onConfirm, onCancel }) {
       role="dialog"
       aria-modal="true"
       aria-labelledby="cropper-title"
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-xs p-4 animate-in fade-in duration-200"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
     >
       <div className="w-full max-w-sm rounded-3xl bg-[#0E1722] border border-[#1F3045] p-6 shadow-2xl text-[#EAF2F8]">
         <div className="mb-3 flex items-center justify-between">

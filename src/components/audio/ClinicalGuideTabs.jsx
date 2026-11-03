@@ -130,7 +130,7 @@ export default function ClinicalGuideTabs({ onSelectSnippet: _onSelectSnippet = 
               onClick={() => setActiveTab(tab.id)}
               className={`flex items-center gap-1.5 whitespace-nowrap rounded-xl px-2.5 py-1.5 text-xs font-semibold transition-all ${
                 isActive
-                  ? "bg-teal-600 text-white shadow-xs"
+                  ? "bg-teal-600 text-white shadow-sm"
                   : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-200 hover:bg-slate-200 dark:hover:bg-slate-700"
               }`}
             >

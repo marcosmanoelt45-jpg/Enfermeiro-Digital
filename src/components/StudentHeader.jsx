@@ -196,7 +196,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
         <img
           src={gotiLogoOficial}
           alt="Goti IA"
-          className="w-10 h-10 object-contain filter drop-shadow-xs group-hover:scale-110 transition-transform"
+          className="w-10 h-10 object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform"
         />
         <div className="hidden sm:block text-left">
           <span className="text-xs font-black block leading-none">Goti IA</span>

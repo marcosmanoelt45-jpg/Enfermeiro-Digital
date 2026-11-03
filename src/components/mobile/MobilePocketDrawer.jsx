@@ -101,7 +101,7 @@ export default function MobilePocketDrawer({
               className="w-full mb-2.5 flex items-center justify-between p-3.5 rounded-2xl bg-emerald-50/70 dark:bg-emerald-950/40 border border-emerald-200/80 dark:border-emerald-800/60 hover:border-emerald-300 text-left group transition-all"
             >
               <div className="flex items-center gap-3">
-                <div className="w-9 h-9 rounded-xl bg-emerald-700 dark:bg-emerald-600 text-white flex items-center justify-center shadow-xs">
+                <div className="w-9 h-9 rounded-xl bg-emerald-700 dark:bg-emerald-600 text-white flex items-center justify-center shadow-sm">
                   <Stethoscope className="w-5 h-5" />
                 </div>
                 <div>
@@ -165,7 +165,7 @@ export default function MobilePocketDrawer({
                           <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-900 dark:group-hover:text-white transition-colors">
                             {tool.title}
                           </span>
-                          <span className="text-[9px] font-semibold px-1.5 py-0.2 bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 rounded-md">
+                          <span className="text-[9px] font-semibold px-1.5 py-0.5 bg-white dark:bg-slate-900 text-emerald-700 dark:text-emerald-400 border border-emerald-100 dark:border-emerald-800 rounded-md">
                             {tool.tag}
                           </span>
                         </div>
