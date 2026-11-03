@@ -4,108 +4,11 @@ import { passwordPolicyError } from '@/lib/passwordPolicy';
 const LOCAL_STORAGE_USER_KEY = 'enfermeiro_digital_local_user';
 const LOCAL_REGISTERED_ACCOUNTS_KEY = 'enfermeiro_digital_registered_accounts';
 
-// Contas locais (fallback quando o Supabase limita envio de e-mail) nunca guardam a senha em texto:
-// só um hash PBKDF2-SHA-256 com sal aleatório, suficiente para validar o login offline.
-const PBKDF2_ITERATIONS = 120000;
-
-function toHex(buffer) {
-  return Array.from(new Uint8Array(buffer)).map((b) => b.toString(16).padStart(2, '0')).join('');
-}
-
-async function hashLocalPassword(password, saltHex) {
-  const salt = saltHex || toHex(crypto.getRandomValues(new Uint8Array(16)));
-  const key = await crypto.subtle.importKey('raw', new TextEncoder().encode(password), 'PBKDF2', false, ['deriveBits']);
-  const bits = await crypto.subtle.deriveBits(
-    { name: 'PBKDF2', hash: 'SHA-256', salt: new TextEncoder().encode(salt), iterations: PBKDF2_ITERATIONS },
-    key,
-    256
-  );
-  return { passwordHash: toHex(bits), passwordSalt: salt };
-}
-
-async function verifyLocalPassword(record, password) {
-  if (!record?.passwordHash || !record?.passwordSalt || !password) return false;
-  try {
-    const { passwordHash } = await hashLocalPassword(password, record.passwordSalt);
-    return passwordHash === record.passwordHash;
-  } catch {
-    return false;
-  }
-}
-
-// Migração única: versões antigas gravavam a senha em texto puro. Converte para hash e apaga o texto.
-async function migrateLegacyPlaintextPasswords() {
-  try {
-    if (typeof localStorage === 'undefined' || !globalThis.crypto?.subtle) return;
-    const raw = localStorage.getItem(LOCAL_REGISTERED_ACCOUNTS_KEY);
-    if (!raw) return;
-    const map = JSON.parse(raw);
-    let changed = false;
-    for (const email of Object.keys(map)) {
-      const record = map[email];
-      if (record && typeof record.password === 'string') {
-        Object.assign(record, await hashLocalPassword(record.password));
-        delete record.password;
-        changed = true;
-      }
-    }
-    if (changed) localStorage.setItem(LOCAL_REGISTERED_ACCOUNTS_KEY, JSON.stringify(map));
-  } catch {
-    try {
-      localStorage.removeItem(LOCAL_REGISTERED_ACCOUNTS_KEY);
-    } catch {}
-  }
-}
-migrateLegacyPlaintextPasswords();
-
-async function saveRegisteredAccountLocal({ id, email, password, passwordHash, passwordSalt, full_name, user_type = 'aluno', coren = '' }) {
-  try {
-    if (typeof localStorage === 'undefined') return null;
-    const cleanEmail = (email || '').trim().toLowerCase();
-    const resolvedName = (full_name || '').trim() || cleanEmail.split('@')[0] || 'Estudante de Enfermagem';
-    const raw = localStorage.getItem(LOCAL_REGISTERED_ACCOUNTS_KEY);
-    const map = raw ? JSON.parse(raw) : {};
-    const credentials = password
-      ? await hashLocalPassword(password)
-      : { passwordHash: passwordHash || map[cleanEmail]?.passwordHash, passwordSalt: passwordSalt || map[cleanEmail]?.passwordSalt };
-    const record = {
-      id: id || map[cleanEmail]?.id || 'user-' + Math.random().toString(36).substring(2, 10),
-      email: cleanEmail,
-      ...credentials,
-      full_name: resolvedName,
-      name: resolvedName,
-      role: user_type,
-      user_type,
-      coren: coren || '',
-      org_id: 'enfere-academico',
-      updated_at: new Date().toISOString(),
-    };
-    map[cleanEmail] = record;
-    localStorage.setItem(LOCAL_REGISTERED_ACCOUNTS_KEY, JSON.stringify(map));
-
-    // Marca a sessão como local: só ela pode valer sem sessão do Supabase.
-    const sessionUser = { ...record, is_local: true };
-    delete sessionUser.passwordHash;
-    delete sessionUser.passwordSalt;
-    localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(sessionUser));
-    return sessionUser;
-  } catch {
-    return null;
-  }
-}
-
-function getRegisteredAccountLocal(email) {
-  try {
-    if (typeof localStorage === 'undefined') return null;
-    const cleanEmail = (email || '').trim().toLowerCase();
-    const raw = localStorage.getItem(LOCAL_REGISTERED_ACCOUNTS_KEY);
-    if (!raw) return null;
-    const map = JSON.parse(raw);
-    return map[cleanEmail] || null;
-  } catch {
-    return null;
-  }
-}
+// Contas locais (criadas sem e-mail confirmado) não existem mais: apaga o que versões antigas guardaram,
+// inclusive os hashes de senha.
+try {
+  if (typeof localStorage !== 'undefined') localStorage.removeItem(LOCAL_REGISTERED_ACCOUNTS_KEY);
+} catch {}
 
 const providerStatusCache = {
   data: {},
@@ -292,9 +195,9 @@ export const authService = {
       const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LOCAL_STORAGE_USER_KEY) : null;
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Cópia de um usuário do Supabase cuja sessão acabou (expirou ou saiu em outra aba)
-        // não pode manter o acesso: só sessões locais explícitas continuam valendo.
-        const sessaoSupabaseVencida = isSupabaseConfigured() && !parsed?.is_local;
+        // Sem sessão do Supabase, só o modo demonstrativo continua valendo; qualquer outra cópia
+        // (sessão expirada, saída em outra aba, conta local antiga) é apagada.
+        const sessaoSupabaseVencida = isSupabaseConfigured() && !parsed?.is_demo;
         if (parsed?.email?.includes('google@hospital.digital') || sessaoSupabaseVencida) {
           localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
           return null;
@@ -411,30 +314,8 @@ export const authService = {
       return data;
     } catch (err) {
       const msg = (err?.message || '').toLowerCase();
-      const cleanEmail = email.trim().toLowerCase();
-      const localAcc = getRegisteredAccountLocal(cleanEmail);
-
-      // No Supabase GoTrue, 'Email not confirmed' só é retornado quando e-mail e senha estão corretos no banco!
       if (msg.includes('email not confirmed')) {
-        const sessionUser = await saveRegisteredAccountLocal({
-          id: localAcc?.id,
-          email: cleanEmail,
-          password,
-          full_name: localAcc?.full_name || cleanEmail.split('@')[0],
-          user_type: localAcc?.user_type || user_type,
-          coren: localAcc?.coren || '',
-        });
-        if (sessionUser) {
-          return { user: sessionUser, session: { user: sessionUser } };
-        }
-      }
-
-      // Se a conta foi criada localmente durante rate-limit de e-mail do Supabase, valida a senha registrada
-      if (localAcc && (await verifyLocalPassword(localAcc, password))) {
-        const sessionUser = await saveRegisteredAccountLocal(localAcc);
-        if (sessionUser) {
-          return { user: sessionUser, session: { user: sessionUser } };
-        }
+        throw new Error('Seu e-mail ainda não foi confirmado. Abra o link que enviamos para sua caixa de entrada (confira o spam) e depois entre com sua senha.');
       }
 
       if (msg.includes('invalid login credentials') || msg.includes('invalid credentials')) {
@@ -531,22 +412,8 @@ export const authService = {
         return { ...data, autoLoggedIn: true };
       }
 
-      // Se mailer_autoconfirm=false no Supabase (session=null), ativa a sessão imediatamente para o aluno não travar
-      const sessionUser = await saveRegisteredAccountLocal({
-        id: data.user.id,
-        email: cleanEmail,
-        password,
-        full_name: resolvedName,
-        user_type,
-        coren: coren?.trim() || '',
-      });
-
-      return {
-        ...data,
-        user: sessionUser || data.user,
-        session: { user: sessionUser || data.user },
-        autoLoggedIn: true,
-      };
+      // Sem sessão: o Supabase enviou o e-mail de confirmação. O acesso só começa depois do link.
+      return { ...data, needsConfirmation: true };
     } catch (err) {
       const msg = (err?.message || '').toLowerCase();
       if (msg.includes('already registered') || msg.includes('user already exists') || msg.includes('já cadastrado')) {
@@ -560,23 +427,12 @@ export const authService = {
       if (
         msg.includes('rate limit') ||
         msg.includes('over_email_send_rate_limit') ||
-        err?.status === 429 ||
-        (msg.includes('email') && msg.includes('invalid') && /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail))
+        err?.status === 429
       ) {
-        const sessionUser = await saveRegisteredAccountLocal({
-          email: cleanEmail,
-          password,
-          full_name: resolvedName,
-          user_type,
-          coren: coren?.trim() || '',
-        });
-        if (sessionUser) {
-          return {
-            user: sessionUser,
-            session: { user: sessionUser },
-            autoLoggedIn: true,
-          };
-        }
+        throw new Error('Muitos cadastros neste momento. Aguarde alguns minutos e tente de novo.');
+      }
+      if (msg.includes('email') && msg.includes('invalid')) {
+        throw new Error('Este e-mail não foi aceito. Confira o endereço ou use outro.');
       }
       throw new Error(err.message || 'Falha no cadastro. Verifique os dados informados.');
     }

@@ -156,7 +156,7 @@ export default function Login() {
           <div>
             <p className="font-bold">Conta criada com sucesso!</p>
             <p className="text-xs text-teal-800 dark:text-teal-300/90 mt-0.5">
-              Digite suas credenciais para acessar sua conta no Enfere.
+              Enviamos um link de confirmação para o seu e-mail. Abra o link e depois entre com sua senha.
             </p>
           </div>
         </div>
