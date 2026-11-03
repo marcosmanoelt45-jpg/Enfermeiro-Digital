@@ -58,6 +58,8 @@ export default function SbarHandoffLab() {
     return "choose";
   });
 
+  // Simulação Rápida: horário-limite de 2 minutos (null fora dela).
+  const [prazoRapido, setPrazoRapido] = useState(null);
   const [activeTab, setActiveTab] = useState(() => {
     const params = new URLSearchParams(location.search);
     return params.get("tab") || "guided";
@@ -540,6 +542,7 @@ export default function SbarHandoffLab() {
   }
 
   function handleSelectScenario(idx) {
+    setPrazoRapido(null);
     sessionRef.current++;
     if (isListening) stopListening();
     setActiveScenarioIdx(idx);
@@ -575,7 +578,22 @@ export default function SbarHandoffLab() {
     setTimeout(() => setToastMessage(""), 2500);
   }
 
+  // Ao zerar a contagem da Simulação Rápida: envia o que houver ou avisa que nada foi escrito.
+  function handleQuickSimExpire() {
+    setPrazoRapido(null);
+    vibrate([30, 40, 30]);
+    if (isListening) stopListening();
+    const algumTexto = Object.values(sbarData).some((v) => String(v || "").trim());
+    if (algumTexto) {
+      toast({ title: "Tempo esgotado", description: "Enviando o que você registrou para o Goti avaliar." });
+      setTimeout(() => handleEvaluateSbar(), 600);
+    } else {
+      toast({ title: "Tempo esgotado", description: "Nenhum pilar foi preenchido. Tente de novo priorizando a Situação." });
+    }
+  }
+
   async function handleEvaluateSbar() {
+    setPrazoRapido(null);
     // Avaliar com um ditado ainda em andamento enviaria o texto incompleto.
     if (isListening || voiceStarting || isProcessingAudio) {
       toast({ title: "Ditado em andamento", description: "Finalize o ditado e aguarde a transcrição antes de enviar para o Goti." });
@@ -819,7 +837,8 @@ export default function SbarHandoffLab() {
                     handleSelectScenario(idx >= 0 ? idx : 1);
                     setActiveTab("free_voice");
                     setViewMode("workspace");
-                    setToastMessage("Simulação Beira-Leito iniciada! Priorize os dados de emergência do paciente.");
+                    setPrazoRapido(Date.now() + 120000);
+                    setToastMessage("Simulação Beira-Leito iniciada! Você tem 2 minutos.");
                     setTimeout(() => setToastMessage(""), 3500);
                   }}
                   className="w-full min-h-[64px] p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] hover:bg-[#131F2E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
@@ -830,7 +849,7 @@ export default function SbarHandoffLab() {
                     </div>
                     <div>
                       <h4 className="text-xs sm:text-sm font-bold text-white">Simulação Rápida Beira-Leito</h4>
-                      <p className="text-[11px] text-[#9FB3C6]">Caso crítico para treinar a priorização dos dados de emergência</p>
+                      <p className="text-[11px] text-[#9FB3C6]">Caso crítico com 2 minutos para priorizar os dados de emergência</p>
                     </div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-[#9FB3C6] group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -1360,6 +1379,7 @@ export default function SbarHandoffLab() {
         {/* CONTEÚDO DA ABA 2: SIMULAÇÃO RÁPIDA À BEIRA-LEITO (ÁUDIO DIRETO) */}
         {activeTab === "free_voice" && (
           <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-6 sm:p-7 shadow-sm space-y-6">
+            {prazoRapido && <QuickSimCountdown deadline={prazoRapido} total={120000} onExpire={handleQuickSimExpire} />}
             <div className="border-b border-[#1F3045] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
                 <h3 className="text-sm sm:text-base font-bold text-white">
@@ -1840,4 +1860,46 @@ function ElapsedClock({ getSeconds }) {
     return () => clearInterval(timer);
   }, [getSeconds]);
   return clinicalHistoryService.formatDuration(seconds);
+}
+
+// Contagem da Simulação Rápida: só este bloco re-renderiza, e a barra anima por transform.
+function QuickSimCountdown({ deadline, total, onExpire }) {
+  const [restante, setRestante] = useState(() => Math.max(0, deadline - Date.now()));
+  const onExpireRef = useRef(onExpire);
+  useEffect(() => {
+    onExpireRef.current = onExpire;
+  });
+  useEffect(() => {
+    let disparou = false;
+    const tick = () => {
+      const r = Math.max(0, deadline - Date.now());
+      setRestante(r);
+      if (r === 0 && !disparou) {
+        disparou = true;
+        onExpireRef.current?.();
+      }
+    };
+    tick();
+    const timer = setInterval(tick, 250);
+    return () => clearInterval(timer);
+  }, [deadline]);
+
+  const seg = Math.ceil(restante / 1000);
+  const cor = seg <= 10 ? "#F0645F" : seg <= 30 ? "#FFC247" : "#20D5B5";
+  return (
+    <div className="sticky top-2 z-20 rounded-2xl border border-[#1F3045] bg-[#0E1722]/95 p-3 backdrop-blur-sm" role="timer" aria-live="off">
+      <div className="flex items-center justify-between text-xs font-bold">
+        <span className="text-[#9FB3C6]">Simulação rápida</span>
+        <span className="tabular-nums text-base font-black" style={{ color: cor }} aria-label={`${seg} segundos restantes`}>
+          {String(Math.floor(seg / 60)).padStart(2, "0")}:{String(seg % 60).padStart(2, "0")}
+        </span>
+      </div>
+      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-[#1F3045]">
+        <div
+          className="h-full origin-left rounded-full transition-[transform,background-color] duration-300 ease-linear"
+          style={{ transform: `scaleX(${restante / total})`, backgroundColor: cor }}
+        />
+      </div>
+    </div>
+  );
 }
