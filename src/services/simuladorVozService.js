@@ -40,14 +40,23 @@ export function pickPtBrVoice() {
   return anyPt || null;
 }
 
+// Cada fala recebe um número; parar ou começar outra fala invalida os callbacks da anterior.
+let falaGen = 0;
+
 export function pararFala() {
+  falaGen++;
   currentTimers.forEach(clearTimeout);
   currentTimers = [];
 
   if (currentAudioElement) {
     try {
-      currentAudioElement.pause();
-      currentAudioElement.currentTime = 0;
+      const audio = currentAudioElement;
+      audio.onloadedmetadata = null;
+      audio.onended = null;
+      audio.onerror = null;
+      audio.pause();
+      audio.removeAttribute("src");
+      audio.load();
     } catch {
       // Ignora erro ao pausar elemento de áudio
     }
@@ -80,6 +89,8 @@ export function pararFala() {
  */
 export function falar(texto, pacienteKey = "marcus", options = {}) {
   pararFala();
+  const gen = ++falaGen;
+  const alive = () => gen === falaGen;
 
   const {
     soundEnabled = true,
@@ -102,7 +113,7 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
 
   let finished = false;
   function handleFinish() {
-    if (finished) return;
+    if (finished || !alive()) return;
     finished = true;
     isSpeakingState = false;
 
@@ -120,7 +131,7 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
       for (let k = 0; k < nWords; k++) {
         const delay = (duracaoMs * k) / nWords;
         const timer = setTimeout(() => {
-          onWordIndex(k);
+          if (alive()) onWordIndex(k);
         }, delay);
         currentTimers.push(timer);
       }
@@ -148,6 +159,7 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
       currentAudioElement = audio;
 
       audio.onloadedmetadata = () => {
+        if (!alive()) return;
         const durMs = (audio.duration && !isNaN(audio.duration) && audio.duration > 0)
           ? audio.duration * 1000
           : estimatedDuration;
@@ -159,17 +171,23 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
         handleFinish();
       };
 
-      audio.onerror = () => {
-        // Fallback para Web Speech API se o arquivo não puder ser reproduzido
+      // onerror e a rejeição do play() podem disparar juntos: a voz sintética só entra uma vez.
+      let fellBack = false;
+      const fallbackOnce = () => {
+        if (fellBack || !alive()) return;
+        fellBack = true;
         currentAudioElement = null;
         tocarViaWebSpeech();
       };
 
+      audio.onerror = fallbackOnce;
+
       const playPromise = audio.play();
       if (playPromise !== undefined) {
-        playPromise.catch(() => {
-          // Bloqueio de autoplay do navegador ou arquivo inacessível -> fallback
-          tocarViaWebSpeech();
+        playPromise.catch((err) => {
+          // AbortError = a fala foi interrompida de propósito; não é motivo para falar de novo.
+          if (err?.name === "AbortError") return;
+          fallbackOnce();
         });
       }
       return;
@@ -181,6 +199,7 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
   tocarViaWebSpeech();
 
   function tocarViaWebSpeech() {
+    if (!alive()) return;
     programarKaraoke(estimatedDuration);
 
     if (typeof window === "undefined" || !window.speechSynthesis) {
@@ -209,311 +228,4 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
       currentTimers.push(finishTimer);
     }
   }
-}
-
-/**
- * Inicia a captura de áudio Dual-Engine do estudante:
- * 1. Solicita permissão explícita via navigator.mediaDevices.getUserMedia
- * 2. Grava o áudio binário em paralelo via MediaRecorder (garantia de fallback com IA)
- * 3. Executa transcrição em tempo real com Web Speech API com auto-restart em silêncio
- *
- * @param {Object} options
- * @param {Function} [options.onInterim] (parcial: string) => void
- * @param {Function} [options.onFinal] (completo: string) => void
- * @param {Function} [options.onError] (erro: string) => void
- * @param {Function} [options.onEnd] () => void
- * @returns {Promise<{ stop: () => Promise<{ text: string, audioBlob: Blob | null }> }>}
- */
-export async function iniciarReconhecimentoVoz(options = {}) {
-  const { onInterim, onFinal, onError, onEnd } = options;
-
-  let stream = null;
-  let mediaRecorder = null;
-  const audioChunks = [];
-  let isRecording = true;
-  let transcriptAcumulada = "";
-  let latestTextoExibicao = "";
-  let recognition = null;
-
-  // 1. Solicita permissão explícita de hardware de áudio via getUserMedia
-  try {
-    if (typeof navigator !== "undefined" && navigator.mediaDevices?.getUserMedia) {
-      stream = await navigator.mediaDevices.getUserMedia({ audio: true });
-    }
-  } catch (err) {
-    console.warn("getUserMedia falhou ou foi bloqueado:", err);
-    const isDenied = err.name === "NotAllowedError" || err.name === "PermissionDeniedError";
-    const msg = isDenied
-      ? "Permissão de microfone negada. Autorize no ícone de cadeado do navegador ou clique em 'Prefiro digitar'."
-      : "Não foi possível conectar ao microfone. Verifique as configurações de áudio do dispositivo.";
-    if (onError) onError(msg);
-    if (onEnd) onEnd();
-    return {
-      stop: async () => ({ text: "", audioBlob: null })
-    };
-  }
-
-  // 2. Inicializa MediaRecorder em paralelo (para capturar o áudio real)
-  if (stream && typeof MediaRecorder !== "undefined") {
-    try {
-      const types = ["audio/webm", "audio/mp4", "audio/ogg", "audio/wav"];
-      const mimeType = types.find((t) => {
-        try {
-          return MediaRecorder.isTypeSupported?.(t);
-        } catch {
-          return false;
-        }
-      });
-      mediaRecorder = new MediaRecorder(stream, mimeType ? { mimeType } : undefined);
-      mediaRecorder.ondataavailable = (e) => {
-        if (e.data && e.data.size > 0) {
-          audioChunks.push(e.data);
-        }
-      };
-      mediaRecorder.start(200);
-    } catch (e) {
-      console.warn("MediaRecorder não pôde ser iniciado:", e);
-    }
-  }
-
-  // 3. Inicializa Web Speech API com auto-restart controlado por isRecording
-  const SpeechRecognition =
-    typeof window !== "undefined" &&
-    (window.SpeechRecognition || window.webkitSpeechRecognition);
-
-  if (SpeechRecognition) {
-    try {
-      recognition = new SpeechRecognition();
-      recognition.lang = "pt-BR";
-      recognition.interimResults = true;
-      recognition.maxAlternatives = 1;
-      recognition.continuous = true;
-
-      recognition.onresult = (event) => {
-        let interim = "";
-        for (let i = event.resultIndex; i < event.results.length; i++) {
-          const item = event.results[i][0].transcript;
-          if (event.results[i].isFinal) {
-            transcriptAcumulada += (transcriptAcumulada ? " " : "") + item.trim();
-          } else {
-            interim += item;
-          }
-        }
-
-        latestTextoExibicao = (transcriptAcumulada + " " + interim).trim();
-        if (onInterim && latestTextoExibicao) {
-          onInterim(latestTextoExibicao);
-        }
-        if (transcriptAcumulada && onFinal) {
-          onFinal(transcriptAcumulada.trim());
-        }
-      };
-
-      recognition.onerror = (event) => {
-        console.warn("SpeechRecognition notice:", event.error);
-        if (event.error === "not-allowed" || event.error === "permission-denied") {
-          if (onError) onError("Permissão de microfone negada. Clique em 'Prefiro digitar'.");
-        }
-      };
-
-      recognition.onend = () => {
-        // Auto-restart enquanto o usuário ainda estiver com o microfone aberto
-        if (isRecording && recognition) {
-          try {
-            recognition.start();
-          } catch {
-            // ignore
-          }
-        }
-      };
-
-      recognition.start();
-    } catch (err) {
-      console.warn("Falha ao inicializar SpeechRecognition:", err);
-    }
-  }
-
-  return {
-    stop: async () => {
-      isRecording = false;
-
-      // Para a Web Speech API
-      if (recognition) {
-        try {
-          recognition.onend = null;
-          recognition.stop();
-        } catch {
-          // ignore
-        }
-      }
-
-      // Encerra o MediaRecorder e captura o blob de áudio gravado
-      let audioBlob = null;
-      if (mediaRecorder && mediaRecorder.state !== "inactive") {
-        try {
-          await new Promise((resolve) => {
-            mediaRecorder.onstop = () => {
-              if (audioChunks.length > 0) {
-                audioBlob = new Blob(audioChunks, {
-                  type: mediaRecorder.mimeType || "audio/webm"
-                });
-              }
-              resolve();
-            };
-            mediaRecorder.stop();
-          });
-        } catch (e) {
-          console.warn("Erro ao finalizar MediaRecorder:", e);
-        }
-      }
-
-      // Desliga todas as faixas do microfone físico
-      if (stream) {
-        try {
-          stream.getTracks().forEach((track) => track.stop());
-        } catch {
-          // ignore
-        }
-      }
-
-      const textoFinal = (transcriptAcumulada || latestTextoExibicao).trim();
-      if (onFinal && textoFinal) {
-        onFinal(textoFinal);
-      }
-      if (onEnd) onEnd();
-
-      return {
-        text: textoFinal,
-        audioBlob
-      };
-    }
-  };
-}
-
-const STOP_WORDS_PT = new Set([
-  "de", "da", "do", "das", "dos",
-  "a", "o", "as", "os",
-  "com", "sem", "em", "no", "na", "nos", "nas",
-  "por", "para", "pra", "pelo", "pela", "pelos", "pelas",
-  "um", "uma", "uns", "umas",
-  "e", "ou", "se", "que", "so", "apenas"
-]);
-
-/**
- * Normaliza strings para comparação fonética e sinônimos clínicos.
- */
-export function normalizarTextoVoz(texto) {
-  if (!texto) return "";
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[.,\/#!$%\^&\*;:{}=\-_`~()]/g, "")
-    .replace(/\s+/g, " ")
-    .trim();
-}
-
-/**
- * Extrai tokens relevantes descartando stop words e partículas em português.
- */
-export function extrairTokensSignificativos(texto) {
-  const norm = normalizarTextoVoz(texto);
-  return norm
-    .split(/\s+/)
-    .filter((w) => w && !STOP_WORDS_PT.has(w) && w.length >= 2);
-}
-
-/**
- * Validação semântica e fonética determinística de respostas faladas.
- * Reconhece variações clínicas, sinônimos e elimina preposições/artigos.
- */
-export function validarRespostaFalada(respostaAluno, respostasAceitas = []) {
-  if (!respostaAluno || !respostasAceitas.length) return false;
-
-  const alunoNorm = normalizarTextoVoz(respostaAluno)
-    .replace(/\bsetenta\b/g, "70")
-    .replace(/\bsetenta por cento\b/g, "70");
-  const alunoTokens = extrairTokensSignificativos(alunoNorm);
-
-  for (const aceita of respostasAceitas) {
-    const aceitaNorm = normalizarTextoVoz(aceita)
-      .replace(/\bsetenta\b/g, "70")
-      .replace(/\bsetenta por cento\b/g, "70");
-    if (!aceitaNorm) continue;
-
-    // 1. Igualdade estrita
-    if (alunoNorm === aceitaNorm) return true;
-
-    // 2. Contém substring
-    if (alunoNorm.includes(aceitaNorm) || aceitaNorm.includes(alunoNorm)) {
-      if (Math.min(alunoNorm.length, aceitaNorm.length) >= 4) {
-        return true;
-      }
-    }
-
-    // 3. Comparação de tokens significativos (sem preposições/artigos)
-    const aceitaTokens = extrairTokensSignificativos(aceitaNorm);
-    if (aceitaTokens.length > 0 && alunoTokens.length > 0) {
-      const todosCasam = aceitaTokens.every((token) =>
-        alunoTokens.some((at) => at.includes(token) || token.includes(at))
-      );
-      if (todosCasam) return true;
-
-      // Se 50% ou mais dos tokens clínicos esperados estão presentes (abertura ampla)
-      const tokensPresentes = aceitaTokens.filter((token) =>
-        alunoTokens.some((at) => at.includes(token) || token.includes(at))
-      );
-      if (tokensPresentes.length >= 1 && (tokensPresentes.length / aceitaTokens.length >= 0.5)) {
-        return true;
-      }
-    }
-  }
-
-  // 4. Regra semântica universal para Higienização das Mãos / Biossegurança
-  // Aceita: (limp* | lav* | higien* | asseps* | antiseps* | desinfec* | sanitiz* | fricc* | pass*)
-  // + (mao* | pele* | dedo* | palma* | pulso* | alco* | agua* | saba* | gel*)
-  const temAcaoLimpeza = alunoTokens.some((t) =>
-    t.startsWith("limp") || t.startsWith("lav") || t.startsWith("higien") ||
-    t.startsWith("asseps") || t.startsWith("antiseps") || t.startsWith("desinfec") ||
-    t.startsWith("sanitiz") || t.startsWith("fricc") || t.startsWith("pass")
-  );
-  const temObjetoMao = alunoTokens.some((t) =>
-    t.startsWith("mao") || t.startsWith("pele") || t.startsWith("dedo") ||
-    t.startsWith("palma") || t.startsWith("pulso") || t.startsWith("braco") ||
-    t.startsWith("alco") || t.startsWith("agua") || t.startsWith("saba") ||
-    t.startsWith("gel")
-  );
-  const questoesMao = respostasAceitas.some((a) => {
-    const an = normalizarTextoVoz(a);
-    return an.includes("mao") || an.includes("higien") || an.includes("lav") || an.includes("limp");
-  });
-  if (questoesMao && (
-    (temAcaoLimpeza && temObjetoMao) ||
-    alunoTokens.some((t) => t.startsWith("higien") || t.startsWith("lavagem"))
-  )) {
-    return true;
-  }
-
-  // 5. Regra semântica universal para Antissepsia / Desinfecção de Hub ou Conector
-  const temAcaoHub = alunoTokens.some((t) =>
-    t.startsWith("antiseps") || t.startsWith("desinfec") || t.startsWith("fricc") ||
-    t.startsWith("limp") || t.startsWith("higien") || t.startsWith("pass")
-  );
-  const temObjetoHub = alunoTokens.some((t) =>
-    t.startsWith("hub") || t.startsWith("conect") || t.includes("70") ||
-    t.startsWith("alco") || t.startsWith("valvul") || t.startsWith("injet") ||
-    t.startsWith("catet") || t.startsWith("acess")
-  );
-  const questoesHub = respostasAceitas.some((a) => {
-    const an = normalizarTextoVoz(a);
-    return an.includes("hub") || an.includes("conect") || an.includes("alcool");
-  });
-  if (questoesHub && (
-    (temAcaoHub && temObjetoHub) ||
-    alunoTokens.some((t) => t.startsWith("hub") || (t.startsWith("conect") && temAcaoHub))
-  )) {
-    return true;
-  }
-
-  return false;
 }

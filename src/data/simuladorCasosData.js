@@ -1568,7 +1568,7 @@ export const CASOS_SIMULADOR = {
       "Uso de soro fisiológico isotônico 0,9% em velocidade de 10 mL/h",
       "Seleção de cateter de fino calibre (24G) em veia de grosso calibre",
       "Higienização prévia das mãos e antissepsia com clorexidina alcoólica a 0,5%",
-      "Infusão de água destilada isotônica em temperatura ambiente constante"
+      "Infusão de SF 0,9% isotônico, pH próximo de 7, em veia de bom calibre e na velocidade prescrita"
     ],
     "correta": 0,
     "explicacaoGeral": "Soluções com pH ácido (como antibióticos e quimioterápicos) e osmolaridade > 600 mOsm/L causam lesão celular direta na túnica íntima da veia periférica.",
@@ -1599,9 +1599,9 @@ export const CASOS_SIMULADOR = {
       },
       {
         "letra": "E",
-        "texto": "Infusão de água destilada isotônica em temperatura ambiente constante",
+        "texto": "Infusão de SF 0,9% isotônico, pH próximo de 7, em veia de bom calibre e na velocidade prescrita",
         "isCorreta": false,
-        "explicacao": "Incorreta: A água destilada é fortemente hipotônica (0 mOsm/L) e nunca deve ser infundida pura na corrente sanguínea (risco de hemólise maciça)."
+        "explicacao": "Incorreta: solução isotônica, de pH fisiológico, em veia calibrosa e na velocidade prescrita não é fator de risco para flebite química."
       }
     ]
   },
@@ -2246,8 +2246,19 @@ export function gerarCasoAleatorio(pacienteId = null, options = {}) {
     // 7 a 9 questões (padrão 8)
     qtdDesejada = Math.min(bancoGeral.length, Math.floor(Math.random() * 3) + 7);
   } else if (mode === "revisao" && Array.isArray(revisaoQuestoes) && revisaoQuestoes.length > 0) {
-    bancoGeral = revisaoQuestoes;
-    qtdDesejada = revisaoQuestoes.length;
+    // Revisão: respeita o tema escolhido, prioriza os erros mais antigos e limita a 9 questões.
+    let fila = revisaoQuestoes;
+    if (categoria && categoria !== "todos") {
+      const doTema = fila.filter((q) => q.categoriaPratica === categoria);
+      if (doTema.length > 0) fila = doTema;
+    }
+    fila = [...fila]
+      .sort((x, y) => new Date(x.dataErro || 0) - new Date(y.dataErro || 0))
+      .slice(0, 9)
+      // Áudio gravado de outro paciente não combina com o vídeo sorteado: usa a voz sintética.
+      .map((q) => (q.audioPath && !q.audioPath.includes(`/${idEscolhido}/`) ? { ...q, audioPath: undefined } : q));
+    bancoGeral = fila;
+    qtdDesejada = fila.length;
   }
 
   // Embaralha o banco de questões
