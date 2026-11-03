@@ -43,9 +43,14 @@ export default function CategoryPicker({ value, onChange, catalog, placeholder =
       {selected.length > 0 && (
         <div className="flex flex-wrap gap-1.5">
           {selected.map((item) => (
-            <span key={item} className="inline-flex items-center gap-1 rounded-full bg-teal-50 border border-teal-200 px-2 py-1 text-xs font-medium text-teal-700">
+            <span key={item} className="inline-flex items-center gap-1 rounded-full bg-[#20D5B5]/15 border border-[#20D5B5]/30 px-2 py-1 text-xs font-medium text-[#20D5B5]">
               {item}
-              <button type="button" onClick={() => remove(item)} className="text-teal-500 hover:text-teal-800">
+              <button
+                type="button"
+                aria-label={`Remover ${item}`}
+                onClick={() => remove(item)}
+                className="text-[#20D5B5] hover:text-white"
+              >
                 <X className="h-3 w-3" />
               </button>
             </span>
@@ -56,29 +61,34 @@ export default function CategoryPicker({ value, onChange, catalog, placeholder =
       {/* Busca */}
       <div className="flex gap-1.5">
         <div className="relative flex-1">
-          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+          <Search className="absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#52667A]" />
           <Input
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => { if (e.key === "Enter") { e.preventDefault(); addCustom(); } }}
             placeholder={placeholder}
-            className="rounded-xl pl-8"
+            className="rounded-xl pl-8 bg-[#0B131D] border-[#27394B] text-[#EAF2F8] placeholder:text-[#52667A] focus:ring-1 focus:ring-[#20D5B5]"
           />
         </div>
-        <button type="button" onClick={addCustom} className="rounded-xl border border-slate-200 px-2.5 text-slate-500 hover:bg-slate-50">
+        <button
+          type="button"
+          aria-label="Adicionar item customizado"
+          onClick={addCustom}
+          className="rounded-xl border border-[#27394B] bg-[#0E1722] px-2.5 text-[#9FB3C6] hover:bg-[#16222E] hover:text-[#EAF2F8]"
+        >
           <Plus className="h-4 w-4" />
         </button>
       </div>
 
       {/* Sugestões filtradas */}
       {filtered.length > 0 && (
-        <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto rounded-xl border border-slate-100 bg-slate-50/50 p-2">
+        <div className="flex flex-wrap gap-1.5 max-h-40 overflow-y-auto rounded-xl border border-[#1F3045] bg-[#0E1722] p-2">
           {filtered.slice(0, 60).map((item) => (
             <button
               key={item}
               type="button"
               onClick={() => toggle(item)}
-              className="rounded-full border border-slate-200 bg-white px-2.5 py-1 text-xs text-slate-600 hover:border-teal-300 hover:bg-teal-50 hover:text-teal-700 transition"
+              className="rounded-full border border-[#1F3045] bg-[#131F2E] px-2.5 py-1 text-xs text-[#9FB3C6] hover:border-[#20D5B5]/50 hover:bg-[#20D5B5]/15 hover:text-[#20D5B5] transition"
             >
               {item}
             </button>

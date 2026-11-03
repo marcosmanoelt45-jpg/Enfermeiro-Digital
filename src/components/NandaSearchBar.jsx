@@ -18,7 +18,7 @@ export default function NandaSearchBar() {
     (async () => {
       try {
         const list = await base44.entities.NandaDiagnosis.list("-code", 500);
-        if (active) setCatalog(list);
+        if (active) setCatalog(list || []);
       } finally {
         if (active) setLoading(false);
       }
@@ -32,6 +32,17 @@ export default function NandaSearchBar() {
     }
     document.addEventListener("mousedown", onClick);
     return () => document.removeEventListener("mousedown", onClick);
+  }, []);
+
+  useEffect(() => {
+    function onKeyDown(e) {
+      if (e.key === "Escape") {
+        setSelected(null);
+        setOpen(false);
+      }
+    }
+    window.addEventListener("keydown", onKeyDown);
+    return () => window.removeEventListener("keydown", onKeyDown);
   }, []);
 
   const q = query.trim().toLowerCase();
@@ -49,7 +60,7 @@ export default function NandaSearchBar() {
   return (
     <div className="relative" ref={boxRef}>
       <div className="relative">
-        <Stethoscope className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-teal-600" />
+        <Stethoscope className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#20D5B5]" />
         <Input
           value={query}
           onChange={(e) => {
@@ -58,15 +69,17 @@ export default function NandaSearchBar() {
           }}
           onFocus={() => setOpen(true)}
           placeholder="Buscar diagnóstico NANDA-I no banco (ex: risco de infecção, 00004)..."
-          className="rounded-xl border-teal-200 dark:border-teal-800/80 bg-teal-50/40 dark:bg-slate-900 text-slate-900 dark:text-slate-100 placeholder:text-slate-400 dark:placeholder:text-slate-500 pl-9 pr-9"
+          className="rounded-xl border-[#1F3045] bg-[#0E1722] text-[#EAF2F8] placeholder:text-[#52667A] pl-9 pr-9 focus:ring-1 focus:ring-[#20D5B5]"
         />
         {loading && (
-          <Loader2 className="absolute right-9 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-slate-300" />
+          <Loader2 className="absolute right-9 top-1/2 h-4 w-4 -translate-y-1/2 animate-spin text-[#52667A]" />
         )}
         {query && !loading && (
           <button
+            type="button"
+            aria-label="Limpar busca"
             onClick={() => { setQuery(""); setOpen(false); }}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#52667A] hover:text-[#9FB3C6]"
           >
             <X className="h-4 w-4" />
           </button>
@@ -74,27 +87,28 @@ export default function NandaSearchBar() {
       </div>
 
       {open && query && (
-        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 shadow-lg">
+        <div className="absolute z-20 mt-1 w-full overflow-hidden rounded-2xl border border-[#1F3045] bg-[#131F2E] shadow-lg">
           {loading ? (
-            <p className="px-4 py-6 text-center text-sm text-slate-400">Carregando catálogo...</p>
+            <p className="px-4 py-6 text-center text-sm text-[#52667A]">Carregando catálogo...</p>
           ) : results.length === 0 ? (
-            <p className="px-4 py-6 text-center text-sm text-slate-400">
-              Nenhum diagnóstico encontrado para "{query}".
+            <p className="px-4 py-6 text-center text-sm text-[#52667A]">
+              Nenhum diagnóstico encontrado para &quot;{query}&quot;.
             </p>
           ) : (
             <ul className="max-h-80 overflow-y-auto">
               {results.map((d) => (
-                <li key={d.id}>
+                <li key={d.id ?? d.code}>
                   <button
+                    type="button"
                     onClick={() => { setSelected(d); setOpen(false); }}
-                    className="flex w-full items-start gap-3 px-4 py-2.5 text-left hover:bg-teal-50 dark:hover:bg-slate-800"
+                    className="flex w-full items-start gap-3 px-4 py-2.5 text-left hover:bg-[#16222E]"
                   >
-                    <span className="mt-0.5 shrink-0 rounded-md bg-teal-100 dark:bg-teal-950/80 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-teal-700 dark:text-teal-300">
+                    <span className="mt-0.5 shrink-0 rounded-md bg-[#20D5B5]/20 border border-[#20D5B5]/30 px-1.5 py-0.5 font-mono text-[11px] font-semibold text-[#20D5B5]">
                       {d.code}
                     </span>
                     <span className="min-w-0">
-                      <span className="block text-sm font-medium text-slate-800 dark:text-slate-100">{d.title}</span>
-                      <span className="block text-xs text-slate-400">{d.domain}</span>
+                      <span className="block text-sm font-medium text-[#EAF2F8]">{d.title}</span>
+                      <span className="block text-xs text-[#9FB3C6]">{d.domain}</span>
                     </span>
                   </button>
                 </li>
@@ -105,30 +119,41 @@ export default function NandaSearchBar() {
       )}
 
       {selected && (
-        <div className="fixed inset-0 z-30 flex items-end justify-center bg-slate-900/40 p-4 sm:items-center" onClick={() => setSelected(null)}>
-          <div className="w-full max-w-md rounded-2xl bg-white dark:bg-slate-900 dark:border dark:border-slate-800 p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="nanda-modal-title"
+          className="fixed inset-0 z-30 flex items-end justify-center bg-black/60 p-4 sm:items-center backdrop-blur-xs"
+          onClick={() => setSelected(null)}
+        >
+          <div className="w-full max-w-md rounded-2xl bg-[#131F2E] border border-[#1F3045] p-5 shadow-xl" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-start justify-between gap-3">
               <div>
-                <span className="inline-block rounded-md bg-teal-100 dark:bg-teal-950/80 px-2 py-0.5 font-mono text-xs font-semibold text-teal-700 dark:text-teal-300">
+                <span className="inline-block rounded-md bg-[#20D5B5]/20 border border-[#20D5B5]/30 px-2 py-0.5 font-mono text-xs font-semibold text-[#20D5B5]">
                   {selected.code}
                 </span>
-                <h3 className="mt-2 text-base font-semibold text-slate-800 dark:text-slate-100">{selected.title}</h3>
+                <h3 id="nanda-modal-title" className="mt-2 text-base font-semibold text-[#EAF2F8]">{selected.title}</h3>
               </div>
-              <button onClick={() => setSelected(null)} className="text-slate-400 hover:text-slate-600">
+              <button
+                type="button"
+                aria-label="Fechar detalhes"
+                onClick={() => setSelected(null)}
+                className="text-[#9FB3C6] hover:text-[#EAF2F8]"
+              >
                 <X className="h-5 w-5" />
               </button>
             </div>
             <dl className="mt-4 space-y-2 text-sm">
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">Domínio</dt>
-                <dd className="text-slate-700 dark:text-slate-200">{selected.domain}</dd>
+                <dt className="text-xs font-medium uppercase tracking-wide text-[#9FB3C6]">Domínio</dt>
+                <dd className="text-[#EAF2F8]">{selected.domain}</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-slate-400">Classe</dt>
-                <dd className="text-slate-700 dark:text-slate-200">{selected.class}</dd>
+                <dt className="text-xs font-medium uppercase tracking-wide text-[#9FB3C6]">Classe</dt>
+                <dd className="text-[#EAF2F8]">{selected.class}</dd>
               </div>
             </dl>
-            <a href={SOURCES.nanda.url} target="_blank" rel="noreferrer" className="mt-4 flex items-center gap-1.5 text-sm font-medium text-teal-600 dark:text-teal-400 hover:underline">
+            <a href={SOURCES.nanda.url} target="_blank" rel="noreferrer" className="mt-4 flex items-center gap-1.5 text-sm font-medium text-[#20D5B5] hover:underline">
               <ExternalLink className="h-4 w-4" /> Ver na fonte NANDA-I 2024-2026
             </a>
           </div>

@@ -58,19 +58,19 @@ export default function DiagnosisFormDialog({ open, onOpenChange, onSave, editin
 
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
-      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl">
+      <DialogContent className="max-h-[90vh] overflow-y-auto rounded-2xl bg-[#131F2E] border-[#1F3045] text-[#EAF2F8]">
         <DialogHeader>
-          <DialogTitle>{editing ? "Editar Diagnóstico" : "Novo Diagnóstico de Enfermagem"}</DialogTitle>
+          <DialogTitle className="text-[#EAF2F8]">{editing ? "Editar Diagnóstico" : "Novo Diagnóstico de Enfermagem"}</DialogTitle>
         </DialogHeader>
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Código NANDA-I *</Label>
-              <Input value={form.code} onChange={(e) => set("code", e.target.value)} placeholder="ex: 00004" className="mt-1" />
+              <Label className="text-[#9FB3C6]">Código NANDA-I *</Label>
+              <Input value={form.code} onChange={(e) => set("code", e.target.value)} placeholder="ex: 00004" className="mt-1 bg-[#0B131D] border-[#27394B] text-[#EAF2F8]" />
             </div>
             <div>
-              <Label>Status</Label>
-              <select value={form.status} onChange={(e) => set("status", e.target.value)} className="mt-1 w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm">
+              <Label className="text-[#9FB3C6]">Status</Label>
+              <select value={form.status} onChange={(e) => set("status", e.target.value)} className="mt-1 w-full rounded-lg border border-[#27394B] bg-[#0B131D] text-[#EAF2F8] px-3 py-2 text-sm focus:ring-1 focus:ring-[#20D5B5]">
                 <option value="ativo">Ativo</option>
                 <option value="resolvido">Resolvido</option>
                 <option value="inativo">Inativo</option>
@@ -78,39 +78,39 @@ export default function DiagnosisFormDialog({ open, onOpenChange, onSave, editin
             </div>
           </div>
           <div>
-            <Label>Título *</Label>
-            <Input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="ex: Risco de infecção" className="mt-1" />
+            <Label className="text-[#9FB3C6]">Título *</Label>
+            <Input value={form.title} onChange={(e) => set("title", e.target.value)} placeholder="ex: Risco de infecção" className="mt-1 bg-[#0B131D] border-[#27394B] text-[#EAF2F8]" />
           </div>
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <Label>Domínio</Label>
-              <Input value={form.domain} onChange={(e) => set("domain", e.target.value)} className="mt-1" />
+              <Label className="text-[#9FB3C6]">Domínio</Label>
+              <Input value={form.domain} onChange={(e) => set("domain", e.target.value)} className="mt-1 bg-[#0B131D] border-[#27394B] text-[#EAF2F8]" />
             </div>
             <div>
-              <Label>Classe</Label>
-              <Input value={form.class} onChange={(e) => set("class", e.target.value)} className="mt-1" />
+              <Label className="text-[#9FB3C6]">Classe</Label>
+              <Input value={form.class} onChange={(e) => set("class", e.target.value)} className="mt-1 bg-[#0B131D] border-[#27394B] text-[#EAF2F8]" />
             </div>
           </div>
           <div>
-            <Label>Link da fonte</Label>
-            <Input value={form.source_link} onChange={(e) => set("source_link", e.target.value)} className="mt-1" />
+            <Label className="text-[#9FB3C6]">Link da fonte</Label>
+            <Input value={form.source_link} onChange={(e) => set("source_link", e.target.value)} className="mt-1 bg-[#0B131D] border-[#27394B] text-[#EAF2F8]" />
           </div>
           <div>
-            <Label>Características definidoras (uma por linha)</Label>
-            <textarea value={form.defining_characteristics} onChange={(e) => set("defining_characteristics", e.target.value)} rows={3} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+            <Label className="text-[#9FB3C6]">Características definidoras (uma por linha)</Label>
+            <textarea value={form.defining_characteristics} onChange={(e) => set("defining_characteristics", e.target.value)} rows={3} className="mt-1 w-full rounded-lg border border-[#27394B] bg-[#0B131D] text-[#EAF2F8] px-3 py-2 text-sm" />
           </div>
           <div>
-            <Label>Fatores relacionados (um por linha)</Label>
-            <textarea value={form.related_factors} onChange={(e) => set("related_factors", e.target.value)} rows={3} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+            <Label className="text-[#9FB3C6]">Fatores relacionados (um por linha)</Label>
+            <textarea value={form.related_factors} onChange={(e) => set("related_factors", e.target.value)} rows={3} className="mt-1 w-full rounded-lg border border-[#27394B] bg-[#0B131D] text-[#EAF2F8] px-3 py-2 text-sm" />
           </div>
           <div>
-            <Label>Observações</Label>
-            <textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={2} className="mt-1 w-full rounded-lg border border-slate-200 px-3 py-2 text-sm" />
+            <Label className="text-[#9FB3C6]">Observações</Label>
+            <textarea value={form.notes} onChange={(e) => set("notes", e.target.value)} rows={2} className="mt-1 w-full rounded-lg border border-[#27394B] bg-[#0B131D] text-[#EAF2F8] px-3 py-2 text-sm" />
           </div>
         </div>
-        <DialogFooter>
-          <Button variant="outline" onClick={() => onOpenChange(false)}>Cancelar</Button>
-          <Button onClick={handleSave} disabled={saving || !form.code.trim() || !form.title.trim()} className="">
+        <DialogFooter className="flex gap-2">
+          <Button variant="outline" onClick={() => onOpenChange(false)} className="rounded-xl">Cancelar</Button>
+          <Button onClick={handleSave} disabled={saving || !form.code.trim() || !form.title.trim()} className="rounded-xl">
             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : "Salvar"}
           </Button>
         </DialogFooter>

@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
 import DrugPicker from "@/components/DrugPicker";
 
 const CALC_TYPES = [
@@ -42,7 +43,9 @@ export default function MedicationsTab({ patientId }) {
     setLoading(true);
     try {
       const data = await base44.entities.MedicationRecord.filter({ patient_id: patientId }, "-created_date", 100);
-      setRecords(data);
+      setRecords(data || []);
+    } catch (err) {
+      toast({ variant: "destructive", title: "Erro ao carregar cálculos", description: err?.message });
     } finally {
       setLoading(false);
     }
@@ -112,40 +115,48 @@ export default function MedicationsTab({ patientId }) {
         notes: form.notes || ""
       };
       await base44.entities.MedicationRecord.create(payload);
+      toast({ title: "Cálculo salvo no prontuário" });
       setForm({ drug_name: "", concentration: "", prescribed_dose: "", weight: "", dose_per_kg: "", volume_ml: "", time_value: "", time_unit: "h", micro: false, notes: "" });
       setResult(null);
       load();
+    } catch (err) {
+      toast({ variant: "destructive", title: "Erro ao salvar", description: err?.message });
     } finally {
       setSaving(false);
     }
   }
 
   async function remove(id) {
-    await base44.entities.MedicationRecord.delete(id);
-    load();
+    try {
+      await base44.entities.MedicationRecord.delete(id);
+      toast({ title: "Registro removido" });
+      load();
+    } catch (err) {
+      toast({ variant: "destructive", title: "Erro ao excluir", description: err?.message });
+    }
   }
 
   return (
     <div className="space-y-4">
       {/* Reference panel */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-        <button onClick={() => setShowRef((s) => !s)} className="flex w-full items-center justify-between">
+      <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4">
+        <button type="button" onClick={() => setShowRef((s) => !s)} className="flex w-full items-center justify-between">
           <div className="flex items-center gap-2">
-            <BookOpen className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-            <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Referência de Cálculo</p>
+            <BookOpen className="h-4 w-4 text-[#20D5B5]" />
+            <p className="text-sm font-semibold text-[#EAF2F8]">Referência de Cálculo</p>
           </div>
-          <span className="text-xs text-slate-400 dark:text-slate-400">{showRef ? "ocultar" : "mostrar"}</span>
+          <span className="text-xs text-[#9FB3C6]">{showRef ? "ocultar" : "mostrar"}</span>
         </button>
         {showRef && (
           <div className="mt-3 space-y-3">
-            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 rounded-xl bg-slate-50 dark:bg-slate-800/80 p-3">
+            <div className="grid grid-cols-2 gap-x-3 gap-y-1.5 rounded-xl bg-[#0E1722] p-3">
               {CONVERSIONS.map((c, i) => (
-                <p key={i} className="text-xs text-slate-600 dark:text-slate-300">{c}</p>
+                <p key={i} className="text-xs text-[#9FB3C6]">{c}</p>
               ))}
             </div>
-            <div className="space-y-1.5 rounded-xl bg-teal-50 dark:bg-teal-950/40 p-3">
-              <p className="text-xs font-semibold text-teal-700 dark:text-teal-300">Fórmulas de Gotejamento</p>
-              <div className="space-y-1 text-[11px] text-slate-600 dark:text-slate-300">
+            <div className="space-y-1.5 rounded-xl bg-[#20D5B5]/10 border border-[#20D5B5]/20 p-3">
+              <p className="text-xs font-semibold text-[#20D5B5]">Fórmulas de Gotejamento</p>
+              <div className="space-y-1 text-[11px] text-[#9FB3C6]">
                 <p><b>Macro (min):</b> gotas/min = (Volume × 20) ÷ Tempo (min)</p>
                 <p><b>Micro (min):</b> microgotas/min = (Volume × 60) ÷ Tempo (min)</p>
                 <p><b>Macro (h):</b> gotas/min = Volume ÷ (Tempo (h) × 3)</p>
@@ -157,10 +168,10 @@ export default function MedicationsTab({ patientId }) {
       </div>
 
       {/* Calculator */}
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
+      <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4">
         <div className="mb-3 flex items-center gap-2">
-          <Pill className="h-4 w-4 text-teal-600 dark:text-teal-400" />
-          <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Calculadora de Medicamentos</p>
+          <Pill className="h-4 w-4 text-[#20D5B5]" />
+          <p className="text-sm font-semibold text-[#EAF2F8]">Calculadora de Medicamentos</p>
         </div>
 
         <div className="grid grid-cols-3 gap-2">
@@ -168,17 +179,18 @@ export default function MedicationsTab({ patientId }) {
             const Icon = t.icon;
             return (
               <button
+                type="button"
                 key={t.key}
                 onClick={() => { setCalcType(t.key); setResult(null); }}
                 className={`rounded-xl border-2 p-3 text-center transition ${
                   calcType === t.key
-                    ? "border-teal-500 bg-teal-50 dark:bg-teal-950/50"
-                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60"
+                    ? "border-[#20D5B5] bg-[#20D5B5]/15"
+                    : "border-[#1F3045] bg-[#0E1722]"
                 }`}
               >
-                <Icon className={`mx-auto h-5 w-5 ${calcType === t.key ? "text-teal-600 dark:text-teal-400" : "text-slate-400 dark:text-slate-400"}`} />
-                <p className="mt-1 text-xs font-medium text-slate-700 dark:text-slate-200">{t.label}</p>
-                <p className="mt-0.5 text-[10px] text-slate-400 dark:text-slate-400">{t.hint}</p>
+                <Icon className={`mx-auto h-5 w-5 ${calcType === t.key ? "text-[#20D5B5]" : "text-[#52667A]"}`} />
+                <p className="mt-1 text-xs font-medium text-[#EAF2F8]">{t.label}</p>
+                <p className="mt-0.5 text-[10px] text-[#9FB3C6]">{t.hint}</p>
               </button>
             );
           })}
@@ -186,7 +198,7 @@ export default function MedicationsTab({ patientId }) {
 
         <div className="mt-4 space-y-3">
           <div>
-            <Label className="text-xs text-slate-500 dark:text-slate-400">Medicamento</Label>
+            <Label className="text-xs text-[#9FB3C6]">Medicamento</Label>
             <DrugPicker
               value={form.drug_name}
               onChange={(name, drug) => {
@@ -200,23 +212,23 @@ export default function MedicationsTab({ patientId }) {
           {calcType === "dose" && (
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <Label className="text-xs text-slate-500 dark:text-slate-400">Concentração (mg/mL)</Label>
+                <Label className="text-xs text-[#9FB3C6]">Concentração (mg/mL)</Label>
                 <Input
                   type="number"
                   value={form.concentration}
                   onChange={(e) => update("concentration", e.target.value)}
                   placeholder="500"
-                  className="rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                  className="rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
                 />
               </div>
               <div>
-                <Label className="text-xs text-slate-500 dark:text-slate-400">Dose prescrita (mg)</Label>
+                <Label className="text-xs text-[#9FB3C6]">Dose prescrita (mg)</Label>
                 <Input
                   type="number"
                   value={form.prescribed_dose}
                   onChange={(e) => update("prescribed_dose", e.target.value)}
                   placeholder="1000"
-                  className="rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                  className="rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
                 />
               </div>
             </div>
@@ -226,35 +238,37 @@ export default function MedicationsTab({ patientId }) {
             <>
               <div className="grid grid-cols-2 gap-3">
                 <div>
-                  <Label className="text-xs text-slate-500 dark:text-slate-400">Volume (mL)</Label>
+                  <Label className="text-xs text-[#9FB3C6]">Volume (mL)</Label>
                   <Input
                     type="number"
                     value={form.volume_ml}
                     onChange={(e) => update("volume_ml", e.target.value)}
                     placeholder="500"
-                    className="rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                    className="rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
                   />
                 </div>
                 <div>
-                  <Label className="text-xs text-slate-500 dark:text-slate-400">Tempo</Label>
+                  <Label className="text-xs text-[#9FB3C6]">Tempo</Label>
                   <div className="flex gap-1">
                     <Input
                       type="number"
                       value={form.time_value}
                       onChange={(e) => update("time_value", e.target.value)}
                       placeholder="8"
-                      className="rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                      className="rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
                     />
-                    <div className="flex shrink-0 rounded-xl border border-slate-200 dark:border-slate-700 p-0.5">
+                    <div className="flex shrink-0 rounded-xl border border-[#27394B] bg-[#0B131D] p-0.5">
                       <button
+                        type="button"
                         onClick={() => update("time_unit", "h")}
-                        className={`rounded-lg px-3 text-sm font-medium ${form.time_unit === "h" ? "bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300" : "text-slate-400 dark:text-slate-400"}`}
+                        className={`rounded-lg px-3 text-sm font-medium ${form.time_unit === "h" ? "bg-[#20D5B5]/20 text-[#20D5B5]" : "text-[#52667A]"}`}
                       >
                         h
                       </button>
                       <button
+                        type="button"
                         onClick={() => update("time_unit", "min")}
-                        className={`rounded-lg px-3 text-sm font-medium ${form.time_unit === "min" ? "bg-teal-100 dark:bg-teal-950 text-teal-700 dark:text-teal-300" : "text-slate-400 dark:text-slate-400"}`}
+                        className={`rounded-lg px-3 text-sm font-medium ${form.time_unit === "min" ? "bg-[#20D5B5]/20 text-[#20D5B5]" : "text-[#52667A]"}`}
                       >
                         min
                       </button>
@@ -263,19 +277,20 @@ export default function MedicationsTab({ patientId }) {
                 </div>
               </div>
               <button
+                type="button"
                 onClick={() => { update("micro", !form.micro); setResult(null); }}
                 className={`flex w-full items-center gap-3 rounded-xl border-2 p-3 transition ${
                   form.micro
-                    ? "border-sky-500 bg-sky-50 dark:bg-sky-950/40"
-                    : "border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/60"
+                    ? "border-sky-500 bg-sky-500/15"
+                    : "border-[#1F3045] bg-[#0E1722]"
                 }`}
               >
-                <Droplet className={`h-5 w-5 ${form.micro ? "text-sky-600 dark:text-sky-400" : "text-slate-400"}`} />
+                <Droplet className={`h-5 w-5 ${form.micro ? "text-sky-400" : "text-[#52667A]"}`} />
                 <div className="flex-1 text-left">
-                  <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Equipo de microgotas</p>
-                  <p className="text-[11px] text-slate-400 dark:text-slate-400">{form.micro ? "60 gtt/mL" : "20 gtt/mL (macrogotas)"}</p>
+                  <p className="text-sm font-medium text-[#EAF2F8]">Equipo de microgotas</p>
+                  <p className="text-[11px] text-[#9FB3C6]">{form.micro ? "60 gtt/mL" : "20 gtt/mL (macrogotas)"}</p>
                 </div>
-                <div className={`h-6 w-11 rounded-full p-0.5 transition ${form.micro ? "bg-sky-500" : "bg-slate-200 dark:bg-slate-700"}`}>
+                <div className={`h-6 w-11 rounded-full p-0.5 transition ${form.micro ? "bg-sky-500" : "bg-[#1F3045]"}`}>
                   <div className={`h-5 w-5 rounded-full bg-white transition ${form.micro ? "translate-x-5" : ""}`} />
                 </div>
               </button>
@@ -285,33 +300,33 @@ export default function MedicationsTab({ patientId }) {
           {calcType === "weight_based" && (
             <div className="grid grid-cols-3 gap-3">
               <div>
-                <Label className="text-xs text-slate-500 dark:text-slate-400">Peso (kg)</Label>
+                <Label className="text-xs text-[#9FB3C6]">Peso (kg)</Label>
                 <Input
                   type="number"
                   value={form.weight}
                   onChange={(e) => update("weight", e.target.value)}
                   placeholder="70"
-                  className="rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                  className="rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
                 />
               </div>
               <div>
-                <Label className="text-xs text-slate-500 dark:text-slate-400">Dose (mg/kg)</Label>
+                <Label className="text-xs text-[#9FB3C6]">Dose (mg/kg)</Label>
                 <Input
                   type="number"
                   value={form.dose_per_kg}
                   onChange={(e) => update("dose_per_kg", e.target.value)}
                   placeholder="5"
-                  className="rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                  className="rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
                 />
               </div>
               <div>
-                <Label className="text-xs text-slate-500 dark:text-slate-400">Concentração (mg/mL)</Label>
+                <Label className="text-xs text-[#9FB3C6]">Concentração (mg/mL)</Label>
                 <Input
                   type="number"
                   value={form.concentration}
                   onChange={(e) => update("concentration", e.target.value)}
                   placeholder="10"
-                  className="rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                  className="rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
                 />
               </div>
             </div>
@@ -321,12 +336,12 @@ export default function MedicationsTab({ patientId }) {
             value={form.notes}
             onChange={(e) => update("notes", e.target.value)}
             placeholder="Observações (via, diluente, frequência...)"
-            className="rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+            className="rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
             rows={2}
           />
 
           <div className="flex gap-2">
-            <Button onClick={calculate} variant="outline" className="flex-1 rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+            <Button onClick={calculate} variant="outline" className="flex-1 rounded-xl">
               <Calculator className="mr-2 h-4 w-4" /> Calcular
             </Button>
             <Button onClick={save} disabled={!form.drug_name || !result || saving} className="flex-1 rounded-xl">
@@ -336,42 +351,47 @@ export default function MedicationsTab({ patientId }) {
           </div>
 
           {result && (
-            <div className="rounded-xl border border-teal-200 dark:border-teal-800 bg-teal-50 dark:bg-teal-950/40 p-3 text-center">
-              <p className="text-xs uppercase tracking-wide text-teal-600 dark:text-teal-400">{result.label}</p>
-              <p className="text-2xl font-semibold text-teal-800 dark:text-teal-200">{result.value}</p>
-              {result.formula && <p className="mt-1 text-[11px] text-teal-600 dark:text-teal-400">{result.formula}</p>}
+            <div className="rounded-xl border border-[#20D5B5]/30 bg-[#20D5B5]/10 p-3 text-center">
+              <p className="text-xs uppercase tracking-wide text-[#20D5B5]">{result.label}</p>
+              <p className="text-2xl font-semibold text-[#EAF2F8]">{result.value}</p>
+              {result.formula && <p className="mt-1 text-[11px] text-[#20D5B5]">{result.formula}</p>}
             </div>
           )}
         </div>
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">Cálculos salvos ({records.length})</p>
+        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">Cálculos salvos ({records.length})</p>
         {loading ? (
-          <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-slate-400" /></div>
+          <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-[#20D5B5]" /></div>
         ) : records.length === 0 ? (
-          <div className="rounded-2xl border border-dashed border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center text-sm text-slate-400">
+          <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-6 text-center text-sm text-[#52667A]">
             Nenhum cálculo salvo.
           </div>
         ) : (
           <div className="space-y-2">
             {records.map((r) => (
-              <div key={r.id} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3 shadow-sm">
+              <div key={r.id} className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-3 shadow-sm">
                 <div className="flex items-start gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-teal-50 dark:bg-teal-950/60 text-teal-700 dark:text-teal-400">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-[#20D5B5]/15 text-[#20D5B5]">
                     <Pill className="h-4 w-4" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-sm font-medium text-slate-800 dark:text-slate-100">{r.drug_name}</p>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-sm font-medium text-[#EAF2F8]">{r.drug_name}</p>
+                    <p className="text-xs text-[#9FB3C6]">
                       {r.calc_type === "dose" && `Volume: ${r.calculated_volume?.toFixed(2)} mL`}
-                      {r.calc_type === "drip" && `Gotejamento: ${r.drip_rate} gtt/min`}
+                      {r.calc_type === "drip" && `Gotejamento: ${r.drip_rate} ${r.drop_factor === 60 ? "microgotas" : "gotas"}/min`}
                       {r.calc_type === "weight_based" && `Volume: ${r.calculated_volume?.toFixed(2)} mL`}
-                      {" · "}{new Date(r.created_date).toLocaleString("pt-BR")}
+                      {" · "}{new Date(r.created_date || r.created_at).toLocaleString("pt-BR")}
                     </p>
-                    {r.notes && <p className="mt-1 text-xs text-slate-400 dark:text-slate-400">{r.notes}</p>}
+                    {r.notes && <p className="mt-1 text-xs text-[#52667A]">{r.notes}</p>}
                   </div>
-                  <button onClick={() => remove(r.id)} className="shrink-0 rounded-lg p-1.5 text-slate-400 hover:bg-red-50 dark:hover:bg-red-950/40 hover:text-red-500">
+                  <button
+                    type="button"
+                    aria-label="Excluir cálculo"
+                    onClick={() => remove(r.id)}
+                    className="shrink-0 rounded-lg p-1.5 text-[#52667A] hover:bg-red-500/10 hover:text-[#FF6B6B]"
+                  >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>

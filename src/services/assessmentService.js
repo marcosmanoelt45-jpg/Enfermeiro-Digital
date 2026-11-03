@@ -201,42 +201,54 @@ export const assessmentService = {
     const user = await authService.getCurrentUser();
     const scores = computeAllScores(assessmentData);
 
-    const record = {
-      ...assessmentData,
-      ...scores,
-      ai_status: 'pending',
-      org_id: user?.org_id || null,
-      created_by_id: user?.id || null,
-      created_at: new Date().toISOString(),
-      updated_at: new Date().toISOString(),
-      created_date: new Date().toISOString(),
-      updated_date: new Date().toISOString(),
-    };
-
     let createdId;
+    let record;
+
     if (!isSupabaseConfigured()) {
+      record = {
+        id: 'assessment-' + Math.random().toString(36).substring(2, 9),
+        ...assessmentData,
+        ...scores,
+        ai_status: 'pending',
+        org_id: user?.org_id || null,
+        created_by_id: user?.id || null,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString(),
+        created_date: new Date().toISOString(),
+        updated_date: new Date().toISOString(),
+      };
       const list = getLocalAssessments();
-      record.id = 'assessment-' + Math.random().toString(36).substring(2, 9);
       list.unshift(record);
       saveLocalAssessments(list);
       createdId = record.id;
     } else {
-      try {
-        const { data, error } = await supabase
-          .from('assessments')
-          .insert(record)
-          .select()
-          .single();
-        if (error) throw error;
-        createdId = data.id;
-        Object.assign(record, data);
-      } catch {
-        const list = getLocalAssessments();
-        record.id = 'assessment-' + Math.random().toString(36).substring(2, 9);
-        list.unshift(record);
-        saveLocalAssessments(list);
-        createdId = record.id;
+      const dbPayload = {
+        ...assessmentData,
+        ...scores,
+        ai_status: 'pending',
+        org_id: user?.org_id || null,
+        created_by_id: user?.id || null,
+      };
+      delete dbPayload.created_date;
+      delete dbPayload.updated_date;
+      delete dbPayload.created_at;
+      delete dbPayload.updated_at;
+
+      const { data, error } = await supabase
+        .from('assessments')
+        .insert(dbPayload)
+        .select()
+        .single();
+
+      if (error) {
+        throw new Error(error.code === '42501' ? 'Sem permissão para salvar avaliação.' : error.message);
       }
+      createdId = data.id;
+      record = {
+        ...data,
+        created_date: data.created_at,
+        updated_date: data.updated_at,
+      };
     }
 
     // Dispara a geração de IA em background de forma não bloqueante
@@ -257,28 +269,21 @@ export const assessmentService = {
       return list[idx];
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('assessments')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select()
-        .single();
+    const { data, error } = await supabase
+      .from('assessments')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
 
-      if (error) throw error;
-      return {
-        ...data,
-        created_date: data.created_at,
-        updated_date: data.updated_at,
-      };
-    } catch {
-      const list = getLocalAssessments();
-      const idx = list.findIndex((a) => a.id === id);
-      if (idx === -1) throw new Error('Avaliação não encontrada');
-      list[idx] = { ...list[idx], ...updates, updated_at: new Date().toISOString(), updated_date: new Date().toISOString() };
-      saveLocalAssessments(list);
-      return list[idx];
+    if (error) {
+      throw new Error(error.code === '42501' ? 'Sem permissão para atualizar avaliação.' : error.message);
     }
+    return {
+      ...data,
+      created_date: data.created_at,
+      updated_date: data.updated_at,
+    };
   },
 
   async delete(id) {
@@ -288,19 +293,15 @@ export const assessmentService = {
       return { success: true };
     }
 
-    try {
-      const { error } = await supabase
-        .from('assessments')
-        .delete()
-        .eq('id', id);
+    const { error } = await supabase
+      .from('assessments')
+      .delete()
+      .eq('id', id);
 
-      if (error) throw error;
-      return { success: true };
-    } catch {
-      const list = getLocalAssessments().filter((a) => a.id !== id);
-      saveLocalAssessments(list);
-      return { success: true };
+    if (error) {
+      throw new Error(error.code === '42501' ? 'Sem permissão para remover avaliação.' : error.message);
     }
+    return { success: true };
   },
 
   async deleteMany(criteria = {}) {
@@ -313,21 +314,14 @@ export const assessmentService = {
       return { success: true };
     }
 
-    try {
-      let query = supabase.from('assessments').delete();
-      if (criteria.patient_id) {
-        query = query.eq('patient_id', criteria.patient_id);
-      }
-      const { error } = await query;
-      if (error) throw error;
-      return { success: true };
-    } catch {
-      let list = getLocalAssessments();
-      if (criteria.patient_id) {
-        list = list.filter((a) => a.patient_id !== criteria.patient_id);
-      }
-      saveLocalAssessments(list);
-      return { success: true };
+    let query = supabase.from('assessments').delete();
+    if (criteria.patient_id) {
+      query = query.eq('patient_id', criteria.patient_id);
     }
+    const { error } = await query;
+    if (error) {
+      throw new Error(error.code === '42501' ? 'Sem permissão para remover avaliações.' : error.message);
+    }
+    return { success: true };
   },
 };

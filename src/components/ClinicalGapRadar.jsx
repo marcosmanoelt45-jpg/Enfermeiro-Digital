@@ -15,8 +15,6 @@ import GotiAnimated from "@/components/mascot/GotiAnimated";
 /**
  * ClinicalGapRadar.jsx
  * Radar de Parâmetros Clínicos e Verificação de Protocolo.
- * Permite ao estudante identificar parâmetros não investigados e exercitar o exame físico
- * interativo à beira-leito, transformando a busca de lacunas em uma experiência formativa ativa.
  */
 export default function ClinicalGapRadar({
   detectedItems = [],
@@ -33,23 +31,16 @@ export default function ClinicalGapRadar({
   const [isAnswered, setIsAnswered] = useState(false);
   const [customValue, setCustomValue] = useState("");
 
-  function handleOpenGap(gap, existingItem = null) {
+  const safePercentage = Number.isFinite(completenessPercentage) ? Math.max(0, Math.min(100, completenessPercentage)) : 0;
+
+  function handleOpenGap(gap) {
     setActiveGap(gap);
-    // Obtém o achado com as 4 alternativas embaralhadas via Fisher-Yates
     const finding = getShuffledSemiologyFinding(gap.key) || SEMIOLOGY_KNOWLEDGE_BASE[gap.key];
     setActiveFinding(finding);
-
-    if (existingItem) {
-      setCustomValue(existingItem.value || "");
-      setSelectedOptionId(null);
-      setSelectedOption(null);
-      setIsAnswered(true);
-    } else {
-      setSelectedOptionId(null);
-      setSelectedOption(null);
-      setIsAnswered(false);
-      setCustomValue(finding?.resultingItem?.value || gap.hint || "");
-    }
+    setSelectedOptionId(null);
+    setSelectedOption(null);
+    setIsAnswered(false);
+    setCustomValue(finding?.resultingItem?.value || gap.hint || "");
   }
 
   function handleCloseModal() {
@@ -64,7 +55,7 @@ export default function ClinicalGapRadar({
   const findingData = activeFinding || (activeGap ? SEMIOLOGY_KNOWLEDGE_BASE[activeGap.key] : null);
 
   function handleSelectOption(opt) {
-    if (isAnswered) return; // Não permite alterar após já ter verificado
+    if (isAnswered) return;
     setSelectedOptionId(opt.id);
     setSelectedOption(opt);
     if (findingData?.resultingItem?.value) {
@@ -92,47 +83,47 @@ export default function ClinicalGapRadar({
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs space-y-4">
+    <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-5 shadow-xs space-y-4">
       {/* Cabeçalho com Medidor de Completude */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-3">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1F3045] pb-3">
         <div className="flex items-center gap-2.5">
-          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-100 dark:bg-slate-800 text-emerald-700 dark:text-emerald-400">
+          <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#20D5B5]/15 text-[#20D5B5]">
             <ClipboardCheck className="h-4 w-4" />
           </div>
           <div>
-            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 leading-tight">
+            <h3 className="text-sm font-bold text-[#EAF2F8] leading-tight">
               {title}
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400">
+            <p className="text-xs text-[#9FB3C6]">
               Conferência de dados essenciais para o julgamento diagnóstico
             </p>
           </div>
         </div>
 
         {/* Barra de Progresso / Completude */}
-        <div className="flex items-center gap-2.5 self-start sm:self-auto bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 px-3 py-1.5 rounded-xl">
-          <span className="text-[11px] font-medium text-slate-600 dark:text-slate-300">Completude:</span>
-          <div className="w-16 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div className="flex items-center gap-2.5 self-start sm:self-auto bg-[#0E1722] border border-[#1F3045] px-3 py-1.5 rounded-xl">
+          <span className="text-[11px] font-medium text-[#9FB3C6]">Completude:</span>
+          <div className="w-16 h-2 bg-[#1F3045] rounded-full overflow-hidden">
             <div
               className={`h-full transition-all duration-500 rounded-full ${
-                completenessPercentage >= 85
-                  ? "bg-emerald-600"
-                  : completenessPercentage >= 60
-                  ? "bg-amber-500"
-                  : "bg-rose-500"
+                safePercentage >= 85
+                  ? "bg-[#20D5B5]"
+                  : safePercentage >= 60
+                  ? "bg-[#FFC247]"
+                  : "bg-[#FF6B6B]"
               }`}
-              style={{ width: `${Math.min(completenessPercentage, 100)}%` }}
+              style={{ width: `${safePercentage}%` }}
             />
           </div>
-          <span className="text-xs font-bold text-slate-800 dark:text-slate-200">{completenessPercentage}%</span>
+          <span className="text-xs font-bold text-[#EAF2F8]">{safePercentage}%</span>
         </div>
       </div>
 
       {/* Sinais Coletados */}
       {detectedItems.length > 0 && (
         <div className="space-y-1.5">
-          <span className="text-[11px] font-semibold text-slate-600 dark:text-slate-400 flex items-center gap-1 uppercase tracking-wide">
-            <CheckCircle2 className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400" /> Parâmetros Registrados ({detectedItems.length})
+          <span className="text-[11px] font-semibold text-[#9FB3C6] flex items-center gap-1 uppercase tracking-wide">
+            <CheckCircle2 className="h-3.5 w-3.5 text-[#20D5B5]" /> Parâmetros Registrados ({detectedItems.length})
           </span>
           <div className="flex flex-wrap gap-1.5">
             {detectedItems.map((item, idx) => {
@@ -140,20 +131,21 @@ export default function ClinicalGapRadar({
               return (
                 <span
                   key={item.key || idx}
-                  className="group inline-flex items-center gap-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 px-2.5 py-1 text-xs text-slate-700 dark:text-slate-300 transition-all hover:border-slate-300 dark:hover:border-slate-600"
+                  className="group inline-flex items-center gap-1.5 rounded-lg border border-[#1F3045] bg-[#0E1722] px-2.5 py-1 text-xs text-[#EAF2F8] transition-all hover:border-[#27394B]"
                 >
-                  <span className={`h-1.5 w-1.5 rounded-full ${item.status === 'critical' ? 'bg-rose-600' : item.status === 'altered' ? 'bg-amber-500' : 'bg-emerald-600'}`} />
-                  <span className="font-semibold text-slate-800 dark:text-slate-200">{item.label}:</span>
-                  <span className="text-slate-600 dark:text-slate-400">{item.value}</span>
+                  <span className={`h-1.5 w-1.5 rounded-full ${item.status === 'critical' ? 'bg-[#FF6B6B]' : item.status === 'altered' ? 'bg-[#FFC247]' : 'bg-[#20D5B5]'}`} />
+                  <span className="font-semibold text-[#EAF2F8]">{item.label}:</span>
+                  <span className="text-[#9FB3C6]">{item.value}</span>
                   {isDeletable && onRemoveGap && (
                     <button
                       type="button"
+                      aria-label={`Remover parâmetro ${item.label}`}
                       onClick={(e) => {
                         e.stopPropagation();
                         onRemoveGap(item);
                       }}
                       title="Remover parâmetro do prontuário"
-                      className="ml-1 -mr-1 p-0.5 rounded text-slate-400 hover:text-rose-500 hover:bg-rose-50 dark:hover:bg-rose-950/40 transition-colors"
+                      className="ml-1 -mr-1 p-0.5 rounded text-[#52667A] hover:text-[#FF6B6B] hover:bg-red-500/10 transition-colors"
                     >
                       <X className="h-3 w-3" />
                     </button>
@@ -168,14 +160,14 @@ export default function ClinicalGapRadar({
       {/* Parâmetros Faltantes (Exame Físico Interativo) */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold text-slate-700 dark:text-slate-300 flex items-center gap-1 uppercase tracking-wide">
-            <AlertCircle className="h-3.5 w-3.5 text-amber-500" /> Parâmetros Complementares Recomendados ({missingGaps.length})
+          <span className="text-[11px] font-bold text-[#FFC247] flex items-center gap-1 uppercase tracking-wide">
+            <AlertCircle className="h-3.5 w-3.5" /> Parâmetros Complementares Recomendados ({missingGaps.length})
           </span>
         </div>
 
         {missingGaps.length === 0 ? (
-          <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300 flex items-center gap-2">
-            <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+          <div className="p-3 rounded-xl bg-[#0E1722] border border-[#1F3045] text-xs text-[#20D5B5] flex items-center gap-2">
+            <CheckCircle2 className="h-4 w-4" />
             <span>Todos os parâmetros essenciais desta etapa foram registrados com sucesso.</span>
           </div>
         ) : (
@@ -185,18 +177,18 @@ export default function ClinicalGapRadar({
                 key={gap.key || idx}
                 type="button"
                 onClick={() => handleOpenGap(gap)}
-                className="group flex items-start justify-between p-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800/80 hover:border-emerald-500 dark:hover:border-emerald-500 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all text-left"
+                className="group flex items-start justify-between p-3 rounded-xl border border-[#1F3045] bg-[#0E1722] hover:border-[#20D5B5]/50 hover:bg-[#16222E] transition-all text-left"
               >
                 <div className="space-y-0.5 pr-2">
-                  <span className="text-xs font-bold text-slate-800 dark:text-slate-200 group-hover:text-emerald-700 dark:group-hover:text-emerald-400 flex items-center gap-1.5">
-                    <Stethoscope className="h-3.5 w-3.5 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                  <span className="text-xs font-bold text-[#EAF2F8] group-hover:text-[#20D5B5] flex items-center gap-1.5">
+                    <Stethoscope className="h-3.5 w-3.5 text-[#20D5B5] shrink-0" />
                     {gap.label}
                   </span>
-                  <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-tight">
+                  <p className="text-[11px] text-[#9FB3C6] leading-tight">
                     {gap.hint || gap.desc || "Investigar e registrar para complementar a avaliação."}
                   </p>
                 </div>
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 group-hover:bg-emerald-600 group-hover:text-white transition-all">
+                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg bg-[#131F2E] text-[#9FB3C6] group-hover:bg-[#20D5B5] group-hover:text-[#0A1118] transition-all">
                   <Plus className="h-4 w-4" />
                 </div>
               </button>
@@ -207,23 +199,23 @@ export default function ClinicalGapRadar({
 
       {/* Modal Interativo de Exame Físico & Julgamento Propedêutico */}
       <Dialog open={Boolean(activeGap)} onOpenChange={(open) => { if (!open) handleCloseModal(); }}>
-        <DialogContent className="sm:max-w-xl rounded-2xl p-6 dark:bg-slate-900 dark:border-slate-800">
+        <DialogContent className="sm:max-w-xl rounded-2xl p-6 bg-[#131F2E] border-[#1F3045] text-[#EAF2F8]">
           <DialogHeader className="space-y-2">
-            <div className="inline-flex items-center gap-2 text-xs font-bold text-teal-800 dark:text-teal-300 bg-teal-50 dark:bg-teal-950/60 px-2.5 py-1 rounded-lg border border-teal-200 dark:border-teal-800 self-start">
+            <div className="inline-flex items-center gap-2 text-xs font-bold text-[#20D5B5] bg-[#20D5B5]/15 px-2.5 py-1 rounded-lg border border-[#20D5B5]/30 self-start">
               <Stethoscope className="h-3.5 w-3.5" />
               Exame Físico Guiado à Beira-Leito
             </div>
-            <DialogTitle className="text-base sm:text-lg font-bold text-slate-900 dark:text-slate-100">
+            <DialogTitle className="text-base sm:text-lg font-bold text-[#EAF2F8]">
               {findingData?.title || activeGap?.label}
             </DialogTitle>
-            <DialogDescription className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+            <DialogDescription className="text-xs text-[#9FB3C6] leading-relaxed">
               {findingData?.maneuver || activeGap?.hint || "Posicione o paciente e execute a propedêutica clínica recomendada para fundamentar o raciocínio."}
             </DialogDescription>
           </DialogHeader>
 
           {/* Dilema de Avaliação Prática */}
           <div className="space-y-3 py-2">
-            <span className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+            <span className="text-xs font-bold text-[#EAF2F8] block">
               {findingData?.prompt || "Qual achado clínico você identifica durante o exame físico?"}
             </span>
 
@@ -233,18 +225,18 @@ export default function ClinicalGapRadar({
                   {findingData.options.map((opt, idx) => {
                     const isSelected = selectedOptionId === opt.id;
                     const letter = opt.letter || String.fromCharCode(65 + idx);
-                    let cardStyle = "border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 hover:border-teal-400 dark:hover:border-teal-500 hover:bg-slate-50 dark:hover:bg-slate-750 text-slate-700 dark:text-slate-200";
+                    let cardStyle = "border-[#1F3045] bg-[#0E1722] hover:border-[#20D5B5]/50 hover:bg-[#16222E] text-[#EAF2F8]";
 
                     if (isAnswered) {
                       if (opt.isCorrect) {
-                        cardStyle = "border-teal-500 dark:border-teal-600 bg-teal-50/80 dark:bg-teal-950/70 text-teal-950 dark:text-teal-200 font-bold";
+                        cardStyle = "border-[#20D5B5] bg-[#20D5B5]/15 text-[#20D5B5] font-bold";
                       } else if (isSelected && !opt.isCorrect) {
-                        cardStyle = "border-rose-400 dark:border-rose-800 bg-rose-50 dark:bg-rose-950/50 text-rose-900 dark:text-rose-200 font-bold";
+                        cardStyle = "border-[#FF6B6B] bg-[#FF6B6B]/15 text-[#FF6B6B] font-bold";
                       } else {
-                        cardStyle = "border-slate-100 dark:border-slate-800/60 bg-slate-50/50 dark:bg-slate-900/30 text-slate-400 dark:text-slate-500 opacity-50";
+                        cardStyle = "border-[#1F3045]/40 bg-[#0E1722]/40 text-[#52667A] opacity-50";
                       }
                     } else if (isSelected) {
-                      cardStyle = "border-teal-500 dark:border-teal-400 bg-teal-50/70 dark:bg-teal-950/40 text-teal-950 dark:text-teal-100 ring-2 ring-teal-500/30 font-semibold";
+                      cardStyle = "border-[#20D5B5] bg-[#20D5B5]/20 text-[#EAF2F8] ring-1 ring-[#20D5B5] font-semibold";
                     }
 
                     return (
@@ -257,19 +249,19 @@ export default function ClinicalGapRadar({
                       >
                         <div className={`mt-0.5 h-6 w-6 rounded-lg font-black text-xs border flex items-center justify-center shrink-0 transition-colors shadow-xs ${
                           isAnswered && opt.isCorrect
-                            ? "bg-teal-600 border-teal-600 text-white"
+                            ? "bg-[#20D5B5] border-[#20D5B5] text-[#0A1118]"
                             : isAnswered && isSelected && !opt.isCorrect
-                            ? "bg-rose-500 border-rose-500 text-white"
+                            ? "bg-[#FF6B6B] border-[#FF6B6B] text-white"
                             : !isAnswered && isSelected
-                            ? "bg-teal-600 text-white border-teal-600"
-                            : "border-slate-300 dark:border-slate-600 bg-slate-100 dark:bg-slate-700/80 text-slate-700 dark:text-slate-200"
+                            ? "bg-[#20D5B5] text-[#0A1118] border-[#20D5B5]"
+                            : "border-[#27394B] bg-[#16222E] text-[#9FB3C6]"
                         }`}>
                           {isAnswered && opt.isCorrect ? <Check className="h-3.5 w-3.5" /> : letter}
                         </div>
                         <div className="space-y-1 flex-1">
-                          <span className="font-medium text-slate-900 dark:text-slate-100">{opt.label}</span>
+                          <span className="font-medium text-[#EAF2F8]">{opt.label}</span>
                           {isAnswered && isSelected && (
-                            <p className={`text-[11px] leading-tight mt-1 ${opt.isCorrect ? "text-teal-800 dark:text-teal-300 font-semibold" : "text-rose-700 dark:text-rose-400"}`}>
+                            <p className={`text-[11px] leading-tight mt-1 ${opt.isCorrect ? "text-[#20D5B5] font-semibold" : "text-[#FF6B6B]"}`}>
                               {opt.feedback}
                             </p>
                           )}
@@ -289,7 +281,7 @@ export default function ClinicalGapRadar({
                         setIsAnswered(true);
                       }}
                       disabled={!selectedOptionId}
-                      className="w-full py-2.5 rounded-xl font-bold text-xs bg-teal-600 hover:bg-teal-500 text-white disabled:opacity-40 disabled:cursor-not-allowed transition-all shadow-sm flex items-center justify-center gap-2 cursor-pointer"
+                      className="w-full py-2.5 rounded-xl font-bold text-xs"
                     >
                       <CheckCircle2 className="h-4 w-4" />
                       <span>Verificar Resposta</span>
@@ -298,9 +290,9 @@ export default function ClinicalGapRadar({
                 )}
               </div>
             ) : (
-              <div className="p-4 rounded-xl bg-slate-50 dark:bg-slate-800/80 border border-slate-200 dark:border-slate-700 text-xs text-slate-600 dark:text-slate-300 space-y-2">
+              <div className="p-4 rounded-xl bg-[#0E1722] border border-[#1F3045] text-xs text-[#9FB3C6] space-y-2">
                 <p>
-                  Parâmetro: <strong>{activeGap?.label}</strong>. {activeGap?.hint || "Confirme a realização do exame físico e o registro no prontuário."}
+                  Parâmetro: <strong className="text-[#EAF2F8]">{activeGap?.label}</strong>. {activeGap?.hint || "Confirme a realização do exame físico e o registro no prontuário."}
                 </p>
               </div>
             )}
@@ -309,14 +301,14 @@ export default function ClinicalGapRadar({
             {isAnswered && selectedOption && (
               <div className={`p-3.5 rounded-2xl flex items-center gap-3.5 border transition-all animate-in fade-in slide-in-from-bottom-2 ${
                 selectedOption.isCorrect 
-                  ? "bg-emerald-50/90 dark:bg-emerald-950/40 border-emerald-200 dark:border-emerald-800/60 text-emerald-900 dark:text-emerald-200" 
-                  : "bg-amber-50/90 dark:bg-amber-950/40 border-amber-200 dark:border-amber-800/60 text-amber-900 dark:text-amber-200"
+                  ? "bg-[#20D5B5]/15 border-[#20D5B5]/30 text-[#20D5B5]" 
+                  : "bg-[#FFC247]/15 border-[#FFC247]/30 text-[#FFC247]"
               }`}>
                 <div className="shrink-0 relative">
                   <GotiAnimated
                     animation={selectedOption.isCorrect ? "love" : "angry"}
                     size="feedback"
-                    className="w-32 h-32 sm:w-44 sm:h-44 md:w-52 md:h-52 shrink-0"
+                    className="w-24 h-24 sm:w-28 sm:h-28 shrink-0"
                   />
                 </div>
                 <div className="space-y-0.5">
@@ -333,7 +325,7 @@ export default function ClinicalGapRadar({
                       </>
                     )}
                   </p>
-                  <p className="text-[11px] leading-relaxed opacity-90">
+                  <p className="text-[11px] leading-relaxed text-[#EAF2F8]/90">
                     {selectedOption.feedback}
                   </p>
                 </div>
@@ -342,29 +334,29 @@ export default function ClinicalGapRadar({
 
             {/* Alerta formativo caso o aluno ainda não tenha respondido */}
             {findingData?.options && !isAnswered && (
-              <p className="text-[11px] text-amber-700 dark:text-amber-400 font-semibold flex items-center gap-1.5 pt-1">
+              <p className="text-[11px] text-[#FFC247] font-semibold flex items-center gap-1.5 pt-1">
                 <AlertCircle className="h-3.5 w-3.5 shrink-0" />
-                Selecione uma conduta acima e clique em "Verificar Resposta" antes de incorporar ao prontuário.
+                Selecione uma conduta acima e clique em &quot;Verificar Resposta&quot; antes de incorporar ao prontuário.
               </p>
             )}
 
             {/* Pérola Clínica Formativa pós-resposta */}
             {isAnswered && findingData?.pearl && (
-              <div className="p-3.5 rounded-xl bg-amber-50 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 text-xs text-amber-950 dark:text-amber-200 space-y-1 animate-in fade-in">
-                <span className="font-bold flex items-center gap-1.5 text-amber-900 dark:text-amber-300">
-                  <Lightbulb className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Pérola de Enfermagem:
+              <div className="p-3.5 rounded-xl bg-[#0E1722] border border-[#1F3045] text-xs text-[#EAF2F8] space-y-1 animate-in fade-in">
+                <span className="font-bold flex items-center gap-1.5 text-[#FFC247]">
+                  <Lightbulb className="h-4 w-4 text-[#FFC247]" /> Pérola de Enfermagem:
                 </span>
-                <p className="leading-relaxed text-[11px]">{findingData.pearl}</p>
+                <p className="leading-relaxed text-[11px] text-[#9FB3C6]">{findingData.pearl}</p>
               </div>
             )}
           </div>
 
-          <DialogFooter className="flex flex-row justify-between items-center gap-2 pt-2 border-t border-slate-100 dark:border-slate-800">
+          <DialogFooter className="flex flex-row justify-between items-center gap-2 pt-2 border-t border-[#1F3045]">
             <Button
-              variant="ghost"
+              variant="outline"
               size="sm"
               onClick={handleCloseModal}
-              className="text-xs text-slate-500 dark:text-slate-400 hover:text-slate-700 dark:hover:text-slate-200"
+              className="text-xs text-[#9FB3C6] hover:text-[#EAF2F8] rounded-xl"
             >
               Cancelar
             </Button>
@@ -372,7 +364,7 @@ export default function ClinicalGapRadar({
               size="sm"
               onClick={handleConfirmFinding}
               disabled={Boolean(findingData?.options && !isAnswered)}
-              className="rounded-xl text-xs bg-teal-700 hover:bg-teal-800 text-white font-semibold flex items-center gap-1.5 disabled:opacity-50 disabled:cursor-not-allowed"
+              className="rounded-xl text-xs font-semibold flex items-center gap-1.5"
             >
               <span>Incorporar ao Prontuário</span>
               <ArrowRight className="h-3.5 w-3.5" />

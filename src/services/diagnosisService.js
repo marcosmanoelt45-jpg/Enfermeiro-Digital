@@ -67,26 +67,19 @@ export const diagnosisService = {
       return payload;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('nursing_diagnoses')
-        .insert(payload)
-        .select()
-        .single();
+    const { created_date, updated_date, created_at, updated_at, ...dbPayload } = payload;
+    const { data, error } = await supabase
+      .from('nursing_diagnoses')
+      .insert(dbPayload)
+      .select()
+      .single();
 
-      if (error) throw error;
-      return {
-        ...data,
-        created_date: data.created_at,
-        updated_date: data.updated_at,
-      };
-    } catch {
-      const list = getLocalDiagnoses();
-      payload.id = 'diagnosis-' + Math.random().toString(36).substring(2, 9);
-      list.unshift(payload);
-      saveLocalDiagnoses(list);
-      return payload;
-    }
+    if (error) throw new Error(error.code === '42501' ? 'Sem permissão para esta ação.' : error.message);
+    return {
+      ...data,
+      created_date: data.created_at,
+      updated_date: data.updated_at,
+    };
   },
 
   async bulkCreate(records = []) {
@@ -111,27 +104,18 @@ export const diagnosisService = {
       return prepared;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('nursing_diagnoses')
-        .insert(prepared)
-        .select();
+    const cleanRecords = prepared.map(({ created_date, updated_date, created_at, updated_at, ...rest }) => rest);
+    const { data, error } = await supabase
+      .from('nursing_diagnoses')
+      .insert(cleanRecords)
+      .select();
 
-      if (error) throw error;
-      return (data || []).map((d) => ({
-        ...d,
-        created_date: d.created_at,
-        updated_date: d.updated_at,
-      }));
-    } catch {
-      const list = getLocalDiagnoses();
-      prepared.forEach((p) => {
-        p.id = 'diagnosis-' + Math.random().toString(36).substring(2, 9);
-        list.unshift(p);
-      });
-      saveLocalDiagnoses(list);
-      return prepared;
-    }
+    if (error) throw new Error(error.code === '42501' ? 'Sem permissão para esta ação.' : error.message);
+    return (data || []).map((d) => ({
+      ...d,
+      created_date: d.created_at,
+      updated_date: d.updated_at,
+    }));
   },
 
   async update(id, updates) {
@@ -238,14 +222,15 @@ export const diagnosisService = {
   },
 
   async searchNandaCatalog(query = '') {
-    if (!query) return this.listNandaCatalog(12);
+    const q = (query || '').replace(/[(),.*%\\/]/g, ' ').trim();
+    if (!q) return this.listNandaCatalog(12);
 
     if (isSupabaseConfigured()) {
       try {
         const { data, error } = await supabase
           .from('nanda_catalog')
           .select('*')
-          .or(`title.ilike.%${query}%,code.ilike.%${query}%,domain.ilike.%${query}%`)
+          .or(`title.ilike.%${q}%,code.ilike.%${q}%,domain.ilike.%${q}%`)
           .limit(20);
 
         if (!error && data && data.length > 0) {

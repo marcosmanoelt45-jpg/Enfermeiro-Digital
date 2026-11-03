@@ -91,26 +91,19 @@ export const medicationService = {
       return payload;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('medication_records')
-        .insert(payload)
-        .select()
-        .single();
+    const { created_date, updated_date, created_at, updated_at, ...dbPayload } = payload;
+    const { data, error } = await supabase
+      .from('medication_records')
+      .insert(dbPayload)
+      .select()
+      .single();
 
-      if (error) throw error;
-      return {
-        ...data,
-        created_date: data.created_at,
-        updated_date: data.updated_at,
-      };
-    } catch {
-      const list = getLocalMeds();
-      payload.id = 'med-' + Math.random().toString(36).substring(2, 9);
-      list.unshift(payload);
-      saveLocalMeds(list);
-      return payload;
-    }
+    if (error) throw new Error(error.code === '42501' ? 'Sem permissão para esta ação.' : error.message);
+    return {
+      ...data,
+      created_date: data.created_at,
+      updated_date: data.updated_at,
+    };
   },
 
   async delete(id) {

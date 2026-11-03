@@ -39,7 +39,7 @@ export function computeCaloiTotal(items = {}) {
   return Number(items.caloi_pain_intensity) || 0;
 }
 
-function classifyVital(name, value) {
+export function classifyVital(name, value) {
   if (value === undefined || value === null || Number.isNaN(value)) return "estavel";
   const v = Number(value);
   const rules = {
@@ -118,8 +118,48 @@ export function computeAllScores(data = {}) {
   return { braden_total, cam_positive, audit_total, sak_score, caloi_score, risk_status };
 }
 
+export function classifyBradenLabel(total) {
+  if (total === null || total === undefined) return "Não avaliado";
+  const n = Number(total);
+  if (n <= 9) return "Risco muito alto";
+  if (n <= 12) return "Alto risco";
+  if (n <= 14) return "Risco moderado";
+  if (n <= 18) return "Risco brando";
+  return "Sem risco";
+}
+
 export const RISK_META = {
-  estavel: { label: "Estável", color: "emerald", dot: "bg-emerald-500", text: "text-emerald-700", bg: "bg-emerald-50", border: "border-emerald-200" },
-  alerta: { label: "Alerta", color: "amber", dot: "bg-amber-500", text: "text-amber-700", bg: "bg-amber-50", border: "border-amber-200" },
-  critico: { label: "Crítico", color: "red", dot: "bg-red-500", text: "text-red-700", bg: "bg-red-50", border: "border-red-200" }
+  estavel: {
+    label: "Estável",
+    title: "Paciente estável",
+    description: "Parâmetros dentro da faixa esperada e escalas assistenciais compensadas.",
+    color: "emerald",
+    dot: "bg-[#20D5B5]",
+    text: "text-[#20D5B5]",
+    bg: "bg-[#20D5B5]/10",
+    surface: "bg-[#20D5B5]/10",
+    border: "border-[#20D5B5]/30",
+  },
+  alerta: {
+    label: "Alerta",
+    title: "Atenção clínica necessária",
+    description: "Parâmetro vital alterado ou pontuação moderada de risco assistencial.",
+    color: "amber",
+    dot: "bg-[#FFC247]",
+    text: "text-[#FFC247]",
+    bg: "bg-[#FFC247]/10",
+    surface: "bg-[#FFC247]/10",
+    border: "border-[#FFC247]/30",
+  },
+  critico: {
+    label: "Crítico",
+    title: "Condição crítica",
+    description: "Descompensação hemodinâmica, delírium positivo ou alto risco iminente.",
+    color: "red",
+    dot: "bg-[#FF6B6B]",
+    text: "text-[#FF6B6B]",
+    bg: "bg-[#FF6B6B]/10",
+    surface: "bg-[#FF6B6B]/10",
+    border: "border-[#FF6B6B]/30",
+  },
 };

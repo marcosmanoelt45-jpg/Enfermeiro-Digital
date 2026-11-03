@@ -95,26 +95,19 @@ export const dischargeService = {
       return payload;
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('discharge_plans')
-        .insert(payload)
-        .select()
-        .single();
+    const { created_date, updated_date, created_at, updated_at, ...dbPayload } = payload;
+    const { data, error } = await supabase
+      .from('discharge_plans')
+      .insert(dbPayload)
+      .select()
+      .single();
 
-      if (error) throw error;
-      return {
-        ...data,
-        created_date: data.created_at,
-        updated_date: data.updated_at,
-      };
-    } catch {
-      const list = getLocalPlans();
-      payload.id = 'discharge-' + Math.random().toString(36).substring(2, 9);
-      list.unshift(payload);
-      saveLocalPlans(list);
-      return payload;
-    }
+    if (error) throw new Error(error.code === '42501' ? 'Sem permissão para esta ação.' : error.message);
+    return {
+      ...data,
+      created_date: data.created_at,
+      updated_date: data.updated_at,
+    };
   },
 
   async update(id, updates) {
@@ -129,33 +122,23 @@ export const dischargeService = {
       throw new Error('Plano de alta não encontrado');
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('discharge_plans')
-        .update({
-          ...updates,
-          updated_at: new Date().toISOString(),
-        })
-        .eq('id', id)
-        .select()
-        .single();
+    const { created_date, updated_date, created_at, updated_at, org_id, created_by_id, id: _ign, ...dbUpdates } = updates;
+    const { data, error } = await supabase
+      .from('discharge_plans')
+      .update({
+        ...dbUpdates,
+        updated_at: new Date().toISOString(),
+      })
+      .eq('id', id)
+      .select()
+      .single();
 
-      if (error) throw error;
-      return {
-        ...data,
-        created_date: data.created_at,
-        updated_date: data.updated_at,
-      };
-    } catch {
-      const list = getLocalPlans();
-      const idx = list.findIndex((p) => p.id === id);
-      if (idx !== -1) {
-        list[idx] = { ...list[idx], ...updates, updated_at: new Date().toISOString(), updated_date: new Date().toISOString() };
-        saveLocalPlans(list);
-        return list[idx];
-      }
-      throw new Error('Plano de alta não encontrado');
-    }
+    if (error) throw new Error(error.code === '42501' ? 'Sem permissão para esta ação.' : error.message);
+    return {
+      ...data,
+      created_date: data.created_at,
+      updated_date: data.updated_at,
+    };
   },
 
   async delete(id) {

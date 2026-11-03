@@ -87,25 +87,18 @@ export const evolutionService = {
       saveLocalEvolutions(list);
       createdRecord = payload;
     } else {
-      try {
-        const { data, error } = await supabase
-          .from('evolutions')
-          .insert(payload)
-          .select()
-          .single();
-        if (error) throw error;
-        createdRecord = {
-          ...data,
-          created_date: data.created_at,
-          updated_date: data.updated_at,
-        };
-      } catch {
-        const list = getLocalEvolutions();
-        payload.id = 'evolution-' + Math.random().toString(36).substring(2, 9);
-        list.unshift(payload);
-        saveLocalEvolutions(list);
-        createdRecord = payload;
-      }
+      const { created_date, updated_date, created_at, updated_at, ...dbPayload } = payload;
+      const { data, error } = await supabase
+        .from('evolutions')
+        .insert(dbPayload)
+        .select()
+        .single();
+      if (error) throw new Error(error.code === '42501' ? 'Sem permissão para esta ação.' : error.message);
+      createdRecord = {
+        ...data,
+        created_date: data.created_at,
+        updated_date: data.updated_at,
+      };
     }
 
     await auditService.log({
@@ -216,13 +209,8 @@ export const evolutionService = {
       const list = getLocalEvolutions().filter((e) => e.id !== id);
       saveLocalEvolutions(list);
     } else {
-      try {
-        const { error } = await supabase.from('evolutions').delete().eq('id', id);
-        if (error) throw error;
-      } catch {
-        const list = getLocalEvolutions().filter((e) => e.id !== id);
-        saveLocalEvolutions(list);
-      }
+      const { error } = await supabase.from('evolutions').delete().eq('id', id);
+      if (error) throw new Error(error.code === '42501' ? 'Sem permissão para esta ação.' : error.message);
     }
 
     await auditService.log({
