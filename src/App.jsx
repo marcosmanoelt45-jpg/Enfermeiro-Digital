@@ -46,7 +46,8 @@ const SplashPage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const query = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  const isDemoAuth = query ? (query.get("demo") === "auth" || query.get("auth") === "1") : false;
+  // Modo de demonstração por URL só existe no ambiente de desenvolvimento.
+  const isDemoAuth = import.meta.env.DEV && query ? (query.get("demo") === "auth" || query.get("auth") === "1") : false;
   const demoUserName = query ? (query.get("user") || "Marcos") : "Marcos";
 
   const effectiveAuth = isAuthenticated || isDemoAuth;
@@ -69,7 +70,7 @@ const SplashPage = () => {
 };
 
 const AuthenticatedApp = () => {
-  const { user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showInitialSplash, setShowInitialSplash] = React.useState(() => {
@@ -100,7 +101,16 @@ const AuthenticatedApp = () => {
     return true;
   });
 
+  // O splash só aparece depois de a autenticação resolver: antes disso ele mostraria
+  // "Começar" para quem já está logado.
+  if (isLoadingPublicSettings || isLoadingAuth) {
+    return <PageLoader />;
+  }
+
   if (showInitialSplash) {
+    // Link direto para uma tela (ex.: /calculo-doses) mantém o destino depois do splash.
+    const destino = `${location.pathname}${location.search}`;
+    const returnTo = destino !== "/" ? `?returnTo=${encodeURIComponent(destino)}` : "";
     return (
       <EnfereSplash
         isAuthenticated={isAuthenticated}
@@ -108,31 +118,22 @@ const AuthenticatedApp = () => {
         onGetStarted={() => {
           sessionStorage.setItem("enfere_splash_passed", "true");
           setShowInitialSplash(false);
-          if (isAuthenticated) {
-            navigate("/");
-          } else {
-            navigate("/register");
-          }
+          if (!isAuthenticated) navigate(`/register${returnTo}`);
         }}
         onHaveAccount={() => {
           sessionStorage.setItem("enfere_splash_passed", "true");
           setShowInitialSplash(false);
-          navigate("/login");
+          navigate(`/login${returnTo}`);
         }}
       />
     );
-  }
-
-  if (isLoadingPublicSettings || isLoadingAuth) {
-    return <PageLoader />;
   }
 
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
+      return <Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname)}`} replace />;
     }
   }
 
