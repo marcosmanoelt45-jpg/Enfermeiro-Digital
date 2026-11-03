@@ -6,7 +6,7 @@ export default function NightingaleLevelCard({ xp = 0 }) {
   const { current, next, progressPercent, xpToNext } = clinicalGamificationService.getLevelInfo(xp);
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
           <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-500/20">
@@ -24,7 +24,7 @@ export default function NightingaleLevelCard({ xp = 0 }) {
           </div>
         </div>
 
-        <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-bold text-sm shadow-xs">
+        <div className="flex items-center gap-1.5 px-3 py-1 rounded-xl bg-amber-50 dark:bg-amber-950/60 border border-amber-200/80 dark:border-amber-800/60 text-amber-800 dark:text-amber-300 font-bold text-sm shadow-sm">
           <Zap className="h-4 w-4 fill-amber-500 text-amber-500" />
           <span>{xp} PE</span>
         </div>

@@ -72,7 +72,9 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
   function handleBriefingAction(action, targetPath) {
     setIsBriefingOpen(false);
     triggerHaptic(20);
-    const destination = action.query ? `${targetPath}${action.query}` : targetPath;
+    // Uma ação pode levar a outra tela (ex.: revisão dos casos montados fica no Banco de Casos).
+    const basePath = action.path || targetPath;
+    const destination = action.query ? `${basePath}${action.query}` : basePath;
     navigate(destination);
   }
 
@@ -115,13 +117,14 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
                   <button
                     key={link.id}
                     onClick={() => handleNavClick(link)}
+                    aria-current={isActive ? "page" : undefined}
                     className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-black transition-all relative ${
                       isActive
                         ? "bg-[#20D5B5]/10 text-[#20D5B5] border border-[#20D5B5]/30 shadow-[0_0_10px_rgba(32,213,181,0.2)]"
                         : "text-[#9FB3C6] hover:text-[#EAF2F8] hover:bg-[#16222E]"
                     }`}
                   >
-                    <Icon className={`h-4 w-4 ${isActive ? "text-[#20D5B5]" : "text-[#52667A]"}`} />
+                    <Icon className={`h-4 w-4 ${isActive ? "text-[#20D5B5]" : "text-[#8A9DB1]"}`} />
                     <span>{link.label}</span>
                     {link.isNew && (
                       <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#20D5B5] text-[#0A1118] uppercase tracking-wider">
@@ -172,6 +175,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
                 }}
                 className="rounded-xl text-xs text-[#F0645F] hover:text-white hover:bg-[#F0645F]/20 flex items-center gap-1.5 h-9 px-2.5"
                 title="Sair da Plataforma"
+                aria-label="Sair da conta"
               >
                 <LogOut className="h-4 w-4" />
               </Button>
@@ -192,7 +196,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
         <img
           src={gotiLogoOficial}
           alt="Goti IA"
-          className="w-10 h-10 object-contain filter drop-shadow-xs group-hover:scale-110 transition-transform"
+          className="w-10 h-10 object-contain filter drop-shadow-sm group-hover:scale-110 transition-transform"
         />
         <div className="hidden sm:block text-left">
           <span className="text-xs font-black block leading-none">Goti IA</span>

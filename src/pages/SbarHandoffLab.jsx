@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Mic,
@@ -31,7 +31,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
-import { useAuth } from "@/lib/AuthContext";
 import { evaluateSbarHandoff } from "@/services/sbarTutorService";
 import { audioTranscriptionService } from "@/services/audioTranscriptionService";
 import { evaluateSbarChecklists } from "@/lib/sbarSpeechMatcher";
@@ -41,6 +40,7 @@ import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { toast } from "@/components/ui/use-toast";
 import { celebrate } from "@/lib/celebrate";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { vibrate } from "@/lib/motion";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 import { PRESET_HANDOFF_SCENARIOS } from "@/data/sbarHandoffScenarios";
@@ -49,7 +49,6 @@ import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 export default function SbarHandoffLab() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const passedCase = location.state?.caseData;
 
@@ -67,7 +66,9 @@ export default function SbarHandoffLab() {
 
   // Histórico & Cronômetro de Atividade SBAR
   const [currentActivityId, setCurrentActivityId] = useState(null);
-  const [activitySeconds, setActivitySeconds] = useState(0);
+  const startedAtRef = useRef(Date.now());
+  const baseSecondsRef = useRef(0);
+  const elapsedSeconds = () => baseSecondsRef.current + Math.round((Date.now() - startedAtRef.current) / 1000);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
 
@@ -80,12 +81,6 @@ export default function SbarHandoffLab() {
     }
   }, [location.search]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActivitySeconds((s) => s + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   function handleSaveDraft() {
     const filledCount = [sbarData.situation, sbarData.background, sbarData.assessment, sbarData.recommendation].filter(Boolean).length;
@@ -96,7 +91,7 @@ export default function SbarHandoffLab() {
       title: `Passagem SBAR: ${currentCase?.title || "Caso Clínico"}`,
       patientInfo: `${currentCase?.name || "Paciente"} (${currentCase?.age || "?"}a) • ${currentCase?.sector || "Enfermaria"}`,
       progress,
-      durationSeconds: activitySeconds,
+      durationSeconds: elapsedSeconds(),
       step: activeGuidedStep,
       formData: { sbarData, currentCase, activeTab }
     });
@@ -110,7 +105,10 @@ export default function SbarHandoffLab() {
       if (item.formData.sbarData) setSbarData(item.formData.sbarData);
       if (item.formData.currentCase) setCurrentCase(item.formData.currentCase);
       if (item.formData.activeTab) setActiveTab(item.formData.activeTab);
-      if (item.durationSeconds) setActivitySeconds(item.durationSeconds);
+      if (item.durationSeconds) {
+        baseSecondsRef.current = item.durationSeconds;
+        startedAtRef.current = Date.now();
+      }
     }
     if (item?.evaluation) {
       setTutorEvaluation(item.evaluation);
@@ -134,14 +132,6 @@ export default function SbarHandoffLab() {
     recommendation: ""
   });
 
-  // Checklists Pedagógicos Interativos por Pilar
-  const [checklists, setChecklists] = useState({
-    situation: { bed: false, id: false, reason: false },
-    background: { allergy: false, comorbidities: false, meds: false },
-    assessment: { vitals: false, sato2: false, exam: false },
-    recommendation: { time: false, meds: false, monitoring: false }
-  });
-
   // Reconhecimento de Voz Dual-Engine (Web Speech API em tempo real + MediaRecorder Fallback com IA)
   const [isListening, setIsListening] = useState(false);
   const [voiceStarting, setVoiceStarting] = useState(false);
@@ -154,6 +144,11 @@ export default function SbarHandoffLab() {
   const [processingField, setProcessingField] = useState(null);
 
   const recognitionRef = useRef(null);
+  // sessionRef muda a cada troca de caso, limpeza ou envio: transcrição antiga que chegar depois é descartada.
+  // startIdRef invalida um pedido de microfone que ainda esperava permissão.
+  const sessionRef = useRef(0);
+  const startIdRef = useRef(0);
+  const mountedRef = useRef(true);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const streamRef = useRef(null);
@@ -165,9 +160,6 @@ export default function SbarHandoffLab() {
   // Estados de Avaliação
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [tutorEvaluation, setTutorEvaluation] = useState(null);
-  const [studentReflections, setStudentReflections] = useState({});
-  const [isSavingReflections, setIsSavingReflections] = useState(false);
-  const [reflectionsFeedback, setReflectionsFeedback] = useState(null);
   const [showGotiEvaluationModal, setShowGotiEvaluationModal] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showGoldComparison, setShowGoldComparison] = useState(false);
@@ -180,12 +172,17 @@ export default function SbarHandoffLab() {
 
   // Limpeza de recursos de áudio ao desmontar
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
+      sessionRef.current++;
+      startIdRef.current++;
       if (timerRef.current) clearInterval(timerRef.current);
       if (recognitionRef.current) {
         try {
           recognitionRef.current.onend = null;
-          recognitionRef.current.stop();
+          recognitionRef.current.onresult = null;
+          recognitionRef.current.abort();
         } catch {}
         recognitionRef.current = null;
       }
@@ -235,66 +232,30 @@ export default function SbarHandoffLab() {
   };
 
   // Validação dinâmica rigorosa dos checklists baseada estritamente no texto digitado/falado
-  useEffect(() => {
-    const autoChecked = evaluateSbarChecklists(sbarData, currentCase);
-    setChecklists(autoChecked);
-  }, [sbarData, currentCase]);
+  const checklists = useMemo(() => evaluateSbarChecklists(sbarData, currentCase), [sbarData, currentCase]);
 
   // Fornece feedback instrutivo do Goti sobre os itens do checklist, bloqueando marcação arbitrária sem texto
   function handleToggleChecklistItem(pillarKey, itemKey) {
-    const currentChecked = evaluateSbarChecklists(sbarData, currentCase);
-    const isDone = currentChecked[pillarKey]?.[itemKey];
+    const isDone = checklists[pillarKey]?.[itemKey];
 
     if (isDone) {
-      setToastMessage("✨ Item já validado pelo Goti com base na redação do seu texto clínico!");
+      setToastMessage("Item já validado pelo Goti com base no seu texto.");
       setTimeout(() => setToastMessage(""), 3500);
       return;
     }
 
     const hint = CHECKLIST_GUIDANCE[pillarKey]?.[itemKey] || "Redija os dados objetivos deste item no campo do pilar para validação pelo Goti.";
-    setToastMessage(`🩺 Goti orienta: ${hint}`);
+    setToastMessage(`Goti orienta: ${hint}`);
     setTimeout(() => setToastMessage(""), 5500);
-  }
-
-  async function handleSaveStudentReflections() {
-    const filledAnswers = Object.entries(studentReflections).filter(([_, val]) => val && val.trim().length > 0);
-    if (filledAnswers.length === 0) {
-      setToastMessage("🩺 Goti: Digite sua reflexão em ao menos uma pergunta antes de enviar!");
-      setTimeout(() => setToastMessage(""), 4000);
-      return;
-    }
-
-    setIsSavingReflections(true);
-    try {
-      if (currentActivityId) {
-        clinicalHistoryService.updateActivity(currentActivityId, {
-          studentReflections,
-          reflectionsSubmittedAt: new Date().toISOString()
-        });
-      }
-
-      await new Promise((r) => setTimeout(r, 600));
-
-      setReflectionsFeedback({
-        savedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        comment: "Excelente reflexão clínica! O Goti analisou suas justificativas: você demonstrou sólido compromisso com a continuidade da assistência, segurança do paciente e comunicação assertiva. Suas anotações foram registradas com sucesso no histórico acadêmico."
-      });
-
-      setToastMessage("🩺 Respostas reflexivas salvas no prontuário e auditadas pelo Goti!");
-      setTimeout(() => setToastMessage(""), 4000);
-    } catch (err) {
-      console.warn("Erro ao salvar reflexões:", err);
-      setToastMessage("Reflexões salvas localmente no prontuário.");
-      setTimeout(() => setToastMessage(""), 3000);
-    } finally {
-      setIsSavingReflections(false);
-    }
   }
 
   async function stopListening(fieldNameOverride = null) {
     const targetField = fieldNameOverride || activeListeningField;
+    const token = sessionRef.current;
+    const stillCurrent = () => mountedRef.current && token === sessionRef.current;
 
     isListeningRef.current = false;
+    startIdRef.current++;
 
     // 1. Limpa o cronômetro visual
     if (timerRef.current) {
@@ -304,9 +265,12 @@ export default function SbarHandoffLab() {
 
     // 2. Encerra a Web Speech API
     if (recognitionRef.current) {
+      // abort() em vez de stop(): stop() ainda entregaria o resultado final, duplicando o fim da fala
+      // que já é gravado no flush abaixo.
       try {
         recognitionRef.current.onend = null;
-        recognitionRef.current.stop();
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.abort();
       } catch {}
       recognitionRef.current = null;
     }
@@ -375,12 +339,12 @@ export default function SbarHandoffLab() {
       if (currentText.length > textLenBefore || pendingInterim.length > 0) {
         setToastMessage(`Transcrição do pilar ${targetField.toUpperCase()} concluída com sucesso!`);
         setTimeout(() => setToastMessage(""), 3000);
-      } else if (recordedBlob && targetField && recordedBlob.size > 1500) {
+      } else if (recordedBlob && targetField && recordedBlob.size > 1500 && stillCurrent()) {
         // Fallback com IA (Gemini / AssemblyAI) se a Web Speech não digitou texto
         setIsTranscribingWithAi(true);
         setToastMessage("Transcrevendo o áudio gravado em alta fidelidade...");
         const result = await audioTranscriptionService.transcribe(recordedBlob);
-        if (result && result.text) {
+        if (result && result.text && stillCurrent()) {
           setSbarData((prev) => {
             const prevText = prev[targetField] ? prev[targetField].trim() + " " : "";
             return {
@@ -440,10 +404,16 @@ export default function SbarHandoffLab() {
     }, 1000);
 
     // 1. Solicita e abre microfone com getUserMedia nativo do navegador
+    const myStartId = ++startIdRef.current;
     let stream = null;
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Se o aluno trocou de campo ou saiu da tela enquanto a permissão estava pendente, fecha este microfone.
+        if (!mountedRef.current || myStartId !== startIdRef.current) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         streamRef.current = stream;
       }
     } catch (err) {
@@ -541,6 +511,8 @@ export default function SbarHandoffLab() {
           if (e.error === "not-allowed" || e.error === "permission-denied") {
             setVoiceError("Permissão de microfone negada nas configurações do navegador.");
             isListeningRef.current = false;
+            setIsListening(false);
+            setActiveListeningField(null);
           } else if (e.error === "network") {
             setVoiceError("Conexão de voz do navegador oscilou. O áudio está sendo gravado e será processado pela IA ao parar.");
           }
@@ -568,12 +540,12 @@ export default function SbarHandoffLab() {
   }
 
   function handleSelectScenario(idx) {
+    sessionRef.current++;
     if (isListening) stopListening();
     setActiveScenarioIdx(idx);
     setCurrentCase(PRESET_HANDOFF_SCENARIOS[idx]);
     setSbarData({ situation: "", background: "", assessment: "", recommendation: "" });
     setTutorEvaluation(null);
-    setStudentReflections({});
     setActiveGuidedStep(0);
   }
 
@@ -582,16 +554,8 @@ export default function SbarHandoffLab() {
     const availableIndices = PRESET_HANDOFF_SCENARIOS.map((_, i) => i).filter((i) => i !== activeScenarioIdx);
     const nextIdx = availableIndices[Math.floor(Math.random() * availableIndices.length)];
     handleSelectScenario(nextIdx);
-    setToastMessage(`🎲 Novo caso sorteado: ${PRESET_HANDOFF_SCENARIOS[nextIdx].name} (${PRESET_HANDOFF_SCENARIOS[nextIdx].bed})`);
+    setToastMessage(`Novo caso sorteado: ${PRESET_HANDOFF_SCENARIOS[nextIdx].name} (${PRESET_HANDOFF_SCENARIOS[nextIdx].bed})`);
     setTimeout(() => setToastMessage(""), 3500);
-  }
-
-  function handleInsertGoldenExample() {
-    if (currentCase?.goldenSbar) {
-      setSbarData(currentCase.goldenSbar);
-      setToastMessage("Exemplo Padrão Ouro inserido em todos os campos para análise didática!");
-      setTimeout(() => setToastMessage(""), 3500);
-    }
   }
 
   function handleInsertFieldExample(fieldKey) {
@@ -603,6 +567,7 @@ export default function SbarHandoffLab() {
   }
 
   function handleClearFields() {
+    sessionRef.current++;
     if (isListening) stopListening();
     setSbarData({ situation: "", background: "", assessment: "", recommendation: "" });
     setTutorEvaluation(null);
@@ -611,7 +576,11 @@ export default function SbarHandoffLab() {
   }
 
   async function handleEvaluateSbar() {
-    if (isListening) stopListening();
+    // Avaliar com um ditado ainda em andamento enviaria o texto incompleto.
+    if (isListening || voiceStarting || isProcessingAudio) {
+      toast({ title: "Ditado em andamento", description: "Finalize o ditado e aguarde a transcrição antes de enviar para o Goti." });
+      return;
+    }
     const isAnyFilled = sbarData.situation || sbarData.background || sbarData.assessment || sbarData.recommendation;
     if (!isAnyFilled) {
       toast({ title: "SBAR vazio", description: "Preencha ao menos uma etapa do SBAR antes de enviar para o Goti avaliar." });
@@ -641,8 +610,8 @@ export default function SbarHandoffLab() {
           moduleType: MODULE_TYPES.SBAR,
           title: `Passagem SBAR: ${currentCase?.title || "Caso Clínico"}`,
           patientInfo: `${currentCase?.name || "Paciente"} (${currentCase?.age || "?"}a) • ${currentCase?.sector || "Enfermaria"}`,
-          durationSeconds: activitySeconds,
-          score: evaluation?.safetyScore || 100,
+          durationSeconds: elapsedSeconds(),
+          score: Number.isFinite(Number(evaluation?.safetyScore)) ? Number(evaluation.safetyScore) : 0,
           evaluation: evaluation,
           formData: { sbarData, currentCase }
         });
@@ -667,8 +636,8 @@ export default function SbarHandoffLab() {
       letter: "S",
       title: "Situação (Situation)",
       subtitle: "A regra de ouro dos primeiros 20 segundos",
-      accentBg: "bg-indigo-700 text-white",
-      badgeColor: "bg-indigo-50 text-indigo-800 border-indigo-200",
+      accentBg: "bg-sky-600 text-white",
+      badgeColor: "bg-indigo-50 text-sky-300 border-indigo-200",
       activeBorder: "border-indigo-600 ring-indigo-600/20",
       goal: "Apresente quem é o paciente, em qual leito ele se encontra e qual o motivo imediato do contato ou pós-operatório.",
       badExample: "O paciente do 12 tá meio mal, queixando de dor desde ontem e parece que fez cirurgia.",
@@ -686,8 +655,8 @@ export default function SbarHandoffLab() {
       letter: "B",
       title: "Breve Histórico (Background)",
       subtitle: "O escudo contra eventos sentinela e erros fatais",
-      accentBg: "bg-amber-700 text-white",
-      badgeColor: "bg-amber-50 text-amber-800 border-amber-200",
+      accentBg: "bg-[#FFC247] text-[#3A2A05]",
+      badgeColor: "bg-[#FFC247]/10 text-[#FFC247] border-amber-200",
       activeBorder: "border-amber-600 ring-amber-600/20",
       goal: "Forneça o contexto clínico indispensável: comorbidades ativas, cirurgias anteriores e a CONFERÊNCIA OBRIGATÓRIA DE ALERGIAS.",
       badExample: "Ele toma remédio de pressão e acho que não tem alergia a nada grave.",
@@ -706,7 +675,7 @@ export default function SbarHandoffLab() {
       title: "Avaliação Atual (Assessment)",
       subtitle: "A regra do dado objetivo: 'Nunca diga está estável'",
       accentBg: "bg-rose-700 text-white",
-      badgeColor: "bg-rose-50 text-rose-800 border-rose-200",
+      badgeColor: "bg-rose-50 text-[#F0645F] border-rose-200",
       activeBorder: "border-rose-600 ring-rose-600/20",
       goal: "Comunique parâmetros vitais numéricos (PA, FC, SatO2, Tax), escala de dor EVA e achados de drenos, curativos ou sensório.",
       badExample: "Os sinais vitais tão bons, o dreno tá saindo um líquido e ele tá com um pouco de dor.",
@@ -724,8 +693,8 @@ export default function SbarHandoffLab() {
       letter: "R",
       title: "Recomendação (Recommendation)",
       subtitle: "A liderança da enfermagem na continuidade do cuidado",
-      accentBg: "bg-teal-700 text-white",
-      badgeColor: "bg-teal-50 text-teal-800 border-teal-200",
+      accentBg: "bg-[#20D5B5] text-[#06302E]",
+      badgeColor: "bg-teal-50 text-[#20D5B5] border-teal-200",
       activeBorder: "border-teal-600 ring-teal-600/20",
       goal: "Defina claramente as pendências, cuidados prioritários, horários de medicações e exames que o próximo plantão deve fiscalizar.",
       badExample: "Fica de olho nele na madrugada e qualquer coisa chama o plantonista.",
@@ -772,7 +741,8 @@ export default function SbarHandoffLab() {
                 <button
                   type="button"
                   onClick={() => navigate("/")}
-                  className="w-8 h-8 rounded-full border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#9FB3C6] hover:text-white flex items-center justify-center transition-colors"
+                  aria-label="Fechar e voltar ao início"
+                  className="w-11 h-11 rounded-full border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#9FB3C6] hover:text-white flex items-center justify-center transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -788,7 +758,7 @@ export default function SbarHandoffLab() {
                     <GotiAnimated animation="thinking" size={42} />
                   </div>
                   <p className="text-xs text-[#EAF2F8] leading-relaxed italic">
-                    “A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) evita 80% das falhas de comunicação. Como deseja treinar hoje?”
+                    “A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) reduz falhas de comunicação na transição do cuidado (Meta Internacional 2 de Segurança do Paciente). Como deseja treinar hoje?”
                   </p>
                 </div>
               </div>
@@ -827,7 +797,7 @@ export default function SbarHandoffLab() {
                     setActiveTab("guided");
                     setViewMode("workspace");
                   }}
-                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
+                  className="w-full min-h-[64px] p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] hover:bg-[#131F2E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
@@ -845,13 +815,14 @@ export default function SbarHandoffLab() {
                 <button
                   type="button"
                   onClick={() => {
-                    const criticalCase = PRESET_HANDOFF_SCENARIOS.find((c) => c.id === "sepse_urinaria") || PRESET_HANDOFF_SCENARIOS[1];
-                    setCurrentCase(criticalCase);
+                    const idx = PRESET_HANDOFF_SCENARIOS.findIndex((c) => c.id === "sepse_urinaria");
+                    handleSelectScenario(idx >= 0 ? idx : 1);
                     setActiveTab("free_voice");
                     setViewMode("workspace");
                     setToastMessage("Simulação Beira-Leito iniciada! Priorize os dados de emergência do paciente.");
+                    setTimeout(() => setToastMessage(""), 3500);
                   }}
-                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
+                  className="w-full min-h-[64px] p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] hover:bg-[#131F2E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
@@ -859,7 +830,7 @@ export default function SbarHandoffLab() {
                     </div>
                     <div>
                       <h4 className="text-xs sm:text-sm font-bold text-white">Simulação Rápida Beira-Leito</h4>
-                      <p className="text-[11px] text-[#9FB3C6]">Caso crítico com contagem regressiva de 2 minutos para priorização</p>
+                      <p className="text-[11px] text-[#9FB3C6]">Caso crítico para treinar a priorização dos dados de emergência</p>
                     </div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-[#9FB3C6] group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -869,7 +840,7 @@ export default function SbarHandoffLab() {
                 <button
                   type="button"
                   onClick={() => setIsHistoryOpen(true)}
-                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
+                  className="w-full min-h-[64px] p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] hover:bg-[#131F2E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
@@ -888,7 +859,7 @@ export default function SbarHandoffLab() {
         ) : (
           <>
             {/* Barra Superior Limpa e Funcional (Página 15 do PDF) */}
-            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] px-5 py-3.5 shadow-xs flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] px-5 py-3.5 shadow-sm flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div className="flex items-center gap-2.5 flex-wrap">
                 <button
                   type="button"
@@ -909,7 +880,7 @@ export default function SbarHandoffLab() {
               <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
                 <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[#0E1722] text-[#9FB3C6] border border-[#1F3045]">
                   <Clock className="h-3.5 w-3.5 text-[#20D5B5]" />
-                  <span>{clinicalHistoryService.formatDuration(activitySeconds)}</span>
+                  <span><ElapsedClock getSeconds={elapsedSeconds} /></span>
                 </span>
 
                 <button
@@ -932,17 +903,24 @@ export default function SbarHandoffLab() {
 
                 <button
                   type="button"
-                  onClick={handleClearFields}
-                  className="rounded-xl text-[#9FB3C6] hover:text-white px-2 py-1.5 text-xs transition-colors"
+                  onClick={() => {
+                    // Apaga os quatro pilares: pede confirmação se houver texto.
+                    const temTexto = Object.values(sbarData).some((v) => String(v || "").trim());
+                    if (temTexto && !window.confirm("Limpar os quatro campos do SBAR?")) return;
+                    handleClearFields();
+                  }}
+                  aria-label="Limpar campos"
+                  title="Limpar campos"
+                  className="w-11 h-11 rounded-xl text-[#9FB3C6] hover:text-white flex items-center justify-center transition-colors"
                 >
-                  <RotateCcw className="h-3.5 w-3.5" />
+                  <RotateCcw className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
             {/* Notificação Toast */}
             {toastMessage && (
-              <div className="p-3.5 rounded-2xl bg-[#16222E] border border-[#20D5B5]/40 text-white text-xs flex items-center justify-between gap-2 animate-in fade-in shadow-md">
+              <div role="status" aria-live="polite" className="p-3.5 rounded-2xl bg-[#16222E] border border-[#20D5B5]/40 text-white text-xs flex items-center justify-between gap-2 animate-in fade-in shadow-md">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-[#20D5B5] shrink-0" />
                   <span className="font-bold">{toastMessage}</span>
@@ -955,7 +933,7 @@ export default function SbarHandoffLab() {
 
             {/* Alerta de Erro de Microfone */}
             {voiceError && (
-              <div className="p-3.5 rounded-2xl bg-[#F0645F]/15 border border-[#F0645F]/30 text-white text-xs flex items-center gap-2.5 animate-in fade-in">
+              <div role="alert" className="p-3.5 rounded-2xl bg-[#F0645F]/15 border border-[#F0645F]/30 text-white text-xs flex items-center gap-2.5 animate-in fade-in">
                 <AlertCircle className="h-4 w-4 text-[#F0645F] shrink-0" />
                 <div className="flex-1 font-medium">{voiceError}</div>
                 <button
@@ -968,7 +946,7 @@ export default function SbarHandoffLab() {
             )}
 
             {/* Painel do Caso Clínico Ativo (Página 15 do PDF) */}
-            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1F3045]">
                 <div className="flex items-center gap-2">
                   <span className="text-[10px] font-black text-[#20D5B5] uppercase tracking-wider">
@@ -1081,7 +1059,7 @@ export default function SbarHandoffLab() {
                     onClick={() => setActiveGuidedStep(idx)}
                     className={`p-3.5 rounded-2xl border text-left transition-all ${
                       isCurrent
-                        ? "bg-[#16222E] border-2 border-[#20D5B5] shadow-xs"
+                        ? "bg-[#16222E] border-2 border-[#20D5B5] shadow-sm"
                         : "bg-[#0E1722] border-[#1F3045] hover:border-[#20D5B5]/40"
                     }`}
                   >
@@ -1111,7 +1089,7 @@ export default function SbarHandoffLab() {
             </div>
 
             {/* Painel Central de Ensino e Formulação (Página 15 do PDF) */}
-            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-5">
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-5">
               {/* Topo do Passo */}
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1F3045] pb-4">
                 <div className="space-y-1">
@@ -1144,7 +1122,7 @@ export default function SbarHandoffLab() {
                       window.dispatchEvent(
                         new CustomEvent("open-goti-chat", {
                           detail: {
-                            prompt: `Goti, estou com dúvidas de como redigir o campo de ${currentGuided.title} (${currentGuided.label}) no SBAR. Como devo preencher este pilar? Me mostre apenas um modelo de exemplo didático para eu entender como fazer!`
+                            prompt: `Goti, estou com dúvidas de como redigir o campo de ${currentGuided.title} (${currentGuided.letter}) no SBAR. Como devo preencher este pilar? Me mostre apenas um modelo de exemplo didático para eu entender como fazer!`
                           }
                         })
                       );
@@ -1220,7 +1198,16 @@ export default function SbarHandoffLab() {
                     <div
                       key={i}
                       onClick={() => handleToggleChecklistItem(currentGuided.key, item.key)}
-                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={Boolean(item.done)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleToggleChecklistItem(currentGuided.key, item.key);
+                        }
+                      }}
+                      className={`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5] flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
                         item.done
                           ? "bg-[#16222E] border-[#20D5B5] text-white"
                           : "bg-[#131F2E]/60 border-[#1F3045] text-[#9FB3C6] hover:border-[#20D5B5]/40 hover:text-white"
@@ -1265,9 +1252,11 @@ export default function SbarHandoffLab() {
                     type="button"
                     disabled={(isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key}
                     onClick={() => toggleVoiceInput(currentGuided.key)}
-                    className={`rounded-xl px-3 py-1.5 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    aria-pressed={isListening && activeListeningField === currentGuided.key}
+                    aria-label={`Ditar pilar ${currentGuided.letter}`}
+                    className={`min-h-[44px] rounded-xl px-3 py-1.5 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
                       isListening && activeListeningField === currentGuided.key
-                        ? "bg-[#F0645F] text-white shadow-md animate-pulse"
+                        ? "bg-[#F0645F] text-white shadow-md motion-safe:animate-pulse"
                         : "border border-[#20D5B5]/40 bg-transparent text-[#20D5B5] hover:bg-[#20D5B5]/10"
                     }`}
                   >
@@ -1370,20 +1359,20 @@ export default function SbarHandoffLab() {
 
         {/* CONTEÚDO DA ABA 2: SIMULAÇÃO RÁPIDA À BEIRA-LEITO (ÁUDIO DIRETO) */}
         {activeTab === "free_voice" && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6">
-            <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-6 sm:p-7 shadow-sm space-y-6">
+            <div className="border-b border-[#1F3045] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
+                <h3 className="text-sm sm:text-base font-bold text-white">
                   Simulação em Tempo Real (Troca de Turno Contínua)
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-xs text-[#9FB3C6] mt-0.5">
                   Dite a passagem de plantão por voz em cada pilar com seu microfone. Fale com clareza e ritmo pausado.
                 </p>
               </div>
 
               {isListening && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold animate-pulse">
-                  <Radio className="h-3.5 w-3.5 text-rose-600" />
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-900 text-rose-300 text-xs font-bold animate-pulse">
+                  <Radio className="h-3.5 w-3.5 text-[#F0645F]" />
                   <span>Microfone Ligado no Pilar {activeListeningField?.toUpperCase()}</span>
                 </div>
               )}
@@ -1391,22 +1380,22 @@ export default function SbarHandoffLab() {
 
             <div className="grid md:grid-cols-2 gap-4">
               {[
-                { key: "situation", letter: "S", title: "Situação", color: "bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300", ph: "Ex.: Paciente M.S.L., 58 anos, no Leito 12-A, no 1º DPO de colectomia..." },
-                { key: "background", letter: "B", title: "Histórico", color: "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300", ph: "Ex.: Hipertenso controlado com Losartana. Nega alergias..." },
-                { key: "assessment", letter: "A", title: "Avaliação", color: "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300", ph: "Ex.: PA 115/72, FC 84, SatO2 98%. Dor EVA 4/10 em incisão..." },
-                { key: "recommendation", letter: "R", title: "Recomendação", color: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300", ph: "Ex.: Vigiar dreno a cada 4h; analgesia às 20h; checar hematócrito..." }
+                { key: "situation", letter: "S", title: "Situação", color: "bg-indigo-950/60 text-indigo-300", ph: "Ex.: Paciente M.S.L., 58 anos, no Leito 12-A, no 1º DPO de colectomia..." },
+                { key: "background", letter: "B", title: "Histórico", color: "bg-amber-950/60 text-amber-300", ph: "Ex.: Hipertenso controlado com Losartana. Nega alergias..." },
+                { key: "assessment", letter: "A", title: "Avaliação", color: "bg-rose-950/60 text-rose-300", ph: "Ex.: PA 115/72, FC 84, SatO2 98%. Dor EVA 4/10 em incisão..." },
+                { key: "recommendation", letter: "R", title: "Recomendação", color: "bg-emerald-950/60 text-[#3DD68C]", ph: "Ex.: Vigiar dreno a cada 4h; analgesia às 20h; checar hematócrito..." }
               ].map((pilar) => (
-                <div key={pilar.key} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2.5">
+                <div key={pilar.key} className="p-4 rounded-xl border border-[#1F3045] bg-slate-800/40 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className={`flex h-6 w-6 items-center justify-center rounded-md font-bold text-xs ${pilar.color}`}>
                         {pilar.letter}
                       </span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{pilar.title}</span>
+                      <span className="text-xs font-bold text-white">{pilar.title}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                      <span className="text-[10px] font-bold text-[#3DD68C] bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-800">
                         {Object.values(checklists[pilar.key] || {}).filter(Boolean).length}/3 itens
                       </span>
 
@@ -1415,12 +1404,13 @@ export default function SbarHandoffLab() {
                         disabled={(isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key}
                         variant={isListening && activeListeningField === pilar.key ? "destructive" : "outline"}
                         onClick={() => toggleVoiceInput(pilar.key)}
-                        className={`rounded-lg h-7 px-2.5 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        aria-pressed={isListening && activeListeningField === pilar.key}
+                        className={`rounded-lg h-10 px-3 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                           isListening && activeListeningField === pilar.key
-                            ? "bg-rose-600 hover:bg-rose-700 text-white shadow-xs animate-pulse ring-2 ring-rose-400"
+                            ? "bg-[#F0645F] hover:bg-[#F0645F] text-white shadow-sm motion-safe:animate-pulse"
                             : (isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key
-                            ? "bg-teal-50 dark:bg-teal-950/40 border-teal-600 text-teal-900 dark:text-teal-200"
-                            : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            ? "bg-[#20D5B5]/10 border-[#20D5B5]/50 text-[#20D5B5]"
+                            : "border-[#27394B] bg-[#16222E] text-[#EAF2F8] hover:bg-[#1C2C3C]"
                         }`}
                       >
                         {isListening && activeListeningField === pilar.key ? (
@@ -1437,12 +1427,12 @@ export default function SbarHandoffLab() {
                           )
                         ) : (isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key ? (
                           <>
-                            <Loader2 className="h-3 w-3 animate-spin text-teal-700 dark:text-teal-400" />
+                            <Loader2 className="h-3 w-3 animate-spin text-teal-400" />
                             <span>Transcrevendo...</span>
                           </>
                         ) : (
                           <>
-                            <Mic className="h-3 w-3 text-teal-700 dark:text-teal-400" />
+                            <Mic className="h-3 w-3 text-teal-400" />
                             <span>Ditar</span>
                           </>
                         )}
@@ -1451,14 +1441,14 @@ export default function SbarHandoffLab() {
                   </div>
 
                   {(isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key && (
-                    <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-900 dark:text-teal-200 text-[11px] flex items-center gap-2 animate-pulse">
-                      <Loader2 className="h-3.5 w-3.5 text-teal-700 dark:text-teal-400 animate-spin shrink-0" />
+                    <div className="p-2 rounded-lg bg-teal-950/40 border border-teal-800 text-[#20D5B5] text-[11px] flex items-center gap-2 animate-pulse">
+                      <Loader2 className="h-3.5 w-3.5 text-teal-400 animate-spin shrink-0" />
                       <span className="font-medium">Áudio recebido! Transcrevendo...</span>
                     </div>
                   )}
 
                   {isListening && activeListeningField === pilar.key && interimTranscript && (
-                    <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-900 dark:text-teal-200 text-[11px] italic">
+                    <div className="p-2 rounded-lg bg-teal-950/40 border border-teal-800 text-[#20D5B5] text-[11px] italic">
                       "{interimTranscript}"
                     </div>
                   )}
@@ -1468,7 +1458,7 @@ export default function SbarHandoffLab() {
                     value={sbarData[pilar.key]}
                     onChange={(e) => setSbarData({ ...sbarData, [pilar.key]: e.target.value })}
                     placeholder={pilar.ph}
-                    className="text-xs rounded-lg border-slate-200 dark:border-slate-700 resize-none bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 leading-relaxed"
+                    className="text-xs rounded-lg border-slate-700 resize-none bg-slate-800 text-white leading-relaxed"
                   />
                 </div>
               ))}
@@ -1479,11 +1469,11 @@ export default function SbarHandoffLab() {
                 size="lg"
                 disabled={isEvaluating}
                 onClick={handleEvaluateSbar}
-                className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-6 h-11 flex items-center gap-2 shadow-xs"
+                className="rounded-xl bg-[#20D5B5] text-[#06302E] hover:brightness-105 font-bold text-xs px-6 h-11 flex items-center gap-2 shadow-sm"
               >
                 {isEvaluating ? (
                   <>
-                    <Sparkles className="h-4 w-4 animate-spin text-teal-200" />
+                    <Sparkles className="h-4 w-4 animate-spin text-[#20D5B5]" />
                     <span>Goti está auditando a passagem de plantão...</span>
                   </>
                 ) : (
@@ -1500,37 +1490,37 @@ export default function SbarHandoffLab() {
         {/* CONTEÚDO DA ABA 3: CONFIRMAR ENVIO & RESUMO COMPLETO DO SBAR (100%) */}
         {activeTab === "confirm" && (
           <div className="space-y-6 animate-in fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-xs space-y-6">
+            <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-6 sm:p-7 shadow-sm space-y-6">
               {/* Topo da Confirmação */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1F3045] pb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="p-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+                    <span className="p-1.5 rounded-xl bg-emerald-950/80 text-[#3DD68C]">
                       <CheckCircle2 className="h-4 w-4" />
                     </span>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    <h3 className="text-base sm:text-lg font-bold text-white">
                       Confirmação de Envio da Passagem de Plantão SBAR
                     </h3>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-xs text-[#9FB3C6] mt-1">
                     Revise os 4 pilares do relatório clínico antes de confirmar a entrega final e receber o parecer do Goti.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                    <Clock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-                    <span>Tempo de Prática: {clinicalHistoryService.formatDuration(activitySeconds)}</span>
+                  <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700">
+                    <Clock className="h-3.5 w-3.5 text-teal-400" />
+                    <span>Tempo de Prática: <ElapsedClock getSeconds={elapsedSeconds} /></span>
                   </span>
                 </div>
               </div>
 
               {submissionSuccess && (
-                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-800 text-emerald-200 flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
                   <div>
                     <h4 className="font-bold text-xs uppercase tracking-wider">Passagem de Plantão 100% Concluída</h4>
-                    <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
+                    <p className="text-xs text-[#3DD68C] mt-0.5">
                       Esta atividade foi finalizada e registrada no seu histórico com sucesso. Você pode consultar debriefings e métricas a qualquer momento no menu de Histórico.
                     </p>
                   </div>
@@ -1538,19 +1528,19 @@ export default function SbarHandoffLab() {
               )}
 
               {/* Dados do Paciente em Transição */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Paciente em Passagem de Plantão</span>
-                  <strong className="text-slate-900 dark:text-slate-100 text-sm font-bold">
+                  <span className="text-[10px] uppercase font-bold text-[#9FB3C6] block">Paciente em Passagem de Plantão</span>
+                  <strong className="text-white text-sm font-bold">
                     {currentCase.name} ({currentCase.age}a) • {currentCase.bed}
                   </strong>
-                  <span className="text-slate-500 dark:text-slate-400 block mt-0.5">{currentCase.diagnosis}</span>
+                  <span className="text-[#9FB3C6] block mt-0.5">{currentCase.diagnosis}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-semibold text-slate-700 dark:text-slate-200">
+                  <span className="px-2.5 py-1 rounded-xl bg-[#131F2E] border border-slate-700 font-semibold text-slate-200">
                     PA: {currentCase.vitals?.pa_sistolica}/{currentCase.vitals?.pa_diastolica}
                   </span>
-                  <span className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-semibold text-slate-700 dark:text-slate-200">
+                  <span className="px-2.5 py-1 rounded-xl bg-[#131F2E] border border-slate-700 font-semibold text-slate-200">
                     SatO₂: {currentCase.vitals?.sat}%
                   </span>
                 </div>
@@ -1559,76 +1549,76 @@ export default function SbarHandoffLab() {
               {/* Os 4 Pilares Estruturados do SBAR */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Pilar S */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-indigo-200 dark:border-indigo-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/40 pb-2">
-                    <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-md bg-indigo-700 text-white flex items-center justify-center text-[11px] font-bold">S</span>
+                <div className="p-4 rounded-2xl bg-[#0E1722] border border-indigo-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-indigo-900/40 pb-2">
+                    <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-sky-600 text-white flex items-center justify-center text-[11px] font-bold">S</span>
                       Situação (Situation)
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.situation ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.situation ? "bg-emerald-950 text-[#3DD68C]" : "bg-[#FFC247]/15 text-[#FFC247]"}`}>
                       {sbarData.situation ? "Preenchido" : "Pendente"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
-                    {sbarData.situation || "Nenhuma informação informada neste pilar ainda."}
+                  <p className="text-xs text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.situation || "Pilar ainda vazio."}
                   </p>
                 </div>
 
                 {/* Pilar B */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-amber-200 dark:border-amber-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-amber-100 dark:border-amber-900/40 pb-2">
-                    <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-md bg-amber-700 text-white flex items-center justify-center text-[11px] font-bold">B</span>
+                <div className="p-4 rounded-2xl bg-[#0E1722] border border-amber-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-amber-900/40 pb-2">
+                    <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-[#FFC247] text-[#3A2A05] flex items-center justify-center text-[11px] font-bold">B</span>
                       Breve Histórico (Background)
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.background ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.background ? "bg-emerald-950 text-[#3DD68C]" : "bg-[#FFC247]/15 text-[#FFC247]"}`}>
                       {sbarData.background ? "Preenchido" : "Pendente"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
-                    {sbarData.background || "Nenhuma informação informada neste pilar ainda."}
+                  <p className="text-xs text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.background || "Pilar ainda vazio."}
                   </p>
                 </div>
 
                 {/* Pilar A */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-emerald-200 dark:border-emerald-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-emerald-100 dark:border-emerald-900/40 pb-2">
-                    <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+                <div className="p-4 rounded-2xl bg-[#0E1722] border border-emerald-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-emerald-900/40 pb-2">
+                    <span className="text-xs font-bold text-[#3DD68C] flex items-center gap-1.5">
                       <span className="w-5 h-5 rounded-md bg-emerald-700 text-white flex items-center justify-center text-[11px] font-bold">A</span>
                       Avaliação Clínica (Assessment)
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.assessment ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.assessment ? "bg-emerald-950 text-[#3DD68C]" : "bg-[#FFC247]/15 text-[#FFC247]"}`}>
                       {sbarData.assessment ? "Preenchido" : "Pendente"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
-                    {sbarData.assessment || "Nenhuma informação informada neste pilar ainda."}
+                  <p className="text-xs text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.assessment || "Pilar ainda vazio."}
                   </p>
                 </div>
 
                 {/* Pilar R */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-teal-200 dark:border-teal-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-teal-100 dark:border-teal-900/40 pb-2">
-                    <span className="text-xs font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-md bg-teal-700 text-white flex items-center justify-center text-[11px] font-bold">R</span>
+                <div className="p-4 rounded-2xl bg-[#0E1722] border border-teal-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-teal-900/40 pb-2">
+                    <span className="text-xs font-bold text-teal-300 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-[#20D5B5] text-[#06302E] flex items-center justify-center text-[11px] font-bold">R</span>
                       Recomendação (Recommendation)
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.recommendation ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.recommendation ? "bg-emerald-950 text-[#3DD68C]" : "bg-[#FFC247]/15 text-[#FFC247]"}`}>
                       {sbarData.recommendation ? "Preenchido" : "Pendente"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
-                    {sbarData.recommendation || "Nenhuma informação informada neste pilar ainda."}
+                  <p className="text-xs text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.recommendation || "Pilar ainda vazio."}
                   </p>
                 </div>
               </div>
 
               {/* Botões Oficiais da Aba de Confirmação */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div className="pt-4 border-t border-[#1F3045] flex flex-wrap items-center justify-between gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setActiveTab("guided")}
-                  className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold"
+                  className="rounded-xl border-slate-700 text-slate-200 text-xs font-semibold"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1.5" /> Voltar para Edição Guiada
                 </Button>
@@ -1637,25 +1627,25 @@ export default function SbarHandoffLab() {
                   <Button
                     variant="outline"
                     onClick={handleSaveDraft}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5"
+                    className="rounded-xl border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5"
                   >
-                    <BookmarkPlus className="h-3.5 w-3.5 text-amber-500" />
+                    <BookmarkPlus className="h-3.5 w-3.5 text-[#FFC247]" />
                     <span>Salvar Rascunho</span>
                   </Button>
 
                   <Button
                     onClick={handleEvaluateSbar}
                     disabled={isEvaluating}
-                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-6 h-10 font-bold flex items-center gap-2 shadow-xs"
+                    className="rounded-xl bg-[#20D5B5] text-[#06302E] hover:brightness-105 text-xs px-6 h-10 font-bold flex items-center gap-2 shadow-sm"
                   >
                     {isEvaluating ? (
                       <>
-                        <Sparkles className="h-4 w-4 animate-spin text-teal-200" />
+                        <Sparkles className="h-4 w-4 animate-spin text-[#20D5B5]" />
                         <span>Auditando com IA...</span>
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+                        <CheckCircle2 className="h-4 w-4 text-[#3DD68C]" />
                         <span>Confirmar Envio Oficial (100%) & Avaliar</span>
                       </>
                     )}
@@ -1667,26 +1657,26 @@ export default function SbarHandoffLab() {
         )}
 
         {/* CONTEÚDO DA ABA 3: DEBRIEFING DO GOTI IA */}
-        {tutorEvaluation && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-teal-200 dark:border-teal-900/60 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
+        {activeTab === "debriefing" && tutorEvaluation && (
+          <div className="bg-[#131F2E] rounded-2xl border border-teal-900/60 p-6 sm:p-8 shadow-sm space-y-6 animate-in fade-in">
             {/* Topo do Feedback com Score e Grade */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1F3045] pb-5">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-teal-700 dark:text-teal-400" />
-                  <span className="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase tracking-wider block">
+                  <ShieldCheck className="h-5 w-5 text-teal-400" />
+                  <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">
                     Parecer de Comunicação • Goti IA
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">
+                <h3 className="text-lg sm:text-xl font-bold text-white">
                   Auditoria da Comunicação & Segurança do Paciente
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+                <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
                   {tutorEvaluation.summaryFeedback}
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-2xl p-3 shrink-0">
+              <div className="flex items-center gap-3 bg-teal-950/40 border border-teal-800 rounded-2xl p-3 shrink-0">
                 <div
                   className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
                   onClick={() => setShowGotiEvaluationModal(true)}
@@ -1699,13 +1689,13 @@ export default function SbarHandoffLab() {
                   />
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 uppercase block">Índice de Segurança</span>
-                  <span className="text-2xl font-extrabold text-teal-900 dark:text-teal-200 block leading-none">
-                    {tutorEvaluation.safetyScore}/100
+                  <span className="text-[10px] font-bold text-teal-300 uppercase block">Índice de Segurança</span>
+                  <span className="text-2xl font-extrabold text-[#20D5B5] block leading-none">
+                    <AnimatedNumber value={Number(tutorEvaluation.safetyScore) || 0} duration={0.8} />/100
                   </span>
                 </div>
-                <div className="h-10 w-px bg-teal-200 dark:bg-teal-800" />
-                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-teal-700 text-white">
+                <div className="h-10 w-px bg-[#149F86]" />
+                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-[#20D5B5] text-[#06302E]">
                   {tutorEvaluation.grade}
                 </span>
               </div>
@@ -1713,12 +1703,12 @@ export default function SbarHandoffLab() {
 
             {/* SIMULADOR DE CONSEQUÊNCIA DE EVENTO SENTINELA (APRENDIZAGEM VIVA) */}
             {tutorEvaluation.sentinelConsequence && (
-              <div className="p-4 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-1.5">
-                <div className="flex items-center gap-2 text-amber-900 dark:text-amber-300 font-bold text-xs uppercase tracking-wide">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+              <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800 space-y-1.5">
+                <div className="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase tracking-wide">
+                  <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
                   <span>Simulador de Consequências no Hospital Real (O que aconteceria se você omitisse esses dados?):</span>
                 </div>
-                <p className="text-xs text-amber-950 dark:text-amber-200 leading-relaxed font-medium">
+                <p className="text-xs text-amber-200 leading-relaxed font-medium">
                   {tutorEvaluation.sentinelConsequence}
                 </p>
               </div>
@@ -1726,7 +1716,7 @@ export default function SbarHandoffLab() {
 
             {/* Desdobramento dos 4 Pilares SBAR */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wide">
                 Desempenho por Eixo da Metodologia:
               </h4>
 
@@ -1737,12 +1727,12 @@ export default function SbarHandoffLab() {
                   { key: "assessment", label: "A - Avaliação", letter: "A" },
                   { key: "recommendation", label: "R - Recomendação", letter: "R" }
                 ].map((pillar) => {
-                  const data = tutorEvaluation.pillarScores?.[pillar.key] || { score: 75, feedback: "Informações registradas com clareza." };
+                  const data = tutorEvaluation.pillarScores?.[pillar.key] || { score: 0, feedback: "Pilar não avaliado." };
                   return (
-                    <div key={pillar.key} className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 space-y-1">
+                    <div key={pillar.key} className="p-3.5 rounded-xl border border-[#1F3045] bg-slate-800/60 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{pillar.label}</span>
-                        <span className={`text-xs font-extrabold ${data.score >= 80 ? 'text-teal-700 dark:text-teal-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                        <span className="text-xs font-bold text-white">{pillar.label}</span>
+                        <span className={`text-xs font-extrabold ${data.score >= 80 ? 'text-teal-400' : 'text-amber-400'}`}>
                           {data.score} pts
                         </span>
                       </div>
@@ -1752,7 +1742,7 @@ export default function SbarHandoffLab() {
                         className="h-2"
                         label={`Nota de ${pillar.label}`}
                       />
-                      <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-normal">
+                      <p className="text-[11px] text-slate-300 leading-normal">
                         {data.feedback}
                       </p>
                     </div>
@@ -1764,12 +1754,12 @@ export default function SbarHandoffLab() {
             {/* Omissões Críticas e Pontos Fortes */}
             <div className="grid sm:grid-cols-2 gap-4 text-xs pt-1">
               {tutorEvaluation.criticalOmissions?.length > 0 && (
-                <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold text-rose-800 dark:text-rose-300">
+                <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800 space-y-2">
+                  <div className="flex items-center gap-1.5 font-bold text-rose-300">
                     <AlertTriangle className="h-4 w-4" />
                     <span>Omissões Críticas que Devem ser Corrigidas:</span>
                   </div>
-                  <ul className="space-y-1.5 text-rose-700 dark:text-rose-200">
+                  <ul className="space-y-1.5 text-rose-200">
                     {tutorEvaluation.criticalOmissions.map((om, i) => (
                       <li key={i} className="flex items-start gap-1.5">
                         <span className="font-bold">•</span>
@@ -1781,12 +1771,12 @@ export default function SbarHandoffLab() {
               )}
 
               {tutorEvaluation.strengths?.length > 0 && (
-                <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300">
+                <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-800 space-y-2">
+                  <div className="flex items-center gap-1.5 font-bold text-[#3DD68C]">
                     <CheckCircle2 className="h-4 w-4" />
                     <span>Pontos Fortes da Sua Comunicação:</span>
                   </div>
-                  <ul className="space-y-1.5 text-emerald-700 dark:text-emerald-200">
+                  <ul className="space-y-1.5 text-emerald-200">
                     {tutorEvaluation.strengths.map((st, i) => (
                       <li key={i} className="flex items-start gap-1.5">
                         <span className="font-bold">•</span>
@@ -1799,12 +1789,12 @@ export default function SbarHandoffLab() {
             </div>
 
             {/* Mensagem de Mentoria & Exportação em PDF com Goti */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-[#1F3045]">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                <div className="w-8 h-8 rounded-xl bg-teal-950/80 border border-teal-800 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-teal-400" />
                 </div>
-                <div className="text-xs text-slate-600 dark:text-slate-400 italic">
+                <div className="text-xs text-[#9FB3C6] italic">
                   "{tutorEvaluation.gotiMentorship || tutorEvaluation.florenceMentorship || 'A comunicação assertiva é a maior ferramenta de proteção da enfermagem.'}"
                 </div>
               </div>
@@ -1818,7 +1808,7 @@ export default function SbarHandoffLab() {
         <GotiEvaluationModal
           isOpen={showGotiEvaluationModal}
           onClose={() => setShowGotiEvaluationModal(false)}
-          score={tutorEvaluation?.safetyScore ?? 100}
+          score={Number(tutorEvaluation?.safetyScore) || 0}
           scoreLabel="Índice de Segurança SBAR"
           activityTitle={`Passagem SBAR: ${currentCase?.title || "Caso Clínico"}`}
           comment={tutorEvaluation?.summaryFeedback || tutorEvaluation?.gotiMentorship || tutorEvaluation?.florenceMentorship || "Excelente comunicação beira-leito!"}
@@ -1840,4 +1830,14 @@ export default function SbarHandoffLab() {
       <MobileBottomDock />
     </div>
   );
+}
+
+// Relógio da prática: só ele re-renderiza a cada segundo, não a página inteira.
+function ElapsedClock({ getSeconds }) {
+  const [seconds, setSeconds] = useState(getSeconds);
+  useEffect(() => {
+    const timer = setInterval(() => setSeconds(getSeconds()), 1000);
+    return () => clearInterval(timer);
+  }, [getSeconds]);
+  return clinicalHistoryService.formatDuration(seconds);
 }

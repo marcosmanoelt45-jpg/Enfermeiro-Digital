@@ -10,6 +10,19 @@
 import { normalizeAndShuffleOptions } from "./diagnosticChallengeService.js";
 import { getClinicalQuestionPair } from "./clinicalQuestionVariants.js";
 
+// Rótulos alinhados às escalas usadas no resto do app (clinicalScales.js / riskEngine.js).
+// Braden: <=9 muito alto, 10-12 alto, 13-14 moderado, 15-18 baixo.
+function bradenRiskLabel(total) {
+  if (total <= 9) return "risco muito alto para Lesão por Pressão";
+  if (total <= 12) return "risco alto para Lesão por Pressão";
+  if (total <= 14) return "risco moderado para Lesão por Pressão";
+  return "risco baixo para Lesão por Pressão";
+}
+// SAK: a partir de 6,5 é risco moderado e a partir de 10,5, alto (mesmo corte do riskEngine).
+function sakRiskLabel(total) {
+  return total >= 10.5 ? "alto risco de queda" : "risco moderado de queda";
+}
+
 /**
  * Classifica o caso em uma especialidade clínica predominante
  * através de análise semântica abrangente dos dados inseridos pelo estudante.
@@ -349,7 +362,7 @@ export function generateContextualHeuristicBattery(patientInitials, profile, ass
       q4Raw = {
         id: 4,
         category: "Segurança do Paciente & Legislação Ética (COFEN)",
-        questionStem: `O Paciente ${patientInitials} apresenta escore de Braden de ${bradenTotal} pontos (alto risco para Lesão por Pressão) e mobilidade reduzida no leito. Conforme a Resolução COFEN nº 736/2024 e as boas práticas de estomaterapia, qual conduta assistencial é privativa do enfermeiro?`,
+        questionStem: `O Paciente ${patientInitials} apresenta escore de Braden de ${bradenTotal} pontos (${bradenRiskLabel(bradenTotal)}) e mobilidade reduzida no leito. Conforme a Resolução COFEN nº 736/2024 e as boas práticas de estomaterapia, qual conduta assistencial é privativa do enfermeiro?`,
         attendingTip: "A avaliação de risco, estadiamento tecidual e prescrição de coberturas curativas tecnológicas são atos privativos do enfermeiro.",
         options: [
           {
@@ -413,12 +426,12 @@ export function generateContextualHeuristicBattery(patientInitials, profile, ass
         }
       ]
     };
-  } else if (sakTotal >= 5) {
+  } else if (sakTotal >= 6.5) {
     // Foco em Quedas (SAK elevado)
     q4Raw = {
       id: 4,
       category: "Segurança do Paciente & Legislação Ética (COFEN)",
-      questionStem: `O Paciente ${patientInitials} possui escore de risco de quedas (SAK) de ${sakTotal} pontos (alto risco de queda). Durante a assistência noturna, quais intervenções de enfermagem sistematizadas devem constar obrigatoriamente na Prescrição de Enfermagem (COFEN nº 736/2024)?`,
+      questionStem: `O Paciente ${patientInitials} possui escore de risco de quedas (SAK) de ${sakTotal} pontos (${sakRiskLabel(sakTotal)}). Durante a assistência noturna, quais intervenções de enfermagem sistematizadas devem constar obrigatoriamente na Prescrição de Enfermagem (COFEN nº 736/2024)?`,
       attendingTip: "A prevenção de quedas integra as 6 Metas Internacionais de Segurança do Paciente e exige medidas ambientais, sinalização visual e vigilância.",
       options: [
         {
@@ -503,9 +516,9 @@ export function generateContextualHeuristicBattery(patientInitials, profile, ass
     recommendedInterventions: [
       `Monitorização sequencial dos parâmetros hemodinâmicos para o quadro de ${userDiagnosis};`,
       `Farmacovigilância ativa para os medicamentos em uso (${userMeds || "terapia prescrita"});`,
-      bradenTotal <= 14 ? "Mudança de decúbito de 2 em 2 horas em 30° e colchão pneumático (Braden crítico);" : "Inspeção diária da integridade cutânea e hidratação;",
+      bradenTotal <= 14 ? "Mudança de decúbito de 2 em 2 horas em 30° e colchão pneumático (Braden ≤ 14);" : "Inspeção diária da integridade cutânea e hidratação;",
       camPositive ? "Medidas não farmacológicas para reorientação de delirium agudo (evitar contenção punitiva);" : "Estimular mobilização precoce e deambulação assistida;",
-      sakTotal >= 5 ? "Protocolo institucional rigoroso de prevenção de quedas (pulseira e grades elevadas);" : "Manter campainha ao alcance e leito em nível baixo."
+      sakTotal >= 6.5 ? "Protocolo institucional rigoroso de prevenção de quedas (pulseira e grades elevadas);" : "Manter campainha ao alcance e leito em nível baixo."
     ]
   };
 }

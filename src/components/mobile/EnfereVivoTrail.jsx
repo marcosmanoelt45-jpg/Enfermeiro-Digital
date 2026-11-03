@@ -1,5 +1,5 @@
 import React, { useMemo } from "react";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Flame,
@@ -133,13 +133,13 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
         {/* Chips de Ofensiva e PE */}
         <div className="flex items-center gap-2">
           {/* Chip Ofensiva */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-xs font-black shadow-xs">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-xs font-black shadow-sm">
             <Flame className={`w-4 h-4 fill-current text-[#FFC247] ${gameState.streak ? "animate-flame-subtle" : ""}`} />
             <span><AnimatedNumber value={gameState.streak || 0} /> {gameState.streak === 1 ? "dia" : "dias"}</span>
           </div>
 
           {/* Chip PE */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-xs font-black shadow-xs">
+          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-xs font-black shadow-sm">
             <Zap className="w-4 h-4 fill-current text-[#20D5B5]" />
             <span><AnimatedNumber value={gameState.studyPoints ?? 0} /> PE</span>
           </div>
@@ -268,7 +268,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
             }}
             className="btn-3d-teal w-full h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
           >
-            <PlusCircle className="w-4.5 h-4.5 stroke-[2.5]" />
+            <PlusCircle className="w-[18px] h-[18px] stroke-[2.5]" />
             <span>Montar Caso Clínico</span>
           </button>
         </div>
@@ -334,7 +334,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
                     </span>
                   </div>
                 </div>
-                <ChevronRight className="w-4 h-4 text-[#52667A] group-hover:text-[#20D5B5] group-hover:translate-x-0.5 transition-all shrink-0" />
+                <ChevronRight className="w-4 h-4 text-[#8A9DB1] group-hover:text-[#20D5B5] group-hover:translate-x-0.5 transition-all shrink-0" />
               </motion.button>
             );
           })}
@@ -342,7 +342,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
       </div>
 
       {/* 6. Rodapé com Autoria Oficial */}
-      <div className="text-center pt-3 pb-2 text-[10px] text-[#52667A] font-medium">
+      <div className="text-center pt-3 pb-2 text-[10px] text-[#8A9DB1] font-medium">
         Criado e desenvolvido por <strong className="text-[#9FB3C6]">Marcos Manoel Tavares Neumann</strong>
       </div>
     </div>

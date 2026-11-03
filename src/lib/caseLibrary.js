@@ -709,10 +709,22 @@ export function buildAssessmentFromCase(caseItem, patientId, patientName) {
   const braden_total = computeBradenTotal(caseItem.braden);
   const cam_positive = computeCamPositive(caseItem.cam);
   const audit_total = computeAuditTotal(caseItem.audit);
-  const sak_score = computeSakScore(caseItem.sak);
+  // Os casos guardam a SAK com chaves curtas e `caregiver` = "tem acompanhante";
+  // o motor espera as chaves sak_* e soma +0,5 pela AUSÊNCIA de acompanhante.
+  const sak = caseItem.sak || {};
+  const sak_score = computeSakScore({
+    sak_disorientation: sak.disorientation,
+    sak_urination: sak.urination,
+    sak_walking: sak.walking,
+    sak_caregiver: sak.caregiver === false,
+    sak_postop: sak.postop,
+    sak_previous_falls: sak.previous_falls,
+    sak_meds: sak.meds,
+  });
 
   const risk_status = computeGlobalRisk({
-    vitals: caseItem.vitals,
+    // O motor lê pa_sistolica, fc, sat... na raiz, não dentro de `vitals`.
+    ...caseItem.vitals,
     braden_total,
     cam_positive,
     audit_total,

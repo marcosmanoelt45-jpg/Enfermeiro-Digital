@@ -1,9 +1,24 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Send, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { procedureService } from '@/services/procedureService';
+import { prefersReducedMotion } from '@/lib/motion';
 import gotiLogoOficial from '@/assets/goti-icone-oficial.png';
+
+const TIMEOUT_REPLY = 'O Goti demorou para responder. Confira os passos técnicos do POP acima e tente de novo em instantes.';
+
+// As respostas vêm em Markdown simples: mostra **negrito** e as quebras de linha, sem HTML cru.
+function ChatText({ text = '' }) {
+  const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <span className="whitespace-pre-line">
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**') && part.length > 4 ? <strong key={i}>{part.slice(2, -2)}</strong> : part
+      )}
+    </span>
+  );
+}
 
 export default function ProcedureAIChat({ procedure }) {
   const [messages, setMessages] = useState([
@@ -15,6 +30,13 @@ export default function ProcedureAIChat({ procedure }) {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const listRef = useRef(null);
+
+  // A caixa tem altura limitada: rola só ela (não a página) até a resposta nova.
+  useEffect(() => {
+    const el = listRef.current;
+    el?.scrollTo({ top: el.scrollHeight, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  }, [messages, loading]);
 
   const suggestedQuestions = [
     'Quais são os erros mais comuns na prática hospitalar?',
@@ -36,13 +58,15 @@ export default function ProcedureAIChat({ procedure }) {
     setInput('');
     setLoading(true);
 
-    let safetyTimer = setTimeout(() => {
-      setLoading(false);
-    }, 12000);
+    // O carregamento só termina quando a resposta chega (ou o tempo esgota), para não haver
+    // duas perguntas em andamento com respostas fora de ordem.
+    let timeoutId;
+    const timeout = new Promise((resolve) => {
+      timeoutId = setTimeout(() => resolve(TIMEOUT_REPLY), 15000);
+    });
 
     try {
-      const response = await procedureService.askGotiAI(procedure, textToSend);
-      clearTimeout(safetyTimer);
+      const response = await Promise.race([procedureService.askGotiAI(procedure, textToSend), timeout]);
       const aiMsg = {
         id: `ai-${Date.now()}`,
         sender: 'goti',
@@ -50,7 +74,6 @@ export default function ProcedureAIChat({ procedure }) {
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch {
-      clearTimeout(safetyTimer);
       const errMsg = {
         id: `err-${Date.now()}`,
         sender: 'goti',
@@ -58,24 +81,24 @@ export default function ProcedureAIChat({ procedure }) {
       };
       setMessages((prev) => [...prev, errMsg]);
     } finally {
-      clearTimeout(safetyTimer);
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-xs transition-colors">
+    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-colors">
       <div className="flex items-center justify-between mb-3 pb-3 border-b border-slate-100 dark:border-slate-800">
         <div className="flex items-center gap-2.5">
           <img
             src={gotiLogoOficial}
             alt="Goti IA"
-            className="w-11 h-11 object-contain shrink-0 filter drop-shadow-xs"
+            className="w-11 h-11 object-contain shrink-0 filter drop-shadow-sm"
           />
           <div>
             <h4 className="text-xs font-bold text-slate-900 dark:text-slate-100 flex items-center gap-1.5">
               <span>Goti IA · Dúvidas do Procedimento</span>
-              <span className="text-[10px] font-semibold px-2 py-0.2 rounded-full bg-teal-100 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300">Enfere</span>
+              <span className="text-[10px] font-semibold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950/80 text-teal-800 dark:text-teal-300">Enfere</span>
             </h4>
             <p className="text-[10px] text-slate-500 dark:text-slate-400">
               Raciocínio clínico sobre variações e dilemas deste procedimento
@@ -85,7 +108,7 @@ export default function ProcedureAIChat({ procedure }) {
       </div>
 
       {/* Histórico de Mensagens */}
-      <div className="space-y-2.5 max-h-60 overflow-y-auto no-scrollbar pr-1 mb-3">
+      <div className="space-y-2.5 max-h-60 overflow-y-auto no-scrollbar pr-1 mb-3" ref={listRef} role="log" aria-live="polite" aria-relevant="additions">
         {messages.map((m) => (
           <div
             key={m.id}
@@ -95,7 +118,7 @@ export default function ProcedureAIChat({ procedure }) {
               <img
                 src={gotiLogoOficial}
                 alt="Goti"
-                className="w-8 h-8 shrink-0 object-contain filter drop-shadow-xs"
+                className="w-8 h-8 shrink-0 object-contain filter drop-shadow-sm"
               />
             )}
 
@@ -106,7 +129,7 @@ export default function ProcedureAIChat({ procedure }) {
                   : 'bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-tl-none'
               }`}
             >
-              {m.text}
+              <ChatText text={m.text} />
             </div>
 
             {m.sender === 'user' && (
@@ -144,6 +167,8 @@ export default function ProcedureAIChat({ procedure }) {
       <div className="flex items-center gap-2">
         <Input
           placeholder="Tire uma dúvida sobre este procedimento..."
+          aria-label="Pergunta para o Goti"
+          enterKeyHint="send"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}

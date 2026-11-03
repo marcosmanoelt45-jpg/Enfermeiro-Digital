@@ -12,6 +12,17 @@ import { callResilientAI } from './aiCoreService';
 const STORAGE_KEY = 'enfermeiro_digital_custom_procedures';
 const WATCHED_STORAGE_KEY = 'enfermeiro_digital_watched_procedures';
 
+// Concluídos ficam por usuário, para uma conta não herdar o progresso de outra no mesmo aparelho.
+function completedStorageKey() {
+  let userId = 'anon';
+  try {
+    const raw = localStorage.getItem('enfermeiro_digital_local_user');
+    const parsed = raw ? JSON.parse(raw) : null;
+    userId = String(parsed?.id || parsed?.email || 'anon');
+  } catch {}
+  return `enfermeiro_digital_completed_procedures:${userId}`;
+}
+
 export const LABENF_UFSM_URL = 'https://www.ufsm.br/laboratorios/labenf/projetos/videos-de-procedimentos';
 export const LABENF_UFSM_EBOOK_URL = 'https://www.ufsm.br/app/uploads/sites/837/2022/10/versao-final-e-book.pdf';
 export const LABENF_UFSM_BADGE = 'LabEnf UFSM · Universidade Federal de Santa Maria';
@@ -265,7 +276,7 @@ export const MASTER_PROCEDURES = [
       { id: 's6', stepNumber: 6, title: 'Identificação externa e registro de enfermagem', desc: 'Identificar na borda lateral do curativo (sem cobrir a visualização do óstio) com data, hora e responsável. Registrar no prontuário as condições do sítio de inserção.', checked: false },
     ],
     safetyAlerts: [
-      { type: 'danger', title: 'NUNCA trccione o cateter ao retirar a película adesiva antiga', text: 'O deslocamento acidental de centímetros do CVC retira a ponta da junção cavoatrial, gerando risco de extravasamento de drogas vasoativas ou trombose venosa.' },
+      { type: 'danger', title: 'NUNCA tracione o cateter ao retirar a película adesiva antiga', text: 'O deslocamento acidental de centímetros do CVC retira a ponta da junção cavoatrial, gerando risco de extravasamento de drogas vasoativas ou trombose venosa.' },
       { type: 'warning', title: 'Prazos rigorosos de validade do curativo de CVC (ANVISA)', text: 'Curativo com gaze estéril e fita deve ser trocado a cada 48 horas; curativo com filme transparente semipermeável estéril deve ser trocado a cada 7 dias (ou imediatamente se sujo, úmido ou descolado).' },
     ],
   },
@@ -345,7 +356,7 @@ export const MASTER_PROCEDURES = [
     ],
     safetyAlerts: [
       { type: 'danger', title: 'JAMAIS faça a parte externa (visível) do fio passar por dentro da pele ao puxar', text: 'O segmento do fio que ficou exposto ao meio externo está colonizado por bactérias. Cortar longe da pele ou cortar em dois pontos faz o fio contaminado atravessar o subcutâneo ou ficar retido!' },
-      { type: 'warning', title: 'Sempre trccione o ponto em direção à cicatriz, nunca no sentido oposto', text: 'Tracionar o ponto para fora da linha de sutura exerce força de abertura sobre a cicatriz recente e pode causar deiscência.' },
+      { type: 'warning', title: 'Sempre tracione o ponto em direção à cicatriz, nunca no sentido oposto', text: 'Tracionar o ponto para fora da linha de sutura exerce força de abertura sobre a cicatriz recente e pode causar deiscência.' },
     ],
   },
 
@@ -612,7 +623,7 @@ export const MASTER_PROCEDURES = [
     steps: [
       { id: 's1', stepNumber: 1, title: 'Reconhecer PCR em até 10 segundos', desc: 'Chamar pelo paciente nos ombros. Checar pulso carotídeo e movimentos respiratórios simultaneamente em no máximo 10 segundos. Se sem pulso ou apenas gasping: É PCR!', checked: false },
       { id: 's2', stepNumber: 2, title: 'Solicitar ajuda e o DEA imediatamente', desc: 'Apontar para alguém específico da equipe: "Ligue para a emergência/código azul e traga o carrinho com o DEA agora!".', checked: false },
-      { id: 's3', stepNumber: 3, title: 'Compressões torácicas de alta qualidade', desc: 'Posicionar a região tenar da mão no terço inferior do esterno e comprimir com profundidade de 5 a 6 cm na frequência de 100 a 120 compressões por minuto.', checked: false },
+      { id: 's3', stepNumber: 3, title: 'Compressões torácicas de alta qualidade', desc: 'Posicionar a região hipotenar (calcanhar) de uma mão sobre a metade inferior do esterno, no centro do tórax, com a outra mão sobreposta e braços estendidos, e comprimir com profundidade de 5 a 6 cm na frequência de 100 a 120 compressões por minuto.', checked: false },
       { id: 's4', stepNumber: 4, title: 'Retorno completo do tórax', desc: 'Permitir a descompressão torácica total entre as compressões para possibilitar o enchimento diastólico das artérias coronárias.', checked: false },
       { id: 's5', stepNumber: 5, title: 'Ciclos de 30:2 com via aérea básica', desc: 'Realizar 30 compressões seguidas de 2 ventilações de 1 segundo cada com o Ambu (técnica C-E para vedação hermética).', checked: false },
       { id: 's6', stepNumber: 6, title: 'Chegada do DEA e choque precoce', desc: 'Ligar o DEA imediatamente, colar as pás adesivas (infraclavicular direita e ápice cardíaco esquerdo) e comandar afastamento total da equipe durante a análise e o disparo.', checked: false },
@@ -658,7 +669,7 @@ export const MASTER_PROCEDURES = [
       { id: 's1', stepNumber: 1, title: 'Identificação e orientação ao paciente', desc: 'Confirmar os 2 identificadores do paciente (nome completo e data de nascimento) e explicar a finalidade do acesso venoso.', checked: false },
       { id: 's2', stepNumber: 2, title: 'Seleção do sítio venoso', desc: 'Priorizar veias distais do membro superior não dominante (cefálica, basílica ou intermediária do antebraço). Evitar articulações de flexão e membros com FAV ou esvaziamento axilar.', checked: false },
       { id: 's3', stepNumber: 3, title: 'Garroteamento correto (10 cm acima do sítio)', desc: 'Aplicar o garrote cerca de 10 cm acima do local escolhido por no máximo 1 minuto para facilitar a visualização e palpação da veia.', checked: false },
-      { id: 's4', stepNumber: 4, title: 'Antissepsia asséptica da pele', desc: 'Friccionar clorexidina alcoólica a 0,5% ou álcool a 70% em movimento unidirecional/espiral e aguardar secagem espontânea completa (nunca voltar a palpar o local após a antissepsia).', checked: false },
+      { id: 's4', stepNumber: 4, title: 'Antissepsia da pele', desc: 'Friccionar clorexidina alcoólica a 0,5% ou álcool a 70% em movimento unidirecional/espiral e aguardar secagem espontânea completa (nunca voltar a palpar o local após a antissepsia).', checked: false },
       { id: 's5', stepNumber: 5, title: 'Punção com bisel voltado para cima (15° a 30°)', desc: 'Tracionar a pele distalmente para estabilizar a veia e introduzir o cateter com bisel para cima em ângulo de 15° a 30° até visualizar o refluxo sanguíneo na câmara.', checked: false },
       { id: 's6', stepNumber: 6, title: 'Avanço da cânula flexível e recuo do mandril', desc: 'Diminuir o ângulo paralelo à pele, avançar apenas o cateter plástico na luz da veia enquanto traciona a agulha metálica (mandril).', checked: false },
       { id: 's7', stepNumber: 7, title: 'Soltar garrote, conexão e teste de permeabilidade (Flush)', desc: 'Retirar o garrote, comprimir suavemente a veia acima da ponta do cateter, retirar o mandril descartando-o no coletor, conectar o extensor salinizado e testar o fluxo.', checked: false },
@@ -700,7 +711,7 @@ export const MASTER_PROCEDURES = [
       { id: 's1', stepNumber: 1, title: 'Delimitação anatômica do Ventroglúteo (Hochstetter)', desc: 'Colocar o indicador sobre a espinha ilíaca anterossuperior e abrir o dedo médio formando um V na crista ilíaca. O centro do V é o sítio mais seguro do corpo, livre de grandes vasos e nervos.', checked: false },
       { id: 's2', stepNumber: 2, title: 'Tração da pele em Z', desc: 'Com a mão não dominante, tracionar a pele e o tecido subcutâneo lateralmente cerca de 2,5 cm antes de introduzir a agulha.', checked: false },
       { id: 's3', stepNumber: 3, title: 'Inserção a 90 graus', desc: 'Introduzir a agulha com movimento firme e perpendicular de 90° em relação à superfície da pele.', checked: false },
-      { id: 's4', stepNumber: 4, title: 'Aspiração obrigatória por 5 segundos', desc: 'Aspirar o êmbolo suavemente. Se houver retorno de sangue, retirar imediatamente, desprezar todo o material e reiniciar o preparo com nova medicação.', checked: false },
+      { id: 's4', stepNumber: 4, title: 'Aspiração conforme protocolo institucional', desc: 'Evidências atuais (CDC/OMS) dispensam a aspiração no ventroglúteo, deltoide e vasto lateral. Se o protocolo local exigir, aspirar por 5 a 10 segundos; havendo retorno de sangue, retirar, desprezar todo o material e reiniciar o preparo com nova medicação.', checked: false },
       { id: 's5', stepNumber: 5, title: 'Injeção lenta e retirada', desc: 'Injetar lentamente na velocidade de 1 mL a cada 10 segundos. Aguardar 10 segundos antes de retirar a agulha para permitir a acomodação no músculo.', checked: false },
       { id: 's6', stepNumber: 6, title: 'Soltar a pele e vedar o trajeto', desc: 'Retirar a agulha e soltar a pele em seguida. Os planos teciduais se desalinham, vedando o canal e impedindo o refluxo para o subcutâneo.', checked: false },
     ],
@@ -732,7 +743,7 @@ export const MASTER_PROCEDURES = [
     materials: [
       { id: 'm1', name: 'Sonda de aspiração traqueal estéril com válvula de alívio (calibre 12 a 14 Fr)', checked: false },
       { id: 'm2', name: 'Sistema de aspiração a vácuo com manômetro regulado (80 a 120 mmHg)', checked: false },
-      { id: 'm3', name: 'Luvas estéreis de procedimento para técnica aberta (ou circuito fechado Trach Care)', checked: false },
+      { id: 'm3', name: 'Luvas estéreis (técnica aberta) ou sistema de aspiração fechado (Trach Care)', checked: false },
       { id: 'm4', name: 'Ampola de água destilada ou SF 0,9% estéril para lavagem da extensão de látex', checked: false },
       { id: 'm5', name: 'EPIs: Óculos de proteção, máscara cirúrgica ou N95 e avental', checked: false },
       { id: 'm6', name: 'Estetoscópio e oxímetro de pulso para monitorização contínua', checked: false },
@@ -837,13 +848,40 @@ export const procedureService = {
   /**
    * Conclui o treinamento de um procedimento, atribuindo XP e progresso na carreira.
    */
-  completeProcedure() {
-    const res = clinicalGamificationService.recordActivity('case_solved', 30);
+  completeProcedure(id) {
+    // Cada procedimento rende XP uma vez só por usuário, e conta como procedimento (não como caso NANDA).
+    if (id && this.isCompleted(id)) {
+      return { success: false, alreadyCompleted: true, earnedXp: 0 };
+    }
+    const res = clinicalGamificationService.recordActivity('procedure_completed', 30);
+    if (id) {
+      try {
+        const list = this.getCompletedList();
+        list.push(id);
+        localStorage.setItem(completedStorageKey(), JSON.stringify(list));
+      } catch (e) {
+        console.warn('Erro ao registrar procedimento concluído:', e);
+      }
+    }
     return {
       success: true,
       earnedXp: 30,
       state: res.state,
     };
+  },
+
+  getCompletedList() {
+    try {
+      const raw = localStorage.getItem(completedStorageKey());
+      const list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch {
+      return [];
+    }
+  },
+
+  isCompleted(id) {
+    return Boolean(id) && this.getCompletedList().includes(id);
   },
 
   /**
@@ -884,79 +922,6 @@ export const procedureService = {
       console.warn('Erro ao marcar procedimento como visto:', e);
       return false;
     }
-  },
-
-  /**
-   * Alterna o status de assistido (marcar/desmarcar) de um procedimento/vídeo.
-   */
-  toggleWatched(id) {
-    if (!id) return false;
-    try {
-      let list = this.getWatchedList();
-      const alreadyWatched = list.includes(id);
-      if (alreadyWatched) {
-        list = list.filter((item) => item !== id);
-      } else {
-        list.push(id);
-      }
-      localStorage.setItem(WATCHED_STORAGE_KEY, JSON.stringify(list));
-      window.dispatchEvent(new Event('storage'));
-      return !alreadyWatched;
-    } catch (e) {
-      console.warn('Erro ao alternar status de assistido:', e);
-      return false;
-    }
-  },
-
-  /**
-   * Gera um POP completo com IA (Google Gemini).
-   */
-  async generateProcedureWithAI(promptTopic) {
-    const systemPrompt = `Você é um Enfermeiro Especialista em Educação em Saúde, Semiotécnica e Normativas do COFEN nº 736/2024.
-Sua missão: Gerar um Procedimento Operacional Padrão (POP) e guia de habilidades clínicas de altíssima precisão e rigor asséptico para o procedimento solicitado.
-Gere um JSON rigoroso e estrito sem blocos markdown externos (apenas o JSON puro), com a seguinte estrutura:
-
-{
-  "title": "Nome formal do procedimento",
-  "category": "semiotecnica" | "vasculares" | "eliminacoes" | "medicamentos" | "respiratorio" | "curativos" | "urgencia",
-  "categoryLabel": "Nome legível da categoria",
-  "duration": "Ex: 7 min",
-  "difficulty": "Fundamental" | "Intermediário" | "Avançado",
-  "levelBadge": "Ex: Privativo do Enfermeiro ou Semiotécnica",
-  "institutionalBadge": "Fonte Acadêmica ou Hospitalar de Referência",
-  "cofenNorm": "Legislação aplicável (COFEN/ANVISA)",
-  "videoUrl": "https://www.youtube.com/embed/PqmE1NVdqak",
-  "videoSource": "Simulação Didática com Goti IA & LabEnf UFSM",
-  "description": "Indicação clínica, finalidade e justificativa científica",
-  "materials": [
-    { "id": "m1", "name": "Nome do material estéril ou de suporte", "checked": false }
-  ],
-  "steps": [
-    { "id": "s1", "stepNumber": 1, "title": "Título do passo", "desc": "Instrução técnica detalhada e precisa", "checked": false }
-  ],
-  "safetyAlerts": [
-    { "type": "danger" | "warning" | "tip", "title": "Alerta de Iatrogenia ou Erro Crítico", "text": "Explicação do risco e como prevenir" }
-  ]
-}`;
-
-    const userPrompt = `Gere o POP e roteiro didático de procedimento completo para: "${promptTopic}". Seja minucioso nos materiais, na técnica asséptica e nas complicações a evitar.`;
-
-    const result = await callResilientAI(systemPrompt, userPrompt, {
-      maxTokens: 2000,
-      temperature: 0.3,
-      responseMimeType: 'application/json',
-    });
-
-    if (!result?.text) {
-      throw new Error('Não foi possível gerar o procedimento com a IA no momento.');
-    }
-
-    const cleanJson = result.text.replace(/```json/g, '').replace(/```/g, '').trim();
-    const parsed = JSON.parse(cleanJson);
-    parsed.id = `ai-proc-${Date.now()}`;
-    parsed.isGeneratedByAI = true;
-
-    return this.saveCustom(parsed);
   },
 
   /**
@@ -1052,10 +1017,6 @@ DIRETRIZES DE RESPOSTA:
   },
 
   async askGotiAI(procedure, userQuestion) {
-    return this.askPreceptorAI(procedure, userQuestion);
-  },
-
-  async askFlorenceAI(procedure, userQuestion) {
     return this.askPreceptorAI(procedure, userQuestion);
   },
 };

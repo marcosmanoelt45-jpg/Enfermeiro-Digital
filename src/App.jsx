@@ -3,7 +3,10 @@ import { Toaster } from "@/components/ui/toaster";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
 import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { MotionConfig, motion } from 'framer-motion';
+import { LazyMotion, MotionConfig, m as motion } from 'framer-motion';
+
+// Os componentes usam `m` (leve); o motor de animação, arraste e layout chega num chunk à parte.
+const loadMotionFeatures = () => import('@/lib/motionFeatures').then((mod) => mod.default);
 import { ease } from '@/lib/motion';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
@@ -37,7 +40,7 @@ const ProcedimentosLab = lazy(() => import('@/pages/ProcedimentosLab'));
 const Videochamada = lazy(() => import('@/pages/Videochamada'));
 
 const PageLoader = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-xs z-50">
+  <div className="fixed inset-0 flex items-center justify-center bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-sm z-50">
     <div className="w-8 h-8 border-4 border-teal-200 dark:border-teal-900 border-t-teal-600 dark:border-t-teal-400 rounded-full animate-spin"></div>
   </div>
 );
@@ -46,7 +49,8 @@ const SplashPage = () => {
   const navigate = useNavigate();
   const { user, isAuthenticated } = useAuth();
   const query = typeof window !== "undefined" ? new URLSearchParams(window.location.search) : null;
-  const isDemoAuth = query ? (query.get("demo") === "auth" || query.get("auth") === "1") : false;
+  // Modo de demonstração por URL só existe no ambiente de desenvolvimento.
+  const isDemoAuth = import.meta.env.DEV && query ? (query.get("demo") === "auth" || query.get("auth") === "1") : false;
   const demoUserName = query ? (query.get("user") || "Marcos") : "Marcos";
 
   const effectiveAuth = isAuthenticated || isDemoAuth;
@@ -69,7 +73,7 @@ const SplashPage = () => {
 };
 
 const AuthenticatedApp = () => {
-  const { user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError, navigateToLogin } = useAuth();
+  const { user, isAuthenticated, isLoadingAuth, isLoadingPublicSettings, authError } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
   const [showInitialSplash, setShowInitialSplash] = React.useState(() => {
@@ -100,7 +104,16 @@ const AuthenticatedApp = () => {
     return true;
   });
 
+  // O splash só aparece depois de a autenticação resolver: antes disso ele mostraria
+  // "Começar" para quem já está logado.
+  if (isLoadingPublicSettings || isLoadingAuth) {
+    return <PageLoader />;
+  }
+
   if (showInitialSplash) {
+    // Link direto para uma tela (ex.: /calculo-doses) mantém o destino depois do splash.
+    const destino = `${location.pathname}${location.search}`;
+    const returnTo = destino !== "/" ? `?returnTo=${encodeURIComponent(destino)}` : "";
     return (
       <EnfereSplash
         isAuthenticated={isAuthenticated}
@@ -108,31 +121,22 @@ const AuthenticatedApp = () => {
         onGetStarted={() => {
           sessionStorage.setItem("enfere_splash_passed", "true");
           setShowInitialSplash(false);
-          if (isAuthenticated) {
-            navigate("/");
-          } else {
-            navigate("/register");
-          }
+          if (!isAuthenticated) navigate(`/register${returnTo}`);
         }}
         onHaveAccount={() => {
           sessionStorage.setItem("enfere_splash_passed", "true");
           setShowInitialSplash(false);
-          navigate("/login");
+          navigate(`/login${returnTo}`);
         }}
       />
     );
-  }
-
-  if (isLoadingPublicSettings || isLoadingAuth) {
-    return <PageLoader />;
   }
 
   if (authError) {
     if (authError.type === 'user_not_registered') {
       return <UserNotRegisteredError />;
     } else if (authError.type === 'auth_required') {
-      navigateToLogin();
-      return null;
+      return <Navigate to={`/login?returnTo=${encodeURIComponent(location.pathname)}`} replace />;
     }
   }
 
@@ -205,6 +209,7 @@ const AuthenticatedApp = () => {
 function App() {
   return (
     <ErrorBoundary>
+      <LazyMotion features={loadMotionFeatures}>
       <MotionConfig reducedMotion="user">
       <ThemeProvider>
         <AuthProvider>
@@ -218,6 +223,7 @@ function App() {
         </AuthProvider>
       </ThemeProvider>
       </MotionConfig>
+      </LazyMotion>
     </ErrorBoundary>
   );
 }

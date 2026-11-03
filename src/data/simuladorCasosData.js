@@ -17,7 +17,7 @@ export const PACIENTES = {
     sinaisVitais: "PA 138/86 · FC 82 · SpO₂ 96%",
     pitch: 0.72,
     rate: 0.90,
-    voiceFile: "/pacientes/marcus/fala.wav",
+    voiceFile: "/pacientes/marcus/fala.mp3",
     videos: {
       fala: {
         webm: "/pacientes/marcus/fala.webm",
@@ -41,7 +41,7 @@ export const PACIENTES = {
     sinaisVitais: "PA 124/78 · FC 76 · SpO₂ 98%",
     pitch: 1.10,
     rate: 0.92,
-    voiceFile: "/pacientes/teresinha/fala.wav",
+    voiceFile: "/pacientes/teresinha/fala.mp3",
     videos: {
       fala: {
         webm: "/pacientes/teresinha/fala.webm",
@@ -70,14 +70,14 @@ export const CASOS_SIMULADOR = {
   {
     "tipo": "fala",
     "texto": "Oi enfermeiro, que bom que você veio! Minha perna está doendo e estou sentindo um incômodo forte aqui no calcanhar.",
-    "audioPath": "/pacientes/marcus/passo_0.wav"
+    "audioPath": "/pacientes/marcus/passo_0.mp3"
   },
   {
     "tipo": "multipla_escolha",
     "tema": "AVALIAÇÃO E ESTADIAMENTO",
     "categoriaPratica": "curativo",
     "pergunta": "Ao avaliar a ferida no meu calcanhar com tecido fibrinoso e bordas maceradas, qual conduta primordial você adota primeiro?",
-    "audioPath": "/pacientes/marcus/passo_1.wav",
+    "audioPath": "/pacientes/marcus/passo_1.mp3",
     "dica": "A higiene inicial e a remoção atraumática de sujidades precedem qualquer tipo de desbridamento ou escolha de cobertura.",
     "opcoes": [
       "Irrigar a lesão em jato com soro fisiológico 0,9% aquecido para limpeza atraumática",
@@ -126,7 +126,7 @@ export const CASOS_SIMULADOR = {
     "tema": "MATERIAIS E BIOSSEGURANÇA",
     "categoriaPratica": "curativo",
     "pergunta": "Quais materiais você vai separar para limpar e proteger o meu machucado?",
-    "audioPath": "/pacientes/marcus/passo_2.wav",
+    "audioPath": "/pacientes/marcus/passo_2.mp3",
     "dica": "Pense na sequência asséptica: solução fisiológica, luvas, kit de curativo estéril e cobertura compatível com exsudato.",
     "opcoes": [
       "Kit estéril de curativo (pinças), soro fisiológico 0,9%, gaze estéril, cobertura primária e luvas",
@@ -175,7 +175,7 @@ export const CASOS_SIMULADOR = {
     "tema": "CÁLCULO DE MEDICAMENTOS",
     "categoriaPratica": "calculo",
     "pergunta": "Quantos mL você prepara para o alívio da dor do paciente? Prescrição: Dipirona 500 mg EV. Disponível: ampola de 1 g em 2 mL.",
-    "audioPath": "/pacientes/marcus/passo_3.wav",
+    "audioPath": "/pacientes/marcus/passo_3.mp3",
     "dica": "Converta as unidades para a mesma grandeza: 1 g = 1000 mg. Depois monte a regra de três simples: 1000 mg estão em 2 mL, logo 500 mg estão em quantos mL?",
     "opcoes": [
       "1,0 mL (aspira-se exatamente 1 mL da ampola)",
@@ -224,7 +224,7 @@ export const CASOS_SIMULADOR = {
     "tema": "TÉCNICA DE CURATIVO",
     "categoriaPratica": "curativo",
     "pergunta": "Qual técnica é preconizada pelo Ministério da Saúde para limpar a lesão sem traumatizar o tecido de granulação?",
-    "audioPath": "/pacientes/marcus/passo_4.wav",
+    "audioPath": "/pacientes/marcus/passo_4.mp3",
     "dica": "A pressão recomendada varia entre 4 a 15 psi, geralmente obtida com seringa de 20 mL e agulha 40x12 ou frasco perfurado.",
     "opcoes": [
       "Irrigação em jatos contínuos e suaves com seringa de 20 mL e agulha 40x12 mm a cerca de 10 cm da lesão",
@@ -273,7 +273,7 @@ export const CASOS_SIMULADOR = {
     "tema": "PREVENÇÃO DE LESÕES",
     "categoriaPratica": "geral",
     "pergunta": "Quais condutas de enfermagem previnem a piora da lesão e protegem outras proeminências?",
-    "audioPath": "/pacientes/marcus/passo_5.wav",
+    "audioPath": "/pacientes/marcus/passo_5.mp3",
     "dica": "Alívio de pressão na região calcânea exige coxins sob a panturrilha para flutuação do calcanhar e mudança de decúbito.",
     "opcoes": [
       "Manter o calcanhar suspenso em flutuação com coxim sob a panturrilha e reposicionamento regular",
@@ -322,7 +322,7 @@ export const CASOS_SIMULADOR = {
     "tema": "CÁLCULO DE GOTEJAMENTO",
     "categoriaPratica": "calculo",
     "pergunta": "Quantas gotas por minuto (macrogotas) devem correr na hidratação prescrita? Prescrição: 500 mL de SF 0,9% para correr em 8 horas.",
-    "audioPath": "/pacientes/marcus/passo_6.wav",
+    "audioPath": "/pacientes/marcus/passo_6.mp3",
     "dica": "Fórmula de macrogotas por minuto: Gotas/min = Volume total (mL) / (Tempo em horas x 3). Calcule 500 / (8 x 3).",
     "opcoes": [
       "21 gotas por minuto (aproximadamente 20,8 gts/min)",
@@ -371,7 +371,7 @@ export const CASOS_SIMULADOR = {
     "tema": "HIGIENIZAÇÃO DAS MÃOS",
     "categoriaPratica": "geral",
     "pergunta": "Antes de colocar as luvas e tocar no paciente, diga qual procedimento primordial você realiza.",
-    "audioPath": "/pacientes/marcus/passo_7.wav",
+    "audioPath": "/pacientes/marcus/passo_7.mp3",
     "dica": "As luvas de procedimento nunca substituem a higiene das mãos. A fricção com preparação alcoólica a 70% ou água e sabonete é mandatória.",
     "opcoes": [
       "Higienização rigorosa das mãos com água e sabonete líquido ou preparação alcoólica a 70%",
@@ -420,7 +420,7 @@ export const CASOS_SIMULADOR = {
     "tema": "ESCALAS DE RISCO",
     "categoriaPratica": "geral",
     "pergunta": "Na Escala de Braden para a predição do risco de lesão por pressão, qual parâmetro avalia a sensibilidade a desconforto?",
-    "audioPath": "/pacientes/marcus/passo_8.wav",
+    "audioPath": "/pacientes/marcus/passo_8.mp3",
     "dica": "A escala avalia 6 subescalas: Percepção Sensorial, Umidade, Atividade, Mobilidade, Nutrição e Fricção/Cisalhamento.",
     "opcoes": [
       "Percepção Sensorial (capacidade de reagir significativamente ao desconforto relacionado à pressão)",
@@ -469,7 +469,7 @@ export const CASOS_SIMULADOR = {
     "tema": "COBERTURAS TERAPÊUTICAS",
     "categoriaPratica": "curativo",
     "pergunta": "Para manter o leito úmido favorável e estimular a epitelização de lesão estágio 2 sem infecção, qual cobertura é indicada?",
-    "audioPath": "/pacientes/marcus/passo_9.wav",
+    "audioPath": "/pacientes/marcus/passo_9.mp3",
     "dica": "Curativos hidrocoloides ou filmes transparentes mantêm o meio úmido e protegem contra bactérias externas em lesões limpas e com baixo exsudato.",
     "opcoes": [
       "Placa de Hidrocoloide ou Hidrogel estéril com cobertura secundária oclusiva",
@@ -518,7 +518,7 @@ export const CASOS_SIMULADOR = {
     "tema": "DIAGNÓSTICO DE INFECÇÃO",
     "categoriaPratica": "curativo",
     "pergunta": "Quais alterações clínicas no leito ou bordas da ferida sugerem infecção bacteriana secundária?",
-    "audioPath": "/pacientes/marcus/passo_10.wav",
+    "audioPath": "/pacientes/marcus/passo_10.mp3",
     "dica": "Fique atento aos sinais cardinais: calor aumentado, eritema em expansão além das bordas, dor crescente e exsudato purulento.",
     "opcoes": [
       "Calor local aumentado, exsudato purulento com odor fétido e eritema perilesional expansivo",
@@ -567,7 +567,7 @@ export const CASOS_SIMULADOR = {
     "tema": "FARMACOLOGIA E DOSAGEM",
     "categoriaPratica": "farmaco",
     "pergunta": "Quantos mL de Enoxaparina você administra para a profilaxia de trombose venosa profunda? Prescrição: Enoxaparina 40 mg SC ao dia. Disponível: seringa preenchida com 40 mg em 0,4 mL.",
-    "audioPath": "/pacientes/marcus/passo_11.wav",
+    "audioPath": "/pacientes/marcus/passo_11.mp3",
     "dica": "Observe a graduação da seringa preenchida comercial. Se 40 mg correspondem ao volume total do dispositivo, quanto deve ser injetado?",
     "opcoes": [
       "0,4 mL (administração do volume total da seringa preenchida de 40 mg sem desprezar a bolha de ar)",
@@ -616,7 +616,7 @@ export const CASOS_SIMULADOR = {
     "tema": "MANEJO DA DOR",
     "categoriaPratica": "geral",
     "pergunta": "Em pacientes idosos com feridas dolorosas, qual conduta de enfermagem é prioritária antes de manipular o curativo?",
-    "audioPath": "/pacientes/marcus/passo_12.wav",
+    "audioPath": "/pacientes/marcus/passo_12.mp3",
     "dica": "A analgesia preventiva deve coincidir com o pico de ação do analgésico prescrito (cerca de 30 minutos antes do procedimento).",
     "opcoes": [
       "Administrar a analgesia prescrita cerca de 30 minutos antes do procedimento e explicar as etapas ao paciente",
@@ -665,7 +665,7 @@ export const CASOS_SIMULADOR = {
     "tema": "POSICIONAMENTO NO LEITO",
     "categoriaPratica": "geral",
     "pergunta": "Diga qual cuidado físico de posicionamento você realiza para manter o calcanhar do paciente sem contato com o colchão.",
-    "audioPath": "/pacientes/marcus/passo_13.wav",
+    "audioPath": "/pacientes/marcus/passo_13.mp3",
     "dica": "O apoio deve ser distribuído ao longo da tíbia e panturrilha, mantendo o joelho ligeiramente fletido (5 a 10 graus) e o calcanhar no ar.",
     "opcoes": [
       "Posicionar um travesseiro macio sob a panturrilha do paciente, garantindo espaço livre entre o calcanhar e o lençol",
@@ -714,7 +714,7 @@ export const CASOS_SIMULADOR = {
     "tema": "REMOÇÃO DE CURATIVO ADERIDO",
     "categoriaPratica": "curativo",
     "pergunta": "Quando a gaze ou curativo antigo estiver firmemente aderido ao leito da lesão, quais condutas você adota?",
-    "audioPath": "/pacientes/marcus/passo_14.wav",
+    "audioPath": "/pacientes/marcus/passo_14.mp3",
     "dica": "Nunca puxe a gaze a seco. Umedeça abundantemente com soro fisiológico morno e aguarde o desprendimento espontâneo.",
     "opcoes": [
       "Umedecer a gaze abundantemente com soro fisiológico 0,9% morno e aguardar alguns minutos até o desprendimento espontâneo",
@@ -763,7 +763,7 @@ export const CASOS_SIMULADOR = {
     "tema": "BOMBA DE INFUSÃO CONTÍNUA",
     "categoriaPratica": "calculo",
     "pergunta": "A quantos mL/h você programa a Bomba de Infusão Contínua para infundir o Ciprofloxacino prescrito? Prescrição: Ciprofloxacino 400 mg (bolsa de 200 mL pronta) para correr em 60 minutos.",
-    "audioPath": "/pacientes/marcus/passo_15.wav",
+    "audioPath": "/pacientes/marcus/passo_15.mp3",
     "dica": "A vazão da Bomba de Infusão (BIC) é calculada em mililitros por hora (mL/h). Se o volume é 200 mL e o tempo é de 1 hora (60 minutos), qual é a velocidade?",
     "opcoes": [
       "200 mL/h (velocidade exata para infundir 200 mL em 1 hora)",
@@ -812,7 +812,7 @@ export const CASOS_SIMULADOR = {
     "tema": "AVALIAÇÃO DE EXSUDATO",
     "categoriaPratica": "curativo",
     "pergunta": "Como você classifica um exsudato fluido, claro, de coloração amarelada tênue e sem odor desagradável?",
-    "audioPath": "/pacientes/marcus/passo_16.wav",
+    "audioPath": "/pacientes/marcus/passo_16.mp3",
     "dica": "Diferencie exsudato seroso (claro/palha), purulento (amarelo-esverdeado e espesso) e sanguinolento (vermelho vivo).",
     "opcoes": [
       "Exsudato Seroso (característico de fase inflamatória e proliferação fisiológica limpa)",
@@ -861,7 +861,7 @@ export const CASOS_SIMULADOR = {
     "tema": "PROTEÇÃO DA PELE PERI-LESIONAL",
     "categoriaPratica": "curativo",
     "pergunta": "Para proteger as bordas perilesionais contra a maceração causada pelo exsudato contínuo, qual produto é mais apropriado?",
-    "audioPath": "/pacientes/marcus/passo_17.wav",
+    "audioPath": "/pacientes/marcus/passo_17.mp3",
     "dica": "A película protetora sem álcool (spray ou swab de barreira de polímero de silicone) protege a pele intacta contra umidade e enzimas sem ardor.",
     "opcoes": [
       "Película protetora sem álcool (filme barreira não citotóxico à base de silicone/polímeros)",
@@ -910,7 +910,7 @@ export const CASOS_SIMULADOR = {
     "tema": "AVALIAÇÃO VASCULAR DO MEMBRO",
     "categoriaPratica": "sinais_vitais",
     "pergunta": "Quais parâmetros devem ser checados no pé do Sr. Marcus para descartar insuficiência arterial associada?",
-    "audioPath": "/pacientes/marcus/passo_18.wav",
+    "audioPath": "/pacientes/marcus/passo_18.mp3",
     "dica": "A palpação dos pulsos pedioso e tibial posterior, temperatura do pé e tempo de enchimento capilar (TEC) são cruciais.",
     "opcoes": [
       "Palpação dos pulsos pedioso e tibial posterior, temperatura do antepé e tempo de enchimento capilar (TEC)",
@@ -959,7 +959,7 @@ export const CASOS_SIMULADOR = {
     "tema": "ÂNGULO DE CABECEIRA E CISALHAMENTO",
     "categoriaPratica": "geral",
     "pergunta": "Para prevenir o cisalhamento sacral e no calcâneo em pacientes acamados, qual o limite recomendado de inclinação da cabeceira?",
-    "audioPath": "/pacientes/marcus/passo_19.wav",
+    "audioPath": "/pacientes/marcus/passo_19.mp3",
     "dica": "Manter a cabeceira a 30 graus ou menos previne o escorregamento do corpo e as forças de atrito nos tecidos profundos.",
     "opcoes": [
       "Manter a elevação da cabeceira em até 30 graus, exceto durante as refeições ou por contraindicação médica",
@@ -1008,7 +1008,7 @@ export const CASOS_SIMULADOR = {
     "tema": "CÁLCULO DE MACROGOTAS",
     "categoriaPratica": "calculo",
     "pergunta": "Quantas gotas por minuto você regula para infundir 1000 mL de Soro Glicosado 5% em 12 horas?",
-    "audioPath": "/pacientes/marcus/passo_20.wav",
+    "audioPath": "/pacientes/marcus/passo_20.mp3",
     "dica": "Gotas/min = Volume (mL) / (Horas x 3). Calcule 1000 / (12 x 3) = 1000 / 36.",
     "opcoes": [
       "28 gotas por minuto (arredondamento de 27,7 gotas/min)",
@@ -1057,7 +1057,7 @@ export const CASOS_SIMULADOR = {
     "tema": "REGISTRO E ÉTICA PROFISSIONAL",
     "categoriaPratica": "geral",
     "pergunta": "Segundo o COFEN, qual elemento é obrigatório na anotação de enfermagem referente à troca de curativo?",
-    "audioPath": "/pacientes/marcus/passo_21.wav",
+    "audioPath": "/pacientes/marcus/passo_21.mp3",
     "dica": "A Resolução COFEN 543/2017 e Guia de Anotações exige registro de localização, características da ferida, produtos utilizados, tolerância e identificação profissional (nome e COREN).",
     "opcoes": [
       "Descrição das características da ferida (local, dimensões, tecido, exsudato), produtos aplicados, queixas do paciente, data, hora, assinatura e número do COREN",
@@ -1113,14 +1113,14 @@ export const CASOS_SIMULADOR = {
   {
     "tipo": "fala",
     "texto": "Olá, enfermeiro! O meu braço tá ardendo um pouquinho onde colocaram esse soro, o que será que tá acontecendo?",
-    "audioPath": "/pacientes/teresinha/passo_0.wav"
+    "audioPath": "/pacientes/teresinha/passo_0.mp3"
   },
   {
     "tipo": "multipla_escolha",
     "tema": "DIAGNÓSTICO CLÍNICO DE FLEBITE",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Dona Teresinha apresenta dor local, calor e cordão venoso palpável no antebraço direito. Qual diagnóstico de enfermagem prioritário?",
-    "audioPath": "/pacientes/teresinha/passo_1.wav",
+    "audioPath": "/pacientes/teresinha/passo_1.mp3",
     "dica": "A presença de cordão venoso palpável associado a eritema e calor traduz inflamação da camada íntima endotelial da veia (Flebite Grau 3).",
     "opcoes": [
       "Flebite em acesso venoso periférico com necessidade de interrupção imediata da infusão e remoção do cateter",
@@ -1169,7 +1169,7 @@ export const CASOS_SIMULADOR = {
     "tema": "RECONSTITUIÇÃO E CÁLCULO",
     "categoriaPratica": "calculo",
     "pergunta": "Quantos mL você aspira do frasco reconstituído para administrar a dose prescrita? Prescrição: Ceftriaxona 500 mg EV. Frasco-ampola de 1 g com pó liofilizado reconstituído em 10 mL de diluente.",
-    "audioPath": "/pacientes/teresinha/passo_2.wav",
+    "audioPath": "/pacientes/teresinha/passo_2.mp3",
     "dica": "1 g = 1000 mg em 10 mL. Para obter 500 mg (metade da concentração), quantos mL você deve aspirar?",
     "opcoes": [
       "5,0 mL (metade do volume total reconstituído)",
@@ -1218,7 +1218,7 @@ export const CASOS_SIMULADOR = {
     "tema": "CONDUTA EM FLEBITE",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Ao identificar sinais de flebite química no membro da paciente, quais ações imediatas a equipe de enfermagem deve executar?",
-    "audioPath": "/pacientes/teresinha/passo_3.wav",
+    "audioPath": "/pacientes/teresinha/passo_3.mp3",
     "dica": "A prioridade número 1 é interromper a infusão e remover o dispositivo. Em seguida, aplicar compressa morna e notificar o evento.",
     "opcoes": [
       "Interromper a infusão imediatamente, retirar o cateter, aplicar compressa morna e puncionar novo sítio em membro contralateral",
@@ -1267,7 +1267,7 @@ export const CASOS_SIMULADOR = {
     "tema": "BOAS PRÁTICAS EM PUNÇÃO VENOSA",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Ao puncionar novo acesso venoso periférico na Dona Teresinha, qual a recomendação técnica de boas práticas?",
-    "audioPath": "/pacientes/teresinha/passo_4.wav",
+    "audioPath": "/pacientes/teresinha/passo_4.mp3",
     "dica": "Em idosos com fragilidade capilar, selecione veias de maior calibre em antebraço, use cateter fino (22G ou 24G) e evite dobras articulares.",
     "opcoes": [
       "Selecionar veias do antebraço evitando áreas de flexão articular, usando cateter de menor calibre (22G ou 24G) e antissepsia rigorosa",
@@ -1316,7 +1316,7 @@ export const CASOS_SIMULADOR = {
     "tema": "CÁLCULO DE MICROGOTAS",
     "categoriaPratica": "calculo",
     "pergunta": "Quantas microgotas por minuto devem ser reguladas para infundir a medicação no tempo prescrito? Prescrição: 100 mL de solução em 1 hora.",
-    "audioPath": "/pacientes/teresinha/passo_5.wav",
+    "audioPath": "/pacientes/teresinha/passo_5.mp3",
     "dica": "A fórmula de microgotas é: Microgotas/min = Volume (mL) / Tempo (horas). Calcule 100 / 1.",
     "opcoes": [
       "100 microgotas por minuto (1 microgota/min = 1 mL/h)",
@@ -1365,7 +1365,7 @@ export const CASOS_SIMULADOR = {
     "tema": "CUIDADOS TÓPICOS PÓS-FLEBITE",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Após a retirada do cateter venoso com flebite, qual o cuidado tópico com evidência científica auxilia no alívio da dor e edema?",
-    "audioPath": "/pacientes/teresinha/passo_6.wav",
+    "audioPath": "/pacientes/teresinha/passo_6.mp3",
     "dica": "Compressas mornas úmidas aplicadas por 15 a 20 minutos várias vezes ao dia promovem vasodilatação, drenagem linfática e reabsorção do exsudato.",
     "opcoes": [
       "Aplicação de compressas mornas úmidas no trajeto venoso por 15 a 20 minutos, de 3 a 4 vezes ao dia",
@@ -1414,7 +1414,7 @@ export const CASOS_SIMULADOR = {
     "tema": "MATERIAIS DE PUNÇÃO VENOSA",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Selecione todos os materiais necessários para realizar uma nova punção venosa periférica estéril e segura.",
-    "audioPath": "/pacientes/teresinha/passo_7.wav",
+    "audioPath": "/pacientes/teresinha/passo_7.mp3",
     "dica": "Lembre-se: cateter sobre agulha de calibre adequado, algodão/swab com álcool 70%, torniquete limpo, curativo estéril transparente e luvas.",
     "opcoes": [
       "Cateter sobre agulha (22G/24G), algodão com álcool 70%, torniquete, curativo estéril transparente, luvas e conector estéril",
@@ -1463,7 +1463,7 @@ export const CASOS_SIMULADOR = {
     "tema": "DIAGNÓSTICO DIFERENCIAL",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Qual a principal diferença clínica observada entre flebite inflamatória e infiltração venosa?",
-    "audioPath": "/pacientes/teresinha/passo_8.wav",
+    "audioPath": "/pacientes/teresinha/passo_8.mp3",
     "dica": "A flebite é inflamatória (apresenta calor e hiperemia); a infiltração é extravasamento de fluido (apresenta pele fria, pálida e edema tenso).",
     "opcoes": [
       "A flebite apresenta hiperemia, calor local e endurecimento da veia, enquanto a infiltração apresenta pele pálida, fria ao toque e edema perilesional",
@@ -1512,7 +1512,7 @@ export const CASOS_SIMULADOR = {
     "tema": "ESTADIAMENTO DA FLEBITE",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Segundo a Infusion Nurses Society (INS), a presença de dor no local com eritema e/ou edema corresponde a qual grau de flebite?",
-    "audioPath": "/pacientes/teresinha/passo_9.wav",
+    "audioPath": "/pacientes/teresinha/passo_9.mp3",
     "dica": "A escala INS classifica: Grau 1 (eritema sem dor), Grau 2 (dor com eritema e/ou edema), Grau 3 (dor, eritema e cordão venoso palpável), Grau 4 (cordão venoso > 2,5 cm com drenagem purulenta).",
     "opcoes": [
       "Grau 2 da Escala de Flebite da INS",
@@ -1561,14 +1561,14 @@ export const CASOS_SIMULADOR = {
     "tema": "FATORES DE RISCO PARA FLEBITE",
     "categoriaPratica": "farmaco",
     "pergunta": "Quais fatores farmacológicos e físicos favorecem o surgimento de flebite química durante infusões periféricas?",
-    "audioPath": "/pacientes/teresinha/passo_10.wav",
+    "audioPath": "/pacientes/teresinha/passo_10.mp3",
     "dica": "Medicamentos com pH ácido (< 5) ou alcalino (> 9), alta osmolalidade (> 600 mOsm/L) e tempo de infusão muito rápido irritam o endotélio venoso.",
     "opcoes": [
       "Extremos de pH (< 5 ou > 9), alta osmolalidade da solução e velocidade de infusão rápida sem diluição",
       "Uso de soro fisiológico isotônico 0,9% em velocidade de 10 mL/h",
       "Seleção de cateter de fino calibre (24G) em veia de grosso calibre",
       "Higienização prévia das mãos e antissepsia com clorexidina alcoólica a 0,5%",
-      "Infusão de água destilada isotônica em temperatura ambiente constante"
+      "Infusão de SF 0,9% isotônico, pH próximo de 7, em veia de bom calibre e na velocidade prescrita"
     ],
     "correta": 0,
     "explicacaoGeral": "Soluções com pH ácido (como antibióticos e quimioterápicos) e osmolaridade > 600 mOsm/L causam lesão celular direta na túnica íntima da veia periférica.",
@@ -1599,9 +1599,9 @@ export const CASOS_SIMULADOR = {
       },
       {
         "letra": "E",
-        "texto": "Infusão de água destilada isotônica em temperatura ambiente constante",
+        "texto": "Infusão de SF 0,9% isotônico, pH próximo de 7, em veia de bom calibre e na velocidade prescrita",
         "isCorreta": false,
-        "explicacao": "Incorreta: A água destilada é fortemente hipotônica (0 mOsm/L) e nunca deve ser infundida pura na corrente sanguínea (risco de hemólise maciça)."
+        "explicacao": "Incorreta: solução isotônica, de pH fisiológico, em veia calibrosa e na velocidade prescrita não é fator de risco para flebite química."
       }
     ]
   },
@@ -1610,7 +1610,7 @@ export const CASOS_SIMULADOR = {
     "tema": "CÁLCULO EM MINUTOS",
     "categoriaPratica": "calculo",
     "pergunta": "Quantas microgotas por minuto devem ser reguladas para infundir 100 mL de solução em 45 minutos?",
-    "audioPath": "/pacientes/teresinha/passo_11.wav",
+    "audioPath": "/pacientes/teresinha/passo_11.mp3",
     "dica": "Quando o tempo é dado em minutos: Microgotas/min = (Volume em mL x 60) / Tempo em minutos. Calcule (100 x 60) / 45.",
     "opcoes": [
       "133 microgotas por minuto (arredondamento de 133,3 microgotas/min)",
@@ -1659,7 +1659,7 @@ export const CASOS_SIMULADOR = {
     "tema": "ANTISSEPSIA DE CONECTORES (SCRUB THE HUB)",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Qual o tempo mínimo recomendado de fricção mecânica com álcool 70% no conector sem agulha (hub) antes de conectar a linha venosa?",
-    "audioPath": "/pacientes/teresinha/passo_12.wav",
+    "audioPath": "/pacientes/teresinha/passo_12.mp3",
     "dica": "A diretriz internacional 'Scrub the Hub' (CDC, INS e ANVISA) preconiza fricção vigorosa por no mínimo 5 a 15 segundos, deixando secar completamente por evaporação.",
     "opcoes": [
       "Fricção vigorosa de 5 a 15 segundos com álcool 70%, permitindo a secagem completa espontânea",
@@ -1708,7 +1708,7 @@ export const CASOS_SIMULADOR = {
     "tema": "TÉCNICA DE FLUSHING",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Diga qual técnica você realiza com seringa de soro para checar se o acesso venoso está pérvio antes de aplicar o antibiótico.",
-    "audioPath": "/pacientes/teresinha/passo_13.wav",
+    "audioPath": "/pacientes/teresinha/passo_13.mp3",
     "dica": "A técnica 'Push-Pause' (pressão pulsátil) com seringa de 10 mL cria turbulência no lúmen, removendo fibrina sem exercer pressão intraluminal excessiva.",
     "opcoes": [
       "Flushing pulsátil (técnica push-pause) com 5 a 10 mL de soro fisiológico 0,9% em seringa de 10 mL para avaliar fluxo e refluxo livre",
@@ -1757,7 +1757,7 @@ export const CASOS_SIMULADOR = {
     "tema": "PREPARO DO PACIENTE",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Selecione todos os materiais obrigatórios para realizar nova punção venosa periférica estéril.",
-    "audioPath": "/pacientes/teresinha/passo_14.wav",
+    "audioPath": "/pacientes/teresinha/passo_14.mp3",
     "dica": "Além do cateter e luvas, o curativo transparente semipermeável é obrigatório para permitir a visualização diária contínua do sítio de inserção.",
     "opcoes": [
       "Luvas de procedimento, torniquete, antisséptico (álcool 70% ou clorexidina), cateter intravenoso periférico, curativo transparente e conector estéril",
@@ -1806,7 +1806,7 @@ export const CASOS_SIMULADOR = {
     "tema": "CÁLCULO DE DIURÉTICO",
     "categoriaPratica": "calculo",
     "pergunta": "Quantos mL de Furosemida você aspira da ampola para administrar a dose prescrita? Prescrição: Furosemida 20 mg EV. Disponível: ampola de 20 mg em 2 mL.",
-    "audioPath": "/pacientes/teresinha/passo_15.wav",
+    "audioPath": "/pacientes/teresinha/passo_15.mp3",
     "dica": "Apresentação: 20 mg em 2 mL. Se a prescrição é de 20 mg, qual o volume que contém essa dose exata?",
     "opcoes": [
       "2,0 mL (aspiração do conteúdo integral da ampola de 20 mg/2 mL)",
@@ -1855,7 +1855,7 @@ export const CASOS_SIMULADOR = {
     "tema": "ESCOLHA DO CALIBRE DO CATETER",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Considerando a fragilidade capilar da paciente idosa e a infusão de antibiótico não vesicante, qual o calibre de cateter periférico é o mais indicado?",
-    "audioPath": "/pacientes/teresinha/passo_16.wav",
+    "audioPath": "/pacientes/teresinha/passo_16.mp3",
     "dica": "Cateteres finos (22G ou 24G) minimizam o trauma de inserção e permitem fluxo de sangue desimpedido ao redor da cânula plástica.",
     "opcoes": [
       "22G (azul) ou 24G (amarelo), adequados para veias finas e terapia medicamentosa segura",
@@ -1904,7 +1904,7 @@ export const CASOS_SIMULADOR = {
     "tema": "SOBRECARGA HÍDRICA NO IDOSO",
     "categoriaPratica": "sinais_vitais",
     "pergunta": "Quais sinais clínicos em paciente idoso indicam sobrecarga hídrica (hipervolemia) durante terapia intravenosa?",
-    "audioPath": "/pacientes/teresinha/passo_17.wav",
+    "audioPath": "/pacientes/teresinha/passo_17.mp3",
     "dica": "A sobrecarga de volume no idoso sobrecarrega o ventrículo esquerdo: observe dispneia súbita, estertores crepitantes nos pulmões, tosse e turgência jugular.",
     "opcoes": [
       "Dispneia súbita, estertores crepitantes na ausculta pulmonar, turgência jugular patológica e tosse produtiva",
@@ -1953,7 +1953,7 @@ export const CASOS_SIMULADOR = {
     "tema": "PRESERVAÇÃO DA PELE DO IDOSO (MARSI)",
     "categoriaPratica": "curativo",
     "pergunta": "Ao retirar o curativo transparente da pele frágil da Dona Teresinha, qual técnica previne lesão por fricção e desnudamento cutâneo?",
-    "audioPath": "/pacientes/teresinha/passo_18.wav",
+    "audioPath": "/pacientes/teresinha/passo_18.mp3",
     "dica": "Puxe a película esticando-a paralelamente à pele (técnica de estiramento horizontal/stretch), nunca tracionando perpendicularmente para cima a 90 graus.",
     "opcoes": [
       "Tracionar o filme delicadamente paralelo à pele (técnica de estiramento horizontal), segurando a pele adjacente com a outra mão",
@@ -2002,7 +2002,7 @@ export const CASOS_SIMULADOR = {
     "tema": "PROGRAMAÇÃO DE BOMBA DE INFUSÃO",
     "categoriaPratica": "calculo",
     "pergunta": "A quantos mL/h deve ser programada a Bomba de Infusão para administrar 250 mL de Soro Fisiológico em 4 horas?",
-    "audioPath": "/pacientes/teresinha/passo_19.wav",
+    "audioPath": "/pacientes/teresinha/passo_19.mp3",
     "dica": "Vazão da Bomba (mL/h) = Volume total (mL) / Tempo total (horas). Calcule 250 / 4.",
     "opcoes": [
       "62,5 mL/h (velocidade calculada exatamente pela divisão 250 mL / 4 horas)",
@@ -2051,7 +2051,7 @@ export const CASOS_SIMULADOR = {
     "tema": "COLETA DE EXAMES MICROBIOLÓGICOS",
     "categoriaPratica": "geral",
     "pergunta": "Para garantir a confiabilidade do diagnóstico microbiológico, quando deve ser colhida a urocultura da Dona Teresinha?",
-    "audioPath": "/pacientes/teresinha/passo_20.wav",
+    "audioPath": "/pacientes/teresinha/passo_20.mp3",
     "dica": "A urocultura e antibiograma devem ser colhidos SEMPRE ANTES de iniciar a primeira dose do antimicrobiano.",
     "opcoes": [
       "Antes de iniciar a primeira dose do antibiótico na veia",
@@ -2100,7 +2100,7 @@ export const CASOS_SIMULADOR = {
     "tema": "EDUCAÇÃO EM SAÚDE E ORIENTAÇÃO AO PACIENTE",
     "categoriaPratica": "acesso_venoso",
     "pergunta": "Quais orientações você fornece à Dona Teresinha sobre o cuidado com o novo sítio de punção venosa?",
-    "audioPath": "/pacientes/teresinha/passo_21.wav",
+    "audioPath": "/pacientes/teresinha/passo_21.mp3",
     "dica": "Oriente a não molhar o curativo no banho, não tracionar a linha venosa e avisar imediatamente se sentir dor, queimação ou umidade no local.",
     "opcoes": [
       "Avisar imediatamente a enfermagem caso sinta dor, queimação ou umidade, proteger o curativo no banho e evitar movimentos bruscos com o braço",
@@ -2246,8 +2246,19 @@ export function gerarCasoAleatorio(pacienteId = null, options = {}) {
     // 7 a 9 questões (padrão 8)
     qtdDesejada = Math.min(bancoGeral.length, Math.floor(Math.random() * 3) + 7);
   } else if (mode === "revisao" && Array.isArray(revisaoQuestoes) && revisaoQuestoes.length > 0) {
-    bancoGeral = revisaoQuestoes;
-    qtdDesejada = revisaoQuestoes.length;
+    // Revisão: respeita o tema escolhido, prioriza os erros mais antigos e limita a 9 questões.
+    let fila = revisaoQuestoes;
+    if (categoria && categoria !== "todos") {
+      const doTema = fila.filter((q) => q.categoriaPratica === categoria);
+      if (doTema.length > 0) fila = doTema;
+    }
+    fila = [...fila]
+      .sort((x, y) => new Date(x.dataErro || 0) - new Date(y.dataErro || 0))
+      .slice(0, 9)
+      // Áudio gravado de outro paciente não combina com o vídeo sorteado: usa a voz sintética.
+      .map((q) => (q.audioPath && !q.audioPath.includes(`/${idEscolhido}/`) ? { ...q, audioPath: undefined } : q));
+    bancoGeral = fila;
+    qtdDesejada = fila.length;
   }
 
   // Embaralha o banco de questões

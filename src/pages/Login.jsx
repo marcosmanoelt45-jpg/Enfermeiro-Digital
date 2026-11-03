@@ -111,7 +111,7 @@ export default function Login() {
           Não tem uma conta?{" "}
           <Link
             to={"/register" + (returnTo !== "/" ? "?returnTo=" + encodeURIComponent(returnTo) : "")}
-            className="text-teal-600 dark:text-teal-400 font-semibold hover:underline"
+            className="text-teal-400 font-semibold hover:underline"
           >
             Cadastre-se gratuitamente
           </Link>
@@ -122,7 +122,7 @@ export default function Login() {
       <Button
         type="button"
         variant="outline"
-        className="w-full h-12 text-sm font-semibold mb-5 rounded-xl border-slate-300 dark:border-slate-700 hover:bg-slate-50 dark:hover:bg-slate-800 text-slate-800 dark:text-slate-200 transition shadow-2xs"
+        className="w-full h-12 text-sm font-semibold mb-5 rounded-xl border-slate-700 hover:bg-slate-800 text-slate-200 transition shadow-sm"
         onClick={handleGoogle}
         disabled={loading || googleLoading}
       >
@@ -141,22 +141,22 @@ export default function Login() {
 
       <div className="relative mb-5">
         <div className="absolute inset-0 flex items-center">
-          <div className="w-full border-t border-slate-200 dark:border-slate-800" />
+          <div className="w-full border-t border-[#1F3045]" />
         </div>
         <div className="relative flex justify-center text-xs uppercase">
-          <span className="bg-white dark:bg-slate-900 px-3 text-slate-400 dark:text-slate-400 font-semibold tracking-wider">
+          <span className="bg-[#131F2E] px-3 text-[#9FB3C6] font-semibold tracking-wider">
             ou com seu e-mail
           </span>
         </div>
       </div>
 
       {isRegistered && !error && (
-        <div className="mb-4 p-3.5 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-300 dark:border-teal-700/60 text-teal-900 dark:text-teal-200 text-sm flex items-start gap-2.5 shadow-xs animate-in fade-in slide-in-from-top-2">
-          <CheckCircle2 className="w-5 h-5 text-teal-600 dark:text-teal-400 shrink-0 mt-0.5" />
+        <div className="mb-4 p-3.5 rounded-xl bg-teal-950/60 border border-teal-700/60 text-[#20D5B5] text-sm flex items-start gap-2.5 shadow-sm animate-in fade-in slide-in-from-top-2">
+          <CheckCircle2 className="w-5 h-5 text-teal-400 shrink-0 mt-0.5" />
           <div>
             <p className="font-bold">Conta criada com sucesso!</p>
-            <p className="text-xs text-teal-800 dark:text-teal-300/90 mt-0.5">
-              Digite suas credenciais para acessar sua conta no Enfere.
+            <p className="text-xs text-teal-300/90 mt-0.5">
+              Enviamos um link de confirmação para o seu e-mail. Abra o link e depois entre com sua senha.
             </p>
           </div>
         </div>
@@ -170,11 +170,11 @@ export default function Login() {
 
       <form onSubmit={handleSubmit} className="space-y-4">
         <div className="space-y-1.5">
-          <Label htmlFor="email" className="text-slate-700 dark:text-slate-200 font-medium">
+          <Label htmlFor="email" className="text-slate-200 font-medium">
             E-mail
           </Label>
           <div className="relative">
-            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
+            <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9FB3C6]" aria-hidden="true" />
             <Input
               id="email"
               type="email"
@@ -190,18 +190,18 @@ export default function Login() {
 
         <div className="space-y-1.5">
           <div className="flex items-center justify-between">
-            <Label htmlFor="password" className="text-slate-700 dark:text-slate-200 font-medium">
+            <Label htmlFor="password" className="text-slate-200 font-medium">
               Senha
             </Label>
             <Link
               to="/forgot-password"
-              className="text-xs text-slate-500 hover:text-teal-600 dark:hover:text-teal-400 transition-colors"
+              className="text-xs text-[#9FB3C6] hover:text-teal-400 transition-colors"
             >
               Esqueceu a senha?
             </Link>
           </div>
           <div className="relative">
-            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" aria-hidden="true" />
+            <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-[#9FB3C6]" aria-hidden="true" />
             <Input
               id="password"
               type="password"
@@ -232,18 +232,18 @@ export default function Login() {
       </form>
 
       {/* ACESSO DE DEMONSTRAÇÃO IMEDIATA */}
-      <div className="mt-5 pt-4 border-t border-slate-200 dark:border-slate-800 text-center">
-        <p className="text-[11px] font-bold text-slate-400 dark:text-slate-400 uppercase tracking-wider mb-2.5">
+      <div className="mt-5 pt-4 border-t border-[#1F3045] text-center">
+        <p className="text-[11px] font-bold text-[#9FB3C6] uppercase tracking-wider mb-2.5">
           Deseja experimentar sem cadastro?
         </p>
         <Button
           type="button"
           variant="outline"
-          className="w-full text-xs rounded-xl h-11 border-teal-200 dark:border-teal-800 bg-teal-50/50 dark:bg-teal-950/40 hover:bg-teal-100 dark:hover:bg-teal-900/60 text-teal-800 dark:text-teal-200 font-bold shadow-2xs transition"
+          className="w-full text-xs rounded-xl h-11 border-teal-800 bg-teal-950/40 hover:bg-teal-900/60 text-[#20D5B5] font-bold shadow-sm transition"
           onClick={handleDemoLogin}
           disabled={loading}
         >
-          <Sparkles className="w-4 h-4 mr-2 text-teal-600 dark:text-teal-400" />
+          <Sparkles className="w-4 h-4 mr-2 text-teal-400" />
           Acessar Modo Demonstrativo Imediato
         </Button>
       </div>

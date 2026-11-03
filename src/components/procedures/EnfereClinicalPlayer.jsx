@@ -22,6 +22,9 @@ import { useTheme } from '@/lib/ThemeContext';
  * com barra de andamento contínuo (timeline interativa), seletor de velocidades (0.5x a 2x),
  * controle de volume/mudo e atribuição acadêmica transparente.
  */
+// Comandos ao player do YouTube vão só para a origem do embed, nunca para '*'.
+const YT_ORIGIN = 'https://www.youtube-nocookie.com';
+
 export default function EnfereClinicalPlayer({
   videoUrl,
   title,
@@ -41,7 +44,8 @@ export default function EnfereClinicalPlayer({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
-  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  // Vídeo que não carrega (ex.: link http numa página https) mostra aviso com link, não uma tela preta.
+  const [loadError, setLoadError] = useState(false);
 
   const containerRef = useRef(null);
   const videoRef = useRef(null);
@@ -90,7 +94,7 @@ export default function EnfereClinicalPlayer({
     triggerHaptic?.(15);
     if (isNativeMp4 && videoRef.current) {
       if (videoRef.current.paused) {
-        videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+        videoRef.current.play().then(() => setIsPlaying(true)).catch((err) => { if (err?.name === 'NotSupportedError') setLoadError(true); });
       } else {
         videoRef.current.pause();
         setIsPlaying(false);
@@ -104,7 +108,7 @@ export default function EnfereClinicalPlayer({
       if (iframeRef.current?.contentWindow) {
         iframeRef.current.contentWindow.postMessage(
           JSON.stringify({ event: 'command', func: 'playVideo', args: '' }),
-          '*'
+          YT_ORIGIN
         );
       }
     } else {
@@ -112,7 +116,7 @@ export default function EnfereClinicalPlayer({
       if (iframeRef.current?.contentWindow) {
         iframeRef.current.contentWindow.postMessage(
           JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }),
-          '*'
+          YT_ORIGIN
         );
       }
     }
@@ -132,7 +136,7 @@ export default function EnfereClinicalPlayer({
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func: newMuted ? 'mute' : 'unMute', args: '' }),
-        '*'
+        YT_ORIGIN
       );
     }
   };
@@ -143,7 +147,7 @@ export default function EnfereClinicalPlayer({
     setCurrentTime(0);
     if (isNativeMp4 && videoRef.current) {
       videoRef.current.currentTime = 0;
-      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+      videoRef.current.play().then(() => setIsPlaying(true)).catch((err) => { if (err?.name === 'NotSupportedError') setLoadError(true); });
       return;
     }
 
@@ -151,11 +155,11 @@ export default function EnfereClinicalPlayer({
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func: 'seekTo', args: [0, true] }),
-        '*'
+        YT_ORIGIN
       );
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func: 'playVideo', args: '' }),
-        '*'
+        YT_ORIGIN
       );
     }
   };
@@ -164,7 +168,6 @@ export default function EnfereClinicalPlayer({
   const handleSpeedChange = (rate) => {
     triggerHaptic?.(15);
     setPlaybackRate(rate);
-    setShowSpeedMenu(false);
 
     if (isNativeMp4 && videoRef.current) {
       videoRef.current.playbackRate = rate;
@@ -174,19 +177,15 @@ export default function EnfereClinicalPlayer({
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func: 'setPlaybackRate', args: [rate] }),
-        '*'
+        YT_ORIGIN
       );
     }
   };
 
   // Buscar posição no vídeo através da barra de progresso
-  const handleSeekFromEvent = useCallback((e) => {
-    if (!progressBarRef.current || totalDuration <= 0) return;
-    const rect = progressBarRef.current.getBoundingClientRect();
-    const clientX = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
-    const clickX = Math.max(0, Math.min(clientX - rect.left, rect.width));
-    const percentage = clickX / rect.width;
-    const targetSeconds = percentage * totalDuration;
+  const seekToSeconds = useCallback((seconds) => {
+    if (totalDuration <= 0) return;
+    const targetSeconds = Math.max(0, Math.min(seconds, totalDuration));
 
     setCurrentTime(targetSeconds);
 
@@ -195,33 +194,38 @@ export default function EnfereClinicalPlayer({
     } else if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func: 'seekTo', args: [targetSeconds, true] }),
-        '*'
+        YT_ORIGIN
       );
     }
   }, [totalDuration, isNativeMp4]);
 
-  const onProgressBarMouseDown = (e) => {
+  const handleSeekFromEvent = (e) => {
+    if (!progressBarRef.current) return;
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const clickX = Math.max(0, Math.min((e.clientX ?? 0) - rect.left, rect.width));
+    seekToSeconds((clickX / rect.width) * totalDuration);
+  };
+
+  // Eventos de ponteiro cobrem mouse, toque e caneta; a captura mantém o arrasto fora da barra.
+  const onProgressPointerDown = (e) => {
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     isDraggingRef.current = true;
     handleSeekFromEvent(e);
   };
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (isDraggingRef.current) {
-        handleSeekFromEvent(e);
-      }
-    };
-    const handleMouseUp = () => {
-      isDraggingRef.current = false;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [handleSeekFromEvent]);
+  const onProgressPointerMove = (e) => {
+    if (isDraggingRef.current) handleSeekFromEvent(e);
+  };
+  const onProgressPointerUp = () => {
+    isDraggingRef.current = false;
+  };
+  const onProgressKeyDown = (e) => {
+    const passos = { ArrowRight: 5, ArrowLeft: -5 };
+    if (e.key in passos) seekToSeconds(currentTime + passos[e.key]);
+    else if (e.key === 'Home') seekToSeconds(0);
+    else if (e.key === 'End') seekToSeconds(totalDuration);
+    else return;
+    e.preventDefault();
+  };
 
   // Atualização de tempo do vídeo nativo
   const handleTimeUpdate = () => {
@@ -271,7 +275,12 @@ export default function EnfereClinicalPlayer({
     triggerHaptic?.(15);
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen?.().then(() => setIsFullscreen(true)).catch(() => {});
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+      } else if (videoRef.current?.webkitEnterFullscreen) {
+        // iPhone: o Safari só deixa o próprio <video> entrar em tela cheia.
+        videoRef.current.webkitEnterFullscreen();
+      }
     } else {
       document.exitFullscreen?.().then(() => setIsFullscreen(false)).catch(() => {});
     }
@@ -290,6 +299,9 @@ export default function EnfereClinicalPlayer({
     setIsPlaying(false);
     setCurrentTime(0);
     setPlaybackRate(1);
+    setLoadError(
+      typeof window !== 'undefined' && window.location.protocol === 'https:' && /^http:///i.test(videoUrl || '')
+    );
   }, [videoUrl]);
 
   const progressPercent = totalDuration > 0 ? Math.min(100, (currentTime / totalDuration) * 100) : 0;
@@ -303,7 +315,17 @@ export default function EnfereClinicalPlayer({
       {/* Moldura de Vídeo 16:9 de Alta Fidelidade */}
       <div className="relative w-full aspect-video bg-black overflow-hidden flex items-center justify-center">
         {/* Renderização Híbrida: Vídeo Nativo MP4 da UFRGS ou Iframe YouTube Headless */}
-        {isNativeMp4 ? (
+        {isNativeMp4 && loadError ? (
+          <div className="text-center p-8 text-[#9FB3C6]">
+            <BookOpen className="w-10 h-10 mx-auto text-[#FFC247] mb-2 opacity-80" />
+            <p className="text-sm font-bold text-[#EAF2F8]">Não foi possível carregar o vídeo aqui.</p>
+            {sourceUrl && (
+              <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-xs font-bold text-[#20D5B5] underline">
+                Assistir no repositório oficial
+              </a>
+            )}
+          </div>
+        ) : isNativeMp4 ? (
           <video
             ref={videoRef}
             src={videoUrl}
@@ -312,16 +334,20 @@ export default function EnfereClinicalPlayer({
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={handleVideoEnded}
+            onError={() => setLoadError(true)}
             className="w-full h-full object-contain bg-black cursor-pointer"
             onClick={togglePlay}
           />
         ) : youtubeId ? (
           <iframe
             ref={iframeRef}
-            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?enablejsapi=1&autoplay=0&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0&playsinline=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
+            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?enablejsapi=1&autoplay=0&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=1&playsinline=1&origin=${typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''}`}
             title={title}
             className="w-full h-full border-0 pointer-events-auto"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+            loading="lazy"
           />
         ) : (
           <div className="text-center p-8 text-slate-400">
@@ -331,12 +357,13 @@ export default function EnfereClinicalPlayer({
         )}
 
         {/* Capa / Preview Exclusiva do Procedimento (Antes do Início da Reprodução) */}
-        {!isPlaying && currentTime === 0 && (
-          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center z-20 transition-all duration-300">
+        {!isPlaying && currentTime === 0 && !loadError && (
+          <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-sm flex flex-col items-center justify-center p-6 text-center z-20 transition-all duration-300">
             {previewImage && (
               <img
                 src={previewImage}
-                alt={title}
+                alt=""
+                aria-hidden="true"
                 className="absolute inset-0 w-full h-full object-cover opacity-25"
                 onError={(e) => { e.currentTarget.style.display = 'none'; }}
               />
@@ -375,7 +402,7 @@ export default function EnfereClinicalPlayer({
 
         {/* Marca d'água discreta do Enfere Player */}
         <div className="absolute top-3 left-3 z-10 pointer-events-none flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] font-bold text-slate-200">
-          <span className="w-2 h-2 rounded-full bg-teal-400 animate-pulse" />
+          <span className="w-2 h-2 rounded-full bg-teal-400" />
           <span>{isNativeMp4 ? 'Vídeo Oficial UFRGS • Enfere Player' : 'Enfere Clinical Player'}</span>
         </div>
       </div>
@@ -383,7 +410,19 @@ export default function EnfereClinicalPlayer({
       {/* BARRA DE ANDAMENTO DO VÍDEO (TIMELINE / SCRUBBER) */}
       <div
         ref={progressBarRef}
-        onMouseDown={onProgressBarMouseDown}
+        onPointerDown={onProgressPointerDown}
+        onPointerMove={onProgressPointerMove}
+        onPointerUp={onProgressPointerUp}
+        onPointerCancel={onProgressPointerUp}
+        onKeyDown={onProgressKeyDown}
+        role="slider"
+        tabIndex={0}
+        aria-label="Posição do vídeo"
+        aria-valuemin={0}
+        aria-valuemax={Math.round(totalDuration)}
+        aria-valuenow={Math.round(currentTime)}
+        aria-valuetext={`${formatTime(currentTime)} de ${formatTime(totalDuration)}`}
+        style={{ touchAction: 'none' }}
         className="group/progress relative h-2.5 bg-slate-800/90 hover:h-4 cursor-pointer transition-all duration-150 flex items-center"
         title="Arrastar ou clicar para navegar no vídeo"
       >
@@ -403,8 +442,10 @@ export default function EnfereClinicalPlayer({
         <div className="flex items-center gap-2.5">
           {/* Botão Play/Pause */}
           <button
+            type="button"
             onClick={togglePlay}
-            className="w-9 h-9 rounded-xl bg-teal-500/10 hover:bg-teal-500/25 border border-teal-500/30 text-teal-400 flex items-center justify-center transition tap-press"
+            aria-label={isPlaying ? 'Pausar' : 'Reproduzir'}
+            className="w-11 h-11 rounded-xl bg-teal-500/10 hover:bg-teal-500/25 border border-teal-500/30 text-teal-400 flex items-center justify-center transition tap-press"
             title={isPlaying ? 'Pausar' : 'Reproduzir'}
           >
             {isPlaying ? <Pause className="w-4 h-4" /> : <Play className="w-4 h-4 fill-current ml-0.5" />}
@@ -449,10 +490,13 @@ export default function EnfereClinicalPlayer({
               return (
                 <button
                   key={speed}
+                  type="button"
                   onClick={() => handleSpeedChange(speed)}
-                  className={`px-2 py-0.5 rounded-lg text-xs font-bold transition-all tap-press ${
+                  aria-pressed={isCurrent}
+                  aria-label={`Velocidade ${speed}x`}
+                  className={`min-h-[36px] px-2.5 py-1 rounded-lg text-xs font-bold transition-all tap-press ${
                     isCurrent
-                      ? 'bg-teal-500 text-slate-950 shadow-xs scale-105'
+                      ? 'bg-teal-500 text-slate-950 shadow-sm scale-105'
                       : 'text-slate-400 hover:text-white hover:bg-slate-800/80'
                   }`}
                   title={`Reproduzir em ${speed}x`}
@@ -465,8 +509,10 @@ export default function EnfereClinicalPlayer({
 
           {/* Botão Tela Cheia */}
           <button
+            type="button"
             onClick={toggleFullscreen}
-            className="w-9 h-9 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition tap-press"
+            aria-label={isFullscreen ? 'Sair da tela cheia' : 'Tela cheia'}
+            className="w-11 h-11 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-300 flex items-center justify-center transition tap-press"
             title={isFullscreen ? 'Sair da Tela Cheia' : 'Tela Cheia'}
           >
             {isFullscreen ? <Minimize2 className="w-4 h-4" /> : <Maximize2 className="w-4 h-4" />}

@@ -28,7 +28,7 @@ export interface EnfereSplashProps {
   style?: CSSProperties;
 }
 
-const FONT = '"Baloo 2","Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif';
+const FONT = '"Nunito Variable","Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif';
 
 const CSS = `
 .enfere-splash{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#0B131D;font-family:${FONT};user-select:none;-webkit-user-select:none;touch-action:manipulation;box-sizing:border-box}
@@ -56,12 +56,13 @@ const CSS = `
 .enfere-splash .es-tag{position:absolute;left:0;right:0;top:53%;margin-top:3.6rem;text-align:center;font-size:1.05rem;font-weight:600;color:#9FB3C6;opacity:0;padding:0 20px}
 .enfere-splash .es-btns{position:absolute;left:0;right:0;bottom:0;max-width:440px;margin:0 auto;padding:0 22px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;opacity:0;pointer-events:none}
 .enfere-splash.es-ready .es-btns{pointer-events:auto}
-.enfere-splash .es-btns button{font:800 1rem ${FONT};letter-spacing:.02em;border-radius:18px;padding:15px;cursor:pointer;border:0;border-bottom:5px solid #149F86;background:#20D5B5;color:#06302E;transition:transform 120ms ease, filter 120ms ease, border-width 120ms ease;box-shadow:0 4px 14px rgba(32,213,181,0.25)}
-.enfere-splash .es-btns button+button{background:#16222E;color:#EAF2F8;border:2px solid #27394B;border-bottom:5px solid #0A1118;box-shadow:0 4px 14px rgba(0,0,0,0.3)}
+.enfere-splash .es-btns button{font:800 1rem ${FONT};letter-spacing:.02em;border-radius:18px;padding:15px;cursor:pointer;border:0;background:#20D5B5;color:#06302E;transition:transform 110ms cubic-bezier(.23,1,.32,1), box-shadow 110ms cubic-bezier(.23,1,.32,1), filter 120ms ease;box-shadow:0 5px 0 #149F86}
+.enfere-splash .es-btns button+button{background:#16222E;color:#EAF2F8;border:2px solid #27394B;box-shadow:0 5px 0 #0A1118}
 .enfere-splash .es-btns button:hover{filter:brightness(1.06)}
-.enfere-splash .es-btns button:active{transform:translateY(3px);border-bottom-width:2px}
+.enfere-splash .es-btns button:active{transform:translateY(5px);box-shadow:0 0 0 #149F86}
+.enfere-splash .es-btns button+button:active{box-shadow:0 0 0 #0A1118}
 .enfere-splash .es-btns button:focus-visible{outline:3px solid #20D5B5;outline-offset:2px}
-.enfere-splash .es-skip-hint{position:absolute;top:calc(1rem + env(safe-area-inset-top,0px));right:1rem;font-size:0.75rem;font-weight:700;color:rgba(255,255,255,0.7);background:rgba(22,34,46,0.8);border:1px solid rgba(255,255,255,0.1);padding:4px 12px;border-radius:999px;opacity:0;transition:opacity 300ms ease;cursor:pointer;pointer-events:auto}
+.enfere-splash .es-skip-hint{position:absolute;top:calc(1rem + env(safe-area-inset-top,0px));right:1rem;min-height:44px;font:700 0.8125rem ${FONT};color:rgba(255,255,255,0.8);background:rgba(22,34,46,0.8);border:1px solid rgba(255,255,255,0.12);padding:0 16px;border-radius:999px;opacity:0;transition:opacity 300ms ease;cursor:pointer;pointer-events:auto}
 .enfere-splash.es-playing .es-skip-hint{opacity:1}
 @media (min-width: 768px) {
   .enfere-splash .es-g1 { width: min(40vw, 360px); }
@@ -92,7 +93,7 @@ const MARKUP = `
 </div>
 <h1 class="es-ttl">Enfere</h1><p class="es-tag">Enfermagem, passo a passo.</p>
 <div class="es-btns"><button type="button" class="es-b1">Começar</button><button type="button" class="es-b2">Já tenho uma conta</button></div>
-<div class="es-skip-hint" role="button" aria-label="Pular introdução">Pular ✕</div>
+<button type="button" class="es-skip-hint" aria-label="Pular introdução">Pular</button>
 `;
 
 // ENGINE START
@@ -145,6 +146,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   const fallback = $<HTMLImageElement>(".es-wave-fallback");
   const ttl = $(".es-ttl"), tag = $(".es-tag"), btns = $(".es-btns");
   const skipHint = $(".es-skip-hint");
+  if (btns) (btns as HTMLElement & { inert: boolean }).inert = true;
   const b1Btn = $<HTMLButtonElement>(".es-b1");
   const b2Btn = $<HTMLButtonElement>(".es-b2");
   const rings = Array.from(root.querySelectorAll<HTMLElement>(".es-rings i"));
@@ -253,6 +255,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     root.classList.add("es-ready");
     root.classList.remove("es-playing");
     if (skipHint) skipHint.style.display = "none";
+    if (btns) (btns as HTMLElement & { inert: boolean }).inert = false;
 
     A(ttl, [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 400 });
     A(tag, [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 400, delay: 100 });
@@ -271,7 +274,15 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     g2.style.opacity = "1";
     g2.style.transform = "none";
     sh.style.opacity = "1";
-    playWaveVideo();
+    // Com movimento reduzido, o Goti fica parado (imagem estática) em vez do vídeo em loop.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      vid.pause();
+      vid.style.display = "none";
+      fallback.src = "/goti/goti-pose-happy.png";
+      fallback.style.opacity = "1";
+    } else {
+      playWaveVideo();
+    }
     ready();
   };
 

@@ -1,20 +1,20 @@
-import { useRef, useEffect } from 'react';
+import { useRef, useEffect, useState } from 'react';
 
 /**
  * useDragScroll
  * Habilita arrasto horizontal intuitivo com o mouse (desktop) e mantém
  * a fluidez nativa de gestos por toque (mobile).
  * Previne disparos acidentais de clique ao arrastar.
+ * Devolve uma ref de callback: liga os eventos quando o elemento aparece (ex.: gaveta aberta depois).
  */
 export function useDragScroll() {
-  const ref = useRef(null);
+  const [el, setEl] = useState(null);
   const isDraggingRef = useRef(false);
   const hasMovedRef = useRef(false);
   const startXRef = useRef(0);
   const scrollLeftRef = useRef(0);
 
   useEffect(() => {
-    const el = ref.current;
     if (!el) return;
 
     const onMouseDown = (e) => {
@@ -63,7 +63,6 @@ export function useDragScroll() {
     };
 
     el.style.cursor = 'grab';
-    el.style.overflowX = 'auto';
 
     el.addEventListener('mousedown', onMouseDown);
     window.addEventListener('mousemove', onMouseMove);
@@ -77,8 +76,9 @@ export function useDragScroll() {
       window.removeEventListener('mouseup', onMouseUp);
       el.removeEventListener('mouseleave', onMouseLeave);
       el.removeEventListener('click', onClickCapture, true);
+      el.style.removeProperty('cursor');
     };
-  }, []);
+  }, [el]);
 
-  return ref;
+  return setEl;
 }

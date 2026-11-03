@@ -39,7 +39,7 @@ export default function VitalSlider({ label, unit, value, min, max, step = 1, on
           variant="outline"
           size="icon"
           onClick={dec}
-          className="h-9 w-9 shrink-0 rounded-xl border-[#1F3045] bg-[#131F2E] text-white hover:bg-[#1E2E3E] active:scale-95 transition shadow-xs"
+          className="h-9 w-9 shrink-0 rounded-xl border-[#1F3045] bg-[#131F2E] text-white hover:bg-[#1E2E3E] active:scale-95 transition shadow-sm"
         >
           <Minus className="h-4 w-4" />
         </Button>
@@ -56,7 +56,7 @@ export default function VitalSlider({ label, unit, value, min, max, step = 1, on
           variant="outline"
           size="icon"
           onClick={inc}
-          className="h-9 w-9 shrink-0 rounded-xl border-[#1F3045] bg-[#131F2E] text-white hover:bg-[#1E2E3E] active:scale-95 transition shadow-xs"
+          className="h-9 w-9 shrink-0 rounded-xl border-[#1F3045] bg-[#131F2E] text-white hover:bg-[#1E2E3E] active:scale-95 transition shadow-sm"
         >
           <Plus className="h-4 w-4" />
         </Button>

@@ -8,6 +8,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from './supabaseClient.js';
+import { sanitizeTextForLGPD } from '../lib/dlpSanitizer.js';
 
 /**
  * Obtém a chave pessoal do Google Gemini configurada pelo usuário no LocalStorage.
@@ -42,6 +43,20 @@ export function getOpenRouterKey() {
  * Executa chamada direta caso o estudante tenha fornecido sua chave pessoal do Gemini.
  * Utiliza timeout estrito de 7s por tentativa para evitar travamentos infinitos.
  */
+function attemptController(outerSignal, ms) {
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), ms);
+  const onOuterAbort = () => controller.abort();
+  outerSignal?.addEventListener('abort', onOuterAbort, { once: true });
+  return {
+    signal: controller.signal,
+    done: () => {
+      clearTimeout(timeoutId);
+      outerSignal?.removeEventListener('abort', onOuterAbort);
+    }
+  };
+}
+
 async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
   const maxTokens = options.maxTokens || 1500;
   const temperature = options.temperature ?? 0.35;
@@ -65,11 +80,12 @@ async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
     : defaultModels;
 
   for (const model of candidateModels) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 7000);
+    if (options.signal?.aborted) return null;
+    const attempt = attemptController(options.signal, 7000);
 
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      // Chave no cabeçalho, não na URL (a URL fica em logs de proxy e no histórico do navegador).
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const generationConfig = {
         temperature,
         maxOutputTokens: maxTokens,
@@ -80,20 +96,20 @@ async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
 
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        signal: controller.signal,
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
+        signal: attempt.signal,
         body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: `${systemPrompt}\n\n---\n\n${userPrompt}` }]
-            }
-          ],
+          // Instruções do sistema separadas do texto do aluno, para o aluno não conseguir sobrescrevê-las.
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
           generationConfig
         })
       });
 
-      clearTimeout(timeoutId);
+      attempt.done();
+
+      // Chave inválida: os outros modelos vão recusar do mesmo jeito.
+      if (res.status === 401 || res.status === 403) return null;
 
       if (res.ok) {
         const data = await res.json();
@@ -103,7 +119,7 @@ async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
         }
       }
     } catch {
-      clearTimeout(timeoutId);
+      attempt.done();
       // Tenta o próximo modelo candidato ou segue para o próximo provider
     }
   }
@@ -127,8 +143,8 @@ async function callPersonalOpenRouter(apiKey, systemPrompt, userPrompt, options)
   ];
 
   for (const model of candidateModels) {
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 7000);
+    if (options.signal?.aborted) return null;
+    const attempt = attemptController(options.signal, 7000);
 
     try {
       const bodyPayload = {
@@ -150,14 +166,17 @@ async function callPersonalOpenRouter(apiKey, systemPrompt, userPrompt, options)
         headers: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://enfermeirodigital.com.br',
+          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://enfere.vercel.app',
           'X-Title': 'Enfere Digital'
         },
-        signal: controller.signal,
+        signal: attempt.signal,
         body: JSON.stringify(bodyPayload)
       });
 
-      clearTimeout(timeoutId);
+      attempt.done();
+
+      // Chave inválida: os outros modelos vão recusar do mesmo jeito.
+      if (res.status === 401 || res.status === 403) return null;
 
       if (res.ok) {
         const data = await res.json();
@@ -173,7 +192,7 @@ async function callPersonalOpenRouter(apiKey, systemPrompt, userPrompt, options)
         }
       }
     } catch {
-      clearTimeout(timeoutId);
+      attempt.done();
       // Tenta o próximo modelo candidato
     }
   }
@@ -189,6 +208,8 @@ async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
     return null;
   }
 
+  if (options.signal?.aborted) return null;
+  let timeoutId;
   try {
     // Timeout de 10 segundos via Promise.race para blindar a Edge Function.
     // Sem headers manuais: o supabase-js envia o JWT da sessão do usuário, que a função exige.
@@ -205,7 +226,7 @@ async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
     });
 
     const timeoutPromise = new Promise((_, reject) =>
-      setTimeout(() => reject(new Error('Timeout Edge Function (10s)')), 10000)
+      (timeoutId = setTimeout(() => reject(new Error('Timeout Edge Function (10s)')), 10000))
     );
 
     const { data, error } = await Promise.race([invokePromise, timeoutPromise]);
@@ -224,6 +245,8 @@ async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
     }
   } catch (err) {
     console.warn('[aiCoreService] Falha ou timeout ao invocar Edge Function institucional:', err?.message || err);
+  } finally {
+    clearTimeout(timeoutId);
   }
   return null;
 }
@@ -236,10 +259,13 @@ async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
  *
  * @param {string} systemPrompt - Instrução de papel e diretrizes clínicas
  * @param {string} userPrompt - Pergunta ou caso do estudante
- * @param {object} options - Configurações opcionais (maxTokens, temperature, responseMimeType)
+ * @param {object} options - Configurações opcionais (maxTokens, temperature, responseMimeType, signal)
  * @returns {Promise<{ text: string, provider: string, truncated?: boolean } | null>}
  */
 export async function callResilientAI(systemPrompt, userPrompt, options = {}) {
+  // Mascara CPF, telefone, e-mail etc. antes de qualquer provedor, inclusive nas chaves pessoais.
+  userPrompt = sanitizeTextForLGPD(String(userPrompt || ''));
+
   // 1. Chave Pessoal do Estudante: Google Gemini
   const personalGemini = getGeminiKey();
   if (personalGemini) {
@@ -255,6 +281,7 @@ export async function callResilientAI(systemPrompt, userPrompt, options = {}) {
   }
 
   // 3. Padrão Institucional Seguro: Supabase Edge Function
+  if (options.signal?.aborted) return null;
   const edgeRes = await callSupabaseEdgeAI(systemPrompt, userPrompt, options);
   if (edgeRes) return edgeRes;
 

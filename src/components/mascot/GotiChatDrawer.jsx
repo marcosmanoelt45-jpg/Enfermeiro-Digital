@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { spring } from "@/lib/motion";
 import { createPortal } from "react-dom";
 import {
@@ -168,7 +168,8 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
 
   useEffect(() => {
     if (isOpen) {
-      setMessages(gotiPreceptorService.getHistory());
+      // Com envio em andamento, recarregar o histórico apagaria a pergunta otimista da tela.
+      if (!sendingRef.current) setMessages(gotiPreceptorService.getHistory());
       setTimeout(() => {
         inputRef.current?.focus();
         scrollToBottom();
@@ -180,10 +181,17 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
     }
   }, [isOpen, initialQuery]);
 
+  // O ouvinte é registrado uma vez: chama sempre a versão mais nova de handleSend.
+  const handleSendRef = useRef(null);
+  const sendingRef = useRef(false);
+  useEffect(() => {
+    handleSendRef.current = handleSend;
+  });
+
   useEffect(() => {
     function handleCustomOpen(e) {
       if (e.detail?.prompt) {
-        handleSend(e.detail.prompt);
+        handleSendRef.current?.(e.detail.prompt);
       }
     }
     window.addEventListener("open-goti-chat", handleCustomOpen);
@@ -202,7 +210,9 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
 
   async function handleSend(textToSend) {
     const text = (textToSend || inputText).trim();
-    if (!text || isLoading) return;
+    // Ref, não estado: duas chamadas no mesmo instante (botão + evento) veriam isLoading ainda falso.
+    if (!text || sendingRef.current) return;
+    sendingRef.current = true;
 
     triggerHaptic(20);
     setInputText("");
@@ -210,8 +220,8 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
     setGotiState("thinking");
 
     // Adiciona temporariamente a mensagem do usuário na tela
-    const updatedHistory = [...messages, { role: "user", sender: "user", text, timestamp: new Date().toISOString() }];
-    setMessages(updatedHistory);
+    const userMsg = { role: "user", sender: "user", text, timestamp: new Date().toISOString() };
+    setMessages((prev) => [...prev, userMsg]);
 
     // Timeout visual de segurança irredutível: nunca deixa a UI presa em loading
     const visualSafetyTimer = setTimeout(() => {
@@ -231,8 +241,12 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
       console.error("Erro no chat do Goti:", err);
       // Fallback gracioso imediato em caso de anomalia
       const fallbackReply = gotiPreceptorService.generateEducationalFallback(text);
+      // Parte do histórico salvo (pode ter mensagens mais novas), não de uma cópia antiga.
+      const salvo = gotiPreceptorService.getHistory();
+      const jaTemPergunta = salvo[salvo.length - 1]?.sender === "user";
       const safeHistory = [
-        ...updatedHistory,
+        ...salvo,
+        ...(jaTemPergunta ? [] : [userMsg]),
         { role: "assistant", sender: "goti", text: fallbackReply, timestamp: new Date().toISOString() }
       ];
       setMessages(safeHistory);
@@ -240,6 +254,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
       setGotiState("idle");
     } finally {
       clearTimeout(visualSafetyTimer);
+      sendingRef.current = false;
       setIsLoading(false);
     }
   }
@@ -290,20 +305,24 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
                   Goti IA
                 </h3>
                 <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
-                  {gotiState === "thinking" ? "Raciocinando..." : gotiState === "speaking" ? "Explicando..." : "Online"}
+                  {gotiState === "thinking" ? "Raciocinando..." : gotiState === "speaking" ? "Explicando..." : "Pronto"}
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-medium">
-                Preceptor Clínico Inteligente · Tutoria Socrática (Estilo Plurall)
+                Preceptor clínico · Tutoria socrática
               </p>
             </div>
           </div>
 
           <div className="flex items-center gap-1.5">
             <button
-              onClick={handleClearHistory}
-              title="Reiniciar Conversa"
-              className="p-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition tap-press"
+              onClick={() => {
+                if (messages.length > 1 && !window.confirm("Apagar a conversa com o Goti?")) return;
+                handleClearHistory();
+              }}
+              title="Reiniciar conversa"
+              aria-label="Reiniciar conversa"
+              className="w-11 h-11 grid place-items-center rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition tap-press"
             >
               <RotateCcw className="w-4 h-4" />
             </button>
@@ -324,10 +343,13 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
         {/* Área de Mensagens com Rolagem Interna Isolada */}
         <div
           ref={messagesContainerRef}
+          role="log"
+          aria-live="polite"
+          aria-busy={isLoading}
           className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs sm:text-sm bg-slate-900/60"
         >
           {/* Card de Boas-Vindas */}
-          <div className="p-3.5 rounded-2xl bg-teal-950/40 border border-teal-800/80 flex items-start gap-3.5 shadow-2xs">
+          <div className="p-3.5 rounded-2xl bg-teal-950/40 border border-teal-800/80 flex items-start gap-3.5 shadow-sm">
             <img
               src={gotiLogoOficial}
               alt="Goti Preceptor"
@@ -359,12 +381,12 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
                   <img
                     src={gotiLogoOficial}
                     alt="Goti"
-                    className="w-10 h-10 object-contain shrink-0 self-end mb-1 filter drop-shadow-xs"
+                    className="w-10 h-10 object-contain shrink-0 self-end mb-1 filter drop-shadow-sm"
                   />
                 )}
 
                 <div
-                  className={`max-w-[85%] rounded-2xl p-3.5 shadow-2xs leading-relaxed ${
+                  className={`max-w-[85%] rounded-2xl p-3.5 shadow-sm leading-relaxed ${
                     isUser
                       ? "bg-[#20D5B5] text-[#06302E] rounded-br-xs font-semibold"
                       : "bg-slate-800/90 text-slate-100 rounded-bl-xs border border-slate-700/80"
@@ -379,7 +401,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
           {/* Indicador de Localização do Goti IA */}
           {isLoading && (
             <div className="flex gap-3 justify-start animate-in fade-in">
-              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shrink-0 self-end mb-1 shadow-xs">
+              <div className="w-8 h-8 rounded-xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shrink-0 self-end mb-1 shadow-sm">
                 <Sparkles className="w-4 h-4 text-emerald-100 animate-spin" />
               </div>
               <div className="bg-slate-800 rounded-2xl rounded-bl-xs p-3.5 border border-slate-700 flex items-center gap-2.5 text-slate-300">

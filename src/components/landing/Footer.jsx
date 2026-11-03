@@ -16,7 +16,7 @@ export default function Footer() {
               <img
                 src={gotiLogoOficial}
                 alt="Goti"
-                className="w-11 h-11 object-contain shrink-0 filter drop-shadow-xs"
+                className="w-11 h-11 object-contain shrink-0 filter drop-shadow-sm"
               />
               <div>
                 <span className="text-lg font-black tracking-tight text-slate-900 dark:text-white">

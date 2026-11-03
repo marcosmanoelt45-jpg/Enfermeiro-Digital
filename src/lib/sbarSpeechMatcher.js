@@ -51,10 +51,22 @@ function normalizeSpokenNumbers(text = "") {
   return t;
 }
 
+const escapeRegExp = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+
+// Termos de até 3 letras ("pa", "dm", "uti") só valem como palavra inteira;
+// termos maiores funcionam como radical no início da palavra ("hipertens" casa com "hipertensao").
+function termRegex(term) {
+  const body = escapeRegExp(term);
+  return term.length <= 3
+    ? new RegExp(`(?:^|[^a-z0-9])${body}(?![a-z0-9])`)
+    : new RegExp(`(?:^|[^a-z0-9])${body}`);
+}
+
 function matchesAny(text, patterns) {
   return patterns.some((pat) => {
     if (pat instanceof RegExp) return pat.test(text);
-    return text.includes(pat);
+    if (!pat) return false;
+    return termRegex(String(pat)).test(text);
   });
 }
 
@@ -89,7 +101,7 @@ export function evaluateSbarChecklists(sbarData = {}, currentCase = null) {
   const bedPatterns = [
     "leito", "box", "quarto", "enfermaria", "uti", "ala", "cama", "apartamento", "apto",
     "clinica cirurgica", "clinica medica", "geriatria", "posto", "setor", "internado no", "admitido no",
-    /\bleito\s*\d+/i, /\d{1,3}\s*[-a-z]\b/i, /\b12\s*a\b/i, /\b04\b/i, /\b21\s*b\b/i
+    /\b(?:leito|quarto|box|apto)\s*\d+/i
   ];
   if (caseBed) bedPatterns.push(caseBed);
   if (caseSector) bedPatterns.push(caseSector);
@@ -97,9 +109,9 @@ export function evaluateSbarChecklists(sbarData = {}, currentCase = null) {
 
   // 2. Identificação do Paciente / Iniciais / Idade
   const idPatterns = [
-    "anos", "idade", "paciente", "msl", "jap", "abc", "m s l", "j a p", "a b c",
+    "anos", "idade", "msl", "jap", "abc", "m s l", "j a p", "a b c",
     "senhor", "senhora", "sr", "sra", "idoso", "homem", "mulher",
-    /\b\d{2}\s*anos\b/i, /\b58\b/, /\b67\b/, /\b82\b/
+    /\b\d{1,3}\s*anos\b/i
   ];
   if (caseName) idPatterns.push(caseName);
   if (caseAge) idPatterns.push(caseAge);
@@ -157,19 +169,21 @@ export function evaluateSbarChecklists(sbarData = {}, currentCase = null) {
   // PILAR 3: AVALIAÇÃO ATUAL (A - ASSESSMENT)
   // ==========================================
   // 1. Sinais Vitais Numéricos (PA e FC)
+  // Sinal vital só conta com número: o rótulo sozinho ("pa", "pulso") não basta.
   const vitalsPatterns = [
-    "pa", "pressao", "fc", "frequencia cardiaca", "bpm", "batimentos", "pulso",
-    "fr", "frequencia respiratoria", "irpm", "tax", "temperatura", "afebril", "febre",
-    /\d{2,3}\s*(?:\/|x|por|\s)\s*\d{2,3}/, // "115/72", "120x80", "148 por 94"
-    /\b\d{2,3}\s*bpm\b/i, /\b84\b/, /\b96\b/, /\b76\b/
+    /\b(?:pa|pressao(?: arterial)?)\b\D{0,10}\d{1,3}\s*(?:\/|x|por)\s*\d{1,3}/, // "pa 120x80", "pressao 12 por 8"
+    /\b\d{2,3}\s*(?:\/|x)\s*\d{2,3}\b/, // "115/72", "120x80"
+    /\b(?:fc|frequencia cardiaca|pulso)\b\D{0,10}\d{2,3}/, /\b\d{2,3}\s*bpm\b/,
+    /\b(?:fr|frequencia respiratoria)\b\D{0,10}\d{1,2}/, /\b\d{1,2}\s*(?:irpm|rpm)\b/,
+    /\b(?:tax|temperatura)\b\D{0,10}\d{2}/
   ];
   const assessmentVitals = matchesAny(a, vitalsPatterns);
 
   // 2. Oximetria de Pulso (SatO2) e Suporte Ventilatório
   const satPatterns = [
     "sat", "sato2", "saturacao", "saturando", "oxigenio", "oximetro", "oximetria", "spo2",
-    "ar ambiente", "cateter", "mascara", "canula", "suporte de o2", "litros por minuto", "l min", "3 l",
-    "%", "98%", "96%", "92%", "95%", /\b9\d\s*%/
+    "ar ambiente", "cateter", "mascara", "canula", "suporte de o2", "litros por minuto", "l min",
+    /\b\d{2,3}\s*%/
   ];
   const assessmentSato2 = matchesAny(a, satPatterns);
 
@@ -189,17 +203,16 @@ export function evaluateSbarChecklists(sbarData = {}, currentCase = null) {
   // ==========================================
   // 1. Aprazamentos e Horários Definidos
   const timePatterns = [
-    "as", "h", "horas", "noite", "amanha", "cedo", "tarde", "madrugada", "jejum",
-    "20h", "as 20", "proximo plantao", "turno", "rotina", "aprazado", "horario",
-    "a cada 4", "a cada 6", "de 4 em 4", "de 6 em 6", "intervalo", "periodo", "4 horas"
+    "noite", "amanha", "madrugada", "jejum", "proximo plantao", "aprazado", "horario", "intervalo",
+    /\b(?:as\s*)?\d{1,2}\s*(?:h|hs|horas)\b/, /\ba cada \d+/, /\bde \d+ em \d+/, /\b\d{1,2}h\d{2}\b/
   ];
   const recommendationTime = matchesAny(r, timePatterns);
 
   // 2. Medicações Prescritas e Pendentes
   const recMedsPatterns = [
-    "administrar", "fazer", "dar", "aplicar", "infundir", "iniciar", "manter",
+    "administrar", "aplicar", "infundir", "iniciar", "manter",
     "analgesia", "analgesico", "dipirona", "furosemida", "antibiotico", "soro", "hidratacao",
-    "medicamento", "medicacao", "remedio", "dose", "mg", "iv", "ev", "prescrita", "prescricao"
+    "medicamento", "medicacao", "remedio", "dose", "prescrita", "prescricao", /\b\d+\s*mg\b/
   ];
   const recommendationMeds = matchesAny(r, recMedsPatterns);
 

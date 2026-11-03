@@ -18,7 +18,7 @@ module.exports = {
     },
     extend: {
       fontFamily: {
-        sans: ["Nunito", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
+        sans: ["Nunito Variable", "Nunito", "ui-sans-serif", "system-ui", "-apple-system", "BlinkMacSystemFont", "sans-serif"],
       },
       colors: {
         // Mapeamento nativo da paleta "Enfere Vivo" nas escalas do Design System
@@ -28,8 +28,8 @@ module.exports = {
           200: "#DCE5EC",  // Linha Clara Enfere Vivo
           300: "#C4D1DC",  // Base 3D Clara Enfere Vivo
           400: "#9FB3C6",  // Texto Secundário Escuro Enfere Vivo
-          500: "#52667A",  // Texto Secundário Claro Enfere Vivo
-          600: "#435668",
+          500: "#8A9DB1",  // Texto secundário: ~6,5:1 sobre #0E1720 (AA)
+          600: "#6F849A",  // Só texto grande e ícones
           700: "#27394B",  // Linha Escura Enfere Vivo
           800: "#27394B",  // Linha Escura Enfere Vivo
           900: "#16222E",  // Superfície Escura Enfere Vivo

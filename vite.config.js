@@ -17,15 +17,13 @@ export default defineConfig({
   },
   build: {
     cssCodeSplit: true,
+    chunkSizeWarningLimit: 300,
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
-          if (id.includes('recharts') || id.includes('d3-')) return 'vendor-charts';
-          if (id.includes('framer-motion')) return 'vendor-motion';
-          if (id.includes('@radix-ui') || id.includes('vaul') || id.includes('cmdk')) return 'vendor-ui';
-          if (id.includes('lucide-react')) return 'vendor-icons';
-          if (id.includes('jspdf')) return 'vendor-pdf';
+          // Radix e ícones ficam fora dos chunks fixos: assim cada página carrega só o que usa.
+          // framer-motion sem chunk fixo: as features de animação (LazyMotion) viram um chunk carregado depois.
           if (id.includes('@supabase')) return 'vendor-supabase';
           if (id.includes('react-router') || id.includes('@tanstack/react-query')) return 'vendor-router-query';
           if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('scheduler')) return 'vendor-react';

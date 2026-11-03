@@ -7,6 +7,7 @@ import {
   ExternalLink,
 } from 'lucide-react';
 import StudentHeader from '@/components/StudentHeader';
+import { Button } from '@/components/ui/button';
 import StudentFooter from '@/components/StudentFooter';
 import { useTheme } from '@/lib/ThemeContext';
 import { procedureService } from '@/services/procedureService';
@@ -18,7 +19,12 @@ import ProcedureSafetyAlerts from '@/components/procedures/ProcedureSafetyAlerts
 import ProcedureAIChat from '@/components/procedures/ProcedureAIChat';
 import MobileBottomDock from '@/components/mobile/MobileBottomDock';
 import CaseHistoryModal from '@/components/history/CaseHistoryModal';
+import { MODULE_TYPES } from '@/services/clinicalHistoryService';
 import { History } from 'lucide-react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
+import { prefersReducedMotion } from '@/lib/motion';
+import { AnimatedNumber } from '@/components/ui/animated-number';
+import { AnimatedProgress } from '@/components/ui/animated-progress';
 
 export default function ProcedimentosLab() {
   const { triggerHaptic } = useTheme();
@@ -26,8 +32,35 @@ export default function ProcedimentosLab() {
   const [procedures, setProcedures] = useState(() => procedureService.list());
   const [selectedCategory, setSelectedCategory] = useState('all');
   const [searchQuery, setSearchQuery] = useState('');
-  const [activeProcedure, setActiveProcedure] = useState(null);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
+  const [searchParams, setSearchParams] = useSearchParams();
+  const navigate = useNavigate();
+  // O procedimento aberto vive na URL (?p=id): o Voltar do celular volta ao catálogo e o link pode ser compartilhado.
+  const activeProcedure = useMemo(
+    () => procedures.find((proc) => proc.id === searchParams.get('p')) || null,
+    [procedures, searchParams]
+  );
+  const openProcedure = (proc, { replace = false } = {}) => {
+    setSearchParams({ p: proc.id }, { replace });
+    window.scrollTo({ top: 0, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  };
+  const closeProcedure = () => {
+    // Se entrou pelo catálogo, volta no histórico; se abriu um link direto, só tira o parâmetro.
+    if ((window.history.state?.idx ?? 0) > 0) navigate(-1);
+    else setSearchParams({}, { replace: true });
+  };
+
+  // Ações do briefing: "continue" reabre o último POP visto e "review" abre o histórico.
+  useEffect(() => {
+    const action = searchParams.get('action');
+    if (action === 'review') {
+      setIsHistoryOpen(true);
+    } else if (action === 'continue') {
+      const ultimoId = procedureService.getWatchedList().slice(-1)[0];
+      const ultimo = ultimoId && procedureService.list().find((p) => p.id === ultimoId);
+      if (ultimo) openProcedure(ultimo, { replace: true });
+    }
+  }, [searchParams]);
 
   const categoriesRef = useRef(null);
   const isDraggingRef = useRef(false);
@@ -52,20 +85,17 @@ export default function ProcedimentosLab() {
     isDraggingRef.current = false;
   };
   const [watchedIds, setWatchedIds] = useState(() => procedureService.getWatchedList());
+  const concluidosCount = useMemo(
+    () => procedures.filter((proc) => procedureService.isCompleted(proc.id)).length,
+    // watchedIds muda junto quando um procedimento é concluído (refreshList).
+    [procedures, watchedIds]
+  );
 
   const refreshList = () => {
     const list = procedureService.list();
     setProcedures(list);
     setWatchedIds(procedureService.getWatchedList());
-    if (activeProcedure) {
-      const fresh = list.find((p) => p.id === activeProcedure.id);
-      if (fresh) setActiveProcedure(fresh);
-    }
   };
-
-  useEffect(() => {
-    refreshList();
-  }, []);
 
   const categories = [
     { id: 'all', label: 'Todos os Procedimentos' },
@@ -81,13 +111,11 @@ export default function ProcedimentosLab() {
   ];
 
   const filtered = useMemo(() => {
+    // Busca sem diferenciar acento: "puncao" encontra "Punção".
+    const norm = (v) => String(v || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+    const q = norm(searchQuery.trim());
     return procedures.filter((p) => {
-      const matchesSearch =
-        !searchQuery.trim() ||
-        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.categoryLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.institutionalBadge && p.institutionalBadge.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesSearch = !q || [p.title, p.description, p.categoryLabel, p.institutionalBadge].some((f) => norm(f).includes(q));
 
       let matchesCategory = true;
       if (selectedCategory === 'watched') {
@@ -104,9 +132,8 @@ export default function ProcedimentosLab() {
 
   const handleOpenProcedure = (proc) => {
     triggerHaptic(25);
-    procedureService.markWatched(proc.id);
-    setWatchedIds(procedureService.getWatchedList());
-    setActiveProcedure(proc);
+    // Abrir não conta como assistido: isso só acontece ao concluir o roteiro.
+    openProcedure(proc);
   };
 
   return (
@@ -125,7 +152,7 @@ export default function ProcedimentosLab() {
                 type="button"
                 onClick={() => {
                   triggerHaptic(20);
-                  setActiveProcedure(null);
+                  closeProcedure();
                 }}
                 className="inline-flex items-center gap-2 text-xs font-bold text-white hover:text-[#20D5B5] transition"
               >
@@ -142,7 +169,6 @@ export default function ProcedimentosLab() {
                 sourceUrl={activeProcedure.sourceUrl || activeProcedure.officialGuideUrl}
                 institutionalBadge={activeProcedure.institutionalBadge}
                 cofenNorm={activeProcedure.cofenNorm}
-                steps={activeProcedure.steps}
                 previewImage={activeProcedure.previewImage}
                 duration={activeProcedure.duration}
                 onComplete={() => refreshList()}
@@ -190,25 +216,6 @@ export default function ProcedimentosLab() {
               />
               <ProcedureAIChat procedure={activeProcedure} />
             </div>
-
-            {/* Recompensa e Botão 3D Tátil "Concluir treinamento" */}
-            <div className="pt-2 space-y-3">
-              <div className="text-center text-xs font-black text-[#FFC247]">
-                Recompensa: +30 com o Goti
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic(30);
-                  procedureService.markWatched(activeProcedure.id);
-                  refreshList();
-                  setActiveProcedure(null);
-                }}
-                className="w-full py-4 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none text-center text-sm transition-all cursor-pointer"
-              >
-                Concluir treinamento
-              </button>
-            </div>
           </div>
         ) : (
           /* Modo Catálogo & Lista de Procedimentos */
@@ -240,8 +247,16 @@ export default function ProcedimentosLab() {
 
             {/* Contador de Assistidos */}
             <div className="flex items-center justify-between gap-2">
-              <div className="text-xs font-bold text-[#20D5B5]">
-                {watchedIds.length} de {procedures.length} vídeos assistidos
+              <div className="flex-1 min-w-0">
+                <div className="text-xs font-bold text-[#20D5B5]">
+                  <AnimatedNumber value={concluidosCount} /> de {procedures.length} procedimentos concluídos
+                  <span className="ml-1.5 font-semibold text-[#9FB3C6]">· {watchedIds.length} assistidos</span>
+                </div>
+                <AnimatedProgress
+                  value={procedures.length ? (concluidosCount / procedures.length) * 100 : 0}
+                  label="Procedimentos concluídos"
+                  className="mt-1.5 h-1.5 max-w-xs"
+                />
               </div>
               <button
                 type="button"
@@ -260,7 +275,7 @@ export default function ProcedimentosLab() {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUpOrLeave}
               onMouseLeave={handleMouseUpOrLeave}
-              style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}
+              style={{ touchAction: 'pan-x pan-y', WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}
               className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none cursor-grab active:cursor-grabbing"
             >
               {categories.map((cat) => {
@@ -291,6 +306,9 @@ export default function ProcedimentosLab() {
                 <Video className="h-10 w-10 text-[#9FB3C6] mx-auto opacity-60" />
                 <p className="text-sm font-bold text-white">Nenhum procedimento encontrado</p>
                 <p className="text-xs text-[#9FB3C6]">Tente buscar por outro termo ou selecione outra categoria.</p>
+                <Button variant="outline" size="sm" className="mt-2" onClick={() => { setSearchQuery(""); setSelectedCategory("all"); }}>
+                  Limpar filtros
+                </Button>
               </div>
             ) : (
               <div className="space-y-3">
@@ -298,10 +316,12 @@ export default function ProcedimentosLab() {
                   const isWatched = watchedIds.includes(proc.id);
 
                   return (
-                    <div
+                    <button
                       key={proc.id}
+                      type="button"
+                      aria-label={`${proc.title}, ${proc.duration}${isWatched ? ", assistido" : ""}`}
                       onClick={() => handleOpenProcedure(proc)}
-                      className="bg-[#131F2E] rounded-2xl border border-[#1F3045] hover:border-[#20D5B5]/50 p-4 transition-all cursor-pointer flex items-center gap-4 group shadow-xs"
+                      className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5] bg-[#131F2E] rounded-2xl border border-[#1F3045] hover:border-[#20D5B5]/50 p-4 transition-all cursor-pointer flex items-center gap-4 group shadow-sm"
                     >
                       {/* Quadrado do Play */}
                       <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[#0E1722] border border-[#1F3045] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
@@ -332,7 +352,7 @@ export default function ProcedimentosLab() {
                           )}
                         </div>
                       </div>
-                    </div>
+                    </button>
                   );
                 })}
               </div>
@@ -348,7 +368,9 @@ export default function ProcedimentosLab() {
       <CaseHistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
-        defaultCategory="procedimentos"
+        defaultModuleFilter={MODULE_TYPES.PROCEDURES}
+        lockModuleFilter
+        title="Histórico de Treinamentos"
       />
     </div>
   );

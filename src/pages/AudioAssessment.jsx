@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, Settings, Mic, MicOff } from "lucide-react";
@@ -8,7 +8,6 @@ import RecorderPanel from "@/components/audio/RecorderPanel";
 import TranscriptPanel from "@/components/audio/TranscriptPanel";
 import StatusCard from "@/components/audio/StatusCard";
 import ClinicalGuideTabs from "@/components/audio/ClinicalGuideTabs";
-import { getAssemblyAiKey, transcribeAudio } from "@/lib/assemblyai";
 import { parseVitalsFromTranscript } from "@/lib/vitalsParser";
 import { computeAllScores } from "@/lib/riskEngine";
 import { audioTranscriptionService } from "@/services/audioTranscriptionService";
@@ -28,9 +27,24 @@ export default function AudioAssessment() {
   const isDictatingRef = useRef(false);
   const interimRef = useRef("");
 
-  const hasAssemblyKey = Boolean(getAssemblyAiKey());
-  const hasGeminiKey = Boolean(audioTranscriptionService.getGeminiKey());
-  const hasAnyKey = hasAssemblyKey || hasGeminiKey;
+  const restartsRef = useRef([]);
+  // Qualquer motor configurado (AssemblyAI, Gemini ou OpenRouter) conta como chave.
+  const hasAnyKey = audioTranscriptionService.getActiveEngine() !== "Navegador (Web Speech API)";
+
+  // Ao sair da tela, desliga o ditado: senão o onend o religaria com o microfone aberto.
+  useEffect(
+    () => () => {
+      isDictatingRef.current = false;
+      const r = recognitionRef.current;
+      if (r) {
+        r.onresult = r.onend = r.onerror = null;
+        try {
+          r.abort();
+        } catch {}
+      }
+    },
+    []
+  );
 
   const vitals = useMemo(() => parseVitalsFromTranscript(transcript), [transcript]);
 
@@ -63,6 +77,7 @@ export default function AudioAssessment() {
     try {
       isDictatingRef.current = true;
       interimRef.current = "";
+      restartsRef.current = [];
 
       const rec = new SpeechRec();
       rec.lang = "pt-BR";
@@ -91,14 +106,29 @@ export default function AudioAssessment() {
         if (ev.error === "no-speech") {
           return; // Silêncio normal ao respirar/pausar a fala
         }
-        if (ev.error === "not-allowed") {
-          setError("Permissão de microfone negada no navegador.");
+        // Erros que não se resolvem tentando de novo: para o ditado e explica.
+        const fatais = {
+          "not-allowed": "Permissão de microfone negada no navegador.",
+          "service-not-allowed": "O navegador não liberou o reconhecimento de fala nesta página.",
+          "audio-capture": "Nenhum microfone encontrado. Confira se ele está conectado.",
+        };
+        if (fatais[ev.error]) {
+          setError(fatais[ev.error]);
           isDictatingRef.current = false;
           setIsDictating(false);
         }
       };
 
       rec.onend = () => {
+        // Religa sozinho nas pausas, mas desiste se cair 3 vezes em 5 s (erro de rede, por exemplo).
+        const agora = Date.now();
+        restartsRef.current = [...restartsRef.current.filter((t) => agora - t < 5000), agora];
+        if (restartsRef.current.length > 3) {
+          isDictatingRef.current = false;
+          setIsDictating(false);
+          setError("O ditado parou de responder. Toque de novo para retomar ou digite o relato.");
+          return;
+        }
         if (isDictatingRef.current && recognitionRef.current) {
           try {
             rec.start();
@@ -128,25 +158,14 @@ export default function AudioAssessment() {
 
     setTranscribing(true);
     try {
-      // Usa cascata: AssemblyAI -> Gemini Multimodal Audio
-      let text = "";
-      if (hasAssemblyKey) {
-        text = await transcribeAudio(recorder.blob, {
-          apiKey: getAssemblyAiKey(),
-          onStage: setStage,
-        });
-      } else if (hasGeminiKey) {
-        const res = await audioTranscriptionService.transcribeWithGemini(
-          recorder.blob,
-          (msg) => setStage(msg)
-        );
-        text = res?.text || "";
-      } else {
-        setError("Configure uma chave da AssemblyAI ou do Google Gemini em Minha Conta para transcrever o áudio.");
+      if (!hasAnyKey) {
+        setError("A transcrição automática não está disponível. Use o ditado ao vivo ou digite o relato.");
         setManual(true);
-        setTranscribing(false);
         return;
       }
+      // Tenta todos os motores configurados, em ordem (AssemblyAI, Gemini, OpenRouter).
+      const res = await audioTranscriptionService.transcribe(recorder.blob, "", setStage);
+      const text = res?.text || "";
 
       if (!text) {
         setError("A transcrição não retornou texto audível. Use o ditado ao vivo ou escreva o relato.");
@@ -186,9 +205,10 @@ export default function AudioAssessment() {
       } else {
         try {
           const newPat = await base44.entities.Patient.create({
-            name: "Paciente Simulado " + (data.initials || "J.S.F."),
-            age: 68,
-            gender: "M"
+            // Usa o que foi dito no relato; sem isso, fica em branco em vez de inventar.
+            name: "Paciente Simulado",
+            age: data.age ?? null,
+            gender: data.gender ?? null
           });
           targetPatientId = newPat.id;
           patient = newPat;
@@ -233,24 +253,24 @@ export default function AudioAssessment() {
   const busy = transcribing || creating;
 
   return (
-    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-800 dark:text-slate-100 transition-colors">
-      <header className="sticky top-0 z-10 border-b border-slate-200 dark:border-slate-800 bg-white/95 dark:bg-slate-900/95 backdrop-blur shadow-sm">
+    <div className="min-h-screen bg-[#0E1722] text-slate-100 transition-colors">
+      <header className="sticky top-0 z-10 border-b border-[#1F3045] bg-slate-900/95 backdrop-blur shadow-sm">
         <div className="mx-auto max-w-4xl px-4 py-3">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-xl text-slate-600 dark:text-slate-400 hover:text-slate-900 dark:hover:text-slate-100">
+              <Button variant="ghost" size="icon" onClick={() => navigate(-1)} className="rounded-xl text-[#9FB3C6] hover:text-slate-100">
                 <ArrowLeft className="h-5 w-5" />
               </Button>
               <div>
-                <h1 className="text-base font-semibold text-slate-800 dark:text-slate-100">Avaliação por Áudio</h1>
-                <p className="text-xs text-slate-400 dark:text-slate-400">Grave o relato clínico: transcrição automática com IA</p>
+                <h1 className="text-base font-semibold text-slate-100">Avaliação por Áudio</h1>
+                <p className="text-xs text-[#9FB3C6]">Grave o relato clínico: transcrição automática com IA</p>
               </div>
             </div>
             <Button
               variant="ghost"
               size="icon"
               onClick={() => navigate("/conta")}
-              className="rounded-xl h-8 w-8 text-slate-400 hover:text-teal-700 dark:hover:text-teal-400"
+              className="rounded-xl h-8 w-8 text-[#9FB3C6] hover:text-teal-400"
               title="Configurações de IA"
             >
               <Settings className="h-4 w-4" />
@@ -261,37 +281,29 @@ export default function AudioAssessment() {
 
       <main className="mx-auto max-w-4xl px-4 py-6 space-y-4">
         {(error || recorder.error) && (
-          <div className="rounded-2xl border border-rose-200 dark:border-rose-900/60 bg-rose-50 dark:bg-rose-950/40 p-3 text-sm text-rose-700 dark:text-rose-300">
+          <div className="rounded-2xl border border-rose-900/60 bg-rose-950/40 p-3 text-sm text-rose-300">
             {error || recorder.error}
           </div>
         )}
 
         {!hasAnyKey && (
-          <div className="rounded-2xl border border-amber-200 dark:border-amber-900/60 bg-amber-50 dark:bg-amber-950/40 p-4">
-            <p className="flex items-center gap-2 text-sm font-medium text-amber-800 dark:text-amber-200">
-              <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Chave de Transcrição não configurada
+          <div className="rounded-2xl border border-amber-900/60 bg-amber-950/40 p-4">
+            <p className="flex items-center gap-2 text-sm font-medium text-amber-200">
+              <AlertTriangle className="h-4 w-4 text-amber-400" /> Chave de Transcrição não configurada
             </p>
-            <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-              Para transcrição automática do microfone, configure sua chave da AssemblyAI ou do Google Gemini em Minha Conta. Ou se preferir, digite o relato diretamente.
+            <p className="mt-1 text-xs text-amber-300">
+              A transcrição automática da gravação não está disponível. Use o ditado ao vivo ou digite o relato.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
                 size="sm"
                 onClick={toggleLiveDictation}
                 className={`rounded-xl text-xs font-semibold flex items-center gap-1.5 ${
-                  isDictating ? "bg-rose-600 hover:bg-rose-700 text-white animate-pulse" : "bg-teal-700 hover:bg-teal-800 text-white"
+                  isDictating ? "bg-rose-600 hover:bg-rose-700 text-white animate-pulse" : "bg-[#20D5B5] text-[#06302E] hover:brightness-105"
                 }`}
               >
                 {isDictating ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 <span>{isDictating ? "Parar Ditado ao Vivo" : "Ditar por Voz ao Vivo (Sem Chave)"}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/conta")}
-                className="rounded-xl border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/50 text-xs"
-              >
-                Configurar Chaves Externas em Minha Conta
               </Button>
             </div>
           </div>
@@ -342,9 +354,9 @@ export default function AudioAssessment() {
                 onReset={handleReset}
               />
 
-              <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-                <p className="text-xs font-semibold text-slate-700 dark:text-slate-200">Dica de gravação</p>
-                <p className="mt-1 text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+              <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4">
+                <p className="text-xs font-semibold text-slate-200">Dica de gravação</p>
+                <p className="mt-1 text-xs text-[#9FB3C6] leading-relaxed">
                   Fale com naturalidade no microfone. Veja as abas ao lado para não esquecer sinais vitais, dor, Glasgow e histórico.
                 </p>
               </div>
@@ -363,15 +375,15 @@ export default function AudioAssessment() {
         )}
 
         {!busy && !showReview && (
-          <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-            <p className="text-sm font-medium text-slate-700 dark:text-slate-200">Como funciona</p>
-            <ul className="mt-2 space-y-1.5 text-xs text-slate-500 dark:text-slate-400">
+          <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4">
+            <p className="text-sm font-medium text-slate-200">Como funciona</p>
+            <ul className="mt-2 space-y-1.5 text-xs text-[#9FB3C6]">
               <li>1. Grave o relato clínico do paciente falando sinais vitais, dor, queixas e escalas.</li>
               <li>2. Toque em “Transcrever &amp; Gerar Plano” — a IA transcreve o áudio em português.</li>
               <li>3. Revise o texto: os sinais vitais são identificados dele e a avaliação é registrada na hora.</li>
               <li>4. O plano de cuidados (NANDA-I, NIC e NOC) é gerado automaticamente.</li>
             </ul>
-            <p className="mt-3 rounded-lg bg-teal-50 dark:bg-teal-950/40 p-2 text-[11px] text-teal-800 dark:text-teal-300">
+            <p className="mt-3 rounded-lg bg-teal-950/40 p-2 text-[11px] text-teal-300">
               Sem limite de créditos da plataforma: opera diretamente com suas chaves de IA no navegador.
             </p>
           </div>

@@ -22,6 +22,11 @@ export default function PacienteVideoStage({
   const videoFalaRef = useRef(null);
   const videoAcertoRef = useRef(null);
   const videoErroRef = useRef(null);
+  // Ref: o pai passa uma função nova a cada render, e isso não pode reiniciar o tempo-limite.
+  const onClipeEndedRef = useRef(onClipeEnded);
+  useEffect(() => {
+    onClipeEndedRef.current = onClipeEnded;
+  });
 
   // Controle de reprodução e garantia de compatibilidade móvel (iOS Safari e Android)
   useEffect(() => {
@@ -46,11 +51,17 @@ export default function PacienteVideoStage({
       videoAcerto.pause();
       videoErro.pause();
 
+      // A fala pode durar mais que o clipe: repete enquanto o paciente fala e volta ao quadro neutro.
       if (isSpeaking) {
-        videoFala.loop = false;
+        videoFala.loop = true;
         videoFala.play().catch(() => {});
       } else {
         videoFala.pause();
+        try {
+          videoFala.currentTime = 0;
+        } catch {
+          // ignore
+        }
       }
     } else if (clipeAtivo === "acerto") {
       videoFala.pause();
@@ -74,6 +85,13 @@ export default function PacienteVideoStage({
       videoErro.play().catch(() => {});
     }
   }, [clipeAtivo, isSpeaking, pacienteId]);
+
+  // Se o clipe de acerto/erro não carregar, o palco não fica preso nele.
+  useEffect(() => {
+    if (clipeAtivo !== "acerto" && clipeAtivo !== "erro") return undefined;
+    const timer = setTimeout(() => onClipeEndedRef.current?.("timeout"), 6000);
+    return () => clearTimeout(timer);
+  }, [clipeAtivo]);
 
   const hasCustomHeight = className.includes("h-");
   const hasCustomWidth = className.includes("w-") || className.includes("max-w-");
@@ -117,17 +135,12 @@ export default function PacienteVideoStage({
         disableRemotePlayback
         controlsList="nodownload noplaybackrate nofullscreen"
         preload="auto"
-        onEnded={() => {
-          if (videoFalaRef.current) {
-            videoFalaRef.current.pause();
-          }
-        }}
         className={`absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-150 ${
           clipeAtivo === "fala" ? "opacity-100 z-10" : "opacity-0 z-0 pointer-events-none"
         }`}
       >
-        <source src={paciente.videos.fala.mp4} type="video/mp4" />
         <source src={paciente.videos.fala.webm} type="video/webm" />
+        <source src={paciente.videos.fala.mp4} type="video/mp4" />
       </video>
 
       {/* 2. Clipes Acerto */}
@@ -139,7 +152,7 @@ export default function PacienteVideoStage({
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload noplaybackrate nofullscreen"
-        preload="auto"
+        preload="metadata"
         onEnded={() => {
           if (onClipeEnded) onClipeEnded("acerto");
         }}
@@ -147,8 +160,8 @@ export default function PacienteVideoStage({
           clipeAtivo === "acerto" ? "opacity-100 z-20" : "opacity-0 z-0 pointer-events-none"
         }`}
       >
-        <source src={paciente.videos.acerto.mp4} type="video/mp4" />
         <source src={paciente.videos.acerto.webm} type="video/webm" />
+        <source src={paciente.videos.acerto.mp4} type="video/mp4" />
       </video>
 
       {/* 3. Clipes Erro */}
@@ -160,7 +173,7 @@ export default function PacienteVideoStage({
         disablePictureInPicture
         disableRemotePlayback
         controlsList="nodownload noplaybackrate nofullscreen"
-        preload="auto"
+        preload="metadata"
         onEnded={() => {
           if (onClipeEnded) onClipeEnded("erro");
         }}
@@ -168,8 +181,8 @@ export default function PacienteVideoStage({
           clipeAtivo === "erro" ? "opacity-100 z-20" : "opacity-0 z-0 pointer-events-none"
         }`}
       >
-        <source src={paciente.videos.erro.mp4} type="video/mp4" />
         <source src={paciente.videos.erro.webm} type="video/webm" />
+        <source src={paciente.videos.erro.mp4} type="video/mp4" />
       </video>
     </div>
   );

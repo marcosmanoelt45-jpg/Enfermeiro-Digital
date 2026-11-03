@@ -72,19 +72,6 @@ Este manifesto é a **Fonte Única da Verdade (SSOT)** do projeto Enfermeiro Dig
   2. **Animações do Mascote Goti (`GotiAnimated.jsx` e `EnfereSplash.tsx`)**: Usar o motor `<video>` + `<canvas>` com os vídeos `.webm` 100% sólidos (`public/goti/goti-*.webm`) e poster instantâneo em PNG (`goti-pose-*.png`) até o primeiro quadro do vídeo estar pronto (`video.readyState >= 2`), **sem** `safetyTimeout` curto de 350ms que interrompa o carregamento do vídeo. Manter os fallbacks `.webp` em `public/goti/goti-*.webp` codificados com quadros RGBA completos (`disposal=2`).
 - **Sincronização e Deploy Pré-Entrega**: Sempre que uma alteração envolver feedback visual do usuário que valida em produção (Vercel), a entrega requer `npm run build`, sincronização remota via `git push origin main` e confirmação dos assets compilados.
 
-### 5. Ecossistema Multi-Agente (Padrão Claude Code / Hub-and-Spoke)
+### 5. Agentes
 
-O desenvolvimento e a manutenção do Enfermeiro Digital operam através de uma arquitetura multi-agente hierárquica baseada no padrão Orchestrator-Worker da Anthropic / Claude Code:
-- **Agente Global (Orquestrador Lead)**: Ponto único de contato com o desenvolvedor. Responsável pelo plano de controle, decomposição atômica de tarefas, seleção e despacho de subagentes especialistas, sem poluir a janela de contexto principal com ruído operacional. Subagentes **nunca se comunicam diretamente entre si**, passando todo dado e resultado pelo Orquestrador.
-- **Suíte de 8 Subagentes Especialistas** (definidos em `.agents/plugins/enfermeiro-digital-subagents/agents/`):
-  1. `subagent-goti-ai`: Preceptor Clínico Goti, IA socrática, estados do mascote e áudios clínicos.
-  2. `subagent-clinical-cases`: Simulador de Casos Clínicos, NANDA-I, NIC, NOC, raciocínio diagnóstico e evolução da SAE.
-  3. `subagent-sbar-handoff`: Passagem de plantão SBAR, gravação/transcrição de áudio e comunicação interprofissional.
-  4. `subagent-dosage-calc`: Cálculo de doses, soluções, fórmulas de gotejamento, BIC e farmacologia clínica.
-  5. `subagent-skills-lab`: Procedimentos Operacionais Padrão (POPs), checklists cirúrgicos/clínicos e biossegurança.
-  6. `subagent-student-hub`: Dashboard do Estudante, UI Mobile-First, navegação inferior tátil (dock) e acessibilidade WCAG.
-  7. `subagent-infra-backend`: Supabase Auth (OAuth Pre-Flight Protection), Base44 SDK e variáveis de ambiente.
-  8. `subagent-qa-guardian`: Auditoria de qualidade, execução mandatória de `npm run lint` e `npm run typecheck`, prevenindo bugs antes da entrega.
-- **Workflows e Regras**:
-  - Regra de orquestração: `.agents/rules/subagent-orchestrator.md`
-  - Workflow de invocação: `.agents/workflows/orquestrador.md` e `/agente`
+A antiga suíte de 8 subagentes (`.agents/plugins/enfermeiro-digital-subagents`) foi removida em 02/11/2026; há uma cópia em `backups/subagentes-antigos-20261102/`. O trabalho em paralelo usa os agentes nativos do Claude Code (Explore, Plan, general-purpose, claude-security), que já leem o `CLAUDE.md` e as skills do projeto. O conhecimento de cada módulo fica no `CLAUDE.md` e em `.claude/skills/`, não em personas de agente.

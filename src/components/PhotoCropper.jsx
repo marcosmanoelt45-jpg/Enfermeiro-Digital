@@ -1,17 +1,28 @@
 import React, { useState, useRef, useCallback, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Loader2, ZoomIn } from "lucide-react";
+import { ZoomIn, X } from "lucide-react";
+import { toast } from "@/components/ui/use-toast";
 
 const CONTAINER = 240;
 
 export default function PhotoCropper({ file, onConfirm, onCancel }) {
   const [imgSrc, setImgSrc] = useState(null);
   const [imgEl, setImgEl] = useState(null);
+  const [baseScale, setBaseScale] = useState(1);
   const [zoom, setZoom] = useState(1);
   const [offset, setOffset] = useState({ x: 0, y: 0 });
   const [dragging, setDragging] = useState(false);
   const dragStart = useRef({ x: 0, y: 0, ox: 0, oy: 0 });
   const [busy, setBusy] = useState(false);
+
+  // Fechar com Escape
+  useEffect(() => {
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape" && !busy) onCancel();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [busy, onCancel]);
 
   useEffect(() => {
     if (!file) return;
@@ -23,8 +34,9 @@ export default function PhotoCropper({ file, onConfirm, onCancel }) {
   const onImgLoad = useCallback((e) => {
     const el = e.target;
     setImgEl(el);
-    // centraliza e calcula zoom inicial para cobrir o container
+    // Calcula zoom inicial de cobertura proporcional (case-studio-30)
     const scale = Math.max(CONTAINER / el.naturalWidth, CONTAINER / el.naturalHeight);
+    setBaseScale(scale);
     setZoom(scale);
     setOffset({ x: 0, y: 0 });
   }, []);
@@ -53,14 +65,11 @@ export default function PhotoCropper({ file, onConfirm, onCancel }) {
       const ctx = canvas.getContext("2d");
 
       const scale = zoom;
-      // posição da imagem no container: centro + offset
-      // no espaço da imagem original: (centroContainer - offset) / scale
       const drawW = imgEl.naturalWidth * scale;
       const drawH = imgEl.naturalHeight * scale;
       const destX = (CONTAINER - drawW) / 2 + offset.x;
       const destY = (CONTAINER - drawH) / 2 + offset.y;
 
-      // mapeia o retângulo visível do container de volta para a imagem original
       const srcX = -destX / scale;
       const srcY = -destY / scale;
       const srcSize = CONTAINER / scale;
@@ -68,7 +77,11 @@ export default function PhotoCropper({ file, onConfirm, onCancel }) {
       ctx.drawImage(imgEl, srcX, srcY, srcSize, srcSize, 0, 0, 400, 400);
 
       canvas.toBlob((blob) => {
-        if (!blob) return;
+        if (!blob) {
+          setBusy(false);
+          toast({ variant: "destructive", title: "Erro ao processar imagem", description: "Não foi possível recortar a foto." });
+          return;
+        }
         const croppedFile = new File([blob], "foto-perfil.jpg", { type: "image/jpeg" });
         onConfirm(croppedFile);
       }, "image/jpeg", 0.9);
@@ -77,18 +90,38 @@ export default function PhotoCropper({ file, onConfirm, onCancel }) {
     }
   }
 
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 p-4">
-      <div className="w-full max-w-sm rounded-2xl bg-white dark:bg-slate-900 dark:border dark:border-slate-800 p-5 shadow-2xl">
-        <div className="mb-3 flex items-center gap-2">
-          <ZoomIn className="h-5 w-5 text-teal-600" />
-          <h2 className="text-base font-semibold text-slate-800 dark:text-slate-100">Ajustar foto</h2>
-        </div>
-        <p className="mb-3 text-xs text-slate-400">Arraste para posicionar e use o controle para aproximar.</p>
+  const relativeZoom = baseScale > 0 ? zoom / baseScale : 1;
 
-        <div className="mx-auto flex flex-col items-center gap-3">
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="cropper-title"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-sm p-4 animate-in fade-in duration-200"
+    >
+      <div className="w-full max-w-sm rounded-3xl bg-[#0E1722] border border-[#1F3045] p-6 shadow-2xl text-[#EAF2F8]">
+        <div className="mb-3 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <ZoomIn className="h-5 w-5 text-[#20D5B5]" />
+            <h2 id="cropper-title" className="text-base font-black text-white">Ajustar foto</h2>
+          </div>
+          <button
+            type="button"
+            onClick={onCancel}
+            disabled={busy}
+            aria-label="Fechar recorte"
+            className="p-1 rounded-lg text-[#9FB3C6] hover:text-white transition"
+          >
+            <X className="w-5 h-5" />
+          </button>
+        </div>
+        <p className="mb-4 text-xs text-[#9FB3C6]">
+          Arraste para posicionar o rosto e use o controle deslizante para aproximar.
+        </p>
+
+        <div className="mx-auto flex flex-col items-center gap-4">
           <div
-            className="relative overflow-hidden rounded-2xl bg-slate-100 dark:bg-slate-800 touch-none select-none"
+            className="relative overflow-hidden rounded-2xl bg-[#0B131D] border border-[#27394B] touch-none select-none"
             style={{ width: CONTAINER, height: CONTAINER }}
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
@@ -101,7 +134,7 @@ export default function PhotoCropper({ file, onConfirm, onCancel }) {
                 onLoad={onImgLoad}
                 alt="preview"
                 draggable={false}
-                className="absolute max-w-none"
+                className="absolute max-w-none pointer-events-none"
                 style={{
                   width: imgEl ? imgEl.naturalWidth * zoom : 0,
                   height: imgEl ? imgEl.naturalHeight * zoom : 0,
@@ -111,31 +144,45 @@ export default function PhotoCropper({ file, onConfirm, onCancel }) {
                 }}
               />
             )}
-            {/* overlay com moldura quadrada */}
-            <div className="pointer-events-none absolute inset-0 rounded-2xl border-2 border-white/80 shadow-[0_0_0_2000px_rgba(0,0,0,0.35)]" />
+            <div className="pointer-events-none absolute inset-0 rounded-2xl border-2 border-[#20D5B5]/60 shadow-[0_0_0_2000px_rgba(11,19,29,0.6)]" />
           </div>
 
+          {/* Slider relativo (1x a 4x da escala base) */}
           <div className="flex w-full items-center gap-3 px-2">
-            <span className="text-xs text-slate-400">-</span>
+            <span className="text-xs font-bold text-[#9FB3C6]">1x</span>
             <input
               type="range"
-              min={0.5}
-              max={3}
+              min={1}
+              max={4}
               step={0.05}
-              value={zoom}
-              onChange={(e) => setZoom(Number(e.target.value))}
-              className="flex-1 accent-teal-600"
+              value={relativeZoom}
+              onChange={(e) => setZoom(baseScale * Number(e.target.value))}
+              aria-label="Nível de zoom da imagem"
+              className="flex-1 accent-[#20D5B5] h-1.5 rounded-lg bg-[#16222E] cursor-pointer"
             />
-            <span className="text-xs text-slate-400">+</span>
+            <span className="text-xs font-bold text-[#9FB3C6]">4x</span>
           </div>
         </div>
 
-        <div className="mt-5 flex gap-3">
-          <Button variant="outline" onClick={onCancel} className="flex-1 rounded-xl border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-50 dark:hover:bg-slate-800" disabled={busy}>
+        <div className="mt-6 flex gap-3">
+          <Button
+            type="button"
+            variant="outline"
+            onClick={onCancel}
+            disabled={busy}
+            className="flex-1 font-semibold"
+          >
             Cancelar
           </Button>
-          <Button onClick={handleConfirm} className="flex-1 rounded-xl" disabled={busy || !imgEl}>
-            {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Confirmar"}
+          <Button
+            type="button"
+            variant="primary"
+            onClick={handleConfirm}
+            disabled={busy || !imgEl}
+            loading={busy}
+            className="flex-1 font-black"
+          >
+            Confirmar
           </Button>
         </div>
       </div>

@@ -28,39 +28,39 @@ export default function GoogleOAuthModal({
 
   return (
     <div
-      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-xs animate-in fade-in"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in"
       role="dialog"
       aria-modal="true"
       aria-labelledby="google-modal-title"
     >
-      <div className="bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
+      <div className="bg-[#131F2E] border border-[#1F3045] rounded-2xl max-w-lg w-full p-6 shadow-2xl relative space-y-4">
         <button
           type="button"
           onClick={onClose}
-          className="absolute top-4 right-4 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 p-1 rounded-lg"
+          className="absolute top-4 right-4 text-[#9FB3C6] hover:text-slate-200 p-1 rounded-lg"
           aria-label="Fechar"
         >
           <X className="w-5 h-5" />
         </button>
 
         <div className="flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-amber-100 dark:bg-amber-950/80 text-amber-600 dark:text-amber-400 flex items-center justify-center shrink-0">
+          <div className="w-10 h-10 rounded-xl bg-amber-950/80 text-amber-400 flex items-center justify-center shrink-0">
             <ShieldAlert className="w-6 h-6" />
           </div>
           <div>
             <h3
               id="google-modal-title"
-              className="font-bold text-base text-slate-900 dark:text-slate-100 leading-tight"
+              className="font-bold text-base text-slate-100 leading-tight"
             >
               Configuração do Google OAuth (Supabase)
             </h3>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            <p className="text-xs text-[#9FB3C6] mt-0.5">
               Instruções de autenticação direta com o Google Cloud
             </p>
           </div>
         </div>
 
-        <div className="bg-slate-50 dark:bg-slate-800/60 p-4 rounded-xl text-xs space-y-2.5 text-slate-700 dark:text-slate-300 leading-relaxed border border-slate-200 dark:border-slate-700/60">
+        <div className="bg-slate-800/60 p-4 rounded-xl text-xs space-y-2.5 text-slate-300 leading-relaxed border border-slate-700/60">
           <p>
             Para que o login com o <strong>Google</strong> funcione automaticamente com seleção de contas no navegador, o provedor precisa estar habilitado no painel do Supabase:
           </p>
@@ -71,7 +71,7 @@ export default function GoogleOAuthModal({
                 href="https://supabase.com/dashboard/project/xwqgyvqofxdqdbhltdzf/auth/providers"
                 target="_blank"
                 rel="noreferrer"
-                className="text-teal-600 dark:text-teal-400 font-bold hover:underline inline-flex items-center gap-1"
+                className="text-teal-400 font-bold hover:underline inline-flex items-center gap-1"
               >
                 Painel de Provedores <ExternalLink className="w-3 h-3" />
               </a>
@@ -83,7 +83,7 @@ export default function GoogleOAuthModal({
             <li>
               URL de redirecionamento autorizada do seu projeto:
               <div className="flex items-center gap-2 mt-1">
-                <code className="flex-1 p-2 bg-slate-200 dark:bg-slate-900 rounded font-mono text-[11px] select-all break-all text-teal-800 dark:text-teal-300">
+                <code className="flex-1 p-2 bg-[#131F2E] rounded font-mono text-[11px] select-all break-all text-teal-300">
                   {callbackUrl}
                 </code>
                 <Button
@@ -100,7 +100,7 @@ export default function GoogleOAuthModal({
                     </>
                   ) : (
                     <>
-                      <Copy className="w-3.5 h-3.5 mr-1 text-slate-500" />
+                      <Copy className="w-3.5 h-3.5 mr-1 text-[#9FB3C6]" />
                       Copiar
                     </>
                   )}
@@ -110,7 +110,7 @@ export default function GoogleOAuthModal({
           </ol>
         </div>
 
-        <div className="flex items-center justify-end gap-2 pt-2 border-t border-slate-200 dark:border-slate-800">
+        <div className="flex items-center justify-end gap-2 pt-2 border-t border-[#1F3045]">
           <Button
             type="button"
             variant="outline"

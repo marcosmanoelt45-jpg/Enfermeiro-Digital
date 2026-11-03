@@ -43,6 +43,9 @@ export const DLP_PATTERNS = {
   }
 };
 
+const NOME_APOS_TRATAMENTO =
+  /\b((?:[Pp]aciente\s+chamad[oa]\s+|[Pp]aciente\s+|[Ss]ra?\.?\s+|[Ss]eu\s+|[Dd]ona\s+))([A-ZÁ-Ú][a-zá-ú]+(?:\s+(?:d[aeo]s?\s+)?[A-ZÁ-Ú][a-zá-ú]+){0,3})/g;
+
 /**
  * Inspeciona um texto e identifica se há dados pessoais identificáveis (LGPD DLP).
  * @param {string} text 
@@ -89,6 +92,11 @@ export function sanitizeTextForLGPD(text) {
   for (const [, pattern] of Object.entries(DLP_PATTERNS)) {
     sanitized = sanitized.replace(pattern.regex, pattern.mask);
   }
+
+  // Nome escrito no texto livre ("paciente João da Silva", "Sra. Maria") vira iniciais.
+  sanitized = sanitized.replace(NOME_APOS_TRATAMENTO, (_m, prefixo, nome) =>
+    `${prefixo}${anonymizePatientName(nome).replace(/^Paciente /, "")}`
+  );
 
   return sanitized;
 }

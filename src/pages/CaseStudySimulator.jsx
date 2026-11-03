@@ -12,7 +12,7 @@ import {
   Layers,
   Send,
   Plus,
-  Stethoscope,
+  Stethoscope,
   ClipboardList,
   Eye,
   Check,
@@ -38,6 +38,8 @@ import ClinicalGapRadar from "@/components/ClinicalGapRadar";
 import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
 import { celebrate } from "@/lib/celebrate";
+import { AnimatedNumber } from "@/components/ui/animated-number";
+import { computeBradenTotal } from "@/lib/riskEngine";
 import { vibrate } from "@/lib/motion";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
@@ -220,37 +222,43 @@ export default function CaseStudySimulator() {
   // Estado de Parâmetros Adicionados
   const [addedGaps, setAddedGaps] = useState([]);
   const [toastMessage, setToastMessage] = useState("");
-  // Ações de Exame Físico à beira-leito
-  const physicalExamActions = [
-    {
-      id: "ausculta",
-      label: "Auscultar Pulmão",
-      icon: Stethoscope,
-      finding: "Estertores crepitantes bibasais em terço inferior com expansibilidade discretamente diminuída à direita.",
-      clinicalMeaning: "Sugere congestão alveolar ou consolidação inflamatória aguda."
-    },
-    {
-      id: "glicemia",
-      label: "Glicemia Capilar (HGT)",
-      icon: Activity,
-      finding: "HGT: 138 mg/dL (glicemia pós-prandial dentro do limite aceitável de estresse).",
-      clinicalMeaning: "Descarta hipoglicemia aguda como causa primária da alteração do sensório."
-    },
-    {
-      id: "perfusao",
-      label: "Avaliar Perfusão & TEC",
-      icon: HeartPulse,
-      finding: "Tempo de Enchimento Capilar (TEC) de 3,5 segundos com extremidades frias.",
-      clinicalMeaning: "Indica vasoconstrição compensatória periférica e perfusão tissular comprometida."
-    },
-    {
-      id: "pele",
-      label: "Inspecionar Sacro e Calcanhares",
-      icon: Layers,
-      finding: "Hiperemia não branqueável em região sacra (LPP Estágio 1). Calcanhares íntegros.",
-      clinicalMeaning: "Risco de progressão de lesão por pressão nas próximas 12 horas."
-    }
-  ];
+  // Exame à beira-leito montado com os dados do caso sorteado (antes era fixo de IC para todos os casos).
+  const physicalExamActions = useMemo(() => {
+    const v = currentCase.vitals || {};
+    const braden = computeBradenTotal(currentCase.braden || {});
+    const instavel = (v.pa_sistolica && v.pa_sistolica < 90) || (v.fc && v.fc > 120) || (v.sat && v.sat < 90);
+    const bradenLabel = braden <= 9 ? "risco muito alto" : braden <= 12 ? "risco alto" : braden <= 14 ? "risco moderado" : "risco baixo";
+    return [
+      {
+        id: "ausculta",
+        label: "Avaliar Padrão Respiratório",
+        icon: Stethoscope,
+        finding: `FR ${v.fr ?? "não registrada"} irpm · SpO₂ ${v.sat ?? "—"}%. Achados da admissão: ${currentCase.summary}`,
+        clinicalMeaning: v.sat && v.sat < 92 ? "Hipoxemia: priorize oxigenação e reavaliação." : "Oxigenação dentro do esperado para o quadro."
+      },
+      {
+        id: "glicemia",
+        label: "Glicemia Capilar (HGT)",
+        icon: Activity,
+        finding: "HGT não registrado no prontuário deste caso.",
+        clinicalMeaning: "Afira antes de atribuir alteração de sensório a outra causa."
+      },
+      {
+        id: "perfusao",
+        label: "Avaliar Hemodinâmica",
+        icon: HeartPulse,
+        finding: `PA ${v.pa_sistolica ?? "—"}/${v.pa_diastolica ?? "—"} mmHg · FC ${v.fc ?? "—"} bpm · Tax ${v.tax ?? "—"} °C.`,
+        clinicalMeaning: instavel ? "Sinais de instabilidade hemodinâmica: comunique e monitore de perto." : "Parâmetros hemodinâmicos sem critério de instabilidade."
+      },
+      {
+        id: "pele",
+        label: "Risco de Lesão por Pressão",
+        icon: Layers,
+        finding: `Escala de Braden: ${braden} pontos (${bradenLabel}).`,
+        clinicalMeaning: braden <= 14 ? "Planeje mudança de decúbito e superfícies de alívio de pressão." : "Mantenha inspeção diária da pele."
+      }
+    ];
+  }, [currentCase]);
 
   // Parâmetros para conferência do caso
   const caseGaps = [
@@ -513,7 +521,7 @@ export default function CaseStudySimulator() {
           title: `Caso Clínico: ${currentCase.title}`,
           patientInfo: `${currentCase.patient?.name || "Paciente"} • ${currentCase.category || "Enfermaria"}`,
           durationSeconds: activitySeconds,
-          score: typeof res?.score === "number" ? res.score : (res?.overallScore || 85),
+          score: finalScore,
           evaluation: res,
           formData: {
             selectedCaseIdx,
@@ -541,7 +549,7 @@ export default function CaseStudySimulator() {
 
       <main className="flex-1 mx-auto max-w-6xl w-full px-4 sm:px-6 py-6 space-y-6">
         {/* Barra Superior Oficial (Páginas 4 a 7 do PDF) */}
-        <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] px-5 py-4 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-3">
+        <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] px-5 py-4 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="space-y-1">
             <div className="flex items-center gap-2.5 flex-wrap">
               <h1 className="text-lg sm:text-xl font-black tracking-tight text-white">
@@ -567,7 +575,7 @@ export default function CaseStudySimulator() {
               variant="outline"
               size="sm"
               onClick={handleSaveDraft}
-              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-semibold flex items-center gap-1.5 shadow-sm"
               title="Salvar rascunho do caso clínico no Histórico"
             >
               <BookmarkPlus className="h-3.5 w-3.5 text-[#20D5B5]" />
@@ -579,7 +587,7 @@ export default function CaseStudySimulator() {
               variant="outline"
               size="sm"
               onClick={() => setIsHistoryOpen(true)}
-              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-semibold flex items-center gap-1.5 shadow-sm"
             >
               <History className="h-3.5 w-3.5 text-[#20D5B5]" />
               <span className="hidden sm:inline">Histórico</span>
@@ -588,7 +596,7 @@ export default function CaseStudySimulator() {
             <Button
               onClick={() => navigate('/passagem-plantao', { state: { caseData: currentCase } })}
               variant="outline"
-              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs flex items-center gap-2 font-semibold shadow-2xs"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs flex items-center gap-2 font-semibold shadow-sm"
               title="Pratique a passagem de plantão deste paciente na metodologia SBAR"
             >
               <ArrowRightLeft className="h-4 w-4 text-[#20D5B5]" />
@@ -618,7 +626,7 @@ export default function CaseStudySimulator() {
           className="p-4 sm:p-5 rounded-3xl bg-[#131F2E] border border-[#1F3045] hover:border-[#20D5B5]/50 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
         >
           <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-[#0E1722] border border-[#1F3045] text-[#20D5B5] group-hover:scale-105 transition-transform shadow-2xs">
+            <div className="p-3 rounded-2xl bg-[#0E1722] border border-[#1F3045] text-[#20D5B5] group-hover:scale-105 transition-transform shadow-sm">
               <History className="h-5 w-5" />
             </div>
             <div>
@@ -649,7 +657,7 @@ export default function CaseStudySimulator() {
         </div>
 
         {/* Card do Paciente e Caso Clínico (Página 4 do PDF) */}
-        <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] p-4 sm:p-5 shadow-xs flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="rounded-3xl border border-[#1F3045] bg-[#131F2E] p-4 sm:p-5 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-4">
             <div className="w-12 h-12 rounded-2xl bg-[#0E1722] border border-[#1F3045] flex items-center justify-center shrink-0 text-[#20D5B5]">
               <Stethoscope className="w-6 h-6" />
@@ -683,7 +691,7 @@ export default function CaseStudySimulator() {
           <Button
             onClick={handleGenerateRandom}
             variant="outline"
-            className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs font-bold flex items-center gap-2 shadow-2xs self-start md:self-auto shrink-0 py-2.5 px-4"
+            className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs font-bold flex items-center gap-2 shadow-sm self-start md:self-auto shrink-0 py-2.5 px-4"
           >
             <Shuffle className="h-4 w-4 text-[#20D5B5]" />
             <span>Sortear Novo Caso Clínico</span>
@@ -691,7 +699,7 @@ export default function CaseStudySimulator() {
         </div>
 
         {/* BARRA HORIZONTAL DAS 5 ETAPAS DO PROCESSO DE ENFERMAGEM (Página 4 do PDF) */}
-        <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-1.5 shadow-xs">
+        <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-1.5 shadow-sm">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
             <div className="grid grid-cols-5 gap-1.5 flex-1 text-center">
               {[
@@ -705,6 +713,8 @@ export default function CaseStudySimulator() {
                 return (
                   <button
                     key={step.num}
+                    type="button"
+                    aria-current={isCurrent ? "step" : undefined}
                     onClick={() => {
                       setActiveStep(step.num);
                       setViewingDebriefing(false);
@@ -728,7 +738,7 @@ export default function CaseStudySimulator() {
                   onClick={() => setViewingDebriefing(!viewingDebriefing)}
                   className={`py-1.5 px-3 rounded-xl text-xs font-black flex items-center gap-1.5 transition ${
                     viewingDebriefing
-                      ? "bg-[#20D5B5] text-[#0B131D] shadow-xs"
+                      ? "bg-[#20D5B5] text-[#0B131D] shadow-sm"
                       : "bg-[#16222E] text-[#20D5B5] border border-[#1F3045] hover:bg-[#1E2E3E]"
                   }`}
                 >
@@ -747,7 +757,7 @@ export default function CaseStudySimulator() {
             /* DEBRIEFING CLÍNICO COM O GOTI (FRAMEWORK PEARLS / DML - Miller Nível 3)  */
             /* ========================================================================= */
             <div className="space-y-6 animate-in fade-in">
-              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-xs space-y-5">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-sm space-y-5">
                 {/* Cabeçalho da Conclusão (Página 7 do PDF) */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-4 gap-4">
                   <div className="space-y-1">
@@ -776,7 +786,7 @@ export default function CaseStudySimulator() {
                     </div>
                     <div className="text-right">
                       <span className="text-[10px] font-bold text-[#9FB3C6] uppercase tracking-wider block">Acurácia Diagnóstica</span>
-                      <span className="text-3xl font-black text-[#FFC247] leading-none">{tutorEvaluation.score}%</span>
+                      <span className="text-3xl font-black text-[#FFC247] leading-none"><AnimatedNumber value={Number(tutorEvaluation.score) || 0} duration={0.8} />%</span>
                     </div>
                   </div>
                 </div>
@@ -860,7 +870,7 @@ export default function CaseStudySimulator() {
               {activeStep === 1 && (
               <div className="space-y-5 animate-in fade-in">
                 {/* Prontuário do Paciente */}
-                <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-4">
+                <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-4">
                   <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-2">
                     <div>
                       <span className="text-xs font-bold text-[#20D5B5] bg-[#20D5B5]/15 px-2.5 py-0.5 rounded-full border border-[#20D5B5]/30">
@@ -902,12 +912,11 @@ export default function CaseStudySimulator() {
 
                     {showClinicalNotes && (
                       <div className="mt-2 pt-2 border-t border-[#1F3045] flex flex-wrap gap-2 text-[11px]">
-                        <span className="bg-[#FFC247]/15 text-[#FFC247] px-2.5 py-1 rounded-md font-semibold border border-[#FFC247]/30">
-                          💡 Pista: Retenção volêmica aguda & dispneia progressiva
-                        </span>
-                        <span className="bg-[#F0645F]/15 text-[#F0645F] px-2.5 py-1 rounded-md font-semibold border border-[#F0645F]/30">
-                          💡 Risco: Descompensação ventilatória iminente
-                        </span>
+                        {(currentCase.learningObjectives || []).slice(0, 2).map((obj) => (
+                          <span key={obj} className="bg-[#FFC247]/15 text-[#FFC247] px-2.5 py-1 rounded-md font-semibold border border-[#FFC247]/30">
+                            💡 {obj}
+                          </span>
+                        ))}
                       </div>
                     )}
 
@@ -918,31 +927,31 @@ export default function CaseStudySimulator() {
 
                   {/* Sinais Vitais do Paciente (Monitor 1:1 com a Página 4 do PDF) */}
                   <div className="grid grid-cols-2 sm:grid-cols-5 gap-2.5 pt-1">
-                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-xs">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-sm">
                       <span className="text-[10px] font-black text-[#FFC247] uppercase block tracking-wider">▲ PA</span>
                       <div className="text-sm sm:text-base font-black text-white mt-0.5">
                         {currentCase.vitals.pa_sistolica}/{currentCase.vitals.pa_diastolica} <span className="text-[10px] font-normal text-[#9FB3C6]">mmHg</span>
                       </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-xs">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-sm">
                       <span className="text-[10px] font-black text-[#FFC247] uppercase block tracking-wider">▲ FC</span>
                       <div className="text-sm sm:text-base font-black text-white mt-0.5">
                         {currentCase.vitals.fc} <span className="text-[10px] font-normal text-[#9FB3C6]">bpm</span>
                       </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-xs">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#FFC247]/40 text-center shadow-sm">
                       <span className="text-[10px] font-black text-[#FFC247] uppercase block tracking-wider">▲ FR</span>
                       <div className="text-sm sm:text-base font-black text-white mt-0.5">
                         {currentCase.vitals.fr} <span className="text-[10px] font-normal text-[#9FB3C6]">irpm</span>
                       </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#1F3045] text-center shadow-xs">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#1F3045] text-center shadow-sm">
                       <span className="text-[10px] font-bold text-[#9FB3C6] uppercase block tracking-wider">Tax</span>
                       <div className="text-sm sm:text-base font-black text-white mt-0.5">
                         {currentCase.vitals.tax} <span className="text-[10px] font-normal text-[#9FB3C6]">°C</span>
                       </div>
                     </div>
-                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#F0645F]/50 text-center col-span-2 sm:col-span-1 shadow-xs">
+                    <div className="p-3 rounded-2xl bg-[#16222E] border border-[#F0645F]/50 text-center col-span-2 sm:col-span-1 shadow-sm">
                       <span className="text-[10px] font-black text-[#F0645F] uppercase block tracking-wider">✕ SatO2</span>
                       <div className="text-sm sm:text-base font-black text-[#F0645F] mt-0.5">
                         {currentCase.vitals.sat} <span className="text-[10px] font-normal text-[#9FB3C6]">%</span>
@@ -968,7 +977,7 @@ export default function CaseStudySimulator() {
                             onClick={() => setActiveExamAction(isSelected ? null : act)}
                             className={`p-3 rounded-2xl border text-left transition-all ${
                               isSelected
-                                ? "bg-[#20D5B5]/15 border-[#20D5B5] ring-1 ring-[#20D5B5] shadow-xs text-white"
+                                ? "bg-[#20D5B5]/15 border-[#20D5B5] ring-1 ring-[#20D5B5] shadow-sm text-white"
                                 : "bg-[#16222E] border-[#1F3045] hover:border-[#20D5B5]/50 text-[#EAF2F8]"
                             }`}
                           >
@@ -1044,7 +1053,7 @@ export default function CaseStudySimulator() {
 
             {/* ETAPA 2: DIAGNÓSTICO DE ENFERMAGEM (1:1 com a Página 5 do PDF) */}
             {activeStep === 2 && (
-              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-xs space-y-6 animate-in fade-in duration-300">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-sm space-y-6 animate-in fade-in duration-300">
                 {/* 1. CALLOUT SOCRÁTICO DO GOTI PRECEPTOR (Página 5 do PDF) */}
                 <div className="rounded-3xl bg-[#0E1722] border border-[#1F3045] p-4 sm:p-5 shadow-sm flex items-start gap-4">
                   <div className="shrink-0 pt-0.5">
@@ -1053,30 +1062,27 @@ export default function CaseStudySimulator() {
                   <div className="space-y-1.5 flex-1">
                     <div className="flex items-center justify-between">
                       <h3 className="text-sm font-black text-[#20D5B5] tracking-tight">
-                        Raciocínio Fisiopatológico Preciso!
+                        Pergunta do Preceptor
                       </h3>
                       <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                         Preceptoria IA
                       </span>
                     </div>
                     <p className="text-xs text-[#EAF2F8] leading-relaxed">
-                      Muito bom! A hipervolemia é a etiologia central da congestão pulmonar observada na ausculta.
-                    </p>
-                    <p className="text-xs font-semibold text-[#9FB3C6] italic pt-1 border-t border-[#1F3045]">
-                      Quais achados da anamnese ou da ausculta comprovam a sobrecarga hídrica?
+                      {currentCase.guidingQuestions?.[0] || "Quais achados do exame e da anamnese sustentam o seu diagnóstico?"}
                     </p>
                   </div>
                 </div>
 
                 {/* Dica Revelada pelo Goti */}
                 {currentHint && (
-                  <div className="p-4 rounded-2xl bg-amber-50 dark:bg-amber-950/40 border border-amber-300 dark:border-amber-800 text-xs text-amber-950 dark:text-amber-200 flex items-start gap-3.5 animate-in fade-in shadow-2xs">
+                  <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-800 text-xs text-amber-200 flex items-start gap-3.5 animate-in fade-in shadow-sm">
                     <GotiAnimated animation="pointing" size="sm" className="w-14 h-14 shrink-0 mt-0.5 drop-shadow-sm" />
                     <div className="space-y-1">
-                      <span className="font-bold flex items-center gap-1.5 text-amber-800 dark:text-amber-300 text-xs">
+                      <span className="font-bold flex items-center gap-1.5 text-amber-300 text-xs">
                         <Lightbulb className="h-4 w-4 text-amber-600" /> Dica de Raciocínio Clínico do Preceptor:
                       </span>
-                      <p className="leading-relaxed text-slate-800 dark:text-amber-100">{currentHint.content}</p>
+                      <p className="leading-relaxed text-amber-100">{currentHint.content}</p>
                     </div>
                   </div>
                 )}
@@ -1086,12 +1092,12 @@ export default function CaseStudySimulator() {
                   <div
                     className={`p-4 rounded-2xl border text-xs flex items-start gap-3.5 shadow-sm animate-in fade-in slide-in-from-top-2 duration-300 ${
                       detectiveFeedback.type === "success"
-                        ? "bg-emerald-50/90 dark:bg-emerald-950/50 border-emerald-300 dark:border-emerald-800 text-emerald-950 dark:text-emerald-100"
+                        ? "bg-emerald-950/50 border-emerald-800 text-emerald-100"
                         : detectiveFeedback.type === "challenge"
-                        ? "bg-amber-50/95 dark:bg-amber-950/60 border-amber-300 dark:border-amber-700 text-amber-950 dark:text-amber-100"
+                        ? "bg-amber-950/60 border-amber-700 text-amber-100"
                         : detectiveFeedback.type === "warning"
-                        ? "bg-rose-50/95 dark:bg-rose-950/60 border-rose-300 dark:border-rose-700 text-rose-950 dark:text-rose-100"
-                        : "bg-teal-50/90 dark:bg-teal-950/50 border-teal-300 dark:border-teal-800 text-teal-950 dark:text-teal-100"
+                        ? "bg-rose-950/60 border-rose-700 text-rose-100"
+                        : "bg-teal-950/50 border-teal-800 text-teal-100"
                     }`}
                   >
                     <GotiAnimated
@@ -1108,22 +1114,22 @@ export default function CaseStudySimulator() {
                     <div className="flex-1 space-y-1.5">
                       <div className="flex items-center justify-between">
                         <span className="font-bold text-sm flex items-center gap-1.5">
-                          {detectiveFeedback.type === "success" && <CheckCircle className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />}
-                          {detectiveFeedback.type === "challenge" && <HelpCircle className="w-4 h-4 text-amber-600 dark:text-amber-400" />}
-                          {detectiveFeedback.type === "warning" && <AlertTriangle className="w-4 h-4 text-rose-600 dark:text-rose-400" />}
+                          {detectiveFeedback.type === "success" && <CheckCircle className="w-4 h-4 text-emerald-400" />}
+                          {detectiveFeedback.type === "challenge" && <HelpCircle className="w-4 h-4 text-amber-400" />}
+                          {detectiveFeedback.type === "warning" && <AlertTriangle className="w-4 h-4 text-rose-400" />}
                           {detectiveFeedback.title}
                         </span>
                         <button
                           type="button"
                           onClick={() => setDetectiveFeedback(null)}
-                          className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 text-xs px-1"
+                          className="text-[#9FB3C6] hover:text-slate-200 text-xs px-1"
                         >
                           ✕
                         </button>
                       </div>
                       <p className="leading-relaxed">{detectiveFeedback.text}</p>
                       {detectiveFeedback.question && (
-                        <p className="font-semibold italic text-[11px] opacity-90 border-t border-slate-200/60 dark:border-slate-800/80 pt-1 mt-1">
+                        <p className="font-semibold italic text-[11px] opacity-90 border-t border-slate-800/80 pt-1 mt-1">
                           💬 {detectiveFeedback.question}
                         </p>
                       )}
@@ -1133,7 +1139,7 @@ export default function CaseStudySimulator() {
                             type="button"
                             size="sm"
                             onClick={detectiveFeedback.onConfirm}
-                            className="rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-2xs h-8"
+                            className="rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-sm h-8"
                           >
                             {detectiveFeedback.actionLabel || "Confirmar Escolha"}
                           </Button>
@@ -1142,7 +1148,7 @@ export default function CaseStudySimulator() {
                             variant="ghost"
                             size="sm"
                             onClick={() => setDetectiveFeedback(null)}
-                            className="rounded-xl text-xs h-8 text-slate-600 dark:text-slate-300"
+                            className="rounded-xl text-xs h-8 text-slate-300"
                           >
                             Reavaliar Pistas
                           </Button>
@@ -1210,7 +1216,7 @@ export default function CaseStudySimulator() {
                                 value={diagnosisSearchTerm}
                                 onChange={(e) => setDiagnosisSearchTerm(e.target.value)}
                                 placeholder="Filtrar por título..."
-                                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-[#1F3045] bg-[#0B131D] text-xs text-white focus:outline-hidden focus:border-[#20D5B5]"
+                                className="w-full pl-9 pr-3 py-1.5 rounded-xl border border-[#1F3045] bg-[#0B131D] text-xs text-white focus:outline-none focus:border-[#20D5B5]"
                                 autoFocus
                               />
                             </div>
@@ -1298,47 +1304,47 @@ export default function CaseStudySimulator() {
 
             {/* ETAPA 3: PLANEJAMENTO (METAS E RESULTADOS ESPERADOS) */}
             {activeStep === 3 && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5 animate-in fade-in">
-                <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                  <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+              <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-6 shadow-sm space-y-5 animate-in fade-in">
+                <div className="border-b border-[#1F3045] pb-3">
+                  <span className="text-xs font-bold text-[#3DD68C] bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-800">
                     Etapa 3 do PE: Planejamento
                   </span>
-                  <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
+                  <h2 className="text-base font-bold text-slate-100 mt-1">
                     Metas Terapêuticas & Resultados Esperados
                   </h2>
                 </div>
 
-                <div className="p-3.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs text-slate-700 dark:text-slate-300">
-                  <span className="font-bold text-slate-900 dark:text-slate-100 block mb-0.5">Diagnóstico Selecionado:</span>
+                <div className="p-3.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs text-slate-300">
+                  <span className="font-bold text-slate-100 block mb-0.5">Diagnóstico Selecionado:</span>
                   <p>{studentHypothesis || "Nenhum diagnóstico definido na etapa anterior."}</p>
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                  <label className="text-xs font-bold text-slate-200 block">
                     Defina as Metas Mensuráveis e Resultados Esperados para este paciente:
                   </label>
                   <Textarea
                     value={studentGoals}
                     onChange={(e) => setStudentGoals(e.target.value)}
                     placeholder="Ex: Paciente apresentará SpO2 ≥ 94% em ar ambiente em até 2 horas. Frequência respiratória entre 16-20 irpm sem sinais de esforço ventilatório nas próximas 4 horas."
-                    className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[100px]"
+                    className="rounded-xl text-xs border-slate-700 bg-[#131F2E] text-slate-100 min-h-[100px]"
                   />
-                  <p className="text-[11px] text-slate-400 dark:text-slate-400">
+                  <p className="text-[11px] text-[#9FB3C6]">
                     Dica: Boas metas devem ser claras, mensuráveis e com prazo definido para a reavaliação.
                   </p>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between">
+                <div className="pt-3 border-t border-[#1F3045] flex items-center justify-between">
                   <Button
                     variant="outline"
                     onClick={() => setActiveStep(2)}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-sm"
                   >
                     <ArrowLeft className="h-4 w-4" /> Voltar para Diagnóstico
                   </Button>
                   <Button
                     onClick={() => setActiveStep(4)}
-                    className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs"
+                    className="rounded-xl bg-emerald-700 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
                   >
                     Avançar para Implementação <ArrowRight className="h-4 w-4" />
                   </Button>
@@ -1348,13 +1354,13 @@ export default function CaseStudySimulator() {
 
             {/* ETAPA 4: IMPLEMENTAÇÃO (PRESCRIÇÃO DE ENFERMAGEM) */}
             {activeStep === 4 && (
-              <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 shadow-xs space-y-5 animate-in fade-in">
-                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-3 gap-3">
+              <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-6 shadow-sm space-y-5 animate-in fade-in">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-3">
                   <div>
-                    <span className="text-xs font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-200 dark:border-emerald-800">
+                    <span className="text-xs font-bold text-[#3DD68C] bg-emerald-950/50 px-2.5 py-1 rounded-lg border border-emerald-800">
                       Etapa 4 do PE: Implementação
                     </span>
-                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100 mt-1">
+                    <h2 className="text-base font-bold text-slate-100 mt-1">
                       Prescrição de Cuidados de Enfermagem & Conduta Prática
                     </h2>
                   </div>
@@ -1372,7 +1378,7 @@ export default function CaseStudySimulator() {
                         );
                       }
                     }}
-                    className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs py-2 px-3 self-start sm:self-auto tap-press"
+                    className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm py-2 px-3 self-start sm:self-auto tap-press"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                     <span>Dúvidas? Fale com o Goti!</span>
@@ -1380,25 +1386,25 @@ export default function CaseStudySimulator() {
                 </div>
 
                 <div className="space-y-3">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-200 block">
+                  <label className="text-xs font-bold text-slate-200 block">
                     Prescreva as intervenções de enfermagem com aprazamento de horários:
                   </label>
                   <Textarea
                     value={studentInterventions}
                     onChange={(e) => setStudentInterventions(e.target.value)}
                     placeholder="Ex: 1. Posicionar em decúbito elevado (Fowler a 45°); 2. Instalar oxigenoterapia sob cânula nasal a 2 L/min; 3. Monitorizar oximetria de pulso contínua; 4. Aferir sinais vitais de 2/2h..."
-                    className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-900 dark:text-slate-100 min-h-[110px]"
+                    className="rounded-xl text-xs border-slate-700 bg-[#131F2E] text-slate-100 min-h-[110px]"
                   />
-                  <p className="text-[11px] text-slate-400 dark:text-slate-400">
+                  <p className="text-[11px] text-[#9FB3C6]">
                     Estruture os cuidados em ações prioritárias imediatas e ações de monitoramento contínuo.
                   </p>
                 </div>
 
-                <div className="pt-3 border-t border-slate-100 dark:border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <div className="pt-3 border-t border-[#1F3045] flex flex-col sm:flex-row items-center justify-between gap-3">
                   <Button
                     variant="outline"
                     onClick={() => setActiveStep(3)}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 hover:bg-slate-100 dark:hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 w-full sm:w-auto shadow-2xs"
+                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 w-full sm:w-auto shadow-sm"
                   >
                     <ArrowLeft className="h-4 w-4" /> Voltar para Metas
                   </Button>
@@ -1407,7 +1413,7 @@ export default function CaseStudySimulator() {
                     <Button
                       onClick={handleSubmitEvaluation}
                       disabled={isEvaluating || (!studentHypothesis && !studentInterventions)}
-                      className="rounded-xl bg-slate-800 hover:bg-slate-900 dark:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs"
+                      className="rounded-xl bg-slate-800 hover:bg-slate-700 dark:hover:bg-slate-600 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
                     >
                       <Send className="h-4 w-4" />
                       {isEvaluating ? "Avaliando..." : "Submeter para Revisão"}
@@ -1417,7 +1423,7 @@ export default function CaseStudySimulator() {
                         handleSimulatePatientResponse();
                         setActiveStep(5);
                       }}
-                      className="rounded-xl bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-xs"
+                      className="rounded-xl bg-emerald-700 hover:bg-emerald-600 dark:hover:bg-emerald-700 text-white text-xs px-5 h-10 font-bold flex items-center gap-2 shadow-sm"
                     >
                       Evoluir Paciente <ArrowRight className="h-4 w-4" />
                     </Button>
@@ -1428,7 +1434,7 @@ export default function CaseStudySimulator() {
 
             {/* ETAPA 5: EVOLUÇÃO DE ENFERMAGEM (1:1 com a Página 6 do PDF) */}
             {activeStep === 5 && (
-              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-5 animate-in fade-in">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-5 animate-in fade-in">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-2">
                   <div>
                     <span className="text-xs font-bold text-[#20D5B5] bg-[#20D5B5]/15 px-2.5 py-1 rounded-xl border border-[#20D5B5]/30">
@@ -1447,7 +1453,7 @@ export default function CaseStudySimulator() {
                       <span className="text-xs font-bold text-white">
                         Status Fisiológico (30 min após intervenções)
                       </span>
-                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30">
+                      <span className="text-xs font-bold px-2.5 py-0.5 rounded-full bg-[#3DD68C]/100/15 text-emerald-400 border border-emerald-500/30">
                         Estabilização em Curso
                       </span>
                     </div>
@@ -1505,7 +1511,7 @@ export default function CaseStudySimulator() {
                   <Button
                     variant="outline"
                     onClick={() => setActiveStep(4)}
-                    className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs py-3 px-5"
+                    className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white text-xs font-bold flex items-center gap-1.5 shadow-sm py-3 px-5"
                   >
                     <ArrowLeft className="h-4 w-4" /> Voltar
                   </Button>

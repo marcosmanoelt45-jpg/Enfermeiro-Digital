@@ -4,12 +4,18 @@ import { ShieldCheck } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 import MobilePocketDrawer from "@/components/mobile/MobilePocketDrawer";
+import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
 import gotiLogoOficial from "@/assets/goti-icone-oficial.png";
 
 export default function StudentFooter({ onOpenOptions }) {
   const navigate = useNavigate();
   const { user, logout } = useAuth();
   const [isPocketDrawerOpen, setIsPocketDrawerOpen] = useState(false);
+  const [isOptionsOpen, setIsOptionsOpen] = useState(false);
+
+  // Nenhuma página passa onOpenOptions: o rodapé abre os ajustes por conta própria,
+  // depois que a gaveta termina de fechar, para as duas folhas não se sobreporem.
+  const abrirAjustes = onOpenOptions || (() => setTimeout(() => setIsOptionsOpen(true), 260));
 
   return (
     <>
@@ -19,7 +25,7 @@ export default function StudentFooter({ onOpenOptions }) {
             <img
               src={gotiLogoOficial}
               alt="Goti"
-              className="w-8 h-8 object-contain shrink-0 filter drop-shadow-xs"
+              className="w-8 h-8 object-contain shrink-0 filter drop-shadow-sm"
             />
             <span className="font-bold text-slate-800 dark:text-slate-200">Enfere</span>
             <span className="text-slate-300 dark:text-slate-600">•</span>
@@ -53,8 +59,10 @@ export default function StudentFooter({ onOpenOptions }) {
         onOpenChange={setIsPocketDrawerOpen}
         currentUser={user}
         onLogout={logout}
-        onOpenOptions={onOpenOptions}
+        onOpenOptions={abrirAjustes}
       />
+
+      <ClinicalOptionsModal isOpen={isOptionsOpen} onClose={() => setIsOptionsOpen(false)} />
     </>
   );
 }

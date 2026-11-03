@@ -1,3 +1,4 @@
+import { clinicalHistoryService } from './clinicalHistoryService.js';
 /**
  * clinicalGamificationService.js
  * Motor de Gamificação Pedagógica & Infraestrutura Multiplayer do Enfere.
@@ -267,12 +268,14 @@ function getPast7Days(dailyXpMap = {}, includeDemoMock = false) {
   return result;
 }
 
-function computeStreakFromDailyMap(dailyXpMap = {}) {
-  const activeDates = new Set(
-    Object.entries(dailyXpMap || {})
+function computeStreakFromDailyMap(dailyXpMap = {}, frozenDates = []) {
+  const frozenSet = new Set(Array.isArray(frozenDates) ? frozenDates : []);
+  const activeDates = new Set([
+    ...Object.entries(dailyXpMap || {})
       .filter(([, xp]) => Number(xp) > 0)
-      .map(([dt]) => dt)
-  );
+      .map(([dt]) => dt),
+    ...frozenSet,
+  ]);
   if (activeDates.size === 0) return 0;
 
   const now = new Date();
@@ -370,73 +373,21 @@ function getStorageKey(userId) {
   return `${STORAGE_KEY}_${cleanId}`;
 }
 
-function getHistoryStorageKey(userId) {
-  const resolved = resolveCurrentUserId(userId);
-  const baseKey = 'enfermeiro_digital_clinical_history_v1';
-  if (!resolved) return baseKey;
-  const cleanId = String(resolved).replace(/[^a-zA-Z0-9_-]/g, '_');
-  return `${baseKey}_${cleanId}`;
-}
-
 function isDemoUser(userId) {
   const resolved = resolveCurrentUserId(userId);
   if (!resolved) return false;
   return String(resolved).startsWith('aluno-demo') || String(resolved).startsWith('prof-demo');
 }
 
-function getDefaultState(userId = null) {
-  const isDemo = isDemoUser(userId);
-  if (isDemo) {
-    return {
-      schemaVersion: 2,
-      streak: 3,
-      bestStreak: 12,
-      streakFreezeAvailable: 1,
-      acertosSeguidos: 0,
-      melhorAcertosSeguidos: 0,
-      lastActiveDate: getTodayString(),
-      dailyXpMap: {},
-      processedActivityIds: [],
-      weeklyDays: getPast7Days({}, true),
-      totalXp: 480,
-      studyPoints: 480,
-      spentStudyPoints: 0,
-      unlockedItems: ['goti_hint'],
-      solvedCases: 7,
-      accuracyRate: 88,
-      safeDosagesCount: 14,
-      sbarHandoffsCount: 4,
-      encouragementsSent: 3,
-      encouragementsReceived: 6,
-      achievements: INITIAL_ACHIEVEMENTS.map((a) => ({
-        ...a,
-        current: a.id === 'safe_dosage' ? 14 : a.id === 'nanda_master' ? 11 : a.id === 'streak_titan' ? 3 : a.id === 'sbar_clarity' ? 4 : 3,
-        completedLevel: a.id === 'safe_dosage' ? 1 : a.id === 'nanda_master' ? 1 : a.id === 'streak_titan' ? 1 : a.id === 'sbar_clarity' ? 1 : 1,
-      })),
-      colleagues: INITIAL_COLLEAGUES,
-      feedEvents: INITIAL_FEED_EVENTS,
-      weeklyLeaderboard: INITIAL_LEADERBOARD,
-      friendQuest: {
-        id: 'quest-weekly-1',
-        title: 'Mãos Dadas no Plantão',
-        description: 'Resolvam juntos 8 casos clínicos simulados nesta semana.',
-        partnerName: 'Mariana Duarte',
-        partnerAvatar: 'https://images.unsplash.com/photo-1594824813583-0952939d8928?auto=format&fit=crop&q=80&w=150',
-        current: 5,
-        target: 8,
-        rewardXp: 150,
-        rewardBadge: 'Sinergia Clínica',
-        expiresInDays: 3,
-      },
-    };
-  }
-
-  // Conta Individual Real: inicia 100% limpa, sem nenhum dado falso/mockado
+// Estado inicial limpo (sem ofensiva, XP ou conquistas pré-preenchidos), igual para conta real e demo.
+// schemaVersion 2 marca o estado como já migrado: sem ele, getState trataria toda conta nova como legada.
+function getDefaultState() {
   return {
     schemaVersion: 2,
     streak: 0,
     bestStreak: 0,
     streakFreezeAvailable: 1,
+    frozenDates: [],
     acertosSeguidos: 0,
     melhorAcertosSeguidos: 0,
     lastActiveDate: null,
@@ -453,14 +404,10 @@ function getDefaultState(userId = null) {
     sbarHandoffsCount: 0,
     encouragementsSent: 0,
     encouragementsReceived: 0,
-    achievements: INITIAL_ACHIEVEMENTS.map((a) => ({
-      ...a,
-      current: 0,
-      completedLevel: 0,
-    })),
-    colleagues: INITIAL_COLLEAGUES,
+    achievements: INITIAL_ACHIEVEMENTS.map((a) => ({ ...a, current: 0, completedLevel: 0 })),
+    colleagues: [],
     feedEvents: [],
-    weeklyLeaderboard: INITIAL_LEADERBOARD,
+    weeklyLeaderboard: [],
     friendQuest: null,
   };
 }
@@ -474,16 +421,32 @@ function syncWithRealHistory(state, userId = null) {
   const processedIds = new Set(Array.isArray(state.processedActivityIds) ? state.processedActivityIds : []);
   let addedXpFromHistory = 0;
 
+  let nandaCount = 0;
+  let dosageCount = 0;
+  let sbarCount = 0;
+
   try {
-    const histKey = getHistoryStorageKey(userId);
-    const rawHist = typeof localStorage !== 'undefined' ? localStorage.getItem(histKey) : null;
-    const activities = rawHist ? JSON.parse(rawHist) : [];
+    // profile-1: Lê unicamente do clinicalHistoryService oficial e filtra apenas concluidos
+    const activities = clinicalHistoryService.getAllActivities('all', userId).filter((a) => a && a.status === 'concluido');
+    
     if (Array.isArray(activities) && activities.length > 0) {
       activities.forEach((act) => {
         if (!act || !act.id) return;
+
+        // Contabiliza categorias para conquistas reais (profile-13)
+        if (act.moduleType === 'case_simulator' || act.moduleType === 'case_builder') {
+          nandaCount += 1;
+        } else if (act.moduleType === 'dosage') {
+          dosageCount += 1;
+        } else if (act.moduleType === 'sbar') {
+          sbarCount += 1;
+        }
+
         if (!processedIds.has(act.id)) {
           processedIds.add(act.id);
-          const dateStr = getLocalDateString(act.completedAt ? new Date(act.completedAt) : new Date());
+          // profile-2: Usa data real de conclusao (finishedAt ou updatedAt), nunca completedAt que nao existe
+          const finishedTime = act.finishedAt || act.updatedAt;
+          const dateStr = getLocalDateString(finishedTime ? new Date(finishedTime) : new Date());
           const xpForAct =
             act.moduleType === 'videochamada'
               ? Math.max(20, (Number(act.details?.acertos || 0) * 15) + (Number(act.details?.amarelas || 0) * 10))
@@ -491,18 +454,21 @@ function syncWithRealHistory(state, userId = null) {
               ? 25
               : act.moduleType === 'sbar'
               ? 35
+              : act.moduleType === 'procedures'
+              ? 30
               : 40;
           dailyXpMap[dateStr] = (dailyXpMap[dateStr] || 0) + xpForAct;
           addedXpFromHistory += xpForAct;
         }
       });
 
-      // Atualiza solvedCases e accuracyRate com base no histórico real
       state.solvedCases = Math.max(state.solvedCases || 0, activities.length);
       const totalScore = activities.reduce((acc, item) => acc + (Number(item.score) || 0), 0);
       state.accuracyRate = Math.round(totalScore / activities.length);
     }
-  } catch {}
+  } catch (err) {
+    console.warn('[clinicalGamificationService] Erro ao sincronizar com historico:', err);
+  }
 
   if (addedXpFromHistory > 0) {
     state.totalXp = (state.totalXp || 0) + addedXpFromHistory;
@@ -513,9 +479,48 @@ function syncWithRealHistory(state, userId = null) {
   state.processedActivityIds = Array.from(processedIds);
   state.weeklyDays = getPast7Days(dailyXpMap, false);
 
-  const computedStreak = computeStreakFromDailyMap(dailyXpMap);
+  // profile-5: Protecao de congelamento de plantao (Streak Freeze)
+  if (!Array.isArray(state.frozenDates)) state.frozenDates = [];
+  const now = new Date();
+  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
+  const yesterdayStr = getLocalDateString(yesterday);
+  const todayStr = getLocalDateString(now);
+
+  const hasActivityYesterday = (Number(dailyXpMap[yesterdayStr]) || 0) > 0 || state.frozenDates.includes(yesterdayStr);
+  const hasActivityToday = (Number(dailyXpMap[todayStr]) || 0) > 0;
+
+  // Se nao houve atividade ontem e ha congelamento disponivel, consome freeze para proteger
+  if (!hasActivityYesterday && (state.streakFreezeAvailable || 0) > 0 && !state.frozenDates.includes(yesterdayStr)) {
+    state.frozenDates.push(yesterdayStr);
+    state.streakFreezeAvailable = Math.max(0, (state.streakFreezeAvailable || 1) - 1);
+    state.lastFreezeUsedDate = yesterdayStr;
+  }
+
+  const computedStreak = computeStreakFromDailyMap(dailyXpMap, state.frozenDates);
   state.streak = computedStreak;
   state.bestStreak = Math.max(state.bestStreak || 0, computedStreak);
+
+  // profile-13: Atualiza conquistas baseadas no historico real
+  if (Array.isArray(state.achievements)) {
+    state.achievements = state.achievements.map((ach) => {
+      let currentVal = ach.current || 0;
+      if (ach.id === 'safe_dosage') currentVal = Math.max(currentVal, dosageCount);
+      if (ach.id === 'nanda_master') currentVal = Math.max(currentVal, nandaCount);
+      if (ach.id === 'sbar_clarity') currentVal = Math.max(currentVal, sbarCount);
+      if (ach.id === 'streak_titan') currentVal = Math.max(currentVal, computedStreak);
+
+      let compLevel = 0;
+      (ach.tiers || []).forEach((t) => {
+        if (currentVal >= t.target) compLevel = t.level;
+      });
+
+      return {
+        ...ach,
+        current: currentVal,
+        completedLevel: compLevel,
+      };
+    });
+  }
 
   return state;
 }
@@ -642,7 +647,7 @@ export const clinicalGamificationService = {
    * @param {number} customXp - XP customizado opcional
    * @param {string|null} userId - ID opcional do usuário
    */
-  recordActivity(type, customXp = null, userId = null) {
+  recordActivity(type, customXp = null, userId = null, { activityId = null } = {}) {
     const resolvedId = resolveCurrentUserId(userId);
     const state = this.getState(resolvedId);
     const today = getTodayString();
@@ -668,6 +673,12 @@ export const clinicalGamificationService = {
       state.encouragementsSent = (state.encouragementsSent || 0) + 1;
     }
 
+    if (activityId) {
+      if (!Array.isArray(state.processedActivityIds)) state.processedActivityIds = [];
+      if (!state.processedActivityIds.includes(activityId)) {
+        state.processedActivityIds.push(activityId);
+      }
+    }
     state.totalXp = (state.totalXp || 0) + earnedXp;
     state.studyPoints = Math.max(0, state.totalXp - (state.spentStudyPoints || 0));
 

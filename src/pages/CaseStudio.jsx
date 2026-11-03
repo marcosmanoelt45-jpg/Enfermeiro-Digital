@@ -45,9 +45,13 @@ import {
   computeBradenTotal,
   computeCamPositive,
   computeSakTotal,
-  computeCaloiTotal
+  computeCaloiTotal,
+  classifyVital,
+  classifyBradenLabel
 } from "@/lib/riskEngine";
 import { formatToInitials } from "@/lib/sampleNames";
+import { AnimatedProgress } from "@/components/ui/animated-progress";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { generateCaseDiagnosticChallenge } from "@/services/diagnosticChallengeService";
 import { generateProceduralClinicalCase } from "@/data/randomClinicalScenarios";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
@@ -251,18 +255,20 @@ export default function CaseStudio() {
       return;
     }
     const extracted = parseVitalsFromTranscript(text);
-    setData((prev) => ({
-      ...prev,
+    const nextData = {
+      ...data,
       ...extracted,
-      notes: (prev.notes ? prev.notes + "\n" : "") + `[Relato Clínico por Voz]: ${text}`
-    }));
-    setProfile((prev) => ({
-      ...prev,
-      previous_anamnesis: prev.previous_anamnesis || text
-    }));
+      notes: (data.notes ? data.notes + "\n" : "") + `[Relato Clínico por Voz]: ${text}`
+    };
+    const nextProfile = {
+      ...profile,
+      previous_anamnesis: profile.previous_anamnesis || text
+    };
+    setData(nextData);
+    setProfile(nextProfile);
 
     if (launchDirectly) {
-      handleLaunchChallenge();
+      handleLaunchChallenge(nextProfile, nextData);
     } else {
       setViewMode("builder");
     }
@@ -307,7 +313,7 @@ export default function CaseStudio() {
     sak_caregiver: false,
     sak_postop: false,
     sak_previous_falls: false,
-    sak_meds: 3,
+    sak_meds: 0,
     caloi_pain_intensity: 4,
     caloi_pain_location: ["Tórax"],
     caloi_pain_characteristics: ["Em peso", "Pressão"],
@@ -359,6 +365,11 @@ export default function CaseStudio() {
   }
 
   function handleConfirmSubmission() {
+    const missing = [!profile.initials && !profile.name && "iniciais", !profile.age && "idade"].filter(Boolean);
+    if (missing.length) {
+      toast({ title: "Faltam dados do paciente", description: `Preencha ${missing.join(" e ")} no passo 1 antes de enviar.` });
+      return;
+    }
     const patientDisplay = profile.initials ? `${profile.initials} (${profile.age ? profile.age + "a" : "?"})` : "Paciente Cadastrado";
     const bradenScore = computeBradenTotal({
       perception: data.braden_perception,
@@ -368,7 +379,7 @@ export default function CaseStudio() {
       nutrition: data.braden_nutrition,
       friction: data.braden_friction,
     });
-    const bradenRisk = computeGlobalRisk(data).bradenRisk;
+    const bradenRiskLabel = classifyBradenLabel(bradenScore);
     const sakScore = computeSakTotal(data);
     const camPos = computeCamPositive({
       acute: data.cam_acute,
@@ -379,11 +390,11 @@ export default function CaseStudio() {
 
     const evaluation = {
       bradenScore,
-      bradenRisk: bradenRisk?.label || "Avaliado",
+      bradenRisk: bradenRiskLabel,
       sakScore,
       camPositive: camPos,
       painScore: data.caloi_pain_intensity,
-      summary: `Avaliação do paciente ${patientDisplay} concluída e assinada. Braden: ${bradenScore} (${bradenRisk?.label || "Avaliado"}), Risco Quedas SAK: ${sakScore} pts, Dor: ${data.caloi_pain_intensity}/10.`
+      summary: `Avaliação do paciente ${patientDisplay} concluída e assinada. Braden: ${bradenScore} (${bradenRiskLabel}), Risco Quedas SAK: ${sakScore} pts, Dor: ${data.caloi_pain_intensity}/10.`
     };
 
     const item = clinicalHistoryService.submitActivity({
@@ -420,7 +431,12 @@ export default function CaseStudio() {
     setSubmissionSuccess(item.status === "completed");
     setIsHistoryModalOpen(false);
 
-    // Redireciona diretamente para a resolução das questões clínicas
+    if (item.status !== "completed") {
+      setViewMode(item.formData?.viewMode === "audio" ? "audio" : "builder");
+      return;
+    }
+
+    // Redireciona diretamente para a resolução das questões clínicas de casos já concluídos
     setIsGeneratingChallenge(true);
     setCurrentQuestionIndex(0);
     setUserAnswers({});
@@ -441,7 +457,11 @@ export default function CaseStudio() {
       window.scrollTo({ top: 0, behavior: "smooth" });
     } catch (err) {
       console.error("[Histórico] Erro ao carregar questões:", err);
-      setViewMode("challenge");
+      toast({
+        variant: "destructive",
+        title: "Não foi possível gerar o desafio",
+        description: "Tente novamente em instantes."
+      });
     } finally {
       setIsGeneratingChallenge(false);
     }
@@ -454,6 +474,20 @@ export default function CaseStudio() {
   const recognitionRef = useRef(null);
   const isListeningRef = useRef(false);
   const speechInterimRef = useRef("");
+
+  // Ao sair da tela, desliga os dois ditados para o microfone não continuar aberto em segundo plano.
+  React.useEffect(() => {
+    return () => {
+      isListeningRef.current = false;
+      isLiveDictatingRef.current = false;
+      for (const rec of [recognitionRef.current, liveAudioRecRef.current]) {
+        if (!rec) continue;
+        rec.onend = null;
+        rec.onresult = null;
+        try { rec.abort(); } catch { /* já parado */ }
+      }
+    };
+  }, []);
 
   const setParam = (key, val) => setData((prev) => ({ ...prev, [key]: val }));
   const setProf = (key, val) => setProfile((prev) => ({ ...prev, [key]: val }));
@@ -558,6 +592,13 @@ export default function CaseStudio() {
       setChallenge(res);
       setViewMode("challenge");
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      console.error("[CaseStudio] Erro ao sortear caso:", err);
+      toast({
+        variant: "destructive",
+        title: "Não foi possível gerar o desafio",
+        description: "Tente novamente em instantes."
+      });
     } finally {
       setIsGeneratingChallenge(false);
     }
@@ -576,7 +617,7 @@ export default function CaseStudio() {
       }
       const pending = (speechInterimRef.current || "").trim();
       if (pending) {
-        setParam("notes", (data.notes ? data.notes.trim() + " " : "") + pending);
+        setData((prev) => ({ ...prev, notes: (prev.notes ? prev.notes.trim() + " " : "") + pending }));
       }
       speechInterimRef.current = "";
       setIsListening(false);
@@ -612,7 +653,7 @@ export default function CaseStudio() {
         speechInterimRef.current = interimTrans;
         setInterimTranscript(interimTrans);
         if (finalTrans.trim()) {
-          setParam("notes", (data.notes ? data.notes.trim() + " " : "") + finalTrans.trim());
+          setData((prev) => ({ ...prev, notes: (prev.notes ? prev.notes.trim() + " " : "") + finalTrans.trim() }));
           speechInterimRef.current = "";
           setInterimTranscript("");
         }
@@ -655,7 +696,7 @@ export default function CaseStudio() {
   }
 
   // Disparo da Bateria de Desafios Clínicos (Garante anonimização estrita LGPD e rotação de questões)
-  async function handleLaunchChallenge() {
+  async function handleLaunchChallenge(p = profile, d = data) {
     setIsGeneratingChallenge(true);
     setViewingConclusion(false);
     setCurrentQuestionIndex(0);
@@ -667,16 +708,23 @@ export default function CaseStudio() {
       const nextCycle = batteryCycle + 1;
       setBatteryCycle(nextCycle);
 
-      const sanitizedInitials = formatToInitials(profile.initials || profile.name);
+      const sanitizedInitials = formatToInitials(p.initials || p.name);
       const safeProfile = {
-        ...profile,
+        ...p,
         initials: sanitizedInitials,
         name: sanitizedInitials
       };
-      const res = await generateCaseDiagnosticChallenge(safeProfile, data, nextCycle);
+      const res = await generateCaseDiagnosticChallenge(safeProfile, d, nextCycle);
       setChallenge(res);
       setViewMode("challenge");
       window.scrollTo({ top: 0, behavior: "smooth" });
+    } catch (err) {
+      console.error("[CaseStudio] Erro ao gerar desafio:", err);
+      toast({
+        variant: "destructive",
+        title: "Não foi possível gerar o desafio",
+        description: "Tente novamente em instantes."
+      });
     } finally {
       setIsGeneratingChallenge(false);
     }
@@ -768,7 +816,7 @@ export default function CaseStudio() {
               variant="outline"
               size="sm"
               onClick={() => setIsHistoryModalOpen(true)}
-              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs flex items-center gap-1.5 shadow-2xs font-semibold"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs flex items-center gap-1.5 shadow-sm font-semibold"
             >
               <History className="h-3.5 w-3.5 text-[#20D5B5]" />
               <span>Histórico de Casos</span>
@@ -963,12 +1011,12 @@ export default function CaseStudio() {
         {viewMode === "audio" && (
           <div className="space-y-6 animate-in fade-in">
             {audioError && (
-              <div className="rounded-2xl border border-rose-200 bg-rose-50 p-4 text-xs text-rose-800 flex items-center justify-between">
+              <div className="rounded-2xl border border-rose-200 bg-[#F0645F]/10 p-4 text-xs text-[#F0645F] flex items-center justify-between">
                 <span>{audioError}</span>
                 <button
                   type="button"
                   onClick={() => setAudioError("")}
-                  className="font-bold text-rose-600 hover:text-rose-900 ml-2 text-xs"
+                  className="font-bold text-[#F0645F] hover:text-rose-900 ml-2 text-xs"
                 >
                   Fechar
                 </button>
@@ -996,21 +1044,21 @@ export default function CaseStudio() {
 
                 {/* Status Dinâmico de Transcrição por IA */}
                 {isAudioTranscribing && (
-                  <div className="rounded-2xl border border-teal-200 dark:border-teal-800 bg-teal-50/80 dark:bg-teal-950/60 p-3.5 text-xs text-teal-800 dark:text-teal-300 flex items-center gap-2.5 animate-pulse shadow-2xs">
-                    <AudioLines className="h-4 w-4 text-teal-600 dark:text-teal-400 shrink-0" />
+                  <div className="rounded-2xl border border-teal-800 bg-teal-950/60 p-3.5 text-xs text-teal-300 flex items-center gap-2.5 animate-pulse shadow-sm">
+                    <AudioLines className="h-4 w-4 text-teal-400 shrink-0" />
                     <span className="font-semibold">{audioStage || "Processando e transcrevendo áudio com inteligência artificial..."}</span>
                   </div>
                 )}
 
                 {/* Botão de Ditado ao Vivo Direto no Navegador */}
-                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-3">
+                <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-xs font-bold text-slate-800 dark:text-slate-100">Ditado ao Vivo (Nativo)</span>
-                    <span className="text-[10px] text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded font-semibold border border-emerald-200 dark:border-emerald-800">
+                    <span className="text-xs font-bold text-slate-100">Ditado ao Vivo (Nativo)</span>
+                    <span className="text-[10px] text-[#3DD68C] bg-emerald-950/80 px-2 py-0.5 rounded font-semibold border border-emerald-800">
                       Sem Chave de API
                     </span>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 leading-relaxed">
+                  <p className="text-xs text-[#9FB3C6] leading-relaxed">
                     Fale diretamente no microfone do navegador sem precisar de chave externa. O texto é captado e os sinais vitais são extraídos em tempo real.
                   </p>
                   <Button
@@ -1019,7 +1067,7 @@ export default function CaseStudio() {
                     className={`w-full rounded-xl text-xs font-semibold flex items-center justify-center gap-2 ${
                       isLiveDictatingAudio
                         ? "bg-rose-600 hover:bg-rose-700 text-white animate-pulse"
-                        : "bg-emerald-700 hover:bg-emerald-800 dark:bg-emerald-600 dark:hover:bg-emerald-500 text-white"
+                        : "bg-emerald-700 hover:bg-emerald-600 dark:hover:bg-emerald-500 text-white"
                     }`}
                   >
                     {isLiveDictatingAudio ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
@@ -1028,17 +1076,17 @@ export default function CaseStudio() {
                 </div>
 
                 {/* Campo de Relato Clínico Editável */}
-                <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-2">
-                  <label className="text-xs font-bold text-slate-800 dark:text-slate-100 block">
+                <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-2">
+                  <label className="text-xs font-bold text-slate-100 block">
                     Transcrição do Relato Clínico:
                   </label>
                   <Textarea
                     value={audioTranscript}
                     onChange={(e) => setAudioTranscript(e.target.value)}
                     placeholder="O relato transcrito aparecerá aqui. Você também pode complementar ou editar manualmente..."
-                    className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100 min-h-[140px]"
+                    className="rounded-xl text-xs border-slate-700 bg-[#0E1722] text-slate-100 min-h-[140px]"
                   />
-                  <p className="text-[10px] text-slate-400 dark:text-slate-400">
+                  <p className="text-[10px] text-[#9FB3C6]">
                     Dica: Fale pressão arterial (ex: 120 por 80), FC, FR, dor, escala de Glasgow e queixas.
                   </p>
                 </div>
@@ -1047,12 +1095,12 @@ export default function CaseStudio() {
               {/* Coluna Direita: Guia Clínico em Abas & Pré-visualização dos Parâmetros Extraídos */}
               <div className="md:col-span-7 space-y-4">
                 {/* Abas com Frases Orientadoras */}
-                <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-4 shadow-xs space-y-3">
-                  <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                    <span className="text-xs font-bold text-slate-900 dark:text-white uppercase tracking-wide">
+                <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-4 shadow-sm space-y-3">
+                  <div className="flex items-center justify-between border-b border-[#1F3045] pb-2">
+                    <span className="text-xs font-bold text-white uppercase tracking-wide">
                       Guia Clínico de Verbalização ("Caring Out Loud")
                     </span>
-                    <span className="text-[10px] text-emerald-700 dark:text-emerald-400 font-semibold bg-emerald-50 dark:bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-200/60 dark:border-emerald-800/60">
+                    <span className="text-[10px] text-emerald-400 font-semibold bg-emerald-950/80 px-2 py-0.5 rounded border border-emerald-800/60">
                       Clique no snippet para adicionar
                     </span>
                   </div>
@@ -1068,12 +1116,12 @@ export default function CaseStudio() {
                   const extracted = parseVitalsFromTranscript(audioTranscript);
                   const hasAny = Object.keys(extracted).length > 0;
                   return (
-                    <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-5 shadow-xs space-y-3">
-                      <div className="flex items-center justify-between border-b border-slate-100 dark:border-slate-800 pb-2">
-                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100 uppercase tracking-wide">
+                    <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-5 shadow-sm space-y-3">
+                      <div className="flex items-center justify-between border-b border-[#1F3045] pb-2">
+                        <span className="text-xs font-bold text-slate-100 uppercase tracking-wide">
                           Parâmetros Fisiológicos Extraídos da Fala
                         </span>
-                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${hasAny ? "bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800" : "bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400"}`}>
+                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${hasAny ? "bg-emerald-950/60 text-[#3DD68C] border border-emerald-800" : "bg-slate-800 text-[#9FB3C6]"}`}>
                           {hasAny ? "Dados Identificados" : "Aguardando Fala"}
                         </span>
                       </div>
@@ -1081,78 +1129,80 @@ export default function CaseStudio() {
                       {hasAny ? (
                         <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5 pt-1">
                           {extracted.pa_sistolica && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Pressão Arterial</span>
-                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.pa_sistolica}/{extracted.pa_diastolica || 80} mmHg</span>
+                            <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs">
+                              <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Pressão Arterial</span>
+                              <span className="font-bold text-slate-100">{extracted.pa_sistolica}/{extracted.pa_diastolica || 80} mmHg</span>
                             </div>
                           )}
                           {extracted.fc && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Frequência Cardíaca</span>
-                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.fc} bpm</span>
+                            <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs">
+                              <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Frequência Cardíaca</span>
+                              <span className="font-bold text-slate-100">{extracted.fc} bpm</span>
                             </div>
                           )}
                           {extracted.fr && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Frequência Respiratória</span>
-                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.fr} irpm</span>
+                            <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs">
+                              <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Frequência Respiratória</span>
+                              <span className="font-bold text-slate-100">{extracted.fr} irpm</span>
                             </div>
                           )}
                           {extracted.tax && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Temperatura</span>
-                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.tax} °C</span>
+                            <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs">
+                              <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Temperatura</span>
+                              <span className="font-bold text-slate-100">{extracted.tax} °C</span>
                             </div>
                           )}
                           {extracted.sat && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Saturação O₂</span>
-                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.sat} %</span>
+                            <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs">
+                              <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Saturação O₂</span>
+                              <span className="font-bold text-slate-100">{extracted.sat} %</span>
                             </div>
                           )}
                           {extracted.caloi_pain_intensity !== undefined && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Dor (0-10)</span>
-                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.caloi_pain_intensity} / 10</span>
+                            <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs">
+                              <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Dor (0-10)</span>
+                              <span className="font-bold text-slate-100">{extracted.caloi_pain_intensity} / 10</span>
                             </div>
                           )}
                           {extracted.glasgow && (
-                            <div className="p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Glasgow</span>
-                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.glasgow} pts</span>
+                            <div className="p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs">
+                              <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Glasgow</span>
+                              <span className="font-bold text-slate-100">{extracted.glasgow} pts</span>
                             </div>
                           )}
                           {extracted.estado_consciencia && (
-                            <div className="col-span-2 p-2.5 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700 text-xs">
-                              <span className="text-[10px] text-slate-500 dark:text-slate-400 block uppercase font-bold">Sensório / Consciência</span>
-                              <span className="font-bold text-slate-900 dark:text-slate-100">{extracted.estado_consciencia}</span>
+                            <div className="col-span-2 p-2.5 rounded-xl bg-slate-800/60 border border-slate-700 text-xs">
+                              <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Sensório / Consciência</span>
+                              <span className="font-bold text-slate-100">{extracted.estado_consciencia}</span>
                             </div>
                           )}
                         </div>
                       ) : (
-                        <p className="text-xs text-slate-400 dark:text-slate-400 italic py-2">
+                        <p className="text-xs text-[#9FB3C6] italic py-2">
                           Nenhum sinal vital detectado ainda. Fale ou digite por exemplo: "PA 140 por 90, pulso 88, respiração 20, saturação 95%, dor 6 no abdômen".
                         </p>
                       )}
 
                       {/* Botões de Ação para Prosseguir */}
-                      <div className="pt-4 border-t border-slate-100 flex flex-wrap gap-2.5 justify-end">
+                      <div className="pt-4 border-t border-[#1F3045] flex flex-wrap gap-2.5 justify-end">
                         <Button
                           variant="outline"
                           onClick={() => applyAudioDataToCase(false)}
                           disabled={!audioTranscript.trim()}
-                          className="rounded-xl border-slate-300 text-slate-700 text-xs font-semibold"
+                          className="rounded-xl text-xs font-semibold"
                         >
                           <ListChecks className="h-4 w-4 mr-1.5" />
                           <span>Preencher Caso e Ver Passo a Passo</span>
                         </Button>
                         <Button
+                          variant="primary"
                           onClick={() => applyAudioDataToCase(true)}
                           disabled={!audioTranscript.trim() || isGeneratingChallenge}
-                          className="rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs px-5 font-semibold flex items-center gap-1.5 shadow-xs"
+                          loading={isGeneratingChallenge}
+                          className="rounded-xl text-xs px-5 font-semibold flex items-center gap-1.5"
                         >
-                          <Target className="h-4 w-4 text-teal-400" />
-                          <span>{isGeneratingChallenge ? "Gerando..." : "Preencher e Lançar Desafio IA"}</span>
+                          <Target className="h-4 w-4" />
+                          <span>Preencher e Lançar Desafio IA</span>
                           <ArrowRight className="h-4 w-4" />
                         </Button>
                       </div>
@@ -1170,8 +1220,21 @@ export default function CaseStudio() {
         {viewMode === "builder" && (
           <div className="space-y-6">
             {/* Barra de Progresso do Wizard (Páginas 9 e 10 do PDF) */}
-            <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-2 shadow-xs">
-              <div ref={wizardStepsScrollRef} className="flex items-center gap-1.5 overflow-x-auto pb-1 no-scrollbar select-none">
+            <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-3 shadow-sm space-y-2.5">
+              <div className="flex items-center justify-between text-xs px-1">
+                <span className="font-bold text-[#EAF2F8]">
+                  Passo {currentStep + 1} de {WIZARD_STEPS.length} · {WIZARD_STEPS[currentStep].label}
+                </span>
+                <span className="font-mono text-[#20D5B5] font-bold">
+                  {Math.round(((currentStep + 1) / WIZARD_STEPS.length) * 100)}%
+                </span>
+              </div>
+              <AnimatedProgress
+                value={((currentStep + 1) / WIZARD_STEPS.length) * 100}
+                tone={currentStep === WIZARD_STEPS.length - 1 ? "success" : "brand"}
+                label="Progresso do caso clínico"
+              />
+              <div ref={wizardStepsScrollRef} className="flex items-center gap-1.5 overflow-x-auto pt-1 pb-1 no-scrollbar select-none">
                 {WIZARD_STEPS.map((s, idx) => {
                   const Icon = s.icon;
                   const isActive = idx === currentStep;
@@ -1197,15 +1260,15 @@ export default function CaseStudio() {
             </div>
 
             {/* Conteúdo do Passo Ativo */}
-            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-xs space-y-6 animate-in fade-in">
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-sm space-y-6 animate-in fade-in">
               {/* PASSO 0: PERFIL & ANAMNESE */}
               {currentStep === 0 && (
                 <div className="space-y-4">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3">
-                    <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                  <div className="border-b border-[#1F3045] pb-3">
+                    <h2 className="text-base font-bold text-slate-100">
                       Identificação do Paciente & Anamnese Clínica
                     </h2>
-                    <p className="text-xs text-slate-500 dark:text-slate-400">
+                    <p className="text-xs text-[#9FB3C6]">
                       Cadastre os dados demográficos e o histórico de admissão para contextualizar o caso.
                     </p>
                   </div>
@@ -1213,10 +1276,10 @@ export default function CaseStudio() {
                   <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                     <div className="sm:col-span-2 space-y-1">
                       <div className="flex items-center justify-between">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-200 flex items-center gap-1.5">
+                        <label className="text-xs font-bold text-slate-200 flex items-center gap-1.5">
                           <span>Iniciais do Paciente (LGPD):</span>
-                          <span className="text-[10px] bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 px-1.5 py-0.5 rounded border border-emerald-200 dark:border-emerald-800 font-semibold flex items-center gap-1">
-                            <ShieldCheck className="h-3 w-3 text-emerald-600 dark:text-emerald-400" />
+                          <span className="text-[10px] bg-emerald-950/60 text-[#3DD68C] px-1.5 py-0.5 rounded border border-emerald-800 font-semibold flex items-center gap-1">
+                            <ShieldCheck className="h-3 w-3 text-emerald-400" />
                             Anonimizado
                           </span>
                         </label>
@@ -1234,29 +1297,29 @@ export default function CaseStudio() {
                           setProf("name", sanitized);
                         }}
                         placeholder="Ex: J.S.F. (apenas iniciais)"
-                        className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs h-10 font-mono tracking-wider uppercase font-semibold"
+                        className="rounded-xl border-slate-700 bg-[#131F2E] text-slate-100 text-xs h-10 font-mono tracking-wider uppercase font-semibold"
                       />
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                      <p className="text-[11px] text-[#9FB3C6]">
                         Conforme a LGPD (Lei nº 13.709/2018), informe apenas as iniciais (ex: <strong>J.S.F.</strong>). Nomes completos são convertidos automaticamente.
                       </p>
                     </div>
                     <div className="grid grid-cols-2 gap-2">
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Idade:</label>
+                        <label className="text-xs font-bold text-slate-200">Idade:</label>
                         <Input
                           type="number"
                           value={profile.age}
                           onChange={(e) => setProf("age", e.target.value)}
                           placeholder="Ex: 68"
-                          className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs h-10"
+                          className="rounded-xl border-slate-700 bg-[#131F2E] text-slate-100 text-xs h-10"
                         />
                       </div>
                       <div className="space-y-1">
-                        <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Sexo:</label>
+                        <label className="text-xs font-bold text-slate-200">Sexo:</label>
                         <select
                           value={profile.gender}
                           onChange={(e) => setProf("gender", e.target.value)}
-                          className="w-full rounded-xl border border-slate-300 dark:border-slate-700 text-xs h-10 px-3 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100"
+                          className="w-full rounded-xl border border-slate-700 text-xs h-10 px-3 bg-[#131F2E] text-slate-100"
                         >
                           <option value="M">Masculino</option>
                           <option value="F">Feminino</option>
@@ -1266,43 +1329,43 @@ export default function CaseStudio() {
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Histórico & Doenças Prévias:</label>
+                    <label className="text-xs font-bold text-slate-200">Histórico & Doenças Prévias:</label>
                     <Input
                       value={profile.previous_diseases}
                       onChange={(e) => setProf("previous_diseases", e.target.value)}
                       placeholder="Ex: Hipertensão Arterial, Insuficiência Cardíaca CF II, DM..."
-                      className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs h-10"
+                      className="rounded-xl border-slate-700 bg-[#131F2E] text-slate-100 text-xs h-10"
                     />
                   </div>
 
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Medicações em Uso:</label>
+                      <label className="text-xs font-bold text-slate-200">Medicações em Uso:</label>
                       <Input
                         value={profile.current_medications}
                         onChange={(e) => setProf("current_medications", e.target.value)}
                         placeholder="Ex: Enalapril 20mg, Furosemida 40mg..."
-                        className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs h-10"
+                        className="rounded-xl border-slate-700 bg-[#131F2E] text-slate-100 text-xs h-10"
                       />
                     </div>
                     <div className="space-y-1">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Alergias Conhecidas:</label>
+                      <label className="text-xs font-bold text-slate-200">Alergias Conhecidas:</label>
                       <Input
                         value={profile.allergies}
                         onChange={(e) => setProf("allergies", e.target.value)}
                         placeholder="Ex: Nega alergias conhecidas ou alérgico a penicilina"
-                        className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs h-10"
+                        className="rounded-xl border-slate-700 bg-[#131F2E] text-slate-100 text-xs h-10"
                       />
                     </div>
                   </div>
 
                   <div className="space-y-1">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200">Anamnese / Motivo da Internação:</label>
+                    <label className="text-xs font-bold text-slate-200">Anamnese / Motivo da Internação:</label>
                     <Textarea
                       value={profile.previous_anamnesis}
                       onChange={(e) => setProf("previous_anamnesis", e.target.value)}
                       placeholder="Descreva a queixa principal, evolução dos sintomas e achados da admissão..."
-                      className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 text-xs min-h-[90px]"
+                      className="rounded-xl border-slate-700 bg-[#131F2E] text-slate-100 text-xs min-h-[90px]"
                     />
                   </div>
                 </div>
@@ -1311,12 +1374,12 @@ export default function CaseStudio() {
               {/* PASSO 1: SINAIS VITAIS */}
               {currentStep === 1 && (
                 <div className="space-y-5">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                  <div className="border-b border-[#1F3045] pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                      <h2 className="text-base font-bold text-slate-100">
                         Monitorização de Sinais Vitais
                       </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-[#9FB3C6]">
                         Ajuste os valores para calibrar o perfil hemodinâmico e ventilatório do paciente.
                       </p>
                     </div>
@@ -1444,11 +1507,11 @@ export default function CaseStudio() {
                   <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] flex items-center justify-between">
                     <span className="text-xs sm:text-sm font-bold text-white">Total Braden: {bradenTotal}</span>
                     <span className={`text-[11px] font-bold px-3 py-1 rounded-full ${
-                      bradenTotal <= 12 ? "bg-[#F0645F]/20 text-[#F0645F] border border-[#F0645F]/30" :
+                      bradenTotal <= 12 ? "bg-[#FF6B6B]/20 text-[#FF6B6B] border border-[#FF6B6B]/30" :
                       bradenTotal <= 14 ? "bg-[#FFC247]/20 text-[#FFC247] border border-[#FFC247]/30" :
                       "bg-[#20D5B5]/20 text-[#20D5B5] border border-[#20D5B5]/30"
                     }`}>
-                      {bradenTotal <= 12 ? "▲ Alto risco" : bradenTotal <= 14 ? "▲ Risco moderado" : "✓ Baixo risco"}
+                      {classifyBradenLabel(bradenTotal)}
                     </span>
                   </div>
                 </div>
@@ -1457,16 +1520,16 @@ export default function CaseStudio() {
               {/* PASSO 3: ESCALA CAM (DELIRIUM) */}
               {currentStep === 3 && (
                 <div className="space-y-4">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                  <div className="border-b border-[#1F3045] pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                      <h2 className="text-base font-bold text-slate-100">
                         Método de Avaliação de Confusão Mental (CAM)
                       </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-[#9FB3C6]">
                         Rastreio de Delirium no adulto hospitalizado.
                       </p>
                     </div>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${camPositive ? "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800" : "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border-slate-200 dark:border-slate-700"}`}>
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${camPositive ? "bg-rose-950/60 text-rose-300 border-rose-800" : "bg-slate-800 text-slate-200 border-slate-700"}`}>
                       CAM: {camPositive ? "Positivo (Delirium Provável)" : "Negativo"}
                     </span>
                   </div>
@@ -1482,19 +1545,19 @@ export default function CaseStudio() {
                         key={item.key}
                         className={`flex items-start gap-3 p-3.5 rounded-xl border cursor-pointer transition-all ${
                           data[item.key]
-                            ? "bg-emerald-50 dark:bg-emerald-950/60 border-teal-600 dark:border-emerald-500 text-slate-900 dark:text-emerald-200"
-                            : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                            ? "bg-emerald-950/60 border-emerald-500 text-emerald-200"
+                            : "bg-slate-800/80 border-slate-700 text-slate-300 hover:bg-slate-800"
                         }`}
                       >
                         <input
                           type="checkbox"
                           checked={data[item.key]}
                           onChange={(e) => setParam(item.key, e.target.checked)}
-                          className="mt-0.5 rounded border-slate-300 text-teal-700 focus:ring-teal-600"
+                          className="mt-0.5 rounded border-slate-300 text-[#20D5B5] focus:ring-teal-600"
                         />
                         <div className="space-y-0.5">
-                          <span className="text-xs font-bold text-slate-900 dark:text-slate-100 block">{item.label}</span>
-                          <span className="text-[11px] text-slate-500 dark:text-slate-400">{item.desc}</span>
+                          <span className="text-xs font-bold text-slate-100 block">{item.label}</span>
+                          <span className="text-[11px] text-[#9FB3C6]">{item.desc}</span>
                         </div>
                       </label>
                     ))}
@@ -1505,17 +1568,23 @@ export default function CaseStudio() {
               {/* PASSO 4: QUEDAS & ÁLCOOL (SAK & AUDIT) */}
               {currentStep === 4 && (
                 <div className="space-y-5">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                  <div className="border-b border-[#1F3045] pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                      <h2 className="text-base font-bold text-[#EAF2F8]">
                         Estratificação de Risco de Quedas (SAK)
                       </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-[#9FB3C6]">
                         Identifique fatores de risco intrínsecos e extrínsecos no ambiente de internação.
                       </p>
                     </div>
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                      SAK: {sakTotal} pts
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${
+                      sakTotal >= 10.5
+                        ? "bg-[#FF6B6B]/20 text-[#FF6B6B] border-[#FF6B6B]/30"
+                        : sakTotal >= 6.5
+                        ? "bg-[#FFC247]/20 text-[#FFC247] border-[#FFC247]/30"
+                        : "bg-[#20D5B5]/20 text-[#20D5B5] border-[#20D5B5]/30"
+                    }`}>
+                      SAK: {sakTotal} pts · {sakTotal >= 10.5 ? "Alto risco" : sakTotal >= 6.5 ? "Risco moderado" : "Baixo risco"}
                     </span>
                   </div>
 
@@ -1525,8 +1594,8 @@ export default function CaseStudio() {
                         key={item.key}
                         className={`flex items-center justify-between p-3 rounded-xl border cursor-pointer transition-all ${
                           data[item.key]
-                            ? "bg-emerald-50 dark:bg-emerald-950/60 border-teal-600 dark:border-emerald-500 text-slate-900 dark:text-emerald-200"
-                            : "bg-white dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-800"
+                            ? "bg-[#20D5B5]/15 border-[#20D5B5] text-[#EAF2F8]"
+                            : "bg-[#0E1722] border-[#1F3045] text-[#9FB3C6] hover:bg-[#16222E]"
                         }`}
                       >
                         <span className="text-xs font-semibold">{item.label}</span>
@@ -1534,27 +1603,37 @@ export default function CaseStudio() {
                           type="checkbox"
                           checked={data[item.key]}
                           onChange={(e) => setParam(item.key, e.target.checked)}
-                          className="rounded border-slate-300 text-teal-700 focus:ring-teal-600"
+                          className="rounded border-[#27394B] text-[#20D5B5] focus:ring-[#20D5B5]"
                         />
                       </label>
                     ))}
                   </div>
+
+                  <VitalSlider
+                    label="Nº de medicamentos administrados (últimas 24h)"
+                    value={data.sak_meds || 0}
+                    min={0}
+                    max={15}
+                    step={1}
+                    onChange={(v) => setParam("sak_meds", v)}
+                    accentColor="amber"
+                  />
                 </div>
               )}
 
               {/* PASSO 5: ESCALA CALOI (DOR) */}
               {currentStep === 5 && (
                 <div className="space-y-5">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                  <div className="border-b border-[#1F3045] pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                      <h2 className="text-base font-bold text-slate-100">
                         Avaliação Multidimensional da Dor (CALOI)
                       </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-[#9FB3C6]">
                         Caracterize a intensidade, localização anatômica e descritores sensoriais.
                       </p>
                     </div>
-                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${caloiTotal >= 7 ? "bg-rose-50 dark:bg-rose-950/60 text-rose-700 dark:text-rose-300 border-rose-200 dark:border-rose-800" : "bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border-slate-200 dark:border-slate-700"}`}>
+                    <span className={`text-xs font-bold px-2.5 py-1 rounded-full border ${caloiTotal >= 7 ? "bg-rose-950/60 text-rose-300 border-rose-800" : "bg-slate-800 text-slate-200 border-slate-700"}`}>
                       Intensidade: {caloiTotal}/10
                     </span>
                   </div>
@@ -1572,7 +1651,7 @@ export default function CaseStudio() {
                     />
 
                     <div className="pt-2">
-                      <label className="text-xs font-bold text-slate-700 dark:text-slate-300 block mb-2">
+                      <label className="text-xs font-bold text-slate-300 block mb-2">
                         Características e Descritores da Dor:
                       </label>
                       <div className="flex flex-wrap gap-2">
@@ -1591,8 +1670,8 @@ export default function CaseStudio() {
                               }}
                               className={`px-3 py-1.5 rounded-xl text-xs font-semibold border transition-all ${
                                 isSel
-                                  ? "bg-emerald-700 dark:bg-emerald-600 text-white border-emerald-700"
-                                  : "bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700 hover:border-slate-300 dark:hover:border-slate-600"
+                                  ? "bg-emerald-600 text-white border-emerald-700"
+                                  : "bg-slate-800 text-slate-300 border-slate-700 hover:border-slate-600"
                               }`}
                             >
                               {char}
@@ -1608,12 +1687,12 @@ export default function CaseStudio() {
               {/* PASSO 6: NOTAS & VOZ AMBIENTAL */}
               {currentStep === 6 && (
                 <div className="space-y-4">
-                  <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex items-center justify-between">
+                  <div className="border-b border-[#1F3045] pb-3 flex items-center justify-between">
                     <div>
-                      <h2 className="text-base font-bold text-slate-900 dark:text-slate-100">
+                      <h2 className="text-base font-bold text-slate-100">
                         Notas da Avaliação & Captação Ambiental de Voz
                       </h2>
-                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                      <p className="text-xs text-[#9FB3C6]">
                         Simulação do conceito "Caring out loud" (verbalização natural de achados à beira-leito).
                       </p>
                     </div>
@@ -1624,8 +1703,8 @@ export default function CaseStudio() {
                       onClick={toggleSpeechRecognition}
                       className={`rounded-xl text-xs gap-1.5 ${
                         isListening
-                          ? "bg-rose-50 dark:bg-rose-950/60 text-rose-600 dark:text-rose-300 border-rose-300 dark:border-rose-700 animate-pulse"
-                          : "text-slate-700 dark:text-slate-200 border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 hover:bg-slate-50 dark:hover:bg-slate-800"
+                          ? "bg-rose-950/60 text-rose-300 border-rose-700 animate-pulse"
+                          : "text-slate-200 border-slate-700 bg-[#131F2E] hover:bg-slate-800"
                       }`}
                     >
                       {isListening ? <MicOff className="h-3.5 w-3.5" /> : <Mic className="h-3.5 w-3.5" />}
@@ -1634,12 +1713,12 @@ export default function CaseStudio() {
                   </div>
 
                   {speechError && (
-                    <div className="p-3 rounded-xl bg-rose-50 dark:bg-rose-950/60 border border-rose-200 dark:border-rose-800 text-xs text-rose-700 dark:text-rose-300 flex items-center justify-between">
+                    <div className="p-3 rounded-xl bg-rose-950/60 border border-rose-800 text-xs text-rose-300 flex items-center justify-between">
                       <span>{speechError}</span>
                       <button
                         type="button"
                         onClick={() => setSpeechError("")}
-                        className="text-rose-500 hover:text-rose-800 dark:hover:text-rose-200 font-bold ml-2 text-xs"
+                        className="text-rose-500 hover:text-rose-200 font-bold ml-2 text-xs"
                       >
                         Fechar
                       </button>
@@ -1647,13 +1726,13 @@ export default function CaseStudio() {
                   )}
 
                   {isListening && (
-                    <div className="p-3 rounded-xl bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 text-xs text-teal-800 dark:text-teal-200 flex items-center gap-2 animate-pulse">
-                      <Mic className="h-4 w-4 text-teal-600 dark:text-teal-400 animate-bounce" />
+                    <div className="p-3 rounded-xl bg-teal-950/60 border border-teal-800 text-xs text-[#20D5B5] flex items-center gap-2 animate-pulse">
+                      <Mic className="h-4 w-4 text-teal-400 animate-bounce" />
                       <div>
                         <span className="font-bold">Captação de voz ativa: </span>
                         <span>Fale naturalmente os achados à beira-leito...</span>
                         {interimTranscript && (
-                          <p className="mt-1 text-slate-700 dark:text-slate-200 italic bg-white/80 dark:bg-slate-900/80 p-1.5 rounded-lg border border-teal-100 dark:border-teal-900/60">
+                          <p className="mt-1 text-slate-200 italic bg-slate-900/80 p-1.5 rounded-lg border border-teal-900/60">
                             "{interimTranscript}..."
                           </p>
                         )}
@@ -1662,14 +1741,14 @@ export default function CaseStudio() {
                   )}
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-700 dark:text-slate-200 block">
+                    <label className="text-xs font-bold text-slate-200 block">
                       Relato de Enfermagem & Observações da Avaliação:
                     </label>
                     <Textarea
                       value={data.notes}
                       onChange={(e) => setParam("notes", e.target.value)}
                       placeholder="Fale ou digite as observações clínicas observadas durante o atendimento..."
-                      className="rounded-xl text-xs border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-800 dark:text-slate-100 min-h-[120px]"
+                      className="rounded-xl text-xs border-slate-700 bg-[#131F2E] text-slate-100 min-h-[120px]"
                     />
                   </div>
                 </div>
@@ -1728,24 +1807,24 @@ export default function CaseStudio() {
                       <div className="grid grid-cols-2 gap-2 text-xs">
                         <div>
                           <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Iniciais</span>
-                          <strong className="text-white font-mono tracking-wider">{profile.initials || profile.name || "R.S.R."}</strong>
+                          <strong className="text-white font-mono tracking-wider">{profile.initials || profile.name || <span className="italic text-[#8A9DB1] font-normal">Não informado</span>}</strong>
                         </div>
                         <div>
                           <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Idade / Sexo</span>
-                          <strong className="text-white">{profile.age ? `${profile.age} anos` : "79 anos"} • {profile.gender === "M" ? "Masculino" : "Feminino"}</strong>
+                          <strong className="text-white">{profile.age ? `${profile.age} anos` : <span className="italic text-[#8A9DB1] font-normal">Não informado</span>} • {profile.gender === "M" ? "Masculino" : profile.gender === "F" ? "Feminino" : "Sexo não informado"}</strong>
                         </div>
                       </div>
                       <div className="text-xs pt-1 border-t border-[#1F3045]">
                         <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Histórico / Doenças</span>
-                        <p className="text-[#EAF2F8] text-xs">{profile.previous_diseases || "HAS estágio 2, DM tipo 2 em uso de metformina."}</p>
+                        <p className="text-[#EAF2F8] text-xs">{profile.previous_diseases || <span className="italic text-[#8A9DB1] font-normal">Não informado</span>}</p>
                       </div>
                       <div className="text-xs">
                         <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Alergias</span>
-                        <p className="text-[#EAF2F8] text-xs font-semibold">{profile.allergies || "Nega alergias conhecidas."}</p>
+                        <p className="text-[#EAF2F8] text-xs font-semibold">{profile.allergies || <span className="italic text-[#8A9DB1] font-normal">Não informado</span>}</p>
                       </div>
                       <div className="text-xs">
                         <span className="text-[10px] text-[#9FB3C6] block uppercase font-bold">Admissão / Queixa</span>
-                        <p className="text-[#EAF2F8] text-xs">{profile.previous_anamnesis || profile.notes || "Paciente trazido por familiares com relato de astenia importante, diminuição da ingesta hídrica e sonolência nas últimas 24 horas."}</p>
+                        <p className="text-[#EAF2F8] text-xs">{profile.previous_anamnesis || profile.notes || <span className="italic text-[#8A9DB1] font-normal">Não informado</span>}</p>
                       </div>
                     </div>
 
@@ -1760,20 +1839,33 @@ export default function CaseStudio() {
                           COFEN 736/2024
                         </span>
                       </div>
-                      <div className="grid grid-cols-3 gap-2 text-xs">
-                        <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#F0645F]/40">
-                          <span className="text-[10px] text-[#F0645F] font-black block">✕ PA</span>
-                          <strong className="text-base font-black text-[#F0645F]">{data.pa_sistolica}/{data.pa_diastolica} <span className="text-[10px] font-normal text-[#9FB3C6]">mmHg</span></strong>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#F0645F]/40">
-                          <span className="text-[10px] text-[#F0645F] font-black block">✕ FC</span>
-                          <strong className="text-base font-black text-[#F0645F]">{data.fc} <span className="text-[10px] font-normal text-[#9FB3C6]">bpm</span></strong>
-                        </div>
-                        <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#1F3045]">
-                          <span className="text-[10px] text-[#9FB3C6] font-black block">SatO₂</span>
-                          <strong className="text-base font-black text-white">{data.sat} <span className="text-[10px] font-normal text-[#9FB3C6]">%</span></strong>
-                        </div>
-                      </div>
+                      {(() => {
+                        const paStatus = classifyVital("pa_sistolica", data.pa_sistolica) === "critico" || classifyVital("pa_diastolica", data.pa_diastolica) === "critico" ? "critico" : classifyVital("pa_sistolica", data.pa_sistolica) === "alerta" || classifyVital("pa_diastolica", data.pa_diastolica) === "alerta" ? "alerta" : "estavel";
+                        const fcStatus = classifyVital("fc", data.fc);
+                        const satStatus = classifyVital("sat", data.sat);
+
+                        const getStyle = (st) => st === "critico" ? { border: "border-[#FF6B6B]/40", text: "text-[#FF6B6B]", symbol: "✕ " } : st === "alerta" ? { border: "border-[#FFC247]/40", text: "text-[#FFC247]", symbol: "▲ " } : { border: "border-[#1F3045]", text: "text-[#20D5B5]", symbol: "" };
+                        const paConf = getStyle(paStatus);
+                        const fcConf = getStyle(fcStatus);
+                        const satConf = getStyle(satStatus);
+
+                        return (
+                          <div className="grid grid-cols-3 gap-2 text-xs">
+                            <div className={`p-2.5 rounded-xl bg-[#16222E] border ${paConf.border}`}>
+                              <span className={`text-[10px] ${paConf.text} font-black block`}>{paConf.symbol}PA</span>
+                              <strong className={`text-base font-black ${paConf.text}`}>{data.pa_sistolica}/{data.pa_diastolica} <span className="text-[10px] font-normal text-[#9FB3C6]">mmHg</span></strong>
+                            </div>
+                            <div className={`p-2.5 rounded-xl bg-[#16222E] border ${fcConf.border}`}>
+                              <span className={`text-[10px] ${fcConf.text} font-black block`}>{fcConf.symbol}FC</span>
+                              <strong className={`text-base font-black ${fcConf.text}`}>{data.fc} <span className="text-[10px] font-normal text-[#9FB3C6]">bpm</span></strong>
+                            </div>
+                            <div className={`p-2.5 rounded-xl bg-[#16222E] border ${satConf.border}`}>
+                              <span className={`text-[10px] ${satConf.text} font-black block`}>{satConf.symbol}SatO₂</span>
+                              <strong className={`text-base font-black ${satConf.text}`}>{data.sat} <span className="text-[10px] font-normal text-[#9FB3C6]">%</span></strong>
+                            </div>
+                          </div>
+                        );
+                      })()}
 
                       <div className="pt-1.5 space-y-1.5 text-xs">
                         <div className="flex items-center justify-between p-2 rounded-xl bg-[#16222E] border border-[#1F3045]">
@@ -1809,27 +1901,30 @@ export default function CaseStudio() {
 
               {/* Navegação Entre Passos & Ações Oficiais de Envio (Páginas 9, 10, 11 do PDF) */}
               <div className="pt-4 border-t border-[#1F3045] flex flex-wrap items-center justify-between gap-3">
-                <button
+                <Button
                   type="button"
+                  variant="outline"
                   onClick={() => setCurrentStep((s) => Math.max(0, s - 1))}
                   disabled={currentStep === 0}
-                  className="rounded-xl border border-[#1F3045] bg-[#0E1722] text-[#9FB3C6] hover:text-white px-4 py-2.5 text-xs font-bold hover:bg-[#16222E] disabled:opacity-40 disabled:cursor-not-allowed transition-all"
+                  className="rounded-xl text-xs font-bold"
                 >
                   Passo anterior
-                </button>
+                </Button>
 
                 <div className="flex items-center gap-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="outline"
                     onClick={handleSaveDraft}
-                    className="rounded-xl border border-[#1F3045] bg-[#0E1722] text-[#9FB3C6] hover:text-white px-4 py-2.5 text-xs font-bold hover:bg-[#16222E] transition-all"
+                    className="rounded-xl text-xs font-bold"
                   >
                     Salvar rascunho
-                  </button>
+                  </Button>
 
                   {currentStep < WIZARD_STEPS.length - 1 ? (
-                    <button
+                    <Button
                       type="button"
+                      variant="primary"
                       onClick={() => {
                         if (currentStep === 0 && !profile.initials?.trim() && !profile.name?.trim()) {
                           toast({ title: "Falta o paciente", description: "Preencha as iniciais ou o nome do paciente para avançar." });
@@ -1837,30 +1932,33 @@ export default function CaseStudio() {
                         }
                         setCurrentStep((s) => Math.min(WIZARD_STEPS.length - 1, s + 1));
                       }}
-                      className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-6 py-2.5 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-1 transition-all"
+                      className="rounded-xl text-xs px-6 font-black"
                     >
                       Próximo passo
-                    </button>
+                    </Button>
                   ) : (
                     <div className="flex items-center gap-2">
-                      <button
+                      <Button
                         type="button"
+                        variant="primary"
                         onClick={handleConfirmSubmission}
-                        className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-6 py-2.5 font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 transition-all flex items-center gap-1.5"
+                        className="rounded-xl text-xs px-6 font-black flex items-center gap-1.5"
                       >
                         <CheckCircle2 className="h-4 w-4" />
                         <span>Confirmar envio (100%)</span>
-                      </button>
+                      </Button>
 
-                      <button
+                      <Button
                         type="button"
+                        variant="outline"
                         onClick={handleLaunchChallenge}
                         disabled={isGeneratingChallenge}
-                        className="rounded-xl bg-[#16222E] border border-[#20D5B5]/40 hover:bg-[#131F2E] text-[#20D5B5] text-xs px-4 py-2.5 font-black flex items-center gap-2 transition-all"
+                        loading={isGeneratingChallenge}
+                        className="rounded-xl text-[#20D5B5] border-[#20D5B5]/40 text-xs px-4 font-black flex items-center gap-2"
                       >
                         <Target className="h-4 w-4" />
-                        <span>{isGeneratingChallenge ? "Gerando..." : "Gerar Desafio IA"}</span>
-                      </button>
+                        <span>Gerar Desafio IA</span>
+                      </Button>
                     </div>
                   )}
                 </div>
@@ -1872,10 +1970,42 @@ export default function CaseStudio() {
         {/* ======================================================== */}
         {/* MODO 2: BATERIA DE DESAFIOS CLÍNICOS (ESTILO AMBOSS/SIMX) */}
         {/* ======================================================== */}
-        {viewMode === "challenge" && challenge && (
+        {viewMode === "challenge" && isGeneratingChallenge && (
+          <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-10 text-center shadow-sm space-y-4">
+            <div className="flex justify-center">
+              <GotiAnimated animation="thinking" size={96} />
+            </div>
+            <h3 className="text-base font-bold text-white">Montando 4 questões do seu caso…</h3>
+            <p className="text-xs text-[#9FB3C6] max-w-md mx-auto">
+              Avaliando parâmetros de sinais vitais, histórico e escalas para estruturar o raciocínio diagnóstico formativo.
+            </p>
+          </div>
+        )}
+
+        {viewMode === "challenge" && !challenge && !isGeneratingChallenge && (
+          <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-10 text-center shadow-sm space-y-4">
+            <div className="flex justify-center">
+              <GotiAnimated animation="idle" size={80} />
+            </div>
+            <h3 className="text-base font-bold text-white">Nenhum desafio ativo no momento</h3>
+            <p className="text-xs text-[#9FB3C6] max-w-md mx-auto">
+              Não foi possível carregar as questões deste caso ou o desafio expirou.
+            </p>
+            <div className="flex justify-center gap-3 pt-2">
+              <Button variant="outline" onClick={() => setViewMode("builder")} className="rounded-xl">
+                Voltar ao Caso
+              </Button>
+              <Button variant="primary" onClick={() => handleLaunchChallenge()} className="rounded-xl">
+                Tentar de novo
+              </Button>
+            </div>
+          </div>
+        )}
+
+        {viewMode === "challenge" && challenge && !isGeneratingChallenge && (
           <div className="space-y-6 animate-in fade-in">
             {/* Vinheta Resumo do Caso & Placar Geral (Página 12 do PDF) */}
-            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-xs space-y-4">
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-3 gap-2">
                 <div>
                   <h2 className="text-base sm:text-lg font-black text-white">
@@ -1911,26 +2041,42 @@ export default function CaseStudio() {
                   DADOS CLÍNICOS DO PACIENTE
                 </span>
                 <p className="text-xs text-[#EAF2F8] leading-relaxed">
-                  Paciente {profile.initials || "M.S.R."}, {profile.age || 79} anos, internado na unidade de cuidados clínicos. Histórico: HAS estágio 2, DM tipo 2 em uso de metformina.
+                  Paciente {profile.initials || "sem iniciais"}{profile.age ? `, ${profile.age} anos` : ""}, internado na unidade de cuidados clínicos.{" "}
+                  {(profile.previous_diseases || profile.previous_anamnesis) ? `Histórico: ${profile.previous_diseases || profile.previous_anamnesis}` : "Histórico não informado."}
                 </p>
-                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
-                  <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#F0645F]/40">
-                    <span className="text-[10px] text-[#F0645F] font-black block">✕ PA</span>
-                    <strong className="text-sm font-black text-[#F0645F]">{data.pa_sistolica}/{data.pa_diastolica} <span className="text-[10px] font-normal text-[#9FB3C6]">mmHg</span></strong>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#F0645F]/40">
-                    <span className="text-[10px] text-[#F0645F] font-black block">✕ FC</span>
-                    <strong className="text-sm font-black text-[#F0645F]">{data.fc} <span className="text-[10px] font-normal text-[#9FB3C6]">bpm</span></strong>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#1F3045]">
-                    <span className="text-[10px] text-[#9FB3C6] font-black block">FR</span>
-                    <strong className="text-sm font-black text-white">{data.fr} <span className="text-[10px] font-normal text-[#9FB3C6]">irpm</span></strong>
-                  </div>
-                  <div className="p-2.5 rounded-xl bg-[#16222E] border border-[#1F3045]">
-                    <span className="text-[10px] text-[#9FB3C6] font-black block">SatO₂</span>
-                    <strong className="text-sm font-black text-white">{data.sat} <span className="text-[10px] font-normal text-[#9FB3C6]">%</span></strong>
-                  </div>
-                </div>
+                {(() => {
+                  const paStatus = classifyVital("pa_sistolica", data.pa_sistolica) === "critico" || classifyVital("pa_diastolica", data.pa_diastolica) === "critico" ? "critico" : classifyVital("pa_sistolica", data.pa_sistolica) === "alerta" || classifyVital("pa_diastolica", data.pa_diastolica) === "alerta" ? "alerta" : "estavel";
+                  const fcStatus = classifyVital("fc", data.fc);
+                  const frStatus = classifyVital("fr", data.fr);
+                  const satStatus = classifyVital("sat", data.sat);
+
+                  const getStyle = (st) => st === "critico" ? { border: "border-[#FF6B6B]/40", text: "text-[#FF6B6B]", symbol: "✕ " } : st === "alerta" ? { border: "border-[#FFC247]/40", text: "text-[#FFC247]", symbol: "▲ " } : { border: "border-[#1F3045]", text: "text-[#20D5B5]", symbol: "" };
+                  const paConf = getStyle(paStatus);
+                  const fcConf = getStyle(fcStatus);
+                  const frConf = getStyle(frStatus);
+                  const satConf = getStyle(satStatus);
+
+                  return (
+                    <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 pt-1 text-xs">
+                      <div className={`p-2.5 rounded-xl bg-[#16222E] border ${paConf.border}`}>
+                        <span className={`text-[10px] ${paConf.text} font-black block`}>{paConf.symbol}PA</span>
+                        <strong className={`text-sm font-black ${paConf.text}`}>{data.pa_sistolica}/{data.pa_diastolica} <span className="text-[10px] font-normal text-[#9FB3C6]">mmHg</span></strong>
+                      </div>
+                      <div className={`p-2.5 rounded-xl bg-[#16222E] border ${fcConf.border}`}>
+                        <span className={`text-[10px] ${fcConf.text} font-black block`}>{fcConf.symbol}FC</span>
+                        <strong className={`text-sm font-black ${fcConf.text}`}>{data.fc} <span className="text-[10px] font-normal text-[#9FB3C6]">bpm</span></strong>
+                      </div>
+                      <div className={`p-2.5 rounded-xl bg-[#16222E] border ${frConf.border}`}>
+                        <span className={`text-[10px] ${frConf.text} font-black block`}>{frConf.symbol}FR</span>
+                        <strong className={`text-sm font-black ${frConf.text}`}>{data.fr} <span className="text-[10px] font-normal text-[#9FB3C6]">irpm</span></strong>
+                      </div>
+                      <div className={`p-2.5 rounded-xl bg-[#16222E] border ${satConf.border}`}>
+                        <span className={`text-[10px] ${satConf.text} font-black block`}>{satConf.symbol}SatO₂</span>
+                        <strong className={`text-sm font-black ${satConf.text}`}>{data.sat} <span className="text-[10px] font-normal text-[#9FB3C6]">%</span></strong>
+                      </div>
+                    </div>
+                  );
+                })()}
               </div>
 
               {/* SELETOR DE ABAS DA BATERIA (4 EIXOS DE VIVÊNCIA CLÍNICA + CONCLUSÃO) */}
@@ -1994,7 +2140,7 @@ export default function CaseStudio() {
 
             {/* ABA DE CONCLUSÃO OU CARD DA QUESTÃO ATIVA (1:1 COM A PÁGINA 13 DO PDF) */}
             {viewingConclusion ? (
-              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-xs space-y-6 animate-in fade-in">
+              <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-sm space-y-6 animate-in fade-in">
                 {/* Cabeçalho de Conclusão com o Goti (Página 13 do PDF) */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-5 gap-4">
                   <div className="space-y-1">
@@ -2005,7 +2151,7 @@ export default function CaseStudio() {
                       Parecer Pedagógico & Desconstrução do Raciocínio
                     </h2>
                     <p className="text-xs text-[#9FB3C6]">
-                      Paciente: {profile.initials || "M.S.R."} ({profile.age || 79} anos) · Bateria de Julgamento Clínico Avançado
+                      Paciente: {profile.initials || "sem iniciais"}{profile.age ? ` (${profile.age} anos)` : ""} · Bateria de Julgamento Clínico Avançado
                     </p>
                   </div>
 
@@ -2019,9 +2165,9 @@ export default function CaseStudio() {
                     </div>
                     <div className="text-right">
                       <span className="text-[10px] font-bold text-[#9FB3C6] uppercase tracking-wider block">ACURÁCIA DIAGNÓSTICA</span>
-                      <span className="text-2xl sm:text-3xl font-black text-[#FFC247] leading-none">{accuracyScore}%</span>
+                      <span className="text-2xl sm:text-3xl font-black text-[#FFC247] leading-none"><AnimatedNumber value={accuracyScore} />%</span>
                       <span className="text-[10px] font-bold text-[#9FB3C6] block mt-1">
-                        {totalCorrect} de {questionsList.length} acertos
+                        <AnimatedNumber value={totalCorrect} /> de {questionsList.length} acertos
                       </span>
                     </div>
                   </div>
@@ -2098,23 +2244,25 @@ export default function CaseStudio() {
 
                 {/* Botão de Ação Central 3D (Página 13 do PDF) */}
                 <div className="pt-2">
-                  <button
+                  <Button
                     type="button"
+                    variant="primary"
+                    size="lg"
                     onClick={handleLaunchRandomNewCase}
-                    className="w-full py-3.5 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black text-sm tracking-wide shadow-[0_4px_0_0_#148A76] active:translate-y-1 transition-all flex items-center justify-center gap-2"
+                    className="w-full py-3.5 rounded-2xl text-sm tracking-wide font-black"
                   >
-                    <span>Novo caso</span>
-                  </button>
+                    Novo caso
+                  </Button>
                 </div>
               </div>
             ) : (
               activeQuestion && (
-                <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-xs space-y-5">
+                <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-7 shadow-sm space-y-5">
                   <div className="border-b border-[#1F3045] pb-3">
                     <span className="text-xs font-bold text-[#9FB3C6]">
                       Questão {currentQuestionIndex + 1} de {questionsList.length} · {activeQuestion.category}
                     </span>
-                    <h3 className="text-sm sm:text-base font-bold text-white mt-2 leading-relaxed">
+                    <h3 id="question-stem" className="text-sm sm:text-base font-bold text-white mt-2 leading-relaxed">
                       {activeQuestion.questionStem}
                     </h3>
                   </div>
@@ -2130,7 +2278,7 @@ export default function CaseStudio() {
                   )}
 
                   {/* Alternativas A, B, C, D (Página 12 do PDF) */}
-                  <div className="space-y-3 pt-1">
+                  <div role="radiogroup" aria-labelledby="question-stem" className="space-y-3 pt-1">
                     {activeQuestion.options?.map((option) => {
                       const isSelected = activeSelectedOption === option.id;
                       const showFeedback = isActiveSubmitted;
@@ -2157,10 +2305,14 @@ export default function CaseStudio() {
                       }
 
                       return (
-                        <div
+                        <button
+                          type="button"
+                          role="radio"
+                          aria-checked={isSelected}
+                          disabled={isActiveSubmitted}
                           key={option.id}
                           onClick={() => handleSelectOption(option.id)}
-                          className={`p-4 rounded-2xl border transition-all cursor-pointer ${containerStyle}`}
+                          className={`w-full text-left p-4 rounded-2xl border transition-all cursor-pointer ${containerStyle}`}
                         >
                           <div className="flex items-start gap-3.5">
                             <span className={`w-7 h-7 rounded-full border flex items-center justify-center text-xs font-black shrink-0 transition-colors ${badgeStyle}`}>
@@ -2195,25 +2347,27 @@ export default function CaseStudio() {
                               )}
                             </div>
                           </div>
-                        </div>
+                        </button>
                       );
                     })}
                   </div>
 
                   {/* AÇÕES DA QUESTÃO ATIVA & NAVEGAÇÃO NA BATERIA (Página 12 do PDF) */}
                   <div className="pt-3 border-t border-[#1F3045] flex items-center justify-between gap-3">
-                    <button
+                    <Button
                       type="button"
+                      variant="outline"
                       onClick={handleToggleTip}
-                      className="rounded-xl border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#FFC247] px-4 py-2.5 text-xs font-bold flex items-center gap-1.5 transition-all"
+                      className="rounded-xl text-[#FFC247] border-[#1F3045] text-xs font-bold flex items-center gap-1.5"
                     >
-                      <span>▲ Dica</span>
-                    </button>
+                      ▲ Dica
+                    </Button>
 
                     <div className="flex items-center gap-2">
                       {!isActiveSubmitted ? (
-                        <button
+                        <Button
                           type="button"
+                          variant="primary"
                           onClick={() => {
                             if (!activeSelectedOption) {
                               toast({ title: "Escolha uma alternativa", description: "Selecione uma das alternativas para avançar." });
@@ -2222,29 +2376,31 @@ export default function CaseStudio() {
                             handleSubmitCurrentAnswer();
                           }}
                           disabled={!activeSelectedOption}
-                          className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-6 py-2.5 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-1 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+                          className="rounded-xl text-xs px-6 font-black"
                         >
                           Verificar
-                        </button>
+                        </Button>
                       ) : currentQuestionIndex < questionsList.length - 1 ? (
-                        <button
+                        <Button
                           type="button"
+                          variant="primary"
                           onClick={() => setCurrentQuestionIndex((prev) => Math.min(questionsList.length - 1, prev + 1))}
-                          className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-6 py-2.5 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-1 transition-all flex items-center gap-1.5"
+                          className="rounded-xl text-xs px-6 font-black flex items-center gap-1.5"
                         >
                           <span>Próxima questão</span>
                           <ArrowRight className="h-3.5 w-3.5" />
-                        </button>
+                        </Button>
                       ) : (
                         allQuestionsAnswered && (
-                          <button
+                          <Button
                             type="button"
+                            variant="primary"
                             onClick={() => setViewingConclusion(true)}
-                            className="rounded-xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] text-xs px-6 py-2.5 font-black shadow-[0_3px_0_0_#148A76] active:translate-y-1 transition-all flex items-center gap-1.5"
+                            className="rounded-xl text-xs px-6 font-black flex items-center gap-1.5"
                           >
                             <Award className="h-3.5 w-3.5" />
                             <span>Ver Conclusão ({accuracyScore}%)</span>
-                          </button>
+                          </Button>
                         )
                       )}
                     </div>

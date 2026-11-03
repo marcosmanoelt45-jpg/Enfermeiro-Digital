@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useDragControls } from 'framer-motion';
+import { AnimatePresence, m as motion, useDragControls } from 'framer-motion';
 import {
   Home,
   ClipboardList,
@@ -225,7 +225,7 @@ export default function MobileBottomDock() {
         <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
           {/* Backdrop com desfoque */}
           <motion.div
-            className="fixed inset-0 bg-black/75 backdrop-blur-xs"
+            className="fixed inset-0 bg-black/75 backdrop-blur-sm"
             variants={scrimVariants}
             initial="hidden"
             animate="show"
@@ -304,7 +304,7 @@ export default function MobileBottomDock() {
                         </span>
                       </div>
                     </div>
-                    <ChevronRight className="w-5 h-5 text-[#52667A] group-hover:text-[#20D5B5] group-hover:translate-x-0.5 transition-all shrink-0" />
+                    <ChevronRight className="w-5 h-5 text-[#8A9DB1] group-hover:text-[#20D5B5] group-hover:translate-x-0.5 transition-all shrink-0" />
                   </button>
                 );
               })}

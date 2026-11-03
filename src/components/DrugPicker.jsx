@@ -47,29 +47,39 @@ export default function DrugPicker({ value, onChange, onPick }) {
   return (
     <div className="relative" ref={boxRef}>
       <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-slate-400" />
+        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-[#8A9DB1]" />
         <Input
+          role="combobox"
+          aria-expanded={open}
+          aria-autocomplete="list"
+          aria-controls="drug-picker-listbox"
           value={query}
           onChange={(e) => { setQuery(e.target.value); onChange?.(e.target.value); setOpen(true); setActive(-1); }}
           onFocus={() => setOpen(true)}
           onKeyDown={onKey}
           placeholder="Buscar medicamento..."
-          className="rounded-xl pl-9"
+          className="rounded-xl pl-9 bg-[#0B131D] border-[#27394B] text-[#EAF2F8] placeholder:text-[#8A9DB1] focus:ring-1 focus:ring-[#20D5B5]"
         />
       </div>
       {open && filtered.length > 0 && (
-        <div className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-slate-200 bg-white shadow-lg">
+        <div
+          id="drug-picker-listbox"
+          role="listbox"
+          className="absolute z-20 mt-1 max-h-64 w-full overflow-auto rounded-xl border border-[#1F3045] bg-[#131F2E] shadow-lg"
+        >
           {filtered.map((d, i) => (
             <button
               key={d.name}
+              role="option"
+              aria-selected={i === active}
               type="button"
               onMouseEnter={() => setActive(i)}
               onClick={() => select(d)}
-              className={`flex w-full items-center justify-between px-3 py-2 text-left transition ${i === active ? "bg-teal-50" : "hover:bg-slate-50"}`}
+              className={`flex w-full items-center justify-between px-3 py-2 text-left transition ${i === active ? "bg-[#20D5B5]/15 text-[#20D5B5]" : "hover:bg-[#16222E] text-[#EAF2F8]"}`}
             >
               <div className="min-w-0">
-                <p className="truncate text-sm font-medium text-slate-800">{d.name}</p>
-                <p className="truncate text-[11px] text-slate-400">{d.class}{d.concentration ? ` · ${d.concentration} mg/mL` : ""}</p>
+                <p className="truncate text-sm font-medium">{d.name}</p>
+                <p className="truncate text-[11px] text-[#9FB3C6]">{d.class}{d.concentration ? ` · ${d.concentration} ${d.unit || "mg/mL"}` : ""}</p>
               </div>
             </button>
           ))}
@@ -80,7 +90,7 @@ export default function DrugPicker({ value, onChange, onPick }) {
           href={drugUrl(query.trim())}
           target="_blank"
           rel="noreferrer"
-          className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-teal-600 hover:underline"
+          className="mt-1.5 inline-flex items-center gap-1 text-[11px] font-medium text-[#20D5B5] hover:underline"
         >
           <ExternalLink className="h-3 w-3" /> Ver no Drugs.com
         </a>

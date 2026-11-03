@@ -46,14 +46,14 @@ export default function StreakHeroCard({ streakData, onUpdate }) {
         {/* Lado Esquerdo: Fogo & Contador da Ofensiva Clínica (#FF9600) */}
         <div className="flex items-center gap-3.5">
           <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#FF9600] to-amber-400 text-white shadow-md border-2 border-amber-200 border-b-4 border-b-[#CC7900] select-none">
-            <Flame className="h-8 w-8 fill-white stroke-none drop-shadow-xs animate-flame-subtle" />
+            <Flame className="h-8 w-8 fill-white stroke-none drop-shadow-sm animate-flame-subtle" />
           </div>
           <div>
             <div className="flex items-center gap-2">
               <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">
                 {streak} {streak === 1 ? 'dia' : 'dias'}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#FF9600]/15 dark:bg-[#FF9600]/20 px-2.5 py-0.5 text-xs font-extrabold text-[#d97706] dark:text-amber-400 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#FF9600]/15 dark:bg-[#FF9600]/20 px-2.5 py-0.5 text-xs font-extrabold text-[#d97706] dark:text-amber-400 border border-amber-300/80 dark:border-amber-700/60 shadow-sm">
                 <Sparkles className="h-3.5 w-3.5 stroke-[2.5]" /> Ofensiva Clínica
               </span>
             </div>
@@ -72,7 +72,7 @@ export default function StreakHeroCard({ streakData, onUpdate }) {
             disabled={freezing || streakFreezeAvailable <= 0}
             className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-bold border-2 transition-all select-none ${
               streakFreezeAvailable > 0
-                ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-300 dark:border-sky-800 border-b-4 border-b-sky-400 dark:border-b-sky-900 text-sky-800 dark:text-sky-300 hover:bg-sky-100 press-lip shadow-xs cursor-pointer'
+                ? 'bg-sky-50 dark:bg-sky-950/60 border-sky-300 dark:border-sky-800 border-b-4 border-b-sky-400 dark:border-b-sky-900 text-sky-800 dark:text-sky-300 hover:bg-sky-100 press-lip shadow-sm cursor-pointer'
                 : 'bg-slate-100 dark:bg-slate-800/80 border-slate-200 dark:border-slate-700 text-slate-400 cursor-not-allowed opacity-70'
             }`}
             title="Protege a ofensiva em dias de plantão hospitalar de 24h ou 36h"
@@ -101,7 +101,7 @@ export default function StreakHeroCard({ streakData, onUpdate }) {
                 key={idx}
                 className={`flex flex-col items-center justify-center p-2 rounded-2xl border-2 text-center transition-all select-none ${
                   d.completed
-                    ? 'bg-[#FF9600] text-white border-amber-400 border-b-4 border-b-[#CC7900] shadow-xs active:translate-y-0.5'
+                    ? 'bg-[#FF9600] text-white border-amber-400 border-b-4 border-b-[#CC7900] shadow-sm active:translate-y-0.5'
                     : d.isToday
                     ? 'bg-white dark:bg-slate-800 border-amber-400 dark:border-amber-500 border-b-4 border-b-amber-500 dark:border-b-amber-600 text-slate-800 dark:text-slate-100 ring-2 ring-amber-400/30'
                     : 'bg-white/70 dark:bg-slate-800/50 border-slate-200 dark:border-slate-800 border-b-4 border-b-slate-300 dark:border-b-slate-900 text-slate-400 dark:text-slate-500'

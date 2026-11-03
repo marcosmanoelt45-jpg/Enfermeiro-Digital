@@ -1,4 +1,5 @@
-import React, { createContext, useContext, useState, useEffect, useRef } from 'react';
+import React, { createContext, useContext, useState, useEffect } from 'react';
+import { vibrate } from '@/lib/motion';
 
 const ThemeContext = createContext();
 
@@ -43,8 +44,6 @@ export function ThemeProvider({ children }) {
     }
   });
 
-  // Contexto de áudio para bip tátil no desktop/mobile
-  const audioCtxRef = useRef(null);
 
   // Atualizar a classe na tag <html> e persistir tema
   useEffect(() => {
@@ -104,36 +103,10 @@ export function ThemeProvider({ children }) {
     setTheme('dark');
   };
 
-  // Helper para acionar vibração curta e clique tátil de confirmação
+  // Feedback tátil por vibração, sem som (no iOS, sem Vibration API, simplesmente não faz nada).
   const triggerHaptic = (pattern = 40) => {
     if (!hapticFeedback) return;
-
-    // Vibração física no smartphone desativada por preferência do usuário
-
-    // Clique sonoro sutil de feedback mecânico (funciona no PC e celular para feedback imediato)
-    try {
-      const AudioCtx = window.AudioContext || window.webkitAudioContext;
-      if (AudioCtx) {
-        if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-          audioCtxRef.current = new AudioCtx();
-        }
-        const ctx = audioCtxRef.current;
-        if (ctx.state === 'suspended') {
-          ctx.resume();
-        }
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(480, ctx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(140, ctx.currentTime + 0.045);
-        gain.gain.setValueAtTime(0.09, ctx.currentTime);
-        gain.gain.exponentialRampToValueAtTime(0.0001, ctx.currentTime + 0.045);
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + 0.045);
-      }
-    } catch {}
+    vibrate(pattern);
   };
 
   return (

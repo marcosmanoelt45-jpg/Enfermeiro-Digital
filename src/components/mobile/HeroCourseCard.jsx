@@ -20,7 +20,7 @@ export default function HeroCourseCard({
 
       {/* Top badges */}
       <div className="flex items-center justify-between gap-2 mb-3 relative z-10">
-        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-white/15 dark:bg-emerald-900/50 text-emerald-100 dark:text-emerald-300 backdrop-blur-sm border border-white/15 dark:border-emerald-700/50 shadow-2xs">
+        <span className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[11px] font-bold bg-white/15 dark:bg-emerald-900/50 text-emerald-100 dark:text-emerald-300 backdrop-blur-sm border border-white/15 dark:border-emerald-700/50 shadow-sm">
           <Activity className="w-3.5 h-3.5 text-emerald-300 dark:text-emerald-400 stroke-[2.5]" />
           {badgeText}
         </span>

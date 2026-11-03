@@ -4,6 +4,7 @@ import { Loader2, Save, HeartPulse, ClipboardList, Pill, AlertCircle, FileText }
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
+import { toast } from "@/components/ui/use-toast";
 import CategoryPicker from "@/components/CategoryPicker";
 import { DISEASES_CATALOG, MEDICATIONS_CATALOG, ALLERGIES_CATALOG } from "@/lib/clinicalCatalogs";
 
@@ -40,8 +41,11 @@ export default function PatientProfileTab({ patient, onSaved }) {
     setSaving(true);
     try {
       await base44.entities.Patient.update(patient.id, form);
+      toast({ title: "Perfil clínico atualizado" });
       setEditing(false);
       onSaved();
+    } catch (err) {
+      toast({ variant: "destructive", title: "Erro ao salvar perfil", description: err?.message });
     } finally {
       setSaving(false);
     }
@@ -49,13 +53,13 @@ export default function PatientProfileTab({ patient, onSaved }) {
 
   if (editing) {
     return (
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4 space-y-4">
+      <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-4">
         {CATEGORY_FIELDS.map((f) => {
           const Icon = f.icon;
           return (
             <div key={f.key}>
-              <Label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                <Icon className="h-3.5 w-3.5" /> {f.label}
+              <Label className="flex items-center gap-1.5 text-xs text-[#9FB3C6]">
+                <Icon className="h-3.5 w-3.5 text-[#20D5B5]" /> {f.label}
               </Label>
               <div className="mt-1.5">
                 <CategoryPicker
@@ -73,14 +77,14 @@ export default function PatientProfileTab({ patient, onSaved }) {
           const Icon = f.icon;
           return (
             <div key={f.key}>
-              <Label className="flex items-center gap-1.5 text-xs text-slate-500 dark:text-slate-400">
-                <Icon className="h-3.5 w-3.5" /> {f.label}
+              <Label className="flex items-center gap-1.5 text-xs text-[#9FB3C6]">
+                <Icon className="h-3.5 w-3.5 text-[#20D5B5]" /> {f.label}
               </Label>
               <Textarea
                 value={form[f.key]}
                 onChange={(e) => update(f.key, e.target.value)}
                 placeholder={f.placeholder}
-                className="mt-1 rounded-xl dark:bg-slate-800 dark:border-slate-700 dark:text-slate-100"
+                className="mt-1 rounded-xl bg-[#0B131D] border-[#27394B] text-[#EAF2F8]"
                 rows={2}
               />
             </div>
@@ -91,7 +95,7 @@ export default function PatientProfileTab({ patient, onSaved }) {
           <Button onClick={save} disabled={saving} className="flex-1 rounded-xl">
             {saving ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />} Salvar
           </Button>
-          <Button onClick={() => setEditing(false)} variant="outline" className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+          <Button onClick={() => setEditing(false)} variant="outline" className="rounded-xl">
             Cancelar
           </Button>
         </div>
@@ -104,30 +108,30 @@ export default function PatientProfileTab({ patient, onSaved }) {
 
   return (
     <div className="space-y-3">
-      <Button onClick={startEdit} variant="outline" className="w-full rounded-2xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-300">
+      <Button onClick={startEdit} variant="outline" className="w-full rounded-2xl">
         {hasData ? "Editar perfil clínico" : "Preencher perfil clínico"}
       </Button>
       {allFields.map((f) => {
         const Icon = f.icon;
         const value = patient[f.key];
         return (
-          <div key={f.key} className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-3">
+          <div key={f.key} className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-3">
             <div className="flex items-center gap-2">
-              <Icon className="h-4 w-4 text-slate-400 dark:text-slate-400" />
-              <p className="text-xs font-semibold uppercase tracking-wide text-slate-500 dark:text-slate-400">{f.label}</p>
+              <Icon className="h-4 w-4 text-[#20D5B5]" />
+              <p className="text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">{f.label}</p>
             </div>
             {value ? (
               f.catalog ? (
                 <div className="mt-1.5 flex flex-wrap gap-1.5">
                   {String(value).split(",").map((s) => s.trim()).filter(Boolean).map((item) => (
-                    <span key={item} className="rounded-full bg-teal-50 dark:bg-teal-950/60 border border-teal-200 dark:border-teal-800 px-2 py-0.5 text-xs text-teal-700 dark:text-teal-300">{item}</span>
+                    <span key={item} className="rounded-full bg-[#20D5B5]/15 border border-[#20D5B5]/30 px-2.5 py-0.5 text-xs text-[#20D5B5]">{item}</span>
                   ))}
                 </div>
               ) : (
-                <p className="mt-1.5 text-sm text-slate-700 dark:text-slate-200 whitespace-pre-wrap">{value}</p>
+                <p className="mt-1.5 text-sm text-[#EAF2F8] whitespace-pre-wrap">{value}</p>
               )
             ) : (
-              <p className="mt-1.5 text-sm text-slate-400 dark:text-slate-600 italic">Não informado</p>
+              <p className="mt-1.5 text-sm text-[#8A9DB1] italic">Não informado</p>
             )}
           </div>
         );

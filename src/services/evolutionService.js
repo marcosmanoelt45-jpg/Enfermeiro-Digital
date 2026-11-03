@@ -87,25 +87,18 @@ export const evolutionService = {
       saveLocalEvolutions(list);
       createdRecord = payload;
     } else {
-      try {
-        const { data, error } = await supabase
-          .from('evolutions')
-          .insert(payload)
-          .select()
-          .single();
-        if (error) throw error;
-        createdRecord = {
-          ...data,
-          created_date: data.created_at,
-          updated_date: data.updated_at,
-        };
-      } catch {
-        const list = getLocalEvolutions();
-        payload.id = 'evolution-' + Math.random().toString(36).substring(2, 9);
-        list.unshift(payload);
-        saveLocalEvolutions(list);
-        createdRecord = payload;
-      }
+      const { created_date, updated_date, created_at, updated_at, ...dbPayload } = payload;
+      const { data, error } = await supabase
+        .from('evolutions')
+        .insert(dbPayload)
+        .select()
+        .single();
+      if (error) throw new Error(error.code === '42501' ? 'Sem permissão para esta ação.' : error.message);
+      createdRecord = {
+        ...data,
+        created_date: data.created_at,
+        updated_date: data.updated_at,
+      };
     }
 
     await auditService.log({
@@ -128,52 +121,36 @@ export const evolutionService = {
       return list[idx];
     }
 
-    try {
-      const { data, error } = await supabase
-        .from('evolutions')
-        .update({ ...updates, updated_at: new Date().toISOString() })
-        .eq('id', id)
-        .select()
-        .single();
+    const { data, error } = await supabase
+      .from('evolutions')
+      .update({ ...updates, updated_at: new Date().toISOString() })
+      .eq('id', id)
+      .select()
+      .single();
 
-      if (error) throw error;
-      return {
-        ...data,
-        created_date: data.created_at,
-        updated_date: data.updated_at,
-      };
-    } catch {
-      const list = getLocalEvolutions();
-      const idx = list.findIndex((e) => e.id === id);
-      if (idx === -1) throw new Error('Evolução não encontrada');
-      list[idx] = { ...list[idx], ...updates, updated_at: new Date().toISOString(), updated_date: new Date().toISOString() };
-      saveLocalEvolutions(list);
-      return list[idx];
-    }
+    if (error) throw new Error(error.code === '42501' ? 'Sem permissão para esta ação.' : error.message);
+    return {
+      ...data,
+      created_date: data.created_at,
+      updated_date: data.updated_at,
+    };
   },
 
   // Fluxo de Assinatura Eletrônica Avançada (Lei 14.063/2020 & COFEN 736/2024)
+  // No Supabase, quem assina, quando e o hash são definidos pelo trigger do banco (migration 008),
+  // que também grava a auditoria. O cliente só pede a assinatura.
   async signEvolution(evolutionId, customCoren = null) {
-    const user = await authService.getCurrentUser();
-    const signerCoren = customCoren || user?.coren || 'COREN NÃO INFORMADO';
-    const signerName = user?.name || user?.full_name || 'Enfermeiro Responsável';
-    const timestamp = new Date().toISOString();
-
-    // Obter dados da evolução para cálculo do hash
-    let evolution;
-    if (!isSupabaseConfigured()) {
-      const list = getLocalEvolutions();
-      evolution = list.find((e) => e.id === evolutionId);
-    } else {
-      try {
-        const { data } = await supabase.from('evolutions').select('*').eq('id', evolutionId).single();
-        evolution = data;
-      } catch {
-        const list = getLocalEvolutions();
-        evolution = list.find((e) => e.id === evolutionId);
-      }
+    if (isSupabaseConfigured()) {
+      const updates = { signed: true };
+      if (customCoren) updates.signer_coren = customCoren;
+      return this.update(evolutionId, updates);
     }
 
+    // Modo offline: hash calculado no aparelho, sem validade de assinatura.
+    const user = await authService.getCurrentUser();
+    const signerCoren = customCoren || user?.coren || 'COREN NÃO INFORMADO';
+    const timestamp = new Date().toISOString();
+    const evolution = getLocalEvolutions().find((e) => e.id === evolutionId);
     if (!evolution) throw new Error('Evolução não encontrada');
 
     const hash = await generateEvolutionHash({
@@ -186,26 +163,21 @@ export const evolutionService = {
       timestamp,
     });
 
-    const signatureUpdates = {
+    const updated = await this.update(evolutionId, {
       signed: true,
       signed_by: user?.id || null,
-      signer_name: signerName,
+      signer_name: user?.name || user?.full_name || 'Enfermeiro Responsável',
       signer_coren: signerCoren,
       signed_at: timestamp,
       signature_hash_sha256: hash,
-    };
-
-    const updated = await this.update(evolutionId, signatureUpdates);
+      signature_origin: 'local',
+    });
 
     await auditService.log({
       action: 'SIGN',
       entity_type: 'evolution',
       entity_id: evolutionId,
-      details: {
-        hash,
-        signer_coren: signerCoren,
-        timestamp,
-      },
+      details: { hash, signer_coren: signerCoren, timestamp },
     }).catch(() => {});
 
     return updated;
@@ -216,13 +188,8 @@ export const evolutionService = {
       const list = getLocalEvolutions().filter((e) => e.id !== id);
       saveLocalEvolutions(list);
     } else {
-      try {
-        const { error } = await supabase.from('evolutions').delete().eq('id', id);
-        if (error) throw error;
-      } catch {
-        const list = getLocalEvolutions().filter((e) => e.id !== id);
-        saveLocalEvolutions(list);
-      }
+      const { error } = await supabase.from('evolutions').delete().eq('id', id);
+      if (error) throw new Error(error.code === '42501' ? 'Sem permissão para esta ação.' : error.message);
     }
 
     await auditService.log({

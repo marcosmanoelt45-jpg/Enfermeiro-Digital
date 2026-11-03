@@ -10,6 +10,10 @@
 
 export function getClinicalQuestionPair(category, patientInitials, userDiagnosis, vitalsText, vitals, variantIndex = 0) {
   const { paSis, paDia, fc, fr, tax, sat } = vitals;
+  // O enunciado só chama de "taquicardia", "hipoxemia" ou "hipotensão" o que os números confirmam.
+  const fcTxt = Number(fc) > 100 ? `taquicardia (${fc} bpm)` : `FC de ${fc} bpm`;
+  const satTxt = Number(sat) < 94 ? `hipoxemia (SatO₂ ${sat}%)` : `SatO₂ de ${sat}%`;
+  const paTxt = Number(paSis) < 90 ? `hipotensão (PA ${paSis}x${paDia} mmHg)` : `PA de ${paSis}x${paDia} mmHg`;
 
   switch (category) {
     case "cardiovascular": {
@@ -259,7 +263,7 @@ export function getClinicalQuestionPair(category, patientInitials, userDiagnosis
           q2: {
             id: 2,
             category: "Fisiopatologia & Diagnóstico Crítico",
-            questionStem: `Correlacionando a taquicardia (${fc} bpm) e a hipoxemia (${sat}%) no quadro de ${userDiagnosis} do Paciente ${patientInitials}, qual mecanismo fisiopatológico fundamenta o raciocínio diagnóstico?`,
+            questionStem: `Correlacionando ${fcTxt} e ${satTxt} no quadro de ${userDiagnosis} do Paciente ${patientInitials}, qual mecanismo fisiopatológico fundamenta o raciocínio diagnóstico?`,
             attendingTip: "A oclusão do leito vascular arterial pulmonar cria alvéolos ventilados porém não perfundidos (aumento do espaço morto alveolar).",
             options: [
               {
@@ -474,7 +478,7 @@ export function getClinicalQuestionPair(category, patientInitials, userDiagnosis
           q2: {
             id: 2,
             category: "Fisiopatologia & Diagnóstico Crítico",
-            questionStem: `Considerando o quadro de ${userDiagnosis} no Paciente ${patientInitials} com taquicardia de ${fc} bpm e hipotensão, qual mecanismo fisiopatológico fundamenta o choque distributivo séptico?`,
+            questionStem: `Considerando o quadro de ${userDiagnosis} no Paciente ${patientInitials} com ${fcTxt} e ${paTxt}, qual mecanismo fisiopatológico fundamenta o choque distributivo séptico?`,
             attendingTip: "A resposta imune desregulada deflagra tempestade de citocinas inflamatórias com vasodilatação patológica sistêmica e perda da barreira endotelial.",
             options: [
               {
@@ -857,7 +861,7 @@ export function getClinicalQuestionPair(category, patientInitials, userDiagnosis
                 title: "Mobilidade Física Prejudicada Secundária a Fratura: Perda total da capacidade motora por fratura óssea sem repercussão hidroeletrolítica.",
                 isCorrect: false,
                 whyCorrect: null,
-                whyDistractor: "Incompatibilidade de Queixa: O caso clínico versa sobre quadro clínico e metabólico de desidratação, e não trauma ortopédico."
+                whyDistractor: "Incompatibilidade de Queixa: nada no caso descreve trauma ortopédico; o diagnóstico precisa partir dos achados relatados."
               },
               {
                 title: "Nutrição Desequilibrada: Ingestão Maior que as Necessidades Corporais: Obesidade hipercalórica simples sem relação com o balanço hídrico agudo.",

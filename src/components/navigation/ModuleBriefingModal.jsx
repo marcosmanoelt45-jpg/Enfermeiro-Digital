@@ -40,7 +40,7 @@ const MODULE_DATA = {
     actions: [
       { id: "start", label: "Começar Novo (Manual Guiado)", desc: "Preenchimento passo a passo com sliders de precisão", icon: FileText, primary: true, query: "?mode=manual" },
       { id: "continue", label: "Começar por Áudio (Voz)", desc: "Relate o caso falando que o Enfere extrai com IA", icon: Mic, primary: false, query: "?mode=audio" },
-      { id: "review", label: "Revisão dos Casos Montados", desc: "Ver os casos que você já estruturou na plataforma", icon: RotateCcw, primary: false, query: "?mode=library" }
+      { id: "review", label: "Revisão dos Casos Montados", desc: "Ver os casos que você já estruturou na plataforma", icon: RotateCcw, primary: false, path: "/banco-casos" }
     ]
   },
   casos: {
@@ -61,7 +61,7 @@ const MODULE_DATA = {
     category: "Comunicação Segura & Simulação",
     badge: "Meta 2 OMS • SBAR Multimodal",
     icon: ArrowRightLeft,
-    speech: "A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) evita 80% das falhas de comunicação. Como deseja treinar hoje?",
+    speech: "A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) reduz falhas de comunicação na transição do cuidado (Meta Internacional 2 de Segurança do Paciente). Como deseja treinar hoje?",
     targetPath: "/passagem-plantao",
     isSbarSpecial: true,
     actions: [
@@ -105,25 +105,25 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
   return (
     <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-950/60 backdrop-blur-sm animate-in fade-in">
       <div
-        className="w-full sm:max-w-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-t-[32px] sm:rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden text-slate-800 dark:text-slate-100 transition-all"
+        className="w-full sm:max-w-xl bg-[#131F2E] border border-[#1F3045] rounded-t-[32px] sm:rounded-3xl shadow-2xl max-h-[92vh] flex flex-col overflow-hidden text-slate-100 transition-all"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Topo com Título e Badge */}
-        <div className="p-5 border-b border-slate-100 dark:border-slate-800/80 bg-gradient-to-r from-teal-50 via-white to-emerald-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-teal-950/20 flex items-center justify-between">
+        <div className="p-5 border-b border-slate-800/80 bg-gradient-to-r from-teal-50 via-white to-emerald-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-teal-950/20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 text-teal-700 dark:text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
+            <div className="w-12 h-12 rounded-2xl bg-teal-950/80 border border-teal-800 text-teal-400 flex items-center justify-center shrink-0 shadow-sm">
               <IconComp className="w-6 h-6 stroke-[2.2]" />
             </div>
             <div>
               <div className="flex items-center gap-2">
-                <h3 className="text-base font-black text-slate-900 dark:text-white leading-tight">
+                <h3 className="text-base font-black text-white leading-tight">
                   {data.title}
                 </h3>
-                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-100 dark:bg-teal-950 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-950 text-teal-300 border border-teal-800">
                   {data.badge}
                 </span>
               </div>
-              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium">
+              <p className="text-xs text-[#9FB3C6] font-medium">
                 {data.category}
               </p>
             </div>
@@ -134,25 +134,25 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
               triggerHaptic(20);
               onClose();
             }}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition"
+            className="p-2 rounded-xl text-[#9FB3C6] hover:text-slate-200 hover:bg-slate-800 transition"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Card do Goti IA com Fala Explicativa da Aba */}
-        <div className="p-4 sm:p-5 bg-teal-50/50 dark:bg-slate-950/50 border-b border-slate-100 dark:border-slate-800 flex items-start gap-3.5">
+        <div className="p-4 sm:p-5 bg-slate-950/50 border-b border-[#1F3045] flex items-start gap-3.5">
           <div className="shrink-0 -mt-0.5">
-            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shadow-xs">
+            <div className="w-11 h-11 rounded-2xl bg-gradient-to-br from-teal-600 to-emerald-700 text-white flex items-center justify-center shadow-sm">
               <IconComp className="w-5 h-5 text-white" />
             </div>
           </div>
           <div className="flex-1 space-y-1">
-            <div className="flex items-center gap-1.5 text-xs font-bold text-teal-800 dark:text-teal-300">
-              <ShieldCheck className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+            <div className="flex items-center gap-1.5 text-xs font-bold text-teal-300">
+              <ShieldCheck className="w-4 h-4 text-teal-400" />
               <span>Diretrizes do Goti</span>
             </div>
-            <p className="text-xs sm:text-sm text-slate-700 dark:text-slate-300 leading-relaxed font-medium">
+            <p className="text-xs sm:text-sm text-slate-300 leading-relaxed font-medium">
               "{data.speech}"
             </p>
           </div>
@@ -160,7 +160,7 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
 
         {/* Ações / Escolha de Modalidade de Estudo */}
         <div className="p-4 sm:p-5 space-y-3 overflow-y-auto">
-          <p className="text-xs font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
+          <p className="text-xs font-bold uppercase tracking-wider text-[#9FB3C6]">
             Selecione como deseja praticar:
           </p>
 
@@ -171,10 +171,10 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
                 <button
                   key={act.id}
                   onClick={() => handleActionClick(act)}
-                  className={`w-full p-3.5 sm:p-4 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all active:scale-98 ${
+                  className={`w-full p-3.5 sm:p-4 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all active:scale-[0.98] ${
                     act.primary
-                      ? "bg-teal-700 hover:bg-teal-800 text-white border-teal-700 shadow-md shadow-teal-900/15"
-                      : "bg-white dark:bg-slate-900 hover:border-teal-400 dark:hover:border-teal-600 border-slate-200/80 dark:border-slate-800 text-slate-800 dark:text-slate-200"
+                      ? "bg-[#20D5B5] text-[#06302E] hover:brightness-105 border-[#149F86] shadow-md shadow-teal-900/15"
+                      : "bg-[#131F2E] hover:border-teal-600 border-[#1F3045] text-slate-200"
                   }`}
                 >
                   <div className="flex items-center gap-3">
@@ -182,22 +182,22 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
                       className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                         act.primary
                           ? "bg-white/20 text-white"
-                          : "bg-teal-50 dark:bg-teal-950 text-teal-700 dark:text-teal-400 border border-teal-100 dark:border-teal-800"
+                          : "bg-teal-950 text-teal-400 border border-teal-800"
                       }`}
                     >
                       <ActionIcon className="w-5 h-5 stroke-[2.2]" />
                     </div>
                     <div>
-                      <span className={`text-xs sm:text-sm font-bold block ${act.primary ? "text-white" : "text-slate-900 dark:text-white"}`}>
+                      <span className={`text-xs sm:text-sm font-bold block ${act.primary ? "text-white" : "text-white"}`}>
                         {act.label}
                       </span>
-                      <span className={`text-[11px] block mt-0.5 leading-snug ${act.primary ? "text-teal-100" : "text-slate-500 dark:text-slate-400"}`}>
+                      <span className={`text-[11px] block mt-0.5 leading-snug ${act.primary ? "text-teal-100" : "text-[#9FB3C6]"}`}>
                         {act.desc}
                       </span>
                     </div>
                   </div>
 
-                  <ArrowRight className={`w-4 h-4 shrink-0 ${act.primary ? "text-white" : "text-slate-400"}`} />
+                  <ArrowRight className={`w-4 h-4 shrink-0 ${act.primary ? "text-white" : "text-[#9FB3C6]"}`} />
                 </button>
               );
             })}
@@ -205,7 +205,7 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
         </div>
 
         {/* Rodapé Informativo */}
-        <div className="p-3.5 bg-slate-50 dark:bg-slate-950 border-t border-slate-100 dark:border-slate-800 flex items-center justify-between text-[11px] text-slate-500 dark:text-slate-400">
+        <div className="p-3.5 bg-[#0E1722] border-t border-[#1F3045] flex items-center justify-between text-[11px] text-[#9FB3C6]">
           <span>Ambiente de Simulação Enfere</span>
           <span>Prática Baseada em Evidências</span>
         </div>

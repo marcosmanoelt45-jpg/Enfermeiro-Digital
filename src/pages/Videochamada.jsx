@@ -11,9 +11,11 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
-import { PACIENTES, gerarCasoAleatorio } from "@/data/simuladorCasosData";
+import { PACIENTES, CASOS_SIMULADOR, gerarCasoAleatorio } from "@/data/simuladorCasosData";
 import { falar, pararFala } from "@/services/simuladorVozService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
+import { toast } from "@/components/ui/use-toast";
+import { Button } from "@/components/ui/button";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
 import { celebrate } from "@/lib/celebrate";
 import { vibrate } from "@/lib/motion";
@@ -22,54 +24,11 @@ import PacienteVideoStage from "@/components/simulador/PacienteVideoStage";
 import FalaLegendaBubble from "@/components/simulador/FalaLegendaBubble";
 import PlurallTopBar from "@/components/simulador/PlurallTopBar";
 import PlurallQuestionCard from "@/components/simulador/PlurallQuestionCard";
+import { TOPICOS_PRATICA } from "@/data/simuladorTopicos";
 import RevisaoFinalModal from "@/components/simulador/RevisaoFinalModal";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { History } from "lucide-react";
 
-export const TOPICOS_PRATICA = [
-  {
-    id: "calculo",
-    titulo: "Cálculo de Medicamentos",
-    descricao: "Regras de três, gotejamento (macrogotas/microgotas) e vazão em BIC",
-    tags: ["cálc", "calculo", "medicamento", "dose", "gotejamento", "bic", "solucao", "soro"],
-    badge: "Farmacologia"
-  },
-  {
-    id: "curativo",
-    titulo: "Curativos e Lesões por Pressão",
-    descricao: "Estadiamento NPUAP, técnica asséptica, coberturas e desbridamento",
-    tags: ["curat", "curativo", "ferida", "pressao", "npuap", "lesao", "pele", "estagio", "braden"],
-    badge: "Cirúrgica"
-  },
-  {
-    id: "acesso_venoso",
-    titulo: "Punção Venosa e Flebite",
-    descricao: "Terapia infusional, escalas da INS, técnica push-pause e complicações",
-    tags: ["punc", "puncao", "venosa", "flebite", "acesso", "cateter", "ins", "veia", "infiltracao"],
-    badge: "Terapia EV"
-  },
-  {
-    id: "farmaco",
-    titulo: "Farmacologia Clínica e Diluições",
-    descricao: "Reconstituição, estabilidade, vias de administração e segurança do paciente",
-    tags: ["farm", "farmaco", "diluicao", "antibiotico", "ampola", "reconstituicao"],
-    badge: "Medicamentos"
-  },
-  {
-    id: "sinais_vitais",
-    titulo: "Sinais Vitais e Semiologia",
-    descricao: "Parâmetros hemodinâmicos, saturação, pulsos periféricos e perfusão",
-    tags: ["sin", "sinais", "vitais", "pa", "pressao", "temperatura", "spo2", "pulso"],
-    badge: "Semiologia"
-  },
-  {
-    id: "todos",
-    titulo: "Geral (Todos os Temas Clínicos)",
-    descricao: "Simulação ampla integrando casos cirúrgicos e de clínica médica",
-    tags: ["geral", "todos", "completo", "atendimento", "misto"],
-    badge: "Intensivo"
-  }
-];
 
 export default function Videochamada() {
   const navigate = useNavigate();
@@ -107,7 +66,16 @@ export default function Videochamada() {
   const [startTime, setStartTime] = useState(() => Date.now());
 
   // Áudio, Fala e Vídeo do Paciente
-  const [soundEnabled, setSoundEnabled] = useState(true);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    try {
+      return localStorage.getItem("enfere_videochamada_som") !== "0";
+    } catch {
+      return true;
+    }
+  });
+  // Lido dentro de executarFala: ligar ou desligar o som não reinicia a pergunta.
+  const soundRef = useRef(soundEnabled);
+  const [modoSessao, setModoSessao] = useState("normal");
   const [isSpeaking, setIsSpeaking] = useState(false);
   const [activeWordIndex, setActiveWordIndex] = useState(-1);
   const [clipeAtivo, setClipeAtivo] = useState("fala"); // 'fala' | 'acerto' | 'erro'
@@ -145,15 +113,31 @@ export default function Videochamada() {
 
   const isReadOnly = stepIndex < maxStepAlcancado && estadoAtual.isFinalizada;
 
+  // Quantas questões cada tema tem nos dois pacientes (o tema "todos" soma tudo).
+  const questoesPorTema = useMemo(() => {
+    const contagem = {};
+    let total = 0;
+    for (const caso of Object.values(CASOS_SIMULADOR)) {
+      for (const q of caso?.passos || []) {
+        if (!q.categoriaPratica) continue;
+        contagem[q.categoriaPratica] = (contagem[q.categoriaPratica] || 0) + 1;
+        total += 1;
+      }
+    }
+    return { ...contagem, todos: total };
+  }, []);
+
   // Sugestões inteligentes de tópicos com busca preditiva
   const sugestoesTopicos = useMemo(() => {
-    const term = searchTerm.toLowerCase().trim();
+    // Sem acento e sem casar pedaços curtos ("pa" dentro de "capacidade").
+    const norm = (v) => String(v || "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").trim();
+    const term = norm(searchTerm);
     if (!term) return TOPICOS_PRATICA;
     return TOPICOS_PRATICA.filter(
       (t) =>
-        t.titulo.toLowerCase().includes(term) ||
-        t.descricao.toLowerCase().includes(term) ||
-        t.tags.some((tag) => tag.includes(term) || term.includes(tag))
+        norm(t.titulo).includes(term) ||
+        norm(t.descricao).includes(term) ||
+        (term.length >= 3 && t.tags.some((tag) => norm(tag).startsWith(term)))
     );
   }, [searchTerm]);
 
@@ -173,7 +157,7 @@ export default function Videochamada() {
       setActiveWordIndex(-1);
 
       falar(texto, pacienteId, {
-        soundEnabled,
+        soundEnabled: soundRef.current,
         customAudioFile,
         onStart: () => {
           if (mountedRef.current) setIsSpeaking(true);
@@ -189,7 +173,7 @@ export default function Videochamada() {
         }
       });
     },
-    [pacienteId, soundEnabled, emSessao]
+    [pacienteId, emSessao]
   );
 
   // Disparar fala ao trocar de questão SOMENTE se estiver em sessão ativa
@@ -211,11 +195,21 @@ export default function Videochamada() {
   }, [searchParams]);
 
   // Iniciar Atendimento com parâmetros selecionados
-  function handleIniciarSessaoPratica({ mode, categoria, topicoNome }) {
+  function handleIniciarSessaoPratica({ mode, categoria, revisaoOverride }) {
     pararFala();
+    setModoSessao(mode);
 
-    // Sorteia aleatoriamente Marcus ou Teresinha
-    const novoPaciente = Math.random() < 0.5 ? "marcus" : "teresinha";
+    // Com tema escolhido, sorteia só entre pacientes que têm questões suficientes desse tema
+    // (cada paciente cobre temas diferentes).
+    const sortear = (ids) => ids[Math.floor(Math.random() * ids.length)];
+    const elegiveis = ["marcus", "teresinha"].filter(
+      (id) => (CASOS_SIMULADOR[id]?.passos || []).filter((q) => q.categoriaPratica === categoria).length >= 4
+    );
+    const temaEspecifico = categoria && categoria !== "todos" && mode !== "revisao";
+    if (temaEspecifico && elegiveis.length === 0) {
+      toast({ title: "Poucas questões deste tema", description: "Ainda não há questões suficientes; a sessão será mista." });
+    }
+    const novoPaciente = temaEspecifico && elegiveis.length ? sortear(elegiveis) : sortear(["marcus", "teresinha"]);
     setPacienteId(novoPaciente);
 
     let labelsModo = "Atividade Normal (7 a 9)";
@@ -224,7 +218,10 @@ export default function Videochamada() {
     setModalidadeAtiva(labelsModo);
     setCategoriaAtiva(categoria);
 
-    const revisaoQueue = clinicalHistoryService.getQuestoesRevisao(user?.id);
+    // "Refazer só erradas" revisa as questões desta sessão, não a fila inteira do histórico.
+    const revisaoQueue = revisaoOverride?.length
+      ? revisaoOverride
+      : clinicalHistoryService.getQuestoesRevisao(user?.id);
     const novoCaso = gerarCasoAleatorio(novoPaciente, {
       mode,
       categoria,
@@ -309,8 +306,7 @@ export default function Videochamada() {
             clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
           }
         } else {
-          // Acertou na 2ª tentativa (após dica amarela): Finaliza como amarela resolvida
-          setAcertos((prev) => prev + 1);
+          // Acertou na 2ª tentativa (após dica amarela): continua contando só como amarela, não como acerto de primeira
           setQuestaoStates((prev) => ({
             ...prev,
             [stepIndex]: {
@@ -321,7 +317,8 @@ export default function Videochamada() {
               selectedChoice: escolhaAluno
             }
           }));
-          if (questaoAtual) {
+          // Fora da revisão, a amarela vai para a fila ao salvar a sessão; na revisão, acertar resolve.
+          if (questaoAtual && modoSessao === "revisao") {
             clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
           }
         }
@@ -373,6 +370,13 @@ export default function Videochamada() {
     pararFala();
 
     if (stepIndex >= totalQuestoes) {
+      // Só fecha a sessão com todas respondidas: volta para a primeira pendente.
+      const pendentes = Array.from({ length: totalQuestoes }, (_, i) => i + 1).filter((n) => !questaoStates[n]?.isFinalizada);
+      if (pendentes.length > 0) {
+        setStepIndex(pendentes[0]);
+        toast({ title: `Faltam ${pendentes.length} questões`, description: "Responda todas para ver o resumo final." });
+        return;
+      }
       finalizarAtendimento();
     } else {
       const nextStep = stepIndex + 1;
@@ -401,7 +405,11 @@ export default function Videochamada() {
   function finalizarAtendimento() {
     const tempoTotalSegundos = Math.max(1, Math.round((Date.now() - startTime) / 1000));
     const paciente = PACIENTES[pacienteId] || PACIENTES.marcus;
-    const taxaAproveitamento = Math.round((acertos / totalQuestoes) * 100);
+    // Acerto de primeira vale 1; acerto na segunda tentativa vale meio.
+    const estados = Object.values(questaoStates);
+    const verdes = estados.filter((st) => st.status === "verde").length;
+    const amarelasResolvidas = estados.filter((st) => st.status === "amarela" && st.isFinalizada).length;
+    const taxaAproveitamento = Math.round(((verdes + 0.5 * amarelasResolvidas) / totalQuestoes) * 100);
 
     const listaQuestoesFinal = todasQuestoes.map((q, idx) => {
       const qNum = idx + 1;
@@ -409,7 +417,7 @@ export default function Videochamada() {
       return {
         ...q,
         numQuestao: qNum,
-        status: st.status === "aberta" ? "amarela" : st.status,
+        status: st.isFinalizada ? st.status : "pulada",
         escolhaAluno: st.selectedChoice,
         alternativaEscolhidaTexto: st.selectedChoice !== null ? q.opcoes[st.selectedChoice] : null,
         gabaritoTexto: q.opcoes[q.correta]
@@ -420,6 +428,7 @@ export default function Videochamada() {
       pacienteId: paciente.id,
       pacienteNome: paciente.nome,
       modalidade: modalidadeAtiva,
+      modo: modoSessao,
       totalQuestoes,
       acertos,
       amarelas,
@@ -451,14 +460,18 @@ export default function Videochamada() {
 
   // Alternar som
   function handleToggleSound() {
-    setSoundEnabled((prev) => {
-      const next = !prev;
-      if (!next) {
-        pararFala();
-        setIsSpeaking(false);
-      }
-      return next;
-    });
+    const next = !soundEnabled;
+    soundRef.current = next;
+    setSoundEnabled(next);
+    try {
+      localStorage.setItem("enfere_videochamada_som", next ? "1" : "0");
+    } catch {
+      // Sem armazenamento: a preferência vale só nesta visita.
+    }
+    if (!next) {
+      pararFala();
+      setIsSpeaking(false);
+    }
   }
 
   // Repetir fala do paciente
@@ -538,8 +551,7 @@ export default function Videochamada() {
                     }
                   }}
                   placeholder="Digite o tema (ex: Cálc, Curativo, Punção...)"
-                  className="w-full pl-11 pr-4 py-3 bg-[#131F2E] border border-[#27394B] rounded-2xl text-sm font-semibold text-white placeholder-[#9FB3C6]/60 focus:outline-hidden focus:border-[#20D5B5] focus:ring-1 focus:ring-[#20D5B5] transition shadow-inner"
-                  autoFocus
+                  className="w-full pl-11 pr-4 py-3 bg-[#131F2E] border border-[#27394B] rounded-2xl text-sm font-semibold text-white placeholder-[#9FB3C6]/60 focus:outline-none focus:border-[#20D5B5] focus:ring-1 focus:ring-[#20D5B5] transition shadow-inner"
                 />
               </div>
             </div>
@@ -549,6 +561,14 @@ export default function Videochamada() {
               <div className="text-xs font-mono font-bold text-[#9FB3C6] uppercase tracking-wider px-1 mb-2">
                 Temas Clínicos Disponíveis
               </div>
+              {sugestoesTopicos.length === 0 && (
+                <div className="rounded-2xl border border-dashed border-[#27394B] p-4 text-center text-sm text-[#9FB3C6]" role="status">
+                  <p>Nenhum tema para "{searchTerm.trim()}".</p>
+                  <Button variant="ghost" size="sm" className="mt-2" onClick={() => setSearchTerm("")}>
+                    Ver todos os temas
+                  </Button>
+                </div>
+              )}
               {sugestoesTopicos.map((topico) => {
                 const isSelected = topicoSelecionado?.id === topico.id;
                 return (
@@ -561,7 +581,7 @@ export default function Videochamada() {
                     }}
                     className={`w-full text-left p-3.5 rounded-2xl border transition-all flex items-center justify-between gap-3 cursor-pointer ${
                       isSelected
-                        ? "bg-[#20D5B5]/15 border-[#20D5B5] shadow-xs"
+                        ? "bg-[#20D5B5]/15 border-[#20D5B5] shadow-sm"
                         : "bg-[#131F2E] border-[#1F3045] hover:border-[#20D5B5]/50 hover:bg-[#16222E]"
                     }`}
                   >
@@ -576,6 +596,11 @@ export default function Videochamada() {
                       </div>
                       <p className="text-[11px] text-[#9FB3C6] line-clamp-1">
                         {topico.descricao}
+                      </p>
+                      <p className={`mt-1 text-[11px] font-bold ${(questoesPorTema[topico.id] || 0) >= 4 ? "text-[#20D5B5]" : "text-[#FFC247]"}`}>
+                        {(questoesPorTema[topico.id] || 0) >= 4
+                          ? `${questoesPorTema[topico.id]} questões`
+                          : "Poucas questões · a sessão mistura temas"}
                       </p>
                     </div>
                     {isSelected && (
@@ -642,7 +667,8 @@ export default function Videochamada() {
                     topicoNome: topicoSelecionado?.titulo || "Revisão de Erros"
                   })
                 }
-                className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#FFC247] hover:bg-[#16222E] text-left transition flex items-center justify-between gap-2 cursor-pointer group"
+                disabled={questoesRevisaoPendentes.length === 0}
+                className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] hover:border-[#FFC247] hover:bg-[#16222E] text-left transition flex items-center justify-between gap-2 cursor-pointer group disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:border-[#1F3045] disabled:hover:bg-[#131F2E]"
               >
                 <div>
                   <div className="flex items-center gap-1.5 text-xs font-black text-white group-hover:text-[#FFC247]">
@@ -652,7 +678,7 @@ export default function Videochamada() {
                   <div className="text-[11px] text-[#9FB3C6]">
                     {questoesRevisaoPendentes.length > 0
                       ? `${questoesRevisaoPendentes.length} pendentes`
-                      : "Só erradas"}
+                      : "Sem questões pendentes"}
                   </div>
                 </div>
               </button>
@@ -684,8 +710,11 @@ export default function Videochamada() {
           amarelas={amarelas}
           vermelhas={vermelhas}
           onClose={() => {
-            setEmSessao(false);
+            // Sair no meio descarta as respostas: pede confirmação se já houver alguma.
+            if (respondidasCount > 0 && !window.confirm("Sair do atendimento? O progresso desta sessão será perdido.")) return;
             pararFala();
+            setIsSpeaking(false);
+            setEmSessao(false);
           }}
           soundEnabled={soundEnabled}
           onToggleSound={handleToggleSound}
@@ -732,13 +761,25 @@ export default function Videochamada() {
                       key={qNum}
                       type="button"
                       onClick={() => {
+                        if (qNum > maxStepAlcancado) return;
                         pararFala();
                         setStepIndex(qNum);
                       }}
-                      className={`w-7 h-7 rounded-lg border text-xs font-mono flex items-center justify-center shrink-0 transition cursor-pointer ${dotColor} ${
+                      disabled={qNum > maxStepAlcancado}
+                      aria-disabled={qNum > maxStepAlcancado}
+                      // Chip visual de 28 px com área de toque de 44 px (before:-inset-2).
+                      className={`relative w-7 h-7 rounded-lg border text-xs font-mono flex items-center justify-center shrink-0 transition cursor-pointer before:absolute before:-inset-2 before:content-[''] disabled:cursor-not-allowed ${dotColor} ${
                         isCurrent ? "ring-2 ring-white scale-105 shadow-md" : "hover:border-white/50"
                       }`}
                       title={`Ir para Questão ${qNum}`}
+                      aria-label={`Questão ${qNum}: ${
+                        st.status === "verde" ? "acertou de primeira"
+                          : st.status === "amarela" && st.isFinalizada ? "acertou com dica"
+                          : st.status === "amarela" ? "com dica, em aberto"
+                          : st.status === "vermelha" ? "errou"
+                          : "não respondida"
+                      }`}
+                      aria-current={isCurrent ? "step" : undefined}
                     >
                       {qNum}
                     </button>
@@ -749,19 +790,21 @@ export default function Videochamada() {
                 <button
                   type="button"
                   onClick={handleRepetirFala}
-                  className="px-2 py-1 rounded-lg border border-[#27394B] bg-[#16222E] text-[11px] font-bold text-[#9FB3C6] hover:text-[#20D5B5] flex items-center gap-1 transition cursor-pointer"
+                  className="w-10 h-10 rounded-xl border border-[#27394B] bg-[#16222E] text-[#9FB3C6] hover:text-[#20D5B5] flex items-center justify-center transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                   title="Ouvir pergunta novamente"
+                  aria-label="Ouvir pergunta de novo"
                 >
-                  <RotateCcw className="w-3 h-3" />
+                  <RotateCcw className="w-4 h-4" />
                 </button>
                 {isSpeaking && (
                   <button
                     type="button"
                     onClick={handlePularFala}
-                    className="px-2 py-1 rounded-lg border border-[#27394B] bg-[#16222E] text-[11px] font-bold text-[#9FB3C6] hover:text-white flex items-center gap-1 transition cursor-pointer"
+                    className="w-10 h-10 rounded-xl border border-[#27394B] bg-[#16222E] text-[#9FB3C6] hover:text-white flex items-center justify-center transition cursor-pointer focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                     title="Pular áudio"
+                    aria-label="Pular o áudio"
                   >
-                    <SkipForward className="w-3 h-3" />
+                    <SkipForward className="w-4 h-4" />
                   </button>
                 )}
               </div>
@@ -790,6 +833,7 @@ export default function Videochamada() {
           {/* Card da Questão Plurall com Dica sob demanda e Bloqueio após resposta */}
           {questaoAtual && (
             <PlurallQuestionCard
+              key={`${startTime}-${stepIndex}`}
               questao={questaoAtual}
               numQuestao={stepIndex}
               totalQuestoes={totalQuestoes}
@@ -802,6 +846,7 @@ export default function Videochamada() {
               onVerificar={handleVerificarResposta}
               onProxima={handleProximaQuestao}
               isReadOnly={isReadOnly}
+              hideStem={!isReadOnly}
               isLastQuestion={stepIndex === totalQuestoes}
               hintVisible={Boolean(questaoStates[stepIndex]?.hintVisible)}
               onToggleHint={() => {
@@ -826,7 +871,9 @@ export default function Videochamada() {
             handleIniciarSessaoPratica({
               mode: "revisao",
               categoria: categoriaAtiva,
-              topicoNome: "Revisão de Erros"
+              revisaoOverride: (resumoFinal?.questoes || []).filter(
+                (q) => q.status === "amarela" || q.status === "vermelha"
+              )
             });
           }}
           onNovaPratica={() => {

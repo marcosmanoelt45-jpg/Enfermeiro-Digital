@@ -1,4 +1,5 @@
-import React, { useEffect, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
+import { prefersReducedMotion } from "@/lib/motion";
 import gotiPoseNeutral from "@/assets/goti-pose-neutral.png";
 import gotiPoseWave from "@/assets/goti-pose-wave.png";
 import gotiPoseHappy from "@/assets/goti-pose-happy.png";
@@ -140,35 +141,30 @@ export default function GotiAnimated({
   const canvasRef = useRef(null);
   const videoRef = useRef(null);
   const [isCanvasReady, setIsCanvasReady] = useState(false);
-  const [useWebpFallback, setUseWebpFallback] = useState(false);
+  // Safari/iOS não desenha vídeo com transparência no canvas: usa o WebP animado.
+  const isSafariOrIos = useMemo(
+    () =>
+      typeof navigator !== "undefined" &&
+      (/iPad|iPhone|iPod/.test(navigator.userAgent) || /^((?!chrome|android).)*safari/i.test(navigator.userAgent)),
+    []
+  );
+  // A falha fica presa à fonte que falhou: trocar de pose tenta o vídeo de novo.
+  const [failedSrc, setFailedSrc] = useState(null);
+  const useWebpFallback =
+    !currentPose.videoSrc || isSafariOrIos || prefersReducedMotion() || failedSrc === currentPose.videoSrc;
 
   useEffect(() => {
-    if (!currentPose.videoSrc) {
-      setUseWebpFallback(true);
-      setIsCanvasReady(false);
-      return;
-    }
-
-    const isSafariOrIos =
-      typeof navigator !== "undefined" &&
-      (/iPad|iPhone|iPod/.test(navigator.userAgent) ||
-        /^((?!chrome|android).)*safari/i.test(navigator.userAgent));
-
-    if (isSafariOrIos) {
-      setUseWebpFallback(true);
-      setIsCanvasReady(false);
-      return;
-    }
-
-    setUseWebpFallback(false);
     setIsCanvasReady(false);
+    if (useWebpFallback) return;
 
     const video = videoRef.current;
     const canvas = canvasRef.current;
     if (!video || !canvas) return;
 
-    let animId;
+    const src = currentPose.videoSrc;
+    let animId = null;
     let isActive = true;
+    let running = false;
     let markedReady = false;
 
     video.muted = true;
@@ -181,7 +177,11 @@ export default function GotiAnimated({
     const ctx = canvas.getContext("2d", { alpha: true });
 
     const drawFrame = () => {
-      if (!isActive) return;
+      // Um único loop: para quando o vídeo pausa (fora da tela) e recomeça no "play".
+      if (!isActive || video.paused) {
+        running = false;
+        return;
+      }
       if (video.readyState >= 2) {
         const vw = video.videoWidth;
         const vh = video.videoHeight;
@@ -190,15 +190,13 @@ export default function GotiAnimated({
           const sDim = isWidescreen ? Math.min(vw, Math.floor(vh * 0.96)) : Math.min(vw, vh);
           const sx = isWidescreen ? Math.floor((vw - sDim) / 2) : 0;
           const sy = isWidescreen ? Math.floor(vh * 0.03) : 0;
-          const sw = sDim;
-          const sh = sDim;
 
-          if (canvas.width !== sw || canvas.height !== sh) {
-            canvas.width = sw;
-            canvas.height = sh;
+          if (canvas.width !== sDim || canvas.height !== sDim) {
+            canvas.width = sDim;
+            canvas.height = sDim;
           }
-          ctx.clearRect(0, 0, sw, sh);
-          ctx.drawImage(video, sx, sy, sw, sh, 0, 0, sw, sh);
+          ctx.clearRect(0, 0, sDim, sDim);
+          ctx.drawImage(video, sx, sy, sDim, sDim, 0, 0, sDim, sDim);
 
           if (!markedReady) {
             markedReady = true;
@@ -209,32 +207,43 @@ export default function GotiAnimated({
       animId = requestAnimationFrame(drawFrame);
     };
 
-    const handlePlay = () => {
-      if (isActive) animId = requestAnimationFrame(drawFrame);
+    const startLoop = () => {
+      if (running || !isActive) return;
+      running = true;
+      animId = requestAnimationFrame(drawFrame);
     };
 
-    const handleError = () => {
-      if (isActive) setUseWebpFallback(true);
+    const fail = () => {
+      if (isActive) setFailedSrc(src);
     };
 
-    video.addEventListener("play", handlePlay);
-    video.addEventListener("error", handleError);
+    video.addEventListener("play", startLoop);
+    video.addEventListener("error", fail);
 
-    video.play().catch(() => {
-      if (isActive) setUseWebpFallback(true);
+    // Fora da tela o vídeo pausa e o canvas para de redesenhar.
+    let observer = null;
+    if (typeof IntersectionObserver !== "undefined") {
+      observer = new IntersectionObserver(([entry]) => {
+        if (!isActive) return;
+        if (entry.isIntersecting) video.play().catch(() => {});
+        else video.pause();
+      });
+      observer.observe(canvas.parentElement || canvas);
+    }
+
+    video.play().then(startLoop).catch((err) => {
+      if (err?.name !== "AbortError") fail();
     });
-
-    animId = requestAnimationFrame(drawFrame);
 
     return () => {
       isActive = false;
-      cancelAnimationFrame(animId);
-      if (video) {
-        video.removeEventListener("play", handlePlay);
-        video.removeEventListener("error", handleError);
-      }
+      running = false;
+      if (animId) cancelAnimationFrame(animId);
+      observer?.disconnect();
+      video.removeEventListener("play", startLoop);
+      video.removeEventListener("error", fail);
     };
-  }, [currentPose.videoSrc]);
+  }, [currentPose.videoSrc, useWebpFallback]);
 
   return (
     <div
@@ -255,13 +264,13 @@ export default function GotiAnimated({
             loop
             muted
             playsInline
-            preload="auto"
+            preload="metadata"
             disablePictureInPicture={true}
             disableRemotePlayback={true}
             controls={false}
             tabIndex={-1}
             aria-hidden="true"
-            onError={() => setUseWebpFallback(true)}
+            onError={() => setFailedSrc(currentPose.videoSrc)}
             style={{
               position: "absolute",
               width: "1px",

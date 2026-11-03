@@ -28,7 +28,7 @@ export default function PlurallTopBar({
             <button
               type="button"
               onClick={onVoltar}
-              className="w-9 h-9 rounded-full flex items-center justify-center text-[#9FB3C6] hover:text-white hover:bg-[#16222E] transition cursor-pointer"
+              className="w-11 h-11 rounded-full flex items-center justify-center text-[#9FB3C6] hover:text-white hover:bg-[#16222E] transition cursor-pointer"
               aria-label="Voltar para questão anterior"
               title="Voltar para questão anterior"
             >
@@ -38,7 +38,7 @@ export default function PlurallTopBar({
           <button
             type="button"
             onClick={onClose}
-            className="w-9 h-9 rounded-full flex items-center justify-center text-[#9FB3C6] hover:text-white hover:bg-[#16222E] transition cursor-pointer"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-[#9FB3C6] hover:text-white hover:bg-[#16222E] transition cursor-pointer"
             aria-label="Encerrar simulador"
             title="Encerrar"
           >
@@ -56,7 +56,7 @@ export default function PlurallTopBar({
           <button
             type="button"
             onClick={onToggleSound}
-            className="w-8 h-8 rounded-full flex items-center justify-center text-[#9FB3C6] hover:text-[#20D5B5] bg-[#131F2E] border border-[#27394B] transition cursor-pointer"
+            className="w-11 h-11 rounded-full flex items-center justify-center text-[#9FB3C6] hover:text-[#20D5B5] bg-[#131F2E] border border-[#27394B] transition cursor-pointer"
             aria-label={soundEnabled ? "Desativar áudio" : "Ativar áudio"}
             title={soundEnabled ? "Desativar áudio" : "Ativar áudio"}
           >
@@ -94,6 +94,7 @@ export default function PlurallTopBar({
       <div
         className="w-full h-1.5 rounded-full bg-[#1F3045] mt-2 overflow-hidden flex"
         role="progressbar"
+        aria-label="Progresso do atendimento"
         aria-valuenow={respondidas}
         aria-valuemin={0}
         aria-valuemax={total}

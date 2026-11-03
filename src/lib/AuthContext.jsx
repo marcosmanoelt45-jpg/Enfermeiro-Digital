@@ -40,7 +40,13 @@ export const AuthProvider = ({ children }) => {
       return Boolean(typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_digital_local_user'));
     } catch { return false; }
   });
-  const [isLoadingAuth, setIsLoadingAuth] = useState(() => hasPendingSupabaseOrOAuthSession());
+  // Com uma cópia local do usuário, espera a checagem antes de liberar as rotas protegidas.
+  const [isLoadingAuth, setIsLoadingAuth] = useState(() => {
+    try {
+      if (localStorage.getItem('enfermeiro_digital_local_user')) return true;
+    } catch {}
+    return hasPendingSupabaseOrOAuthSession();
+  });
   const [isLoadingPublicSettings] = useState(false);
   const [authError] = useState(null);
   const [authChecked, setAuthChecked] = useState(() => !hasPendingSupabaseOrOAuthSession());
@@ -88,6 +94,10 @@ export const AuthProvider = ({ children }) => {
           setUser(fullUser);
         }
       } else if (event === 'SIGNED_OUT') {
+        // Saiu (inclusive em outra aba): apaga a cópia local para não reentrar ao recarregar.
+        try {
+          localStorage.removeItem('enfermeiro_digital_local_user');
+        } catch {}
         setUser(null);
         setIsAuthenticated(false);
         setIsLoadingAuth(false);

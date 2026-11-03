@@ -1,5 +1,6 @@
 import { useEffect } from "react";
 import { useLocation, useNavigationType } from "react-router-dom";
+import { prefersReducedMotion } from "@/lib/motion";
 
 const getHashId = (hash) => {
   const rawId = hash.slice(1);
@@ -21,7 +22,11 @@ export default function ScrollToTop() {
     if (hash) {
       const id = getHashId(hash);
       const timer = window.setTimeout(() => {
-        document.getElementById(id)?.scrollIntoView({ behavior: "smooth" });
+        const el = document.getElementById(id);
+        el?.scrollIntoView({ behavior: prefersReducedMotion() ? "auto" : "smooth", block: "start" });
+        // Leitor de tela continua a partir da âncora.
+        if (el && !el.hasAttribute("tabindex")) el.setAttribute("tabindex", "-1");
+        el?.focus({ preventScroll: true });
       }, 50);
       return () => window.clearTimeout(timer);
     }
