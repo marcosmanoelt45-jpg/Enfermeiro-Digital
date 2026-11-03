@@ -7,12 +7,12 @@ export default function RecorderPanel({ recording, seconds, audioUrl, busy, onSt
 
   if (audioUrl) {
     return (
-      <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-6 text-center shadow-sm">
-        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-teal-100 dark:bg-teal-950/60 text-teal-700 dark:text-teal-300">
+      <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-6 text-center shadow-sm">
+        <div className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-full bg-teal-950/60 text-teal-300">
           <AudioLines className="h-7 w-7" />
         </div>
-        <p className="text-sm font-semibold text-slate-800 dark:text-slate-100">Áudio gravado</p>
-        <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">Ouça antes de transcrever, se quiser</p>
+        <p className="text-sm font-semibold text-slate-100">Áudio gravado</p>
+        <p className="mt-0.5 text-xs text-slate-300">Ouça antes de transcrever, se quiser</p>
         <audio src={audioUrl} controls className="mx-auto mt-4 w-full max-w-sm" />
         <Button
           onClick={onTranscribe}
@@ -26,7 +26,7 @@ export default function RecorderPanel({ recording, seconds, audioUrl, busy, onSt
             variant="outline"
             onClick={onReset}
             disabled={busy}
-            className="flex-1 rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="flex-1 rounded-xl border-slate-700 bg-[#131F2E] text-slate-200 hover:bg-slate-800"
           >
             <RotateCcw className="mr-2 h-4 w-4" /> Refazer
           </Button>
@@ -34,7 +34,7 @@ export default function RecorderPanel({ recording, seconds, audioUrl, busy, onSt
             variant="ghost"
             onClick={onManual}
             disabled={busy}
-            className="flex-1 rounded-xl text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+            className="flex-1 rounded-xl text-slate-300 hover:bg-slate-800"
           >
             <Keyboard className="mr-2 h-4 w-4" /> Escrever relato
           </Button>
@@ -44,11 +44,11 @@ export default function RecorderPanel({ recording, seconds, audioUrl, busy, onSt
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-8 text-center shadow-sm">
-      <p className="mb-1 text-sm font-semibold text-slate-800 dark:text-slate-100">
+    <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-8 text-center shadow-sm">
+      <p className="mb-1 text-sm font-semibold text-slate-100">
         {recording ? "Gravando..." : "Toque para começar a gravar"}
       </p>
-      <p className="mb-6 text-xs text-slate-500 dark:text-slate-300">
+      <p className="mb-6 text-xs text-slate-300">
         {recording ? fmtTime(seconds) : "Dite os sinais vitais, escalas e observações do paciente"}
       </p>
       <button
@@ -62,7 +62,7 @@ export default function RecorderPanel({ recording, seconds, audioUrl, busy, onSt
       >
         {recording ? <Square className="h-8 w-8" /> : <Mic className="h-10 w-10" />}
       </button>
-      <p className="mt-6 text-xs text-slate-500 dark:text-slate-300 font-medium">
+      <p className="mt-6 text-xs text-slate-300 font-medium">
         {recording
           ? "Toque no quadrado para parar"
           : "Ex: PA 120 por 80, FC 78, FR 18, Tax 36,5, Sat 96%, dor 7"}

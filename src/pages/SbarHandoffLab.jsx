@@ -40,6 +40,7 @@ import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { toast } from "@/components/ui/use-toast";
 import { celebrate } from "@/lib/celebrate";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { vibrate } from "@/lib/motion";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 import { PRESET_HANDOFF_SCENARIOS } from "@/data/sbarHandoffScenarios";
@@ -796,7 +797,7 @@ export default function SbarHandoffLab() {
                     setActiveTab("guided");
                     setViewMode("workspace");
                   }}
-                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
+                  className="w-full min-h-[64px] p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] hover:bg-[#131F2E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
@@ -821,7 +822,7 @@ export default function SbarHandoffLab() {
                     setToastMessage("Simulação Beira-Leito iniciada! Priorize os dados de emergência do paciente.");
                     setTimeout(() => setToastMessage(""), 3500);
                   }}
-                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
+                  className="w-full min-h-[64px] p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] hover:bg-[#131F2E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
@@ -839,7 +840,7 @@ export default function SbarHandoffLab() {
                 <button
                   type="button"
                   onClick={() => setIsHistoryOpen(true)}
-                  className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
+                  className="w-full min-h-[64px] p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition-[transform,background-color,border-color] duration-150 ease-out active:scale-[0.98] hover:bg-[#131F2E] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
                 >
                   <div className="flex items-center gap-3">
                     <div className="w-10 h-10 rounded-xl bg-[#131F2E] border border-[#1F3045] flex items-center justify-center text-[#20D5B5] shrink-0">
@@ -1690,7 +1691,7 @@ export default function SbarHandoffLab() {
                 <div className="text-right">
                   <span className="text-[10px] font-bold text-teal-300 uppercase block">Índice de Segurança</span>
                   <span className="text-2xl font-extrabold text-[#20D5B5] block leading-none">
-                    {tutorEvaluation.safetyScore}/100
+                    <AnimatedNumber value={Number(tutorEvaluation.safetyScore) || 0} duration={0.8} />/100
                   </span>
                 </div>
                 <div className="h-10 w-px bg-[#149F86]" />

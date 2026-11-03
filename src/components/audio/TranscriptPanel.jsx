@@ -21,11 +21,11 @@ export default function TranscriptPanel({ value, onChange, vitals, onConfirm, on
   }
 
   return (
-    <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm">
+    <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm font-bold text-slate-800 dark:text-slate-100">Relato transcrito</p>
-          <p className="mt-0.5 text-xs text-slate-500 dark:text-slate-300">
+          <p className="text-sm font-bold text-slate-100">Relato transcrito</p>
+          <p className="mt-0.5 text-xs text-slate-300">
             Revise e corrija o texto antes de confirmar — é dele que saem os sinais vitais, escalas e todo o prontuário.
           </p>
         </div>
@@ -36,7 +36,7 @@ export default function TranscriptPanel({ value, onChange, vitals, onConfirm, on
         value={value}
         onChange={(e) => onChange(e.target.value)}
         placeholder="Ex: Paciente chega desacordado com glicemia de 30, frequência respiratória 12, frequência cardíaca 13, pressão arterial 80 por 60, saturação de 80, aparentemente uma lesão na cabeça pós-queda. Sem acompanhante..."
-        className="mt-3 min-h-[140px] rounded-xl text-sm leading-relaxed border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-950 text-slate-800 dark:text-slate-100"
+        className="mt-3 min-h-[140px] rounded-xl text-sm leading-relaxed border-slate-700 bg-[#0E1722] text-slate-100"
       />
 
       <VitalsChips vitals={vitals} text={value} onInsertMissing={handleInsertMissing} />
@@ -45,7 +45,7 @@ export default function TranscriptPanel({ value, onChange, vitals, onConfirm, on
         <Button
           variant="outline"
           onClick={onReset}
-          className="rounded-xl border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800"
+          className="rounded-xl border-slate-700 bg-[#131F2E] text-slate-200 hover:bg-slate-800"
         >
           <RotateCcw className="mr-2 h-4 w-4" /> Refazer
         </Button>
