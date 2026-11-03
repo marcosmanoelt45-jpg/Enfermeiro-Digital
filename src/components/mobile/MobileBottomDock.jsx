@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { AnimatePresence, motion, useDragControls } from 'framer-motion';
+import { AnimatePresence, m as motion, useDragControls } from 'framer-motion';
 import {
   Home,
   ClipboardList,

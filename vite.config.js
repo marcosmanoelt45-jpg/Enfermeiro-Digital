@@ -23,7 +23,7 @@ export default defineConfig({
         manualChunks(id) {
           if (!id.includes('node_modules')) return;
           // Radix e ícones ficam fora dos chunks fixos: assim cada página carrega só o que usa.
-          if (id.includes('framer-motion')) return 'vendor-motion';
+          // framer-motion sem chunk fixo: as features de animação (LazyMotion) viram um chunk carregado depois.
           if (id.includes('@supabase')) return 'vendor-supabase';
           if (id.includes('react-router') || id.includes('@tanstack/react-query')) return 'vendor-router-query';
           if (id.includes('/react/') || id.includes('/react-dom/') || id.includes('scheduler')) return 'vendor-react';

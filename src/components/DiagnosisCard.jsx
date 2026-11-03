@@ -1,5 +1,5 @@
 import React, { useState } from "react";
-import { motion, AnimatePresence } from "framer-motion";
+import { m as motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, Stethoscope, Activity, Target, ExternalLink } from "lucide-react";
 import { SOURCES } from "@/lib/sources";
 

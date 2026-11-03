@@ -1,5 +1,5 @@
 import React from "react";
-import { motion } from "framer-motion";
+import { m as motion } from "framer-motion";
 import { Check, Circle } from "lucide-react";
 import { checkPassword } from "@/lib/passwordPolicy";
 import { spring } from "@/lib/motion";

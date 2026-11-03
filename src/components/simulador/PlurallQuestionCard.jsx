@@ -1,5 +1,5 @@
 import React, { useEffect, useRef, useState } from "react";
-import { motion, useAnimationControls } from "framer-motion";
+import { m as motion, useAnimationControls } from "framer-motion";
 import { ease, shake } from "@/lib/motion";
 import {
   Lightbulb,
