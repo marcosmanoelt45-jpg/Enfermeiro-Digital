@@ -740,7 +740,8 @@ export default function SbarHandoffLab() {
                 <button
                   type="button"
                   onClick={() => navigate("/")}
-                  className="w-8 h-8 rounded-full border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#9FB3C6] hover:text-white flex items-center justify-center transition-colors"
+                  aria-label="Fechar e voltar ao início"
+                  className="w-11 h-11 rounded-full border border-[#1F3045] bg-[#0E1722] hover:bg-[#16222E] text-[#9FB3C6] hover:text-white flex items-center justify-center transition-colors"
                 >
                   <X className="w-4 h-4" />
                 </button>
@@ -901,17 +902,24 @@ export default function SbarHandoffLab() {
 
                 <button
                   type="button"
-                  onClick={handleClearFields}
-                  className="rounded-xl text-[#9FB3C6] hover:text-white px-2 py-1.5 text-xs transition-colors"
+                  onClick={() => {
+                    // Apaga os quatro pilares: pede confirmação se houver texto.
+                    const temTexto = Object.values(sbarData).some((v) => String(v || "").trim());
+                    if (temTexto && !window.confirm("Limpar os quatro campos do SBAR?")) return;
+                    handleClearFields();
+                  }}
+                  aria-label="Limpar campos"
+                  title="Limpar campos"
+                  className="w-11 h-11 rounded-xl text-[#9FB3C6] hover:text-white flex items-center justify-center transition-colors"
                 >
-                  <RotateCcw className="h-3.5 w-3.5" />
+                  <RotateCcw className="h-4 w-4" />
                 </button>
               </div>
             </div>
 
             {/* Notificação Toast */}
             {toastMessage && (
-              <div className="p-3.5 rounded-2xl bg-[#16222E] border border-[#20D5B5]/40 text-white text-xs flex items-center justify-between gap-2 animate-in fade-in shadow-md">
+              <div role="status" aria-live="polite" className="p-3.5 rounded-2xl bg-[#16222E] border border-[#20D5B5]/40 text-white text-xs flex items-center justify-between gap-2 animate-in fade-in shadow-md">
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="h-4 w-4 text-[#20D5B5] shrink-0" />
                   <span className="font-bold">{toastMessage}</span>
@@ -924,7 +932,7 @@ export default function SbarHandoffLab() {
 
             {/* Alerta de Erro de Microfone */}
             {voiceError && (
-              <div className="p-3.5 rounded-2xl bg-[#F0645F]/15 border border-[#F0645F]/30 text-white text-xs flex items-center gap-2.5 animate-in fade-in">
+              <div role="alert" className="p-3.5 rounded-2xl bg-[#F0645F]/15 border border-[#F0645F]/30 text-white text-xs flex items-center gap-2.5 animate-in fade-in">
                 <AlertCircle className="h-4 w-4 text-[#F0645F] shrink-0" />
                 <div className="flex-1 font-medium">{voiceError}</div>
                 <button
@@ -1189,7 +1197,16 @@ export default function SbarHandoffLab() {
                     <div
                       key={i}
                       onClick={() => handleToggleChecklistItem(currentGuided.key, item.key)}
-                      className={`flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
+                      role="button"
+                      tabIndex={0}
+                      aria-pressed={Boolean(item.done)}
+                      onKeyDown={(e) => {
+                        if (e.key === "Enter" || e.key === " ") {
+                          e.preventDefault();
+                          handleToggleChecklistItem(currentGuided.key, item.key);
+                        }
+                      }}
+                      className={`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5] flex items-center gap-3 p-3 rounded-xl border transition-all cursor-pointer select-none ${
                         item.done
                           ? "bg-[#16222E] border-[#20D5B5] text-white"
                           : "bg-[#131F2E]/60 border-[#1F3045] text-[#9FB3C6] hover:border-[#20D5B5]/40 hover:text-white"
@@ -1234,9 +1251,11 @@ export default function SbarHandoffLab() {
                     type="button"
                     disabled={(isProcessingAudio || isTranscribingWithAi) && processingField === currentGuided.key}
                     onClick={() => toggleVoiceInput(currentGuided.key)}
-                    className={`rounded-xl px-3 py-1.5 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
+                    aria-pressed={isListening && activeListeningField === currentGuided.key}
+                    aria-label={`Ditar pilar ${currentGuided.letter}`}
+                    className={`min-h-[44px] rounded-xl px-3 py-1.5 text-xs font-bold flex items-center gap-2 transition-all cursor-pointer ${
                       isListening && activeListeningField === currentGuided.key
-                        ? "bg-[#F0645F] text-white shadow-md animate-pulse"
+                        ? "bg-[#F0645F] text-white shadow-md motion-safe:animate-pulse"
                         : "border border-[#20D5B5]/40 bg-transparent text-[#20D5B5] hover:bg-[#20D5B5]/10"
                     }`}
                   >
@@ -1384,12 +1403,13 @@ export default function SbarHandoffLab() {
                         disabled={(isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key}
                         variant={isListening && activeListeningField === pilar.key ? "destructive" : "outline"}
                         onClick={() => toggleVoiceInput(pilar.key)}
-                        className={`rounded-lg h-7 px-2.5 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
+                        aria-pressed={isListening && activeListeningField === pilar.key}
+                        className={`rounded-lg h-10 px-3 text-[11px] font-semibold flex items-center gap-1.5 transition-all cursor-pointer ${
                           isListening && activeListeningField === pilar.key
-                            ? "bg-rose-600 hover:bg-rose-700 text-white shadow-sm animate-pulse ring-2 ring-rose-400"
+                            ? "bg-[#F0645F] hover:bg-[#F0645F] text-white shadow-sm motion-safe:animate-pulse"
                             : (isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key
-                            ? "bg-teal-50 dark:bg-teal-950/40 border-teal-600 text-teal-900 dark:text-teal-200"
-                            : "border-slate-300 dark:border-slate-700 bg-white dark:bg-slate-900 text-slate-700 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800"
+                            ? "bg-[#20D5B5]/10 border-[#20D5B5]/50 text-[#20D5B5]"
+                            : "border-[#27394B] bg-[#16222E] text-[#EAF2F8] hover:bg-[#1C2C3C]"
                         }`}
                       >
                         {isListening && activeListeningField === pilar.key ? (

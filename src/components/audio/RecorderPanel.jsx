@@ -54,8 +54,10 @@ export default function RecorderPanel({ recording, seconds, audioUrl, busy, onSt
       <button
         type="button"
         onClick={recording ? onStop : onStart}
+        aria-label={recording ? "Parar gravação" : "Iniciar gravação"}
+        aria-pressed={recording}
         className={`mx-auto flex h-24 w-24 items-center justify-center rounded-full transition shadow-md ${
-          recording ? "animate-pulse bg-rose-500 text-white" : "bg-teal-600 text-white hover:bg-teal-700"
+          recording ? "motion-safe:animate-pulse bg-[#F0645F] text-white" : "bg-[#20D5B5] text-[#06302E] hover:brightness-105"
         }`}
       >
         {recording ? <Square className="h-8 w-8" /> : <Mic className="h-10 w-10" />}
