@@ -7,6 +7,9 @@ import {
   ChevronUp,
   Sparkles
 } from "lucide-react";
+import { AnimatedNumber } from "@/components/ui/animated-number";
+import { AnimatedProgress } from "@/components/ui/animated-progress";
+import { celebrate } from "@/lib/celebrate";
 
 export default function RevisaoFinalModal({
   isOpen,
@@ -17,6 +20,20 @@ export default function RevisaoFinalModal({
 }) {
   const [filtroSituacao, setFiltroSituacao] = useState("todas"); // 'todas' | 'erradas' | 'acertos'
   const [expandedQuestao, setExpandedQuestao] = useState(null);
+  // Os números contam a partir de 0 a cada abertura.
+  const [mostrar, setMostrar] = useState(false);
+  const taxa = Number(resumo?.aproveitamento) || 0;
+
+  useEffect(() => {
+    if (!isOpen) {
+      setMostrar(false);
+      return undefined;
+    }
+    const t = setTimeout(() => setMostrar(true), 150);
+    // Confete só quando a sessão passa de 70% (momento raro).
+    if (taxa >= 70) celebrate({ count: 60, y: 0.35 });
+    return () => clearTimeout(t);
+  }, [isOpen, taxa]);
 
   // Cada abertura começa limpa; a página de trás não rola e Esc leva a uma nova prática.
   useEffect(() => {
@@ -73,7 +90,9 @@ export default function RevisaoFinalModal({
               Atendimento Concluído!
             </h2>
             <p className="text-xs text-[#9FB3C6]">
-              Revise o seu desempenho clínico questão por questão
+              {tempoTotal > 0
+                ? `Tempo: ${String(Math.floor(tempoTotal / 60)).padStart(2, "0")}:${String(Math.round(tempoTotal % 60)).padStart(2, "0")} · revise questão por questão`
+                : "Revise o seu desempenho questão por questão"}
             </p>
           </div>
         </div>
@@ -82,7 +101,7 @@ export default function RevisaoFinalModal({
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5 py-4">
           <div className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] text-center">
             <span className="text-xl sm:text-2xl font-black text-[#20D5B5] block">
-              {acertos}
+              <AnimatedNumber value={mostrar ? acertos : 0} />
             </span>
             <span className="text-[11px] font-bold text-[#9FB3C6] uppercase">
               Acertou de primeira
@@ -90,7 +109,7 @@ export default function RevisaoFinalModal({
           </div>
           <div className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] text-center">
             <span className="text-xl sm:text-2xl font-black text-[#FFC247] block">
-              {amarelas}
+              <AnimatedNumber value={mostrar ? amarelas : 0} />
             </span>
             <span className="text-[11px] font-bold text-[#9FB3C6] uppercase">
               Acertou de segunda
@@ -98,7 +117,7 @@ export default function RevisaoFinalModal({
           </div>
           <div className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] text-center">
             <span className="text-xl sm:text-2xl font-black text-[#F25F5C] block">
-              {vermelhas}
+              <AnimatedNumber value={mostrar ? vermelhas : 0} />
             </span>
             <span className="text-[11px] font-bold text-[#9FB3C6] uppercase">
               Errou
@@ -106,11 +125,17 @@ export default function RevisaoFinalModal({
           </div>
           <div className="p-3 rounded-2xl bg-[#131F2E] border border-[#1F3045] text-center">
             <span className="text-xl sm:text-2xl font-black text-white block">
-              {aproveitamento}%
+              <AnimatedNumber value={mostrar ? aproveitamento : 0} />%
             </span>
             <span className="text-[11px] font-bold text-[#9FB3C6] uppercase">
               Aproveitamento
             </span>
+            <AnimatedProgress
+              value={mostrar ? aproveitamento : 0}
+              tone={aproveitamento >= 70 ? "success" : "brand"}
+              label="Aproveitamento da sessão"
+              className="mt-2 h-1.5"
+            />
           </div>
         </div>
 

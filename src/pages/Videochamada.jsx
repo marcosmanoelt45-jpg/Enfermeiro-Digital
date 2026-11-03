@@ -113,6 +113,20 @@ export default function Videochamada() {
 
   const isReadOnly = stepIndex < maxStepAlcancado && estadoAtual.isFinalizada;
 
+  // Quantas questões cada tema tem nos dois pacientes (o tema "todos" soma tudo).
+  const questoesPorTema = useMemo(() => {
+    const contagem = {};
+    let total = 0;
+    for (const caso of Object.values(CASOS_SIMULADOR)) {
+      for (const q of caso?.passos || []) {
+        if (!q.categoriaPratica) continue;
+        contagem[q.categoriaPratica] = (contagem[q.categoriaPratica] || 0) + 1;
+        total += 1;
+      }
+    }
+    return { ...contagem, todos: total };
+  }, []);
+
   // Sugestões inteligentes de tópicos com busca preditiva
   const sugestoesTopicos = useMemo(() => {
     // Sem acento e sem casar pedaços curtos ("pa" dentro de "capacidade").
@@ -582,6 +596,11 @@ export default function Videochamada() {
                       </div>
                       <p className="text-[11px] text-[#9FB3C6] line-clamp-1">
                         {topico.descricao}
+                      </p>
+                      <p className={`mt-1 text-[11px] font-bold ${(questoesPorTema[topico.id] || 0) >= 4 ? "text-[#20D5B5]" : "text-[#FFC247]"}`}>
+                        {(questoesPorTema[topico.id] || 0) >= 4
+                          ? `${questoesPorTema[topico.id]} questões`
+                          : "Poucas questões · a sessão mistura temas"}
                       </p>
                     </div>
                     {isSelected && (
