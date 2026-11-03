@@ -19,6 +19,8 @@ import {
   AlertTriangle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
+import { SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
 import PhotoCropper from "@/components/PhotoCropper";
@@ -47,6 +49,7 @@ export default function Conta() {
   const [gameState, setGameState] = useState(() => clinicalGamificationService.getState(user?.id));
   const [showPeModal, setShowPeModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+  const [showAjustes, setShowAjustes] = useState(false);
 
   // Controle do acordeão de dedicação semanal
   const [openDedication, setOpenDedication] = useState(true);
@@ -490,6 +493,18 @@ export default function Conta() {
 
         {/* Ações da Conta: Rever Splash & Sair com Button do design system (profile-16) */}
         <div className="space-y-3 pt-3">
+          {/* Ajustes de leitura, plantão noturno e toque: antes só existiam numa gaveta que nunca abria. */}
+          <Button
+            type="button"
+            variant="secondary"
+            size="lg"
+            onClick={() => setShowAjustes(true)}
+            className="w-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2"
+          >
+            <SlidersHorizontal className="h-4 w-4 text-[#20D5B5]" />
+            <span>Ajustes (leitura, plantão noturno e toque)</span>
+          </Button>
+
           <Button
             type="button"
             variant="secondary"
@@ -514,6 +529,7 @@ export default function Conta() {
             <span>Sair da conta</span>
           </Button>
         </div>
+        <ClinicalOptionsModal isOpen={showAjustes} onClose={() => setShowAjustes(false)} />
       </main>
 
       <footer className="mx-auto max-w-2xl px-4 py-4 text-center">

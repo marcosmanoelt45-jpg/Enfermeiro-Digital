@@ -3,7 +3,6 @@ import {
   X,
   Type,
   Vibrate,
-  Smartphone,
   Eye,
   Sliders,
   Check,
@@ -175,7 +174,7 @@ export default function ClinicalOptionsModal({ isOpen, onClose }) {
                 </div>
                 <div>
                   <span className="text-xs font-bold text-slate-100 block">
-                    Feedback Tátil (Vibração & Clique)
+                    Feedback tátil (vibração)
                   </span>
                   <span className="text-[11px] text-[#9FB3C6] block">
                     Vibração e retorno audível em ações e gravações
@@ -210,7 +209,7 @@ export default function ClinicalOptionsModal({ isOpen, onClose }) {
               <span className={`text-[11px] font-medium ${
                 hapticFeedback ? 'text-emerald-400' : 'text-[#9FB3C6]'
               }`}>
-                {hapticFeedback ? '✓ Vibração e clique mecânico ativados' : '✕ Feedback desativado'}
+                {hapticFeedback ? '✓ Vibração ativada (Android)' : '✕ Feedback desativado'}
               </span>
 
               {hapticFeedback && (
@@ -225,16 +224,6 @@ export default function ClinicalOptionsModal({ isOpen, onClose }) {
             </div>
           </div>
 
-          {/* Seção 6: PWA e Offline Status */}
-          <div className="p-3.5 rounded-2xl bg-slate-800/70 border border-[#1F3045] flex items-center justify-between text-xs">
-            <div className="flex items-center gap-2 text-slate-300">
-              <Smartphone className="w-4 h-4 text-emerald-400" />
-              <span>Aplicativo Móvel PWA v2.4</span>
-            </div>
-            <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-950 text-[#3DD68C] border border-emerald-800">
-              Pronto para Offline
-            </span>
-          </div>
         </div>
 
         {/* Rodapé do Modal com Direitos e Autoria */}
