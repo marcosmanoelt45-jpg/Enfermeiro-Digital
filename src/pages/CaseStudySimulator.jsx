@@ -38,6 +38,7 @@ import ClinicalGapRadar from "@/components/ClinicalGapRadar";
 import { CASE_LIBRARY, generateRandomFullCase } from "@/lib/caseLibrary";
 import { evaluateClinicalReasoning, getScaffoldingHint } from "@/services/socraticTutorService";
 import { celebrate } from "@/lib/celebrate";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { computeBradenTotal } from "@/lib/riskEngine";
 import { vibrate } from "@/lib/motion";
 import CaseHistoryModal from "@/components/history/CaseHistoryModal";
@@ -520,7 +521,7 @@ export default function CaseStudySimulator() {
           title: `Caso Clínico: ${currentCase.title}`,
           patientInfo: `${currentCase.patient?.name || "Paciente"} • ${currentCase.category || "Enfermaria"}`,
           durationSeconds: activitySeconds,
-          score: typeof res?.score === "number" ? res.score : (res?.overallScore || 85),
+          score: finalScore,
           evaluation: res,
           formData: {
             selectedCaseIdx,
@@ -785,7 +786,7 @@ export default function CaseStudySimulator() {
                     </div>
                     <div className="text-right">
                       <span className="text-[10px] font-bold text-[#9FB3C6] uppercase tracking-wider block">Acurácia Diagnóstica</span>
-                      <span className="text-3xl font-black text-[#FFC247] leading-none">{tutorEvaluation.score}%</span>
+                      <span className="text-3xl font-black text-[#FFC247] leading-none"><AnimatedNumber value={Number(tutorEvaluation.score) || 0} duration={0.8} />%</span>
                     </div>
                   </div>
                 </div>
