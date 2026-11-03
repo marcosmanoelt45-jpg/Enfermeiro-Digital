@@ -238,13 +238,13 @@ export default function SbarHandoffLab() {
     const isDone = checklists[pillarKey]?.[itemKey];
 
     if (isDone) {
-      setToastMessage("✨ Item já validado pelo Goti com base na redação do seu texto clínico!");
+      setToastMessage("Item já validado pelo Goti com base no seu texto.");
       setTimeout(() => setToastMessage(""), 3500);
       return;
     }
 
     const hint = CHECKLIST_GUIDANCE[pillarKey]?.[itemKey] || "Redija os dados objetivos deste item no campo do pilar para validação pelo Goti.";
-    setToastMessage(`🩺 Goti orienta: ${hint}`);
+    setToastMessage(`Goti orienta: ${hint}`);
     setTimeout(() => setToastMessage(""), 5500);
   }
 
@@ -553,7 +553,7 @@ export default function SbarHandoffLab() {
     const availableIndices = PRESET_HANDOFF_SCENARIOS.map((_, i) => i).filter((i) => i !== activeScenarioIdx);
     const nextIdx = availableIndices[Math.floor(Math.random() * availableIndices.length)];
     handleSelectScenario(nextIdx);
-    setToastMessage(`🎲 Novo caso sorteado: ${PRESET_HANDOFF_SCENARIOS[nextIdx].name} (${PRESET_HANDOFF_SCENARIOS[nextIdx].bed})`);
+    setToastMessage(`Novo caso sorteado: ${PRESET_HANDOFF_SCENARIOS[nextIdx].name} (${PRESET_HANDOFF_SCENARIOS[nextIdx].bed})`);
     setTimeout(() => setToastMessage(""), 3500);
   }
 
@@ -635,8 +635,8 @@ export default function SbarHandoffLab() {
       letter: "S",
       title: "Situação (Situation)",
       subtitle: "A regra de ouro dos primeiros 20 segundos",
-      accentBg: "bg-indigo-700 text-white",
-      badgeColor: "bg-indigo-50 text-indigo-800 border-indigo-200",
+      accentBg: "bg-sky-600 text-white",
+      badgeColor: "bg-indigo-50 text-sky-300 border-indigo-200",
       activeBorder: "border-indigo-600 ring-indigo-600/20",
       goal: "Apresente quem é o paciente, em qual leito ele se encontra e qual o motivo imediato do contato ou pós-operatório.",
       badExample: "O paciente do 12 tá meio mal, queixando de dor desde ontem e parece que fez cirurgia.",
@@ -654,8 +654,8 @@ export default function SbarHandoffLab() {
       letter: "B",
       title: "Breve Histórico (Background)",
       subtitle: "O escudo contra eventos sentinela e erros fatais",
-      accentBg: "bg-amber-700 text-white",
-      badgeColor: "bg-amber-50 text-amber-800 border-amber-200",
+      accentBg: "bg-[#FFC247] text-[#3A2A05] text-white",
+      badgeColor: "bg-[#FFC247]/10 text-[#FFC247] border-amber-200",
       activeBorder: "border-amber-600 ring-amber-600/20",
       goal: "Forneça o contexto clínico indispensável: comorbidades ativas, cirurgias anteriores e a CONFERÊNCIA OBRIGATÓRIA DE ALERGIAS.",
       badExample: "Ele toma remédio de pressão e acho que não tem alergia a nada grave.",
@@ -674,7 +674,7 @@ export default function SbarHandoffLab() {
       title: "Avaliação Atual (Assessment)",
       subtitle: "A regra do dado objetivo: 'Nunca diga está estável'",
       accentBg: "bg-rose-700 text-white",
-      badgeColor: "bg-rose-50 text-rose-800 border-rose-200",
+      badgeColor: "bg-rose-50 text-[#F0645F] border-rose-200",
       activeBorder: "border-rose-600 ring-rose-600/20",
       goal: "Comunique parâmetros vitais numéricos (PA, FC, SatO2, Tax), escala de dor EVA e achados de drenos, curativos ou sensório.",
       badExample: "Os sinais vitais tão bons, o dreno tá saindo um líquido e ele tá com um pouco de dor.",
@@ -692,8 +692,8 @@ export default function SbarHandoffLab() {
       letter: "R",
       title: "Recomendação (Recommendation)",
       subtitle: "A liderança da enfermagem na continuidade do cuidado",
-      accentBg: "bg-teal-700 text-white",
-      badgeColor: "bg-teal-50 text-teal-800 border-teal-200",
+      accentBg: "bg-[#20D5B5] text-[#06302E] text-white",
+      badgeColor: "bg-teal-50 text-[#20D5B5] border-teal-200",
       activeBorder: "border-teal-600 ring-teal-600/20",
       goal: "Defina claramente as pendências, cuidados prioritários, horários de medicações e exames que o próximo plantão deve fiscalizar.",
       badExample: "Fica de olho nele na madrugada e qualquer coisa chama o plantonista.",
@@ -1358,20 +1358,20 @@ export default function SbarHandoffLab() {
 
         {/* CONTEÚDO DA ABA 2: SIMULAÇÃO RÁPIDA À BEIRA-LEITO (ÁUDIO DIRETO) */}
         {activeTab === "free_voice" && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
-            <div className="border-b border-slate-100 dark:border-slate-800 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+          <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-6 sm:p-7 shadow-sm space-y-6">
+            <div className="border-b border-[#1F3045] pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
               <div>
-                <h3 className="text-sm sm:text-base font-bold text-slate-900 dark:text-slate-100">
+                <h3 className="text-sm sm:text-base font-bold text-white">
                   Simulação em Tempo Real (Troca de Turno Contínua)
                 </h3>
-                <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+                <p className="text-xs text-[#9FB3C6] mt-0.5">
                   Dite a passagem de plantão por voz em cada pilar com seu microfone. Fale com clareza e ritmo pausado.
                 </p>
               </div>
 
               {isListening && (
-                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-900 text-rose-700 dark:text-rose-300 text-xs font-bold animate-pulse">
-                  <Radio className="h-3.5 w-3.5 text-rose-600" />
+                <div className="flex items-center gap-2 px-3 py-1.5 rounded-xl bg-rose-950/40 border border-rose-900 text-rose-300 text-xs font-bold animate-pulse">
+                  <Radio className="h-3.5 w-3.5 text-[#F0645F]" />
                   <span>Microfone Ligado no Pilar {activeListeningField?.toUpperCase()}</span>
                 </div>
               )}
@@ -1379,22 +1379,22 @@ export default function SbarHandoffLab() {
 
             <div className="grid md:grid-cols-2 gap-4">
               {[
-                { key: "situation", letter: "S", title: "Situação", color: "bg-indigo-100 dark:bg-indigo-950/60 text-indigo-800 dark:text-indigo-300", ph: "Ex.: Paciente M.S.L., 58 anos, no Leito 12-A, no 1º DPO de colectomia..." },
-                { key: "background", letter: "B", title: "Histórico", color: "bg-amber-100 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300", ph: "Ex.: Hipertenso controlado com Losartana. Nega alergias..." },
-                { key: "assessment", letter: "A", title: "Avaliação", color: "bg-rose-100 dark:bg-rose-950/60 text-rose-800 dark:text-rose-300", ph: "Ex.: PA 115/72, FC 84, SatO2 98%. Dor EVA 4/10 em incisão..." },
-                { key: "recommendation", letter: "R", title: "Recomendação", color: "bg-emerald-100 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300", ph: "Ex.: Vigiar dreno a cada 4h; analgesia às 20h; checar hematócrito..." }
+                { key: "situation", letter: "S", title: "Situação", color: "bg-indigo-950/60 text-indigo-300", ph: "Ex.: Paciente M.S.L., 58 anos, no Leito 12-A, no 1º DPO de colectomia..." },
+                { key: "background", letter: "B", title: "Histórico", color: "bg-amber-950/60 text-amber-300", ph: "Ex.: Hipertenso controlado com Losartana. Nega alergias..." },
+                { key: "assessment", letter: "A", title: "Avaliação", color: "bg-rose-950/60 text-rose-300", ph: "Ex.: PA 115/72, FC 84, SatO2 98%. Dor EVA 4/10 em incisão..." },
+                { key: "recommendation", letter: "R", title: "Recomendação", color: "bg-emerald-950/60 text-[#3DD68C]", ph: "Ex.: Vigiar dreno a cada 4h; analgesia às 20h; checar hematócrito..." }
               ].map((pilar) => (
-                <div key={pilar.key} className="p-4 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-800/40 space-y-2.5">
+                <div key={pilar.key} className="p-4 rounded-xl border border-[#1F3045] bg-slate-800/40 space-y-2.5">
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-2">
                       <span className={`flex h-6 w-6 items-center justify-center rounded-md font-bold text-xs ${pilar.color}`}>
                         {pilar.letter}
                       </span>
-                      <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{pilar.title}</span>
+                      <span className="text-xs font-bold text-white">{pilar.title}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
-                      <span className="text-[10px] font-bold text-emerald-800 dark:text-emerald-300 bg-emerald-50 dark:bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-200 dark:border-emerald-800">
+                      <span className="text-[10px] font-bold text-[#3DD68C] bg-emerald-950/40 px-2 py-0.5 rounded-full border border-emerald-800">
                         {Object.values(checklists[pilar.key] || {}).filter(Boolean).length}/3 itens
                       </span>
 
@@ -1426,12 +1426,12 @@ export default function SbarHandoffLab() {
                           )
                         ) : (isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key ? (
                           <>
-                            <Loader2 className="h-3 w-3 animate-spin text-teal-700 dark:text-teal-400" />
+                            <Loader2 className="h-3 w-3 animate-spin text-teal-400" />
                             <span>Transcrevendo...</span>
                           </>
                         ) : (
                           <>
-                            <Mic className="h-3 w-3 text-teal-700 dark:text-teal-400" />
+                            <Mic className="h-3 w-3 text-teal-400" />
                             <span>Ditar</span>
                           </>
                         )}
@@ -1440,14 +1440,14 @@ export default function SbarHandoffLab() {
                   </div>
 
                   {(isProcessingAudio || isTranscribingWithAi) && processingField === pilar.key && (
-                    <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-900 dark:text-teal-200 text-[11px] flex items-center gap-2 animate-pulse">
-                      <Loader2 className="h-3.5 w-3.5 text-teal-700 dark:text-teal-400 animate-spin shrink-0" />
+                    <div className="p-2 rounded-lg bg-teal-950/40 border border-teal-800 text-[#20D5B5] text-[11px] flex items-center gap-2 animate-pulse">
+                      <Loader2 className="h-3.5 w-3.5 text-teal-400 animate-spin shrink-0" />
                       <span className="font-medium">Áudio recebido! Transcrevendo...</span>
                     </div>
                   )}
 
                   {isListening && activeListeningField === pilar.key && interimTranscript && (
-                    <div className="p-2 rounded-lg bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 text-teal-900 dark:text-teal-200 text-[11px] italic">
+                    <div className="p-2 rounded-lg bg-teal-950/40 border border-teal-800 text-[#20D5B5] text-[11px] italic">
                       "{interimTranscript}"
                     </div>
                   )}
@@ -1457,7 +1457,7 @@ export default function SbarHandoffLab() {
                     value={sbarData[pilar.key]}
                     onChange={(e) => setSbarData({ ...sbarData, [pilar.key]: e.target.value })}
                     placeholder={pilar.ph}
-                    className="text-xs rounded-lg border-slate-200 dark:border-slate-700 resize-none bg-white dark:bg-slate-800 text-slate-800 dark:text-slate-100 leading-relaxed"
+                    className="text-xs rounded-lg border-slate-700 resize-none bg-slate-800 text-white leading-relaxed"
                   />
                 </div>
               ))}
@@ -1468,11 +1468,11 @@ export default function SbarHandoffLab() {
                 size="lg"
                 disabled={isEvaluating}
                 onClick={handleEvaluateSbar}
-                className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white font-bold text-xs px-6 h-11 flex items-center gap-2 shadow-sm"
+                className="rounded-xl bg-[#20D5B5] text-[#06302E] hover:bg-teal-800 text-white font-bold text-xs px-6 h-11 flex items-center gap-2 shadow-sm"
               >
                 {isEvaluating ? (
                   <>
-                    <Sparkles className="h-4 w-4 animate-spin text-teal-200" />
+                    <Sparkles className="h-4 w-4 animate-spin text-[#20D5B5]" />
                     <span>Goti está auditando a passagem de plantão...</span>
                   </>
                 ) : (
@@ -1489,37 +1489,37 @@ export default function SbarHandoffLab() {
         {/* CONTEÚDO DA ABA 3: CONFIRMAR ENVIO & RESUMO COMPLETO DO SBAR (100%) */}
         {activeTab === "confirm" && (
           <div className="space-y-6 animate-in fade-in">
-            <div className="bg-white dark:bg-slate-900 rounded-2xl border border-slate-200 dark:border-slate-800 p-6 sm:p-7 shadow-sm space-y-6">
+            <div className="bg-[#131F2E] rounded-2xl border border-[#1F3045] p-6 sm:p-7 shadow-sm space-y-6">
               {/* Topo da Confirmação */}
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-slate-100 dark:border-slate-800 pb-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#1F3045] pb-4">
                 <div>
                   <div className="flex items-center gap-2">
-                    <span className="p-1.5 rounded-xl bg-emerald-100 dark:bg-emerald-950/80 text-emerald-800 dark:text-emerald-300">
+                    <span className="p-1.5 rounded-xl bg-emerald-950/80 text-[#3DD68C]">
                       <CheckCircle2 className="h-4 w-4" />
                     </span>
-                    <h3 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white">
+                    <h3 className="text-base sm:text-lg font-bold text-white">
                       Confirmação de Envio da Passagem de Plantão SBAR
                     </h3>
                   </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">
+                  <p className="text-xs text-[#9FB3C6] mt-1">
                     Revise os 4 pilares do relatório clínico antes de confirmar a entrega final e receber o parecer do Goti.
                   </p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
-                  <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
-                    <Clock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
+                  <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-800 text-slate-200 border border-slate-700">
+                    <Clock className="h-3.5 w-3.5 text-teal-400" />
                     <span>Tempo de Prática: <ElapsedClock getSeconds={elapsedSeconds} /></span>
                   </span>
                 </div>
               </div>
 
               {submissionSuccess && (
-                <div className="p-4 rounded-2xl bg-emerald-50 dark:bg-emerald-950/60 border border-emerald-200 dark:border-emerald-800 text-emerald-900 dark:text-emerald-200 flex items-start gap-3">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400 shrink-0 mt-0.5" />
+                <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-800 text-emerald-200 flex items-start gap-3">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
                   <div>
                     <h4 className="font-bold text-xs uppercase tracking-wider">Passagem de Plantão 100% Concluída</h4>
-                    <p className="text-xs text-emerald-800 dark:text-emerald-300 mt-0.5">
+                    <p className="text-xs text-[#3DD68C] mt-0.5">
                       Esta atividade foi finalizada e registrada no seu histórico com sucesso. Você pode consultar debriefings e métricas a qualquer momento no menu de Histórico.
                     </p>
                   </div>
@@ -1527,19 +1527,19 @@ export default function SbarHandoffLab() {
               )}
 
               {/* Dados do Paciente em Transição */}
-              <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/40 border border-slate-200 dark:border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
+              <div className="p-4 rounded-2xl bg-slate-800/40 border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
                 <div>
-                  <span className="text-[10px] uppercase font-bold text-slate-400 block">Paciente em Passagem de Plantão</span>
-                  <strong className="text-slate-900 dark:text-slate-100 text-sm font-bold">
+                  <span className="text-[10px] uppercase font-bold text-[#9FB3C6] block">Paciente em Passagem de Plantão</span>
+                  <strong className="text-white text-sm font-bold">
                     {currentCase.name} ({currentCase.age}a) • {currentCase.bed}
                   </strong>
-                  <span className="text-slate-500 dark:text-slate-400 block mt-0.5">{currentCase.diagnosis}</span>
+                  <span className="text-[#9FB3C6] block mt-0.5">{currentCase.diagnosis}</span>
                 </div>
                 <div className="flex items-center gap-2 text-xs">
-                  <span className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-semibold text-slate-700 dark:text-slate-200">
+                  <span className="px-2.5 py-1 rounded-xl bg-[#131F2E] border border-slate-700 font-semibold text-slate-200">
                     PA: {currentCase.vitals?.pa_sistolica}/{currentCase.vitals?.pa_diastolica}
                   </span>
-                  <span className="px-2.5 py-1 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 font-semibold text-slate-700 dark:text-slate-200">
+                  <span className="px-2.5 py-1 rounded-xl bg-[#131F2E] border border-slate-700 font-semibold text-slate-200">
                     SatO₂: {currentCase.vitals?.sat}%
                   </span>
                 </div>
@@ -1548,76 +1548,76 @@ export default function SbarHandoffLab() {
               {/* Os 4 Pilares Estruturados do SBAR */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {/* Pilar S */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-indigo-200 dark:border-indigo-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-indigo-100 dark:border-indigo-900/40 pb-2">
-                    <span className="text-xs font-bold text-indigo-900 dark:text-indigo-300 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-md bg-indigo-700 text-white flex items-center justify-center text-[11px] font-bold">S</span>
+                <div className="p-4 rounded-2xl bg-[#0E1722] border border-indigo-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-indigo-900/40 pb-2">
+                    <span className="text-xs font-bold text-indigo-300 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-sky-600 text-white flex items-center justify-center text-[11px] font-bold">S</span>
                       Situação (Situation)
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.situation ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.situation ? "bg-emerald-950 text-[#3DD68C]" : "bg-[#FFC247]/15 text-[#FFC247]"}`}>
                       {sbarData.situation ? "Preenchido" : "Pendente"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
-                    {sbarData.situation || "Nenhuma informação informada neste pilar ainda."}
+                  <p className="text-xs text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.situation || "Pilar ainda vazio."}
                   </p>
                 </div>
 
                 {/* Pilar B */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-amber-200 dark:border-amber-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-amber-100 dark:border-amber-900/40 pb-2">
-                    <span className="text-xs font-bold text-amber-900 dark:text-amber-300 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-md bg-amber-700 text-white flex items-center justify-center text-[11px] font-bold">B</span>
+                <div className="p-4 rounded-2xl bg-[#0E1722] border border-amber-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-amber-900/40 pb-2">
+                    <span className="text-xs font-bold text-amber-300 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-[#FFC247] text-[#3A2A05] text-white flex items-center justify-center text-[11px] font-bold">B</span>
                       Breve Histórico (Background)
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.background ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.background ? "bg-emerald-950 text-[#3DD68C]" : "bg-[#FFC247]/15 text-[#FFC247]"}`}>
                       {sbarData.background ? "Preenchido" : "Pendente"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
-                    {sbarData.background || "Nenhuma informação informada neste pilar ainda."}
+                  <p className="text-xs text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.background || "Pilar ainda vazio."}
                   </p>
                 </div>
 
                 {/* Pilar A */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-emerald-200 dark:border-emerald-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-emerald-100 dark:border-emerald-900/40 pb-2">
-                    <span className="text-xs font-bold text-emerald-900 dark:text-emerald-300 flex items-center gap-1.5">
+                <div className="p-4 rounded-2xl bg-[#0E1722] border border-emerald-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-emerald-900/40 pb-2">
+                    <span className="text-xs font-bold text-[#3DD68C] flex items-center gap-1.5">
                       <span className="w-5 h-5 rounded-md bg-emerald-700 text-white flex items-center justify-center text-[11px] font-bold">A</span>
                       Avaliação Clínica (Assessment)
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.assessment ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.assessment ? "bg-emerald-950 text-[#3DD68C]" : "bg-[#FFC247]/15 text-[#FFC247]"}`}>
                       {sbarData.assessment ? "Preenchido" : "Pendente"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
-                    {sbarData.assessment || "Nenhuma informação informada neste pilar ainda."}
+                  <p className="text-xs text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.assessment || "Pilar ainda vazio."}
                   </p>
                 </div>
 
                 {/* Pilar R */}
-                <div className="p-4 rounded-2xl bg-slate-50 dark:bg-slate-800/50 border border-teal-200 dark:border-teal-900/60 space-y-2">
-                  <div className="flex items-center justify-between border-b border-teal-100 dark:border-teal-900/40 pb-2">
-                    <span className="text-xs font-bold text-teal-900 dark:text-teal-300 flex items-center gap-1.5">
-                      <span className="w-5 h-5 rounded-md bg-teal-700 text-white flex items-center justify-center text-[11px] font-bold">R</span>
+                <div className="p-4 rounded-2xl bg-[#0E1722] border border-teal-900/60 space-y-2">
+                  <div className="flex items-center justify-between border-b border-teal-900/40 pb-2">
+                    <span className="text-xs font-bold text-teal-300 flex items-center gap-1.5">
+                      <span className="w-5 h-5 rounded-md bg-[#20D5B5] text-[#06302E] text-white flex items-center justify-center text-[11px] font-bold">R</span>
                       Recomendação (Recommendation)
                     </span>
-                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.recommendation ? "bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300" : "bg-amber-100 text-amber-800"}`}>
+                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${sbarData.recommendation ? "bg-emerald-950 text-[#3DD68C]" : "bg-[#FFC247]/15 text-[#FFC247]"}`}>
                       {sbarData.recommendation ? "Preenchido" : "Pendente"}
                     </span>
                   </div>
-                  <p className="text-xs text-slate-700 dark:text-slate-300 italic min-h-[48px] leading-relaxed">
-                    {sbarData.recommendation || "Nenhuma informação informada neste pilar ainda."}
+                  <p className="text-xs text-slate-300 italic min-h-[48px] leading-relaxed">
+                    {sbarData.recommendation || "Pilar ainda vazio."}
                   </p>
                 </div>
               </div>
 
               {/* Botões Oficiais da Aba de Confirmação */}
-              <div className="pt-4 border-t border-slate-100 dark:border-slate-800 flex flex-wrap items-center justify-between gap-3">
+              <div className="pt-4 border-t border-[#1F3045] flex flex-wrap items-center justify-between gap-3">
                 <Button
                   variant="outline"
                   onClick={() => setActiveTab("guided")}
-                  className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 text-xs font-semibold"
+                  className="rounded-xl border-slate-700 text-slate-200 text-xs font-semibold"
                 >
                   <ArrowLeft className="h-4 w-4 mr-1.5" /> Voltar para Edição Guiada
                 </Button>
@@ -1626,25 +1626,25 @@ export default function SbarHandoffLab() {
                   <Button
                     variant="outline"
                     onClick={handleSaveDraft}
-                    className="rounded-xl border-slate-300 dark:border-slate-700 text-slate-700 dark:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5"
+                    className="rounded-xl border-slate-700 text-slate-200 hover:bg-slate-800 text-xs font-semibold flex items-center gap-1.5"
                   >
-                    <BookmarkPlus className="h-3.5 w-3.5 text-amber-500" />
+                    <BookmarkPlus className="h-3.5 w-3.5 text-[#FFC247]" />
                     <span>Salvar Rascunho</span>
                   </Button>
 
                   <Button
                     onClick={handleEvaluateSbar}
                     disabled={isEvaluating}
-                    className="rounded-xl bg-teal-700 hover:bg-teal-800 text-white text-xs px-6 h-10 font-bold flex items-center gap-2 shadow-sm"
+                    className="rounded-xl bg-[#20D5B5] text-[#06302E] hover:bg-teal-800 text-white text-xs px-6 h-10 font-bold flex items-center gap-2 shadow-sm"
                   >
                     {isEvaluating ? (
                       <>
-                        <Sparkles className="h-4 w-4 animate-spin text-teal-200" />
+                        <Sparkles className="h-4 w-4 animate-spin text-[#20D5B5]" />
                         <span>Auditando com IA...</span>
                       </>
                     ) : (
                       <>
-                        <CheckCircle2 className="h-4 w-4 text-emerald-300" />
+                        <CheckCircle2 className="h-4 w-4 text-[#3DD68C]" />
                         <span>Confirmar Envio Oficial (100%) & Avaliar</span>
                       </>
                     )}
@@ -1657,25 +1657,25 @@ export default function SbarHandoffLab() {
 
         {/* CONTEÚDO DA ABA 3: DEBRIEFING DO GOTI IA */}
         {activeTab === "debriefing" && tutorEvaluation && (
-          <div className="bg-white dark:bg-slate-900 rounded-2xl border border-teal-200 dark:border-teal-900/60 p-6 sm:p-8 shadow-sm space-y-6 animate-in fade-in">
+          <div className="bg-[#131F2E] rounded-2xl border border-teal-900/60 p-6 sm:p-8 shadow-sm space-y-6 animate-in fade-in">
             {/* Topo do Feedback com Score e Grade */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-[#1F3045] pb-5">
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
-                  <ShieldCheck className="h-5 w-5 text-teal-700 dark:text-teal-400" />
-                  <span className="text-xs font-bold text-teal-800 dark:text-teal-300 uppercase tracking-wider block">
+                  <ShieldCheck className="h-5 w-5 text-teal-400" />
+                  <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">
                     Parecer de Comunicação • Goti IA
                   </span>
                 </div>
-                <h3 className="text-lg sm:text-xl font-bold text-slate-900 dark:text-slate-100">
+                <h3 className="text-lg sm:text-xl font-bold text-white">
                   Auditoria da Comunicação & Segurança do Paciente
                 </h3>
-                <p className="text-xs text-slate-600 dark:text-slate-300 max-w-2xl leading-relaxed">
+                <p className="text-xs text-slate-300 max-w-2xl leading-relaxed">
                   {tutorEvaluation.summaryFeedback}
                 </p>
               </div>
 
-              <div className="flex items-center gap-3 bg-teal-50 dark:bg-teal-950/40 border border-teal-200 dark:border-teal-800 rounded-2xl p-3 shrink-0">
+              <div className="flex items-center gap-3 bg-teal-950/40 border border-teal-800 rounded-2xl p-3 shrink-0">
                 <div
                   className="cursor-pointer transition-transform hover:scale-105 active:scale-95"
                   onClick={() => setShowGotiEvaluationModal(true)}
@@ -1688,13 +1688,13 @@ export default function SbarHandoffLab() {
                   />
                 </div>
                 <div className="text-right">
-                  <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 uppercase block">Índice de Segurança</span>
-                  <span className="text-2xl font-extrabold text-teal-900 dark:text-teal-200 block leading-none">
+                  <span className="text-[10px] font-bold text-teal-300 uppercase block">Índice de Segurança</span>
+                  <span className="text-2xl font-extrabold text-[#20D5B5] block leading-none">
                     {tutorEvaluation.safetyScore}/100
                   </span>
                 </div>
-                <div className="h-10 w-px bg-teal-200 dark:bg-teal-800" />
-                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-teal-700 text-white">
+                <div className="h-10 w-px bg-[#149F86]" />
+                <span className="text-xs font-bold px-2.5 py-1 rounded-lg bg-[#20D5B5] text-[#06302E] text-white">
                   {tutorEvaluation.grade}
                 </span>
               </div>
@@ -1702,12 +1702,12 @@ export default function SbarHandoffLab() {
 
             {/* SIMULADOR DE CONSEQUÊNCIA DE EVENTO SENTINELA (APRENDIZAGEM VIVA) */}
             {tutorEvaluation.sentinelConsequence && (
-              <div className="p-4 rounded-xl bg-amber-50/80 dark:bg-amber-950/40 border border-amber-200 dark:border-amber-800 space-y-1.5">
-                <div className="flex items-center gap-2 text-amber-900 dark:text-amber-300 font-bold text-xs uppercase tracking-wide">
-                  <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400 shrink-0" />
+              <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800 space-y-1.5">
+                <div className="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase tracking-wide">
+                  <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
                   <span>Simulador de Consequências no Hospital Real (O que aconteceria se você omitisse esses dados?):</span>
                 </div>
-                <p className="text-xs text-amber-950 dark:text-amber-200 leading-relaxed font-medium">
+                <p className="text-xs text-amber-200 leading-relaxed font-medium">
                   {tutorEvaluation.sentinelConsequence}
                 </p>
               </div>
@@ -1715,7 +1715,7 @@ export default function SbarHandoffLab() {
 
             {/* Desdobramento dos 4 Pilares SBAR */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-700 dark:text-slate-300 uppercase tracking-wide">
+              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wide">
                 Desempenho por Eixo da Metodologia:
               </h4>
 
@@ -1728,10 +1728,10 @@ export default function SbarHandoffLab() {
                 ].map((pillar) => {
                   const data = tutorEvaluation.pillarScores?.[pillar.key] || { score: 0, feedback: "Pilar não avaliado." };
                   return (
-                    <div key={pillar.key} className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 space-y-1">
+                    <div key={pillar.key} className="p-3.5 rounded-xl border border-[#1F3045] bg-slate-800/60 space-y-1">
                       <div className="flex items-center justify-between">
-                        <span className="text-xs font-bold text-slate-900 dark:text-slate-100">{pillar.label}</span>
-                        <span className={`text-xs font-extrabold ${data.score >= 80 ? 'text-teal-700 dark:text-teal-400' : 'text-amber-700 dark:text-amber-400'}`}>
+                        <span className="text-xs font-bold text-white">{pillar.label}</span>
+                        <span className={`text-xs font-extrabold ${data.score >= 80 ? 'text-teal-400' : 'text-amber-400'}`}>
                           {data.score} pts
                         </span>
                       </div>
@@ -1741,7 +1741,7 @@ export default function SbarHandoffLab() {
                         className="h-2"
                         label={`Nota de ${pillar.label}`}
                       />
-                      <p className="text-[11px] text-slate-600 dark:text-slate-300 leading-normal">
+                      <p className="text-[11px] text-slate-300 leading-normal">
                         {data.feedback}
                       </p>
                     </div>
@@ -1753,12 +1753,12 @@ export default function SbarHandoffLab() {
             {/* Omissões Críticas e Pontos Fortes */}
             <div className="grid sm:grid-cols-2 gap-4 text-xs pt-1">
               {tutorEvaluation.criticalOmissions?.length > 0 && (
-                <div className="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/40 border border-rose-200 dark:border-rose-800 space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold text-rose-800 dark:text-rose-300">
+                <div className="p-4 rounded-xl bg-rose-950/40 border border-rose-800 space-y-2">
+                  <div className="flex items-center gap-1.5 font-bold text-rose-300">
                     <AlertTriangle className="h-4 w-4" />
                     <span>Omissões Críticas que Devem ser Corrigidas:</span>
                   </div>
-                  <ul className="space-y-1.5 text-rose-700 dark:text-rose-200">
+                  <ul className="space-y-1.5 text-rose-200">
                     {tutorEvaluation.criticalOmissions.map((om, i) => (
                       <li key={i} className="flex items-start gap-1.5">
                         <span className="font-bold">•</span>
@@ -1770,12 +1770,12 @@ export default function SbarHandoffLab() {
               )}
 
               {tutorEvaluation.strengths?.length > 0 && (
-                <div className="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 space-y-2">
-                  <div className="flex items-center gap-1.5 font-bold text-emerald-800 dark:text-emerald-300">
+                <div className="p-4 rounded-xl bg-emerald-950/40 border border-emerald-800 space-y-2">
+                  <div className="flex items-center gap-1.5 font-bold text-[#3DD68C]">
                     <CheckCircle2 className="h-4 w-4" />
                     <span>Pontos Fortes da Sua Comunicação:</span>
                   </div>
-                  <ul className="space-y-1.5 text-emerald-700 dark:text-emerald-200">
+                  <ul className="space-y-1.5 text-emerald-200">
                     {tutorEvaluation.strengths.map((st, i) => (
                       <li key={i} className="flex items-start gap-1.5">
                         <span className="font-bold">•</span>
@@ -1788,12 +1788,12 @@ export default function SbarHandoffLab() {
             </div>
 
             {/* Mensagem de Mentoria & Exportação em PDF com Goti */}
-            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pt-3 border-t border-[#1F3045]">
               <div className="flex items-center gap-3">
-                <div className="w-8 h-8 rounded-xl bg-teal-50 dark:bg-teal-950/80 border border-teal-200 dark:border-teal-800 flex items-center justify-center shrink-0">
-                  <Sparkles className="w-4 h-4 text-teal-600 dark:text-teal-400" />
+                <div className="w-8 h-8 rounded-xl bg-teal-950/80 border border-teal-800 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-4 h-4 text-teal-400" />
                 </div>
-                <div className="text-xs text-slate-600 dark:text-slate-400 italic">
+                <div className="text-xs text-[#9FB3C6] italic">
                   "{tutorEvaluation.gotiMentorship || tutorEvaluation.florenceMentorship || 'A comunicação assertiva é a maior ferramenta de proteção da enfermagem.'}"
                 </div>
               </div>
