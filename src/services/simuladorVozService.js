@@ -11,14 +11,14 @@ export const PACIENTE_VOZ_CONFIG = {
     nome: "Sr. Marcus",
     pitch: 0.72,
     rate: 0.90,
-    voiceFile: "/pacientes/marcus/fala.wav",
+    voiceFile: "/pacientes/marcus/fala.mp3",
     descricao: "Voz masculina idosa (VoiceBox)"
   },
   teresinha: {
     nome: "Dona Teresinha",
     pitch: 1.10,
     rate: 0.92,
-    voiceFile: "/pacientes/teresinha/fala.wav",
+    voiceFile: "/pacientes/teresinha/fala.mp3",
     descricao: "Voz feminina idosa (VoiceBox)"
   }
 };
@@ -139,7 +139,8 @@ export function falar(texto, pacienteKey = "marcus", options = {}) {
   }
 
   const config = PACIENTE_VOZ_CONFIG[pacienteKey] || PACIENTE_VOZ_CONFIG.marcus;
-  const audioFile = customAudioFile || config.voiceFile;
+  // Questões salvas na fila de revisão antes da troca ainda apontam para o .wav, que não existe mais.
+  const audioFile = (customAudioFile || config.voiceFile).replace(/^(\/pacientes\/.+)\.wav$/, "$1.mp3");
 
   // Duração estimada como fallback
   const estimatedDuration = Math.max(2200, texto.length * 68);
