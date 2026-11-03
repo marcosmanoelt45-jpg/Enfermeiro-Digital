@@ -218,6 +218,8 @@ export const gotiPreceptorService = {
       console.warn('[gotiPreceptorService] Falha na IA remota, ativando motor socrático pedagógico local:', err);
     }
 
+    // A tela mostra "Modo offline" quando quem respondeu foi o motor local, não a IA.
+    this.lastAnswerOffline = !assistantReply;
     if (!assistantReply) {
       assistantReply = this.generateEducationalFallback(userMessage);
     }
