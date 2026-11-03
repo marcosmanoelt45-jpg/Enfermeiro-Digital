@@ -72,15 +72,9 @@ export default function ProcedimentosLab() {
     const list = procedureService.list();
     setProcedures(list);
     setWatchedIds(procedureService.getWatchedList());
-    if (activeProcedure) {
-      const fresh = list.find((p) => p.id === activeProcedure.id);
-      if (fresh) setActiveProcedure(fresh);
-    }
+    // Forma funcional: o onComplete guardado pelo player não vê um activeProcedure antigo.
+    setActiveProcedure((prev) => prev && (list.find((p) => p.id === prev.id) || prev));
   };
-
-  useEffect(() => {
-    refreshList();
-  }, []);
 
   const categories = [
     { id: 'all', label: 'Todos os Procedimentos' },
@@ -154,7 +148,6 @@ export default function ProcedimentosLab() {
                 sourceUrl={activeProcedure.sourceUrl || activeProcedure.officialGuideUrl}
                 institutionalBadge={activeProcedure.institutionalBadge}
                 cofenNorm={activeProcedure.cofenNorm}
-                steps={activeProcedure.steps}
                 previewImage={activeProcedure.previewImage}
                 duration={activeProcedure.duration}
                 onComplete={() => refreshList()}

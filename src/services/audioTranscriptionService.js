@@ -288,7 +288,7 @@ Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções ou explicações.`;
 
     // 5. Se não conseguiu transcrever por nenhuma IA e não tem texto
     throw new Error(
-      'Nenhuma transcrição foi gerada. Fale mais próximo ao microfone ou utilize a opção "Prefiro digitar".'
+      'Nenhuma transcrição foi gerada. Fale mais perto do microfone ou digite o texto.'
     );
   },
 

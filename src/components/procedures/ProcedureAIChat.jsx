@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Send, Loader2, User } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { procedureService } from '@/services/procedureService';
+import { prefersReducedMotion } from '@/lib/motion';
 import gotiLogoOficial from '@/assets/goti-icone-oficial.png';
 
 const TIMEOUT_REPLY = 'O Goti demorou para responder. Confira os passos técnicos do POP acima e tente de novo em instantes.';
@@ -29,6 +30,13 @@ export default function ProcedureAIChat({ procedure }) {
   ]);
   const [input, setInput] = useState('');
   const [loading, setLoading] = useState(false);
+  const listRef = useRef(null);
+
+  // A caixa tem altura limitada: rola só ela (não a página) até a resposta nova.
+  useEffect(() => {
+    const el = listRef.current;
+    el?.scrollTo({ top: el.scrollHeight, behavior: prefersReducedMotion() ? 'auto' : 'smooth' });
+  }, [messages, loading]);
 
   const suggestedQuestions = [
     'Quais são os erros mais comuns na prática hospitalar?',
@@ -100,7 +108,7 @@ export default function ProcedureAIChat({ procedure }) {
       </div>
 
       {/* Histórico de Mensagens */}
-      <div className="space-y-2.5 max-h-60 overflow-y-auto no-scrollbar pr-1 mb-3">
+      <div className="space-y-2.5 max-h-60 overflow-y-auto no-scrollbar pr-1 mb-3" ref={listRef} role="log" aria-live="polite" aria-relevant="additions">
         {messages.map((m) => (
           <div
             key={m.id}
@@ -159,6 +167,8 @@ export default function ProcedureAIChat({ procedure }) {
       <div className="flex items-center gap-2">
         <Input
           placeholder="Tire uma dúvida sobre este procedimento..."
+          aria-label="Pergunta para o Goti"
+          enterKeyHint="send"
           value={input}
           onChange={(e) => setInput(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && handleSend()}

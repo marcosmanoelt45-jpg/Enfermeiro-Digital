@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import {
   Mic,
@@ -31,7 +31,6 @@ import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
-import { useAuth } from "@/lib/AuthContext";
 import { evaluateSbarHandoff } from "@/services/sbarTutorService";
 import { audioTranscriptionService } from "@/services/audioTranscriptionService";
 import { evaluateSbarChecklists } from "@/lib/sbarSpeechMatcher";
@@ -49,7 +48,6 @@ import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 export default function SbarHandoffLab() {
   const location = useLocation();
   const navigate = useNavigate();
-  const { user } = useAuth();
 
   const passedCase = location.state?.caseData;
 
@@ -67,7 +65,9 @@ export default function SbarHandoffLab() {
 
   // Histórico & Cronômetro de Atividade SBAR
   const [currentActivityId, setCurrentActivityId] = useState(null);
-  const [activitySeconds, setActivitySeconds] = useState(0);
+  const startedAtRef = useRef(Date.now());
+  const baseSecondsRef = useRef(0);
+  const elapsedSeconds = () => baseSecondsRef.current + Math.round((Date.now() - startedAtRef.current) / 1000);
   const [isHistoryOpen, setIsHistoryOpen] = useState(false);
   const [submissionSuccess, setSubmissionSuccess] = useState(false);
 
@@ -80,12 +80,6 @@ export default function SbarHandoffLab() {
     }
   }, [location.search]);
 
-  useEffect(() => {
-    const timer = setInterval(() => {
-      setActivitySeconds((s) => s + 1);
-    }, 1000);
-    return () => clearInterval(timer);
-  }, []);
 
   function handleSaveDraft() {
     const filledCount = [sbarData.situation, sbarData.background, sbarData.assessment, sbarData.recommendation].filter(Boolean).length;
@@ -96,7 +90,7 @@ export default function SbarHandoffLab() {
       title: `Passagem SBAR: ${currentCase?.title || "Caso Clínico"}`,
       patientInfo: `${currentCase?.name || "Paciente"} (${currentCase?.age || "?"}a) • ${currentCase?.sector || "Enfermaria"}`,
       progress,
-      durationSeconds: activitySeconds,
+      durationSeconds: elapsedSeconds(),
       step: activeGuidedStep,
       formData: { sbarData, currentCase, activeTab }
     });
@@ -110,7 +104,10 @@ export default function SbarHandoffLab() {
       if (item.formData.sbarData) setSbarData(item.formData.sbarData);
       if (item.formData.currentCase) setCurrentCase(item.formData.currentCase);
       if (item.formData.activeTab) setActiveTab(item.formData.activeTab);
-      if (item.durationSeconds) setActivitySeconds(item.durationSeconds);
+      if (item.durationSeconds) {
+        baseSecondsRef.current = item.durationSeconds;
+        startedAtRef.current = Date.now();
+      }
     }
     if (item?.evaluation) {
       setTutorEvaluation(item.evaluation);
@@ -132,14 +129,6 @@ export default function SbarHandoffLab() {
     background: "",
     assessment: "",
     recommendation: ""
-  });
-
-  // Checklists Pedagógicos Interativos por Pilar
-  const [checklists, setChecklists] = useState({
-    situation: { bed: false, id: false, reason: false },
-    background: { allergy: false, comorbidities: false, meds: false },
-    assessment: { vitals: false, sato2: false, exam: false },
-    recommendation: { time: false, meds: false, monitoring: false }
   });
 
   // Reconhecimento de Voz Dual-Engine (Web Speech API em tempo real + MediaRecorder Fallback com IA)
@@ -170,9 +159,6 @@ export default function SbarHandoffLab() {
   // Estados de Avaliação
   const [isEvaluating, setIsEvaluating] = useState(false);
   const [tutorEvaluation, setTutorEvaluation] = useState(null);
-  const [studentReflections, setStudentReflections] = useState({});
-  const [isSavingReflections, setIsSavingReflections] = useState(false);
-  const [reflectionsFeedback, setReflectionsFeedback] = useState(null);
   const [showGotiEvaluationModal, setShowGotiEvaluationModal] = useState(false);
   const [toastMessage, setToastMessage] = useState("");
   const [showGoldComparison, setShowGoldComparison] = useState(false);
@@ -245,15 +231,11 @@ export default function SbarHandoffLab() {
   };
 
   // Validação dinâmica rigorosa dos checklists baseada estritamente no texto digitado/falado
-  useEffect(() => {
-    const autoChecked = evaluateSbarChecklists(sbarData, currentCase);
-    setChecklists(autoChecked);
-  }, [sbarData, currentCase]);
+  const checklists = useMemo(() => evaluateSbarChecklists(sbarData, currentCase), [sbarData, currentCase]);
 
   // Fornece feedback instrutivo do Goti sobre os itens do checklist, bloqueando marcação arbitrária sem texto
   function handleToggleChecklistItem(pillarKey, itemKey) {
-    const currentChecked = evaluateSbarChecklists(sbarData, currentCase);
-    const isDone = currentChecked[pillarKey]?.[itemKey];
+    const isDone = checklists[pillarKey]?.[itemKey];
 
     if (isDone) {
       setToastMessage("✨ Item já validado pelo Goti com base na redação do seu texto clínico!");
@@ -264,41 +246,6 @@ export default function SbarHandoffLab() {
     const hint = CHECKLIST_GUIDANCE[pillarKey]?.[itemKey] || "Redija os dados objetivos deste item no campo do pilar para validação pelo Goti.";
     setToastMessage(`🩺 Goti orienta: ${hint}`);
     setTimeout(() => setToastMessage(""), 5500);
-  }
-
-  async function handleSaveStudentReflections() {
-    const filledAnswers = Object.entries(studentReflections).filter(([_, val]) => val && val.trim().length > 0);
-    if (filledAnswers.length === 0) {
-      setToastMessage("🩺 Goti: Digite sua reflexão em ao menos uma pergunta antes de enviar!");
-      setTimeout(() => setToastMessage(""), 4000);
-      return;
-    }
-
-    setIsSavingReflections(true);
-    try {
-      if (currentActivityId) {
-        clinicalHistoryService.updateActivity(currentActivityId, {
-          studentReflections,
-          reflectionsSubmittedAt: new Date().toISOString()
-        });
-      }
-
-      await new Promise((r) => setTimeout(r, 600));
-
-      setReflectionsFeedback({
-        savedAt: new Date().toLocaleTimeString([], { hour: "2-digit", minute: "2-digit" }),
-        comment: "Excelente reflexão clínica! O Goti analisou suas justificativas: você demonstrou sólido compromisso com a continuidade da assistência, segurança do paciente e comunicação assertiva. Suas anotações foram registradas com sucesso no histórico acadêmico."
-      });
-
-      setToastMessage("🩺 Respostas reflexivas salvas no prontuário e auditadas pelo Goti!");
-      setTimeout(() => setToastMessage(""), 4000);
-    } catch (err) {
-      console.warn("Erro ao salvar reflexões:", err);
-      setToastMessage("Reflexões salvas localmente no prontuário.");
-      setTimeout(() => setToastMessage(""), 3000);
-    } finally {
-      setIsSavingReflections(false);
-    }
   }
 
   async function stopListening(fieldNameOverride = null) {
@@ -563,6 +510,8 @@ export default function SbarHandoffLab() {
           if (e.error === "not-allowed" || e.error === "permission-denied") {
             setVoiceError("Permissão de microfone negada nas configurações do navegador.");
             isListeningRef.current = false;
+            setIsListening(false);
+            setActiveListeningField(null);
           } else if (e.error === "network") {
             setVoiceError("Conexão de voz do navegador oscilou. O áudio está sendo gravado e será processado pela IA ao parar.");
           }
@@ -596,7 +545,6 @@ export default function SbarHandoffLab() {
     setCurrentCase(PRESET_HANDOFF_SCENARIOS[idx]);
     setSbarData({ situation: "", background: "", assessment: "", recommendation: "" });
     setTutorEvaluation(null);
-    setStudentReflections({});
     setActiveGuidedStep(0);
   }
 
@@ -607,14 +555,6 @@ export default function SbarHandoffLab() {
     handleSelectScenario(nextIdx);
     setToastMessage(`🎲 Novo caso sorteado: ${PRESET_HANDOFF_SCENARIOS[nextIdx].name} (${PRESET_HANDOFF_SCENARIOS[nextIdx].bed})`);
     setTimeout(() => setToastMessage(""), 3500);
-  }
-
-  function handleInsertGoldenExample() {
-    if (currentCase?.goldenSbar) {
-      setSbarData(currentCase.goldenSbar);
-      setToastMessage("Exemplo Padrão Ouro inserido em todos os campos para análise didática!");
-      setTimeout(() => setToastMessage(""), 3500);
-    }
   }
 
   function handleInsertFieldExample(fieldKey) {
@@ -669,7 +609,7 @@ export default function SbarHandoffLab() {
           moduleType: MODULE_TYPES.SBAR,
           title: `Passagem SBAR: ${currentCase?.title || "Caso Clínico"}`,
           patientInfo: `${currentCase?.name || "Paciente"} (${currentCase?.age || "?"}a) • ${currentCase?.sector || "Enfermaria"}`,
-          durationSeconds: activitySeconds,
+          durationSeconds: elapsedSeconds(),
           score: Number.isFinite(Number(evaluation?.safetyScore)) ? Number(evaluation.safetyScore) : 0,
           evaluation: evaluation,
           formData: { sbarData, currentCase }
@@ -873,11 +813,12 @@ export default function SbarHandoffLab() {
                 <button
                   type="button"
                   onClick={() => {
-                    const criticalCase = PRESET_HANDOFF_SCENARIOS.find((c) => c.id === "sepse_urinaria") || PRESET_HANDOFF_SCENARIOS[1];
-                    setCurrentCase(criticalCase);
+                    const idx = PRESET_HANDOFF_SCENARIOS.findIndex((c) => c.id === "sepse_urinaria");
+                    handleSelectScenario(idx >= 0 ? idx : 1);
                     setActiveTab("free_voice");
                     setViewMode("workspace");
                     setToastMessage("Simulação Beira-Leito iniciada! Priorize os dados de emergência do paciente.");
+                    setTimeout(() => setToastMessage(""), 3500);
                   }}
                   className="w-full p-4 rounded-2xl bg-[#0B131D] border border-[#1F3045] hover:border-[#20D5B5]/50 text-left flex items-center justify-between group transition hover:bg-[#131F2E]"
                 >
@@ -887,7 +828,7 @@ export default function SbarHandoffLab() {
                     </div>
                     <div>
                       <h4 className="text-xs sm:text-sm font-bold text-white">Simulação Rápida Beira-Leito</h4>
-                      <p className="text-[11px] text-[#9FB3C6]">Caso crítico com contagem regressiva de 2 minutos para priorização</p>
+                      <p className="text-[11px] text-[#9FB3C6]">Caso crítico para treinar a priorização dos dados de emergência</p>
                     </div>
                   </div>
                   <ArrowRight className="w-4 h-4 text-[#9FB3C6] group-hover:text-white group-hover:translate-x-1 transition-all" />
@@ -937,7 +878,7 @@ export default function SbarHandoffLab() {
               <div className="flex items-center gap-2 self-start sm:self-auto shrink-0 flex-wrap">
                 <span className="flex items-center gap-1.5 text-xs font-bold px-2.5 py-1.5 rounded-xl bg-[#0E1722] text-[#9FB3C6] border border-[#1F3045]">
                   <Clock className="h-3.5 w-3.5 text-[#20D5B5]" />
-                  <span>{clinicalHistoryService.formatDuration(activitySeconds)}</span>
+                  <span><ElapsedClock getSeconds={elapsedSeconds} /></span>
                 </span>
 
                 <button
@@ -1172,7 +1113,7 @@ export default function SbarHandoffLab() {
                       window.dispatchEvent(
                         new CustomEvent("open-goti-chat", {
                           detail: {
-                            prompt: `Goti, estou com dúvidas de como redigir o campo de ${currentGuided.title} (${currentGuided.label}) no SBAR. Como devo preencher este pilar? Me mostre apenas um modelo de exemplo didático para eu entender como fazer!`
+                            prompt: `Goti, estou com dúvidas de como redigir o campo de ${currentGuided.title} (${currentGuided.letter}) no SBAR. Como devo preencher este pilar? Me mostre apenas um modelo de exemplo didático para eu entender como fazer!`
                           }
                         })
                       );
@@ -1548,7 +1489,7 @@ export default function SbarHandoffLab() {
                 <div className="flex items-center gap-2 shrink-0">
                   <span className="flex items-center gap-1.5 text-xs font-semibold px-3 py-1.5 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700">
                     <Clock className="h-3.5 w-3.5 text-teal-600 dark:text-teal-400" />
-                    <span>Tempo de Prática: {clinicalHistoryService.formatDuration(activitySeconds)}</span>
+                    <span>Tempo de Prática: <ElapsedClock getSeconds={elapsedSeconds} /></span>
                   </span>
                 </div>
               </div>
@@ -1695,7 +1636,7 @@ export default function SbarHandoffLab() {
         )}
 
         {/* CONTEÚDO DA ABA 3: DEBRIEFING DO GOTI IA */}
-        {tutorEvaluation && (
+        {activeTab === "debriefing" && tutorEvaluation && (
           <div className="bg-white dark:bg-slate-900 rounded-2xl border border-teal-200 dark:border-teal-900/60 p-6 sm:p-8 shadow-xs space-y-6 animate-in fade-in">
             {/* Topo do Feedback com Score e Grade */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 border-b border-slate-100 dark:border-slate-800 pb-5">
@@ -1868,4 +1809,14 @@ export default function SbarHandoffLab() {
       <MobileBottomDock />
     </div>
   );
+}
+
+// Relógio da prática: só ele re-renderiza a cada segundo, não a página inteira.
+function ElapsedClock({ getSeconds }) {
+  const [seconds, setSeconds] = useState(getSeconds);
+  useEffect(() => {
+    const timer = setInterval(() => setSeconds(getSeconds()), 1000);
+    return () => clearInterval(timer);
+  }, [getSeconds]);
+  return clinicalHistoryService.formatDuration(seconds);
 }

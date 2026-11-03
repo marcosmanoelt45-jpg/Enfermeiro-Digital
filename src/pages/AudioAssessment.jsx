@@ -1,4 +1,4 @@
-import React, { useMemo, useState, useRef } from "react";
+import React, { useEffect, useMemo, useState, useRef } from "react";
 import { base44 } from "@/api/base44Client";
 import { useNavigate, useParams } from "react-router-dom";
 import { AlertTriangle, ArrowLeft, Settings, Mic, MicOff } from "lucide-react";
@@ -8,7 +8,6 @@ import RecorderPanel from "@/components/audio/RecorderPanel";
 import TranscriptPanel from "@/components/audio/TranscriptPanel";
 import StatusCard from "@/components/audio/StatusCard";
 import ClinicalGuideTabs from "@/components/audio/ClinicalGuideTabs";
-import { getAssemblyAiKey, transcribeAudio } from "@/lib/assemblyai";
 import { parseVitalsFromTranscript } from "@/lib/vitalsParser";
 import { computeAllScores } from "@/lib/riskEngine";
 import { audioTranscriptionService } from "@/services/audioTranscriptionService";
@@ -28,9 +27,24 @@ export default function AudioAssessment() {
   const isDictatingRef = useRef(false);
   const interimRef = useRef("");
 
-  const hasAssemblyKey = Boolean(getAssemblyAiKey());
-  const hasGeminiKey = Boolean(audioTranscriptionService.getGeminiKey());
-  const hasAnyKey = hasAssemblyKey || hasGeminiKey;
+  const restartsRef = useRef([]);
+  // Qualquer motor configurado (AssemblyAI, Gemini ou OpenRouter) conta como chave.
+  const hasAnyKey = audioTranscriptionService.getActiveEngine() !== "Navegador (Web Speech API)";
+
+  // Ao sair da tela, desliga o ditado: senão o onend o religaria com o microfone aberto.
+  useEffect(
+    () => () => {
+      isDictatingRef.current = false;
+      const r = recognitionRef.current;
+      if (r) {
+        r.onresult = r.onend = r.onerror = null;
+        try {
+          r.abort();
+        } catch {}
+      }
+    },
+    []
+  );
 
   const vitals = useMemo(() => parseVitalsFromTranscript(transcript), [transcript]);
 
@@ -63,6 +77,7 @@ export default function AudioAssessment() {
     try {
       isDictatingRef.current = true;
       interimRef.current = "";
+      restartsRef.current = [];
 
       const rec = new SpeechRec();
       rec.lang = "pt-BR";
@@ -91,14 +106,29 @@ export default function AudioAssessment() {
         if (ev.error === "no-speech") {
           return; // Silêncio normal ao respirar/pausar a fala
         }
-        if (ev.error === "not-allowed") {
-          setError("Permissão de microfone negada no navegador.");
+        // Erros que não se resolvem tentando de novo: para o ditado e explica.
+        const fatais = {
+          "not-allowed": "Permissão de microfone negada no navegador.",
+          "service-not-allowed": "O navegador não liberou o reconhecimento de fala nesta página.",
+          "audio-capture": "Nenhum microfone encontrado. Confira se ele está conectado.",
+        };
+        if (fatais[ev.error]) {
+          setError(fatais[ev.error]);
           isDictatingRef.current = false;
           setIsDictating(false);
         }
       };
 
       rec.onend = () => {
+        // Religa sozinho nas pausas, mas desiste se cair 3 vezes em 5 s (erro de rede, por exemplo).
+        const agora = Date.now();
+        restartsRef.current = [...restartsRef.current.filter((t) => agora - t < 5000), agora];
+        if (restartsRef.current.length > 3) {
+          isDictatingRef.current = false;
+          setIsDictating(false);
+          setError("O ditado parou de responder. Toque de novo para retomar ou digite o relato.");
+          return;
+        }
         if (isDictatingRef.current && recognitionRef.current) {
           try {
             rec.start();
@@ -128,25 +158,14 @@ export default function AudioAssessment() {
 
     setTranscribing(true);
     try {
-      // Usa cascata: AssemblyAI -> Gemini Multimodal Audio
-      let text = "";
-      if (hasAssemblyKey) {
-        text = await transcribeAudio(recorder.blob, {
-          apiKey: getAssemblyAiKey(),
-          onStage: setStage,
-        });
-      } else if (hasGeminiKey) {
-        const res = await audioTranscriptionService.transcribeWithGemini(
-          recorder.blob,
-          (msg) => setStage(msg)
-        );
-        text = res?.text || "";
-      } else {
-        setError("Configure uma chave da AssemblyAI ou do Google Gemini em Minha Conta para transcrever o áudio.");
+      if (!hasAnyKey) {
+        setError("A transcrição automática não está disponível. Use o ditado ao vivo ou digite o relato.");
         setManual(true);
-        setTranscribing(false);
         return;
       }
+      // Tenta todos os motores configurados, em ordem (AssemblyAI, Gemini, OpenRouter).
+      const res = await audioTranscriptionService.transcribe(recorder.blob, "", setStage);
+      const text = res?.text || "";
 
       if (!text) {
         setError("A transcrição não retornou texto audível. Use o ditado ao vivo ou escreva o relato.");
@@ -186,9 +205,10 @@ export default function AudioAssessment() {
       } else {
         try {
           const newPat = await base44.entities.Patient.create({
-            name: "Paciente Simulado " + (data.initials || "J.S.F."),
-            age: 68,
-            gender: "M"
+            // Usa o que foi dito no relato; sem isso, fica em branco em vez de inventar.
+            name: "Paciente Simulado",
+            age: data.age ?? null,
+            gender: data.gender ?? null
           });
           targetPatientId = newPat.id;
           patient = newPat;
@@ -272,7 +292,7 @@ export default function AudioAssessment() {
               <AlertTriangle className="h-4 w-4 text-amber-600 dark:text-amber-400" /> Chave de Transcrição não configurada
             </p>
             <p className="mt-1 text-xs text-amber-700 dark:text-amber-300">
-              Para transcrição automática do microfone, configure sua chave da AssemblyAI ou do Google Gemini em Minha Conta. Ou se preferir, digite o relato diretamente.
+              A transcrição automática da gravação não está disponível. Use o ditado ao vivo ou digite o relato.
             </p>
             <div className="mt-3 flex flex-wrap gap-2">
               <Button
@@ -284,14 +304,6 @@ export default function AudioAssessment() {
               >
                 {isDictating ? <MicOff className="h-4 w-4" /> : <Mic className="h-4 w-4" />}
                 <span>{isDictating ? "Parar Ditado ao Vivo" : "Ditar por Voz ao Vivo (Sem Chave)"}</span>
-              </Button>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => navigate("/conta")}
-                className="rounded-xl border-amber-300 dark:border-amber-800 text-amber-900 dark:text-amber-300 hover:bg-amber-100 dark:hover:bg-amber-950/50 text-xs"
-              >
-                Configurar Chaves Externas em Minha Conta
               </Button>
             </div>
           </div>

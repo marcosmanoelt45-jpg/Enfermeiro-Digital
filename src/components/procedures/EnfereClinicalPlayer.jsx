@@ -44,7 +44,6 @@ export default function EnfereClinicalPlayer({
   const [playbackRate, setPlaybackRate] = useState(1);
   const [currentTime, setCurrentTime] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
-  const [showSpeedMenu, setShowSpeedMenu] = useState(false);
   // Vídeo que não carrega (ex.: link http numa página https) mostra aviso com link, não uma tela preta.
   const [loadError, setLoadError] = useState(false);
 
@@ -169,7 +168,6 @@ export default function EnfereClinicalPlayer({
   const handleSpeedChange = (rate) => {
     triggerHaptic?.(15);
     setPlaybackRate(rate);
-    setShowSpeedMenu(false);
 
     if (isNativeMp4 && videoRef.current) {
       videoRef.current.playbackRate = rate;
@@ -185,13 +183,9 @@ export default function EnfereClinicalPlayer({
   };
 
   // Buscar posição no vídeo através da barra de progresso
-  const handleSeekFromEvent = useCallback((e) => {
-    if (!progressBarRef.current || totalDuration <= 0) return;
-    const rect = progressBarRef.current.getBoundingClientRect();
-    const clientX = e.clientX || (e.touches && e.touches[0]?.clientX) || 0;
-    const clickX = Math.max(0, Math.min(clientX - rect.left, rect.width));
-    const percentage = clickX / rect.width;
-    const targetSeconds = percentage * totalDuration;
+  const seekToSeconds = useCallback((seconds) => {
+    if (totalDuration <= 0) return;
+    const targetSeconds = Math.max(0, Math.min(seconds, totalDuration));
 
     setCurrentTime(targetSeconds);
 
@@ -205,28 +199,33 @@ export default function EnfereClinicalPlayer({
     }
   }, [totalDuration, isNativeMp4]);
 
-  const onProgressBarMouseDown = (e) => {
+  const handleSeekFromEvent = (e) => {
+    if (!progressBarRef.current) return;
+    const rect = progressBarRef.current.getBoundingClientRect();
+    const clickX = Math.max(0, Math.min((e.clientX ?? 0) - rect.left, rect.width));
+    seekToSeconds((clickX / rect.width) * totalDuration);
+  };
+
+  // Eventos de ponteiro cobrem mouse, toque e caneta; a captura mantém o arrasto fora da barra.
+  const onProgressPointerDown = (e) => {
+    e.currentTarget.setPointerCapture?.(e.pointerId);
     isDraggingRef.current = true;
     handleSeekFromEvent(e);
   };
-
-  useEffect(() => {
-    const handleMouseMove = (e) => {
-      if (isDraggingRef.current) {
-        handleSeekFromEvent(e);
-      }
-    };
-    const handleMouseUp = () => {
-      isDraggingRef.current = false;
-    };
-
-    window.addEventListener('mousemove', handleMouseMove);
-    window.addEventListener('mouseup', handleMouseUp);
-    return () => {
-      window.removeEventListener('mousemove', handleMouseMove);
-      window.removeEventListener('mouseup', handleMouseUp);
-    };
-  }, [handleSeekFromEvent]);
+  const onProgressPointerMove = (e) => {
+    if (isDraggingRef.current) handleSeekFromEvent(e);
+  };
+  const onProgressPointerUp = () => {
+    isDraggingRef.current = false;
+  };
+  const onProgressKeyDown = (e) => {
+    const passos = { ArrowRight: 5, ArrowLeft: -5 };
+    if (e.key in passos) seekToSeconds(currentTime + passos[e.key]);
+    else if (e.key === 'Home') seekToSeconds(0);
+    else if (e.key === 'End') seekToSeconds(totalDuration);
+    else return;
+    e.preventDefault();
+  };
 
   // Atualização de tempo do vídeo nativo
   const handleTimeUpdate = () => {
@@ -410,7 +409,19 @@ export default function EnfereClinicalPlayer({
       {/* BARRA DE ANDAMENTO DO VÍDEO (TIMELINE / SCRUBBER) */}
       <div
         ref={progressBarRef}
-        onMouseDown={onProgressBarMouseDown}
+        onPointerDown={onProgressPointerDown}
+        onPointerMove={onProgressPointerMove}
+        onPointerUp={onProgressPointerUp}
+        onPointerCancel={onProgressPointerUp}
+        onKeyDown={onProgressKeyDown}
+        role="slider"
+        tabIndex={0}
+        aria-label="Posição do vídeo"
+        aria-valuemin={0}
+        aria-valuemax={Math.round(totalDuration)}
+        aria-valuenow={Math.round(currentTime)}
+        aria-valuetext={`${formatTime(currentTime)} de ${formatTime(totalDuration)}`}
+        style={{ touchAction: 'none' }}
         className="group/progress relative h-2.5 bg-slate-800/90 hover:h-4 cursor-pointer transition-all duration-150 flex items-center"
         title="Arrastar ou clicar para navegar no vídeo"
       >
