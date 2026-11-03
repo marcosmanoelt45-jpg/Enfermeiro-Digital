@@ -11,7 +11,7 @@ Para quem executa (Antigravity ou outro agente), uma área por vez:
    - `AnimatedProgress` e `AnimatedNumber`;
    - tema escuro Enfere Vivo e textos em PT-BR.
 5. Sem sons de acerto ou erro. Não faça commit, push, deploy nem migration.
-6. Termine rodando `npx eslint <arquivos alterados> --quiet` e corrija os erros.
+6. Termine rodando `npx eslint <arquivos alterados> --quiet` e `npm run build`, e corrija os erros. Antes de apagar uma função ou um componente, procure com grep se ele ainda é usado (a lint deste projeto não avisa quando algo é chamado sem existir).
 7. Responda num resumo curto com: arquivos alterados, achados corrigidos, achados pulados (com o motivo) e o que mudou no visual.
 
 Ordem sugerida (do maior risco para o menor): dosage → case-sim → case-studio → sbar-audio → profile → voice-sim → hub-goti → procedures → foundation → perf.
