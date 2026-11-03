@@ -18,6 +18,7 @@ import ProcedureSafetyAlerts from '@/components/procedures/ProcedureSafetyAlerts
 import ProcedureAIChat from '@/components/procedures/ProcedureAIChat';
 import MobileBottomDock from '@/components/mobile/MobileBottomDock';
 import CaseHistoryModal from '@/components/history/CaseHistoryModal';
+import { MODULE_TYPES } from '@/services/clinicalHistoryService';
 import { History } from 'lucide-react';
 
 export default function ProcedimentosLab() {
@@ -81,13 +82,11 @@ export default function ProcedimentosLab() {
   ];
 
   const filtered = useMemo(() => {
+    // Busca sem diferenciar acento: "puncao" encontra "Punção".
+    const norm = (v) => String(v || "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+    const q = norm(searchQuery.trim());
     return procedures.filter((p) => {
-      const matchesSearch =
-        !searchQuery.trim() ||
-        p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        p.categoryLabel.toLowerCase().includes(searchQuery.toLowerCase()) ||
-        (p.institutionalBadge && p.institutionalBadge.toLowerCase().includes(searchQuery.toLowerCase()));
+      const matchesSearch = !q || [p.title, p.description, p.categoryLabel, p.institutionalBadge].some((f) => norm(f).includes(q));
 
       let matchesCategory = true;
       if (selectedCategory === 'watched') {
@@ -104,8 +103,7 @@ export default function ProcedimentosLab() {
 
   const handleOpenProcedure = (proc) => {
     triggerHaptic(25);
-    procedureService.markWatched(proc.id);
-    setWatchedIds(procedureService.getWatchedList());
+    // Abrir não conta como assistido: isso só acontece ao concluir o roteiro.
     setActiveProcedure(proc);
   };
 
@@ -190,25 +188,6 @@ export default function ProcedimentosLab() {
               />
               <ProcedureAIChat procedure={activeProcedure} />
             </div>
-
-            {/* Recompensa e Botão 3D Tátil "Concluir treinamento" */}
-            <div className="pt-2 space-y-3">
-              <div className="text-center text-xs font-black text-[#FFC247]">
-                Recompensa: +30 com o Goti
-              </div>
-              <button
-                type="button"
-                onClick={() => {
-                  triggerHaptic(30);
-                  procedureService.markWatched(activeProcedure.id);
-                  refreshList();
-                  setActiveProcedure(null);
-                }}
-                className="w-full py-4 rounded-2xl bg-[#20D5B5] hover:bg-[#1AD1B0] text-[#0B131D] font-black shadow-[0_4px_0_0_#148A76] active:translate-y-1 active:shadow-none text-center text-sm transition-all cursor-pointer"
-              >
-                Concluir treinamento
-              </button>
-            </div>
           </div>
         ) : (
           /* Modo Catálogo & Lista de Procedimentos */
@@ -260,7 +239,7 @@ export default function ProcedimentosLab() {
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUpOrLeave}
               onMouseLeave={handleMouseUpOrLeave}
-              style={{ touchAction: 'pan-x', WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}
+              style={{ touchAction: 'pan-x pan-y', WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}
               className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none cursor-grab active:cursor-grabbing"
             >
               {categories.map((cat) => {
@@ -348,7 +327,9 @@ export default function ProcedimentosLab() {
       <CaseHistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
-        defaultCategory="procedimentos"
+        defaultModuleFilter={MODULE_TYPES.PROCEDURES}
+        lockModuleFilter
+        title="Histórico de Treinamentos"
       />
     </div>
   );

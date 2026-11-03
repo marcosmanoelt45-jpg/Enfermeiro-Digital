@@ -11,6 +11,10 @@ function svgToDataUri(svgString) {
 }
 
 // Gerador modular de card SVG 16:9 para procedimentos do LabEnf UFSM
+// Texto entra num SVG (XML): "&" ou "<" crus invalidam a imagem inteira.
+const esc = (v = '') =>
+  String(v).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+
 function createLabEnfSvg({ bgStart, bgEnd, glowColor, badgeBg, badgeStroke, badgeText, badgeLabel = 'LABENF • UFSM & COFEN', title, subtitle, iconSvg }) {
   return svgToDataUri(`
     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" width="640" height="360">
@@ -26,9 +30,9 @@ function createLabEnfSvg({ bgStart, bgEnd, glowColor, badgeBg, badgeStroke, badg
         ${iconSvg}
       </g>
       <rect x="30" y="30" width="250" height="34" rx="17" fill="${badgeBg}" fill-opacity="0.45" stroke="${badgeStroke}" stroke-width="1.5"/>
-      <text x="48" y="52" fill="${badgeText}" font-family="sans-serif" font-size="13" font-weight="bold">${badgeLabel}</text>
-      <text x="30" y="322" fill="#f8fafc" font-family="sans-serif" font-size="19" font-weight="900">${title}</text>
-      <text x="30" y="344" fill="#94a3b8" font-family="sans-serif" font-size="13" font-weight="500">${subtitle}</text>
+      <text x="48" y="52" fill="${badgeText}" font-family="sans-serif" font-size="13" font-weight="bold">${esc(badgeLabel)}</text>
+      <text x="30" y="322" fill="#f8fafc" font-family="sans-serif" font-size="19" font-weight="900">${esc(title.length > 44 ? title.slice(0, 43) + "…" : title)}</text>
+      <text x="30" y="344" fill="#94a3b8" font-family="sans-serif" font-size="13" font-weight="500">${esc(subtitle)}</text>
     </svg>
   `);
 }

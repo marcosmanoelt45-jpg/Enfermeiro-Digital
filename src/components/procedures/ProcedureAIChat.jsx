@@ -5,6 +5,20 @@ import { Input } from '@/components/ui/input';
 import { procedureService } from '@/services/procedureService';
 import gotiLogoOficial from '@/assets/goti-icone-oficial.png';
 
+const TIMEOUT_REPLY = 'O Goti demorou para responder. Confira os passos técnicos do POP acima e tente de novo em instantes.';
+
+// As respostas vêm em Markdown simples: mostra **negrito** e as quebras de linha, sem HTML cru.
+function ChatText({ text = '' }) {
+  const parts = String(text).split(/(\*\*[^*]+\*\*)/g);
+  return (
+    <span className="whitespace-pre-line">
+      {parts.map((part, i) =>
+        part.startsWith('**') && part.endsWith('**') && part.length > 4 ? <strong key={i}>{part.slice(2, -2)}</strong> : part
+      )}
+    </span>
+  );
+}
+
 export default function ProcedureAIChat({ procedure }) {
   const [messages, setMessages] = useState([
     {
@@ -36,13 +50,15 @@ export default function ProcedureAIChat({ procedure }) {
     setInput('');
     setLoading(true);
 
-    let safetyTimer = setTimeout(() => {
-      setLoading(false);
-    }, 12000);
+    // O carregamento só termina quando a resposta chega (ou o tempo esgota), para não haver
+    // duas perguntas em andamento com respostas fora de ordem.
+    let timeoutId;
+    const timeout = new Promise((resolve) => {
+      timeoutId = setTimeout(() => resolve(TIMEOUT_REPLY), 15000);
+    });
 
     try {
-      const response = await procedureService.askGotiAI(procedure, textToSend);
-      clearTimeout(safetyTimer);
+      const response = await Promise.race([procedureService.askGotiAI(procedure, textToSend), timeout]);
       const aiMsg = {
         id: `ai-${Date.now()}`,
         sender: 'goti',
@@ -50,7 +66,6 @@ export default function ProcedureAIChat({ procedure }) {
       };
       setMessages((prev) => [...prev, aiMsg]);
     } catch {
-      clearTimeout(safetyTimer);
       const errMsg = {
         id: `err-${Date.now()}`,
         sender: 'goti',
@@ -58,7 +73,7 @@ export default function ProcedureAIChat({ procedure }) {
       };
       setMessages((prev) => [...prev, errMsg]);
     } finally {
-      clearTimeout(safetyTimer);
+      clearTimeout(timeoutId);
       setLoading(false);
     }
   };
@@ -106,7 +121,7 @@ export default function ProcedureAIChat({ procedure }) {
                   : 'bg-slate-50 dark:bg-slate-800/80 border border-slate-200/80 dark:border-slate-700 text-slate-800 dark:text-slate-200 rounded-tl-none'
               }`}
             >
-              {m.text}
+              <ChatText text={m.text} />
             </div>
 
             {m.sender === 'user' && (

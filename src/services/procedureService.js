@@ -12,6 +12,17 @@ import { callResilientAI } from './aiCoreService';
 const STORAGE_KEY = 'enfermeiro_digital_custom_procedures';
 const WATCHED_STORAGE_KEY = 'enfermeiro_digital_watched_procedures';
 
+// Concluídos ficam por usuário, para uma conta não herdar o progresso de outra no mesmo aparelho.
+function completedStorageKey() {
+  let userId = 'anon';
+  try {
+    const raw = localStorage.getItem('enfermeiro_digital_local_user');
+    const parsed = raw ? JSON.parse(raw) : null;
+    userId = String(parsed?.id || parsed?.email || 'anon');
+  } catch {}
+  return `enfermeiro_digital_completed_procedures:${userId}`;
+}
+
 export const LABENF_UFSM_URL = 'https://www.ufsm.br/laboratorios/labenf/projetos/videos-de-procedimentos';
 export const LABENF_UFSM_EBOOK_URL = 'https://www.ufsm.br/app/uploads/sites/837/2022/10/versao-final-e-book.pdf';
 export const LABENF_UFSM_BADGE = 'LabEnf UFSM · Universidade Federal de Santa Maria';
@@ -612,7 +623,7 @@ export const MASTER_PROCEDURES = [
     steps: [
       { id: 's1', stepNumber: 1, title: 'Reconhecer PCR em até 10 segundos', desc: 'Chamar pelo paciente nos ombros. Checar pulso carotídeo e movimentos respiratórios simultaneamente em no máximo 10 segundos. Se sem pulso ou apenas gasping: É PCR!', checked: false },
       { id: 's2', stepNumber: 2, title: 'Solicitar ajuda e o DEA imediatamente', desc: 'Apontar para alguém específico da equipe: "Ligue para a emergência/código azul e traga o carrinho com o DEA agora!".', checked: false },
-      { id: 's3', stepNumber: 3, title: 'Compressões torácicas de alta qualidade', desc: 'Posicionar a região tenar da mão no terço inferior do esterno e comprimir com profundidade de 5 a 6 cm na frequência de 100 a 120 compressões por minuto.', checked: false },
+      { id: 's3', stepNumber: 3, title: 'Compressões torácicas de alta qualidade', desc: 'Posicionar a região hipotenar (calcanhar) de uma mão sobre a metade inferior do esterno, no centro do tórax, com a outra mão sobreposta e braços estendidos, e comprimir com profundidade de 5 a 6 cm na frequência de 100 a 120 compressões por minuto.', checked: false },
       { id: 's4', stepNumber: 4, title: 'Retorno completo do tórax', desc: 'Permitir a descompressão torácica total entre as compressões para possibilitar o enchimento diastólico das artérias coronárias.', checked: false },
       { id: 's5', stepNumber: 5, title: 'Ciclos de 30:2 com via aérea básica', desc: 'Realizar 30 compressões seguidas de 2 ventilações de 1 segundo cada com o Ambu (técnica C-E para vedação hermética).', checked: false },
       { id: 's6', stepNumber: 6, title: 'Chegada do DEA e choque precoce', desc: 'Ligar o DEA imediatamente, colar as pás adesivas (infraclavicular direita e ápice cardíaco esquerdo) e comandar afastamento total da equipe durante a análise e o disparo.', checked: false },
@@ -700,7 +711,7 @@ export const MASTER_PROCEDURES = [
       { id: 's1', stepNumber: 1, title: 'Delimitação anatômica do Ventroglúteo (Hochstetter)', desc: 'Colocar o indicador sobre a espinha ilíaca anterossuperior e abrir o dedo médio formando um V na crista ilíaca. O centro do V é o sítio mais seguro do corpo, livre de grandes vasos e nervos.', checked: false },
       { id: 's2', stepNumber: 2, title: 'Tração da pele em Z', desc: 'Com a mão não dominante, tracionar a pele e o tecido subcutâneo lateralmente cerca de 2,5 cm antes de introduzir a agulha.', checked: false },
       { id: 's3', stepNumber: 3, title: 'Inserção a 90 graus', desc: 'Introduzir a agulha com movimento firme e perpendicular de 90° em relação à superfície da pele.', checked: false },
-      { id: 's4', stepNumber: 4, title: 'Aspiração obrigatória por 5 segundos', desc: 'Aspirar o êmbolo suavemente. Se houver retorno de sangue, retirar imediatamente, desprezar todo o material e reiniciar o preparo com nova medicação.', checked: false },
+      { id: 's4', stepNumber: 4, title: 'Aspiração conforme protocolo institucional', desc: 'Evidências atuais (CDC/OMS) dispensam a aspiração no ventroglúteo, deltoide e vasto lateral. Se o protocolo local exigir, aspirar por 5 a 10 segundos; havendo retorno de sangue, retirar, desprezar todo o material e reiniciar o preparo com nova medicação.', checked: false },
       { id: 's5', stepNumber: 5, title: 'Injeção lenta e retirada', desc: 'Injetar lentamente na velocidade de 1 mL a cada 10 segundos. Aguardar 10 segundos antes de retirar a agulha para permitir a acomodação no músculo.', checked: false },
       { id: 's6', stepNumber: 6, title: 'Soltar a pele e vedar o trajeto', desc: 'Retirar a agulha e soltar a pele em seguida. Os planos teciduais se desalinham, vedando o canal e impedindo o refluxo para o subcutâneo.', checked: false },
     ],
@@ -837,13 +848,40 @@ export const procedureService = {
   /**
    * Conclui o treinamento de um procedimento, atribuindo XP e progresso na carreira.
    */
-  completeProcedure() {
-    const res = clinicalGamificationService.recordActivity('case_solved', 30);
+  completeProcedure(id) {
+    // Cada procedimento rende XP uma vez só por usuário, e conta como procedimento (não como caso NANDA).
+    if (id && this.isCompleted(id)) {
+      return { success: false, alreadyCompleted: true, earnedXp: 0 };
+    }
+    const res = clinicalGamificationService.recordActivity('procedure_completed', 30);
+    if (id) {
+      try {
+        const list = this.getCompletedList();
+        list.push(id);
+        localStorage.setItem(completedStorageKey(), JSON.stringify(list));
+      } catch (e) {
+        console.warn('Erro ao registrar procedimento concluído:', e);
+      }
+    }
     return {
       success: true,
       earnedXp: 30,
       state: res.state,
     };
+  },
+
+  getCompletedList() {
+    try {
+      const raw = localStorage.getItem(completedStorageKey());
+      const list = raw ? JSON.parse(raw) : [];
+      return Array.isArray(list) ? list : [];
+    } catch {
+      return [];
+    }
+  },
+
+  isCompleted(id) {
+    return Boolean(id) && this.getCompletedList().includes(id);
   },
 
   /**

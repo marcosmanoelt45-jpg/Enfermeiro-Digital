@@ -6,12 +6,13 @@ import { procedureService } from '@/services/procedureService';
 import { AnimatedProgress } from '@/components/ui/animated-progress';
 import { celebrate } from '@/lib/celebrate';
 import { vibrate } from '@/lib/motion';
+import { clinicalHistoryService, MODULE_TYPES } from '@/services/clinicalHistoryService';
 
 export default function ProcedureChecklist({ procedure, onComplete }) {
   const [tab, setTab] = useState('steps'); // 'steps' | 'materials'
   const [materials, setMaterials] = useState(() => procedure.materials || []);
   const [steps, setSteps] = useState(() => procedure.steps || []);
-  const [completed, setCompleted] = useState(false);
+  const [completed, setCompleted] = useState(() => procedureService.isCompleted(procedure.id));
 
   const toggleMaterial = (id) => {
     setMaterials((prev) =>
@@ -32,7 +33,24 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
   const percent = totalItems > 0 ? Math.round((totalChecked / totalItems) * 100) : 0;
 
   const handleFinishTraining = () => {
-    const res = procedureService.completeProcedure();
+    if (checkedStepsCount < steps.length) return;
+    const res = procedureService.completeProcedure(procedure.id);
+    if (res.alreadyCompleted) {
+      setCompleted(true);
+      return;
+    }
+    try {
+      clinicalHistoryService.submitActivity({
+        id: `proc-${procedure.id}`,
+        moduleType: MODULE_TYPES.PROCEDURES,
+        title: procedure.title,
+        score: percent,
+        formData: { steps: checkedStepsCount, materials: checkedMaterialsCount },
+      });
+    } catch (e) {
+      console.warn('Erro ao registrar o treinamento no histórico:', e);
+    }
+    procedureService.markWatched(procedure.id);
     setCompleted(true);
     vibrate(20);
     celebrate({ count: 80, spread: 80, y: 0.6 });
@@ -167,7 +185,7 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
         <Button
           type="button"
           onClick={handleFinishTraining}
-          disabled={completed}
+          disabled={completed || checkedStepsCount < steps.length}
           variant={percent >= 100 ? 'success' : 'primary'}
           className="w-full sm:w-auto text-xs px-5"
         >

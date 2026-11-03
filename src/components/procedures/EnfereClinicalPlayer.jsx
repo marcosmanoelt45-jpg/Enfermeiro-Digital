@@ -22,6 +22,9 @@ import { useTheme } from '@/lib/ThemeContext';
  * com barra de andamento contínuo (timeline interativa), seletor de velocidades (0.5x a 2x),
  * controle de volume/mudo e atribuição acadêmica transparente.
  */
+// Comandos ao player do YouTube vão só para a origem do embed, nunca para '*'.
+const YT_ORIGIN = 'https://www.youtube-nocookie.com';
+
 export default function EnfereClinicalPlayer({
   videoUrl,
   title,
@@ -42,6 +45,8 @@ export default function EnfereClinicalPlayer({
   const [currentTime, setCurrentTime] = useState(0);
   const [totalDuration, setTotalDuration] = useState(0);
   const [showSpeedMenu, setShowSpeedMenu] = useState(false);
+  // Vídeo que não carrega (ex.: link http numa página https) mostra aviso com link, não uma tela preta.
+  const [loadError, setLoadError] = useState(false);
 
   const containerRef = useRef(null);
   const videoRef = useRef(null);
@@ -90,7 +95,7 @@ export default function EnfereClinicalPlayer({
     triggerHaptic?.(15);
     if (isNativeMp4 && videoRef.current) {
       if (videoRef.current.paused) {
-        videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+        videoRef.current.play().then(() => setIsPlaying(true)).catch((err) => { if (err?.name === 'NotSupportedError') setLoadError(true); });
       } else {
         videoRef.current.pause();
         setIsPlaying(false);
@@ -104,7 +109,7 @@ export default function EnfereClinicalPlayer({
       if (iframeRef.current?.contentWindow) {
         iframeRef.current.contentWindow.postMessage(
           JSON.stringify({ event: 'command', func: 'playVideo', args: '' }),
-          '*'
+          YT_ORIGIN
         );
       }
     } else {
@@ -112,7 +117,7 @@ export default function EnfereClinicalPlayer({
       if (iframeRef.current?.contentWindow) {
         iframeRef.current.contentWindow.postMessage(
           JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }),
-          '*'
+          YT_ORIGIN
         );
       }
     }
@@ -132,7 +137,7 @@ export default function EnfereClinicalPlayer({
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func: newMuted ? 'mute' : 'unMute', args: '' }),
-        '*'
+        YT_ORIGIN
       );
     }
   };
@@ -143,7 +148,7 @@ export default function EnfereClinicalPlayer({
     setCurrentTime(0);
     if (isNativeMp4 && videoRef.current) {
       videoRef.current.currentTime = 0;
-      videoRef.current.play().then(() => setIsPlaying(true)).catch(() => {});
+      videoRef.current.play().then(() => setIsPlaying(true)).catch((err) => { if (err?.name === 'NotSupportedError') setLoadError(true); });
       return;
     }
 
@@ -151,11 +156,11 @@ export default function EnfereClinicalPlayer({
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func: 'seekTo', args: [0, true] }),
-        '*'
+        YT_ORIGIN
       );
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func: 'playVideo', args: '' }),
-        '*'
+        YT_ORIGIN
       );
     }
   };
@@ -174,7 +179,7 @@ export default function EnfereClinicalPlayer({
     if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func: 'setPlaybackRate', args: [rate] }),
-        '*'
+        YT_ORIGIN
       );
     }
   };
@@ -195,7 +200,7 @@ export default function EnfereClinicalPlayer({
     } else if (iframeRef.current?.contentWindow) {
       iframeRef.current.contentWindow.postMessage(
         JSON.stringify({ event: 'command', func: 'seekTo', args: [targetSeconds, true] }),
-        '*'
+        YT_ORIGIN
       );
     }
   }, [totalDuration, isNativeMp4]);
@@ -271,7 +276,12 @@ export default function EnfereClinicalPlayer({
     triggerHaptic?.(15);
     if (!containerRef.current) return;
     if (!document.fullscreenElement) {
-      containerRef.current.requestFullscreen?.().then(() => setIsFullscreen(true)).catch(() => {});
+      if (containerRef.current.requestFullscreen) {
+        containerRef.current.requestFullscreen().then(() => setIsFullscreen(true)).catch(() => {});
+      } else if (videoRef.current?.webkitEnterFullscreen) {
+        // iPhone: o Safari só deixa o próprio <video> entrar em tela cheia.
+        videoRef.current.webkitEnterFullscreen();
+      }
     } else {
       document.exitFullscreen?.().then(() => setIsFullscreen(false)).catch(() => {});
     }
@@ -290,6 +300,9 @@ export default function EnfereClinicalPlayer({
     setIsPlaying(false);
     setCurrentTime(0);
     setPlaybackRate(1);
+    setLoadError(
+      typeof window !== 'undefined' && window.location.protocol === 'https:' && /^http:///i.test(videoUrl || '')
+    );
   }, [videoUrl]);
 
   const progressPercent = totalDuration > 0 ? Math.min(100, (currentTime / totalDuration) * 100) : 0;
@@ -303,7 +316,17 @@ export default function EnfereClinicalPlayer({
       {/* Moldura de Vídeo 16:9 de Alta Fidelidade */}
       <div className="relative w-full aspect-video bg-black overflow-hidden flex items-center justify-center">
         {/* Renderização Híbrida: Vídeo Nativo MP4 da UFRGS ou Iframe YouTube Headless */}
-        {isNativeMp4 ? (
+        {isNativeMp4 && loadError ? (
+          <div className="text-center p-8 text-[#9FB3C6]">
+            <BookOpen className="w-10 h-10 mx-auto text-[#FFC247] mb-2 opacity-80" />
+            <p className="text-sm font-bold text-[#EAF2F8]">Não foi possível carregar o vídeo aqui.</p>
+            {sourceUrl && (
+              <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-xs font-bold text-[#20D5B5] underline">
+                Assistir no repositório oficial
+              </a>
+            )}
+          </div>
+        ) : isNativeMp4 ? (
           <video
             ref={videoRef}
             src={videoUrl}
@@ -312,16 +335,20 @@ export default function EnfereClinicalPlayer({
             onTimeUpdate={handleTimeUpdate}
             onLoadedMetadata={handleLoadedMetadata}
             onEnded={handleVideoEnded}
+            onError={() => setLoadError(true)}
             className="w-full h-full object-contain bg-black cursor-pointer"
             onClick={togglePlay}
           />
         ) : youtubeId ? (
           <iframe
             ref={iframeRef}
-            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?enablejsapi=1&autoplay=0&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=0&playsinline=1&origin=${typeof window !== 'undefined' ? window.location.origin : ''}`}
+            src={`https://www.youtube-nocookie.com/embed/${youtubeId}?enablejsapi=1&autoplay=0&controls=0&modestbranding=1&rel=0&iv_load_policy=3&fs=1&playsinline=1&origin=${typeof window !== 'undefined' ? encodeURIComponent(window.location.origin) : ''}`}
             title={title}
             className="w-full h-full border-0 pointer-events-auto"
-            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allow="autoplay; encrypted-media; picture-in-picture; fullscreen"
+            allowFullScreen
+            referrerPolicy="strict-origin-when-cross-origin"
+            loading="lazy"
           />
         ) : (
           <div className="text-center p-8 text-slate-400">
@@ -331,7 +358,7 @@ export default function EnfereClinicalPlayer({
         )}
 
         {/* Capa / Preview Exclusiva do Procedimento (Antes do Início da Reprodução) */}
-        {!isPlaying && currentTime === 0 && (
+        {!isPlaying && currentTime === 0 && !loadError && (
           <div className="absolute inset-0 bg-slate-950/90 backdrop-blur-xs flex flex-col items-center justify-center p-6 text-center z-20 transition-all duration-300">
             {previewImage && (
               <img
