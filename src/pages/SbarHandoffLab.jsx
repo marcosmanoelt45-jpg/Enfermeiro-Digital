@@ -756,7 +756,7 @@ export default function SbarHandoffLab() {
                     <GotiAnimated animation="thinking" size={42} />
                   </div>
                   <p className="text-xs text-[#EAF2F8] leading-relaxed italic">
-                    “A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) evita 80% das falhas de comunicação. Como deseja treinar hoje?”
+                    “A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) reduz falhas de comunicação na transição do cuidado (Meta Internacional 2 de Segurança do Paciente). Como deseja treinar hoje?”
                   </p>
                 </div>
               </div>

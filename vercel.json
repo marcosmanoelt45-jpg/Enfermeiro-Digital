@@ -33,6 +33,10 @@
         {
           "key": "Cross-Origin-Opener-Policy",
           "value": "same-origin-allow-popups"
+        },
+        {
+          "key": "Content-Security-Policy-Report-Only",
+          "value": "default-src 'self'; script-src 'self' 'sha256-y0ccW5iMSN/3QtqY7iKYGi9BYOgd/96MpRmatSRq7hI='; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: blob: https://images.unsplash.com https://i.ytimg.com; media-src 'self' blob: https://videos.ufrgs.br https://videos-transcoder.ufrgs.br; connect-src 'self' https://xwqgyvqofxdqdbhltdzf.supabase.co wss://xwqgyvqofxdqdbhltdzf.supabase.co https://api.assemblyai.com https://generativelanguage.googleapis.com https://openrouter.ai; frame-src https://www.youtube.com https://www.youtube-nocookie.com; worker-src 'self' blob:; object-src 'none'; base-uri 'self'; form-action 'self'; frame-ancestors 'none'"
         }
       ]
     },

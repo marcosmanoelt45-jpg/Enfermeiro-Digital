@@ -271,7 +271,15 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     g2.style.opacity = "1";
     g2.style.transform = "none";
     sh.style.opacity = "1";
-    playWaveVideo();
+    // Com movimento reduzido, o Goti fica parado (imagem estática) em vez do vídeo em loop.
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      vid.pause();
+      vid.style.display = "none";
+      fallback.src = "/goti/goti-pose-happy.png";
+      fallback.style.opacity = "1";
+    } else {
+      playWaveVideo();
+    }
     ready();
   };
 
