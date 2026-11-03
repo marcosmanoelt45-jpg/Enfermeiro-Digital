@@ -8,6 +8,7 @@
  */
 
 import { supabase, isSupabaseConfigured } from './supabaseClient.js';
+import { sanitizeTextForLGPD } from '../lib/dlpSanitizer.js';
 
 /**
  * Obtém a chave pessoal do Google Gemini configurada pelo usuário no LocalStorage.
@@ -69,7 +70,8 @@ async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
     const timeoutId = setTimeout(() => controller.abort(), 7000);
 
     try {
-      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`;
+      // Chave no cabeçalho, não na URL (a URL fica em logs de proxy e no histórico do navegador).
+      const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`;
       const generationConfig = {
         temperature,
         maxOutputTokens: maxTokens,
@@ -80,15 +82,12 @@ async function callPersonalGemini(apiKey, systemPrompt, userPrompt, options) {
 
       const res = await fetch(endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
         signal: controller.signal,
         body: JSON.stringify({
-          contents: [
-            {
-              role: 'user',
-              parts: [{ text: `${systemPrompt}\n\n---\n\n${userPrompt}` }]
-            }
-          ],
+          // Instruções do sistema separadas do texto do aluno, para o aluno não conseguir sobrescrevê-las.
+          systemInstruction: { parts: [{ text: systemPrompt }] },
+          contents: [{ role: 'user', parts: [{ text: userPrompt }] }],
           generationConfig
         })
       });
@@ -150,7 +149,7 @@ async function callPersonalOpenRouter(apiKey, systemPrompt, userPrompt, options)
         headers: {
           'Authorization': `Bearer ${apiKey}`,
           'Content-Type': 'application/json',
-          'HTTP-Referer': 'https://enfermeirodigital.com.br',
+          'HTTP-Referer': typeof window !== 'undefined' ? window.location.origin : 'https://enfere.vercel.app',
           'X-Title': 'Enfere Digital'
         },
         signal: controller.signal,
@@ -240,6 +239,9 @@ async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
  * @returns {Promise<{ text: string, provider: string, truncated?: boolean } | null>}
  */
 export async function callResilientAI(systemPrompt, userPrompt, options = {}) {
+  // Mascara CPF, telefone, e-mail etc. antes de qualquer provedor, inclusive nas chaves pessoais.
+  userPrompt = sanitizeTextForLGPD(String(userPrompt || ''));
+
   // 1. Chave Pessoal do Estudante: Google Gemini
   const personalGemini = getGeminiKey();
   if (personalGemini) {

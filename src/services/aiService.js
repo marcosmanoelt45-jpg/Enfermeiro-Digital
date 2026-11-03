@@ -133,7 +133,7 @@ Use RIGOROSAMENTE os títulos atualizados da NANDA-I 2024-2026. NÃO utilize ter
 - Use "00007 - Hipertermia" (para febre >= 37,8 °C).
 - Use "00276 - Autogestão ineficaz da saúde" (não use "manejo ineficaz da saúde").
 - Use "00195 - Risco de equilíbrio hidreletrolítico prejudicado".
-- Use "00030 - Troca de gases prejudicada" (Domínio 4: Atividade/Repouso, Classe 4: Respostas cardiovasculares/pulmonares).
+- Use "00030 - Troca de gases prejudicada" (Domínio 3: Eliminação e troca, Classe 4: Função respiratória).
 - Use "00205 - Risco de choque" (para hipotensão crítica PAS <= 80 mmHg, bradicardia extrema ou hemorragia).
 - Use "00029 - Débito cardíaco diminuído" (para FC < 50 bpm, baixo débito ou má perfusão).
 - Use "00201 - Risco de perfusão tissular cerebral ineficaz" (SOMENTE se houver trauma craniano/lesão cefálica real confirmada ou AVC/HIC).
@@ -214,22 +214,21 @@ Status de Risco Global Calculado: ${clinicalData.status_risco}`;
   const savedModel = (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_gemini_model')) || null;
   const models = [
     ...(savedModel ? [savedModel] : []),
-    'gemini-3.5-flash',
+    'gemini-2.5-flash',
     'gemini-flash-latest',
-    'gemini-3.1-flash-lite',
-    'gemini-3.8-flash',
     'gemini-2.0-flash',
-    'gemini-1.5-flash-latest',
-    'gemini-1.5-flash'
+    'gemini-2.5-flash-lite'
   ].filter((v, i, a) => a.indexOf(v) === i);
 
   for (const model of models) {
     try {
       const response = await fetch(
-        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey.trim()}`,
+        `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
         {
           method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
+          // Sem resposta em 20 s, passa para o próximo modelo em vez de travar a tela.
+          signal: AbortSignal.timeout(20000),
+          headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey.trim() },
           body: JSON.stringify({
             contents: [
               {
@@ -293,11 +292,13 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   ]
     .join(' ')
     .toLowerCase();
+  // Versão sem acentos: o \b do JavaScript só entende letras ASCII ("substância" quebraria a palavra).
+  const textoSemAcento = textoCompleto.normalize('NFD').replace(/[̀-ͯ]/g, '');
 
   // --------------------------------------------------------------------------
   // 1. ANÁLISE DE TRAUMA PENETRANTE / FERIMENTO POR ARMA DE FOGO (PAF) OU ARMA BRANCA
   // --------------------------------------------------------------------------
-  const temTraumaPAF = /\b(tiro|tiros|disparo|disparos|arma\s+de\s+fogo|paf|perfurocontus[ao]|bala\s+perdida|ferimento\s+por\s+proj[ée]til|proj[ée]til|orif[íi]cio\s+de\s+entrada|orif[íi]cio\s+de\s+sa[íi]da|esfaquead|arma\s+branca)\b/i.test(textoCompleto);
+  const temTraumaPAF = /\b(tiros?|disparos?|arma\s+de\s+fogo|paf|perfurocontus\w*|bala\s+perdida|ferimento\s+por\s+projetil|projetil|orificio\s+de\s+entrada|orificio\s+de\s+saida|esfaquead\w*|arma\s+branca)\b/i.test(textoSemAcento);
 
   if (temTraumaPAF) {
     // 1.1 Dor Aguda Severa por Trauma
@@ -384,7 +385,7 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   // --------------------------------------------------------------------------
   // 2. ANÁLISE DE USO DE SUBSTÂNCIAS PSICOATIVAS / DROGAS ILÍCITAS / DEPENDÊNCIA
   // --------------------------------------------------------------------------
-  const temDrogas = /\b(droga|drogas|substancia|substancias|ilicita|ilicitas|cocaina|crack|maconha|canabis|canabinoide|opioide|psicoativ|dependen|usuario de droga|overdose|quimic|entorpecente)\b/i.test(textoCompleto);
+  const temDrogas = /\b(drogas?|substancias?|ilicitas?|cocaina|crack|maconha|canab\w*|opioide\w*|psicoativ\w*|dependen\w*|usuario de droga|overdose|quimic\w*|entorpecente\w*)\b/i.test(textoSemAcento);
 
   if (temDrogas) {
     // 2.1 Comportamento de Saúde Propenso a Risco
@@ -620,8 +621,8 @@ export function generateLocalTaxonomicPlan(clinicalData) {
     diagnosticos.push({
       code: '00030',
       title: 'Troca de gases prejudicada',
-      domain: 'Domínio 4: Atividade/Repouso',
-      class: 'Classe 4: Respostas cardiovasculares/pulmonares',
+      domain: 'Domínio 3: Eliminação e troca',
+      class: 'Classe 4: Função respiratória',
       defining_characteristics: [
         sinais_vitais.saturacao_o2 ? 'SatO₂ reduzida (' + sinais_vitais.saturacao_o2 + '%)' : null,
         sinais_vitais.frequencia_respiratoria ? 'Taquipneia (' + sinais_vitais.frequencia_respiratoria + ' irpm)' : null,
@@ -680,7 +681,7 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   if (escalas.audit.total && escalas.audit.total >= 8 && !temDrogas) {
     diagnosticos.push({
       code: '00188',
-      title: 'Padrão de consumo nocivo de álcool',
+      title: 'Comportamento de saúde propenso a risco (consumo nocivo de álcool)',
       domain: 'Domínio 1: Promoção da Saúde',
       class: 'Classe 2: Controle da saúde',
       defining_characteristics: ['Escore na Escala AUDIT de ' + escalas.audit.total + ' (Uso de Risco ou Provável Dependência)'],
@@ -942,8 +943,19 @@ export function generateLocalTaxonomicPlan(clinicalData) {
   };
 }
 
+// A criação da avaliação e a abertura do painel podem pedir o mesmo plano ao mesmo tempo:
+// as duas chamadas compartilham uma única geração.
+const inFlightCarePlans = new Map();
+
 export const aiService = {
-  async generateCarePlanAsync(assessmentId, assessment) {
+  generateCarePlanAsync(assessmentId, assessment) {
+    if (inFlightCarePlans.has(assessmentId)) return inFlightCarePlans.get(assessmentId);
+    const run = this.runCarePlanGeneration(assessmentId, assessment).finally(() => inFlightCarePlans.delete(assessmentId));
+    inFlightCarePlans.set(assessmentId, run);
+    return run;
+  },
+
+  async runCarePlanGeneration(assessmentId, assessment) {
     try {
       let patient = null;
       let evolutions = [];
@@ -1308,10 +1320,21 @@ export async function enrichPatientAndRecordsFromAssessment(assessment, plan) {
     }
   }
 
+  // Gerar ou regenerar o plano não pode duplicar registros: cada avaliação cria no máximo
+  // uma evolução e um conjunto de diagnósticos.
+  const alreadyLinked = async (service) => {
+    try {
+      const list = await service.filter({ patient_id: patientId }, '-created_date', 200);
+      return (list || []).some((r) => r.assessment_id === assessment.id);
+    } catch {
+      return false;
+    }
+  };
+
   // 2. Criação da Evolução SOAP Completa no Prontuário
   try {
     const soap = clinicalExtraction.soap_evolution;
-    if (soap && soap.subjective && soap.objective) {
+    if (soap && soap.subjective && soap.objective && !(await alreadyLinked(evolutionService))) {
       await evolutionService.create({
         patient_id: patientId,
         subjective: soap.subjective,
@@ -1327,7 +1350,7 @@ export async function enrichPatientAndRecordsFromAssessment(assessment, plan) {
 
   // 3. Inserção Automática dos Diagnósticos NANDA-I no Prontuário
   try {
-    if (plan?.diagnosticos && Array.isArray(plan.diagnosticos) && plan.diagnosticos.length > 0) {
+    if (plan?.diagnosticos && Array.isArray(plan.diagnosticos) && plan.diagnosticos.length > 0 && !(await alreadyLinked(diagnosisService))) {
       const records = plan.diagnosticos.map((d) => ({
         patient_id: patientId,
         code: d.code || '',
