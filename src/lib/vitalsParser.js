@@ -12,7 +12,11 @@ const RANGES = {
 };
 
 function normalize(text) {
-  return String(text || "").toLowerCase().replace(/\s+/g, " ").trim();
+  return String(text || "")
+    .toLowerCase()
+    .replace(/(\d)\s*(?:v[ií]rgula|ponto)\s*(\d)/g, "$1.$2") // "36 vírgula 5" → 36.5
+    .replace(/\s+/g, " ")
+    .trim();
 }
 
 function toNum(raw) {
@@ -36,16 +40,21 @@ function pick(text, pattern, range = {}) {
 
 function pickPressure(text) {
   const patterns = [
-    /\b(?:pa|press[aã]o)(?:\s+arterial)?(?![a-záàâãéêíóôõúç])\D{0,12}?(\d{2,3})\s*(?:x|\/|por|e)\s*(\d{2,3})/g,
-    /(\d{2,3})\s*(?:x|\/|por)\s*(\d{2,3})/g
+    // Com rótulo aceita o ditado em cmHg: "PA 12 por 8" vira 120x80.
+    { re: /\b(?:pa|press[aã]o)(?:\s+arterial)?(?![a-záàâãéêíóôõúç])\D{0,12}?(\d{1,3})\s*(?:x|\/|por|e)\s*(\d{1,3})/g, labelled: true },
+    { re: /(\d{2,3})\s*(?:x|\/|por)\s*(\d{2,3})/g, labelled: false }
   ];
-  for (const re of patterns) {
+  for (const { re, labelled } of patterns) {
     for (const match of text.matchAll(re)) {
-      const systolic = toNum(match[1]);
-      const diastolic = toNum(match[2]);
+      let systolic = toNum(match[1]);
+      let diastolic = toNum(match[2]);
+      if (systolic === null || diastolic === null) continue;
+      if (labelled && systolic < 30 && diastolic < 20) {
+        systolic *= 10;
+        diastolic *= 10;
+      }
       const ok =
-        systolic !== null && diastolic !== null &&
-        systolic >= 60 && systolic <= 260 && diastolic >= 30 && diastolic <= 160;
+        systolic >= 60 && systolic <= 260 && diastolic >= 30 && diastolic <= 160 && diastolic < systolic;
       if (ok) return { pa_sistolica: systolic, pa_diastolica: diastolic };
     }
   }
@@ -76,8 +85,8 @@ function extractClinicalContext(text, vitals) {
     vitals.estado_consciencia = vitals.estado_consciencia || "Lúcido e Orientado";
   }
 
-  // 2. Escala de Coma de Glasgow (3 a 15)
-  const glasgowMatch = t.match(/\b(?:glasgow|ecg|escala\s+de\s+coma(?:\s+de\s+glasgow)?)\s*(?:de|:|=)?\s*(\d{1,2})\b/i);
+  // 2. Escala de Coma de Glasgow (3 a 15). "ECG" fica de fora: na enfermagem quase sempre é eletrocardiograma.
+  const glasgowMatch = t.match(/\b(?:glasgow|escala\s+de\s+coma(?:\s+de\s+glasgow)?)\s*(?:de|:|=)?\s*(\d{1,2})\b/i);
   if (glasgowMatch && Number(glasgowMatch[1])) {
     const val = Number(glasgowMatch[1]);
     if (val >= 3 && val <= 15) {
@@ -89,19 +98,19 @@ function extractClinicalContext(text, vitals) {
   }
 
   // 3. Localização Anatômica da Dor
+  // Só conta o local citado logo depois de "dor" (até 25 caracteres): "abdome flácido, indolor" não é dor abdominal.
   vitals.caloi_pain_location = vitals.caloi_pain_location || [];
-  if (/(?:abdom|barriga|epig[aá]stri|flanco|est[oô]mago)/i.test(t)) {
-    if (!vitals.caloi_pain_location.includes("Abdômen")) vitals.caloi_pain_location.push("Abdômen");
-  }
-  if (/(?:t[oó]rax|tor[aá]cic|peito)/i.test(t)) {
-    if (!vitals.caloi_pain_location.includes("Tórax")) vitals.caloi_pain_location.push("Tórax");
-  }
-  if (/(?:dorso|costas|lombar)/i.test(t)) {
-    if (!vitals.caloi_pain_location.includes("Dorso / Região Lombar")) vitals.caloi_pain_location.push("Dorso / Região Lombar");
-  }
-  if (/(?:cefale|cabe[çc]a)/i.test(t) && /(?:dor|algia|latej)/i.test(t)) {
-    if (!vitals.caloi_pain_location.includes("Cabeça")) vitals.caloi_pain_location.push("Cabeça");
-  }
+  const painSites = [...t.matchAll(/\b(?:dor|doloros\w*|algia)\b[^.]{0,25}/g)]
+    .filter((m) => !/(?:\bsem|\bnega|\bn[ãa]o\s+(?:refere|tem|apresenta|sente))\s*$/.test(t.slice(Math.max(0, m.index - 20), m.index).trim()))
+    .map((m) => m[0])
+    .join(" | ");
+  const addSite = (label) => {
+    if (!vitals.caloi_pain_location.includes(label)) vitals.caloi_pain_location.push(label);
+  };
+  if (/(?:abdom|barriga|epig[aá]str|flanco|est[oô]mago)/.test(painSites)) addSite("Abdômen");
+  if (/(?:t[oó]rax|tor[aá]cic|peito)/.test(painSites)) addSite("Tórax");
+  if (/(?:dorso|costas|lombar)/.test(painSites)) addSite("Dorso / Região Lombar");
+  if (/(?:cabe[çc]a)/.test(painSites) || /\bcefal[eé]i/.test(t)) addSite("Cabeça");
 
   // 4. Características da Dor
   vitals.caloi_pain_characteristics = vitals.caloi_pain_characteristics || [];
@@ -144,7 +153,7 @@ function extractClinicalContext(text, vitals) {
   }
 
   // 8. Idade (ex: "75 anos", "idade 60", "com 35 anos")
-  const ageMatch = t.match(/(?:idade\s*(?:de)?\s*|paciente\s+(?:com\s+)?|com\s+)(\d{1,3})\s*(?:anos|a\b)/i);
+  const ageMatch = t.match(/\b(\d{1,3})\s*anos\b/i) || t.match(/\bidade\s*(?:de|:)?\s*(\d{1,3})\b/i);
   if (ageMatch && toNum(ageMatch[1])) {
     const parsedAge = toNum(ageMatch[1]);
     if (parsedAge >= 0 && parsedAge <= 125) {
@@ -152,20 +161,13 @@ function extractClinicalContext(text, vitals) {
     }
   }
 
-  // 9. Nome do paciente
-  const nameMatch = t.match(/(?:paciente\s+chamad[oa]\s+|paciente\s+|sr\.\s+|sra\.\s+)([A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+(?:\s+[A-ZÁÉÍÓÚÂÊÔÃÕ][a-záéíóúâêôãõ]+){1,3})/);
-  if (nameMatch && nameMatch[1]) {
-    const candidate = nameMatch[1].trim();
-    if (!/^(chega|com|apresenta|foi|teve|sem|aparentemente|desacordado|inconsciente|dispneico)$/i.test(candidate)) {
-      vitals.patient_name = candidate;
-    }
-  }
+  // 9. Nome do paciente: não é extraído do áudio (LGPD: o caso guarda só as iniciais).
 
-  // 10. Gênero
-  if (/(?:o\s+paciente|homem|masculino|idoso|senhor\b)/i.test(t)) {
-    vitals.gender = "M";
-  } else if (/(?:a\s+paciente|mulher|feminino|idosa|senhora\b)/i.test(t)) {
+  // 10. Gênero (termos femininos primeiro, sempre como palavra inteira: "do paciente" não é "o paciente")
+  if (/\b(?:a paciente|mulher|feminino|idosa|senhora|gestante|puerpera|puérpera)\b/i.test(t)) {
     vitals.gender = "F";
+  } else if (/(?:^|[\s,;])(?:o paciente|homem|masculino|idoso|senhor)\b/i.test(t)) {
+    vitals.gender = "M";
   }
 
   return vitals;
@@ -183,12 +185,20 @@ export function parseVitalsFromTranscript(text) {
     RANGES.fc
   );
   if (fc !== null) vitals.fc = fc;
+  else {
+    // Unidade depois do número ("88 bpm"), ignorando o BCF obstétrico.
+    for (const m of t.matchAll(/(\d{2,3})\s*bpm\b/g)) {
+      if (/bcf/.test(t.slice(Math.max(0, m.index - 12), m.index))) continue;
+      const v = toNum(m[1]);
+      if (v !== null && v >= RANGES.fc.min && v <= RANGES.fc.max) { vitals.fc = v; break; }
+    }
+  }
 
   const fr = pick(
     t,
-    /\b(?:fr|frequ[êe]ncia\s+respirat[óo]ria|respira(?:ndo|ção|co)?|irpm|movimentos?\s+respirat[óo]rios?)(?![a-záàâãéêíóôõúç])\D{0,12}?(\d{1,3})/,
+    /\b(?:fr|frequ[êe]ncia\s+respirat[óo]ria|respira(?:ndo|ção|co)?|movimentos?\s+respirat[óo]rios?)(?![a-záàâãéêíóôõúç])\D{0,12}?(\d{1,3})/,
     RANGES.fr
-  );
+  ) ?? pick(t, /(\d{1,2})\s*(?:irpm|incurs[õo]es|rpm|mrpm)\b/, RANGES.fr);
   if (fr !== null) vitals.fr = fr;
 
   const tax = pick(
@@ -200,7 +210,7 @@ export function parseVitalsFromTranscript(text) {
 
   const sat = pick(
     t,
-    /\b(?:sat(?:ura[çc][ãa]o)?|sato2|spo2|saturando|o2)(?![a-záàâãéêíóôõúç])\D{0,12}?(\d{2,3})/,
+    /\b(?:sat(?:ura[çc][ãa]o)?|sato2|spo2|saturando|o2)(?![a-záàâãéêíóôõúç])\D{0,12}?(\d{2,3})(?!\s*anos)/,
     RANGES.sat
   );
   if (sat !== null) vitals.sat = sat;
@@ -215,7 +225,8 @@ export function parseVitalsFromTranscript(text) {
   // Reconhecimento abrangente da Dor (EVA 0 a 10)
   const pain = pick(
     t,
-    /\b(?:dor|algia|eva|intensidade(?:\s+da\s+dor)?)\s*(?:de|em|n[íi]vel|nota|:|#)?\s*(\d{1,2})(?:\s*(?:\/\s*10|de\s*10|em\s*10))?/,
+    // Aceita até duas palavras de local ("dor torácica 7"), mas não a duração ("dor há 3 dias").
+    /\b(?:dor|algia|eva|intensidade(?:\s+da\s+dor)?)(?:\s+(?!h[áa]\b)[a-záàâãéêíóôõúç]{4,}){0,2}\s*(?:de|em|n[íi]vel|nota|:|#)?\s*(\d{1,2})(?!\s*(?:dias?|horas?|h\b|semanas?|meses|m[êe]s|anos?|min))(?:\s*(?:\/\s*10|de\s*10|em\s*10))?/,
     RANGES.pain
   );
   if (pain !== null) {

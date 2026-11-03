@@ -42,8 +42,10 @@ export function parseClinicalSpeech(rawText = "") {
     let sis = num(pa[1]);
     let dia = num(pa[2]);
     if (sis < 30 && dia < 20) { sis *= 10; dia *= 10; } // "12 por 8" => 120/80
-    out.pa_sistolica = sis;
-    out.pa_diastolica = dia;
+    if (sis >= 50 && sis <= 260 && dia >= 20 && dia <= 160 && dia < sis) {
+      out.pa_sistolica = sis;
+      out.pa_diastolica = dia;
+    }
   }
 
   const fc = findAfter(t, ["\\bfc\\b", "frequencia cardiaca", "batimentos", "pulso"]);
@@ -59,9 +61,11 @@ export function parseClinicalSpeech(rawText = "") {
   if (sat !== undefined && sat >= 50 && sat <= 100) out.sat = sat;
 
   // Dor (CALOI): "dor 7", "dor nota 7", "dor intensidade 7 de 10"
-  const dor = findAfter(t, ["\\bdor\\b(?: (?:nota|intensidade|grau))?", "escala de dor", "\\beva\\b"], 15);
+  // Só conectores entre o rótulo e o número, para "dor ha 3 dias" não virar nota 3.
+  const dorMatch = t.match(/\b(?:dor|eva|escala de dor)\b\s*(?:nota|intensidade|grau|eva|de|:)?\s*(\d{1,2})(?!\s*(?:dias?|horas?|h\b|semanas?|meses|mes|anos?|min))/);
+  const dor = dorMatch ? num(dorMatch[1]) : undefined;
   if (dor !== undefined && dor >= 0 && dor <= 10) out.caloi_pain_intensity = dor;
-  if (has(t, ["sem dor", "nega dor", "nao refere dor"])) out.caloi_pain_intensity = 0;
+  else if (has(t, ["sem dor", "nega dor", "nao refere dor"])) out.caloi_pain_intensity = 0;
 
   // SAK (risco de queda)
   if (has(t, ["desorientad", "confus"])) out.sak_disorientation = true;

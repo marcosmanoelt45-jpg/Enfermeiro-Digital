@@ -73,7 +73,7 @@ export default function ClinicalGuideTabs({ onSelectSnippet: _onSelectSnippet = 
       title: "Nível de Consciência e Escala de Glasgow",
       description: "Descreva a resposta neurológica do paciente ou a pontuação de Glasgow (3 a 15):",
       items: [
-        { label: "Pontuação de Glasgow", example: "Glasgow 14, ECG 15, escala de Glasgow 12", snippet: ", Glasgow 14" },
+        { label: "Pontuação de Glasgow", example: "Glasgow 14, escala de Glasgow 12", snippet: ", Glasgow 14" },
         { label: "Lúcido / Orientado", example: "Lúcido e orientado, contactuando bem (LOTE)", snippet: ", lúcido e orientado" },
         { label: "Confuso / Desorientado", example: "Confuso, dificuldade para formular frases", snippet: ", confuso e desorientado" },
         { label: "Sonolento / Torporoso", example: "Sonolento, responde apenas a estímulo verbal", snippet: ", sonolento" },

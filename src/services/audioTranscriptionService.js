@@ -1,5 +1,6 @@
 // Serviço de Transcrição de Áudio Clínico (AssemblyAI & Google Gemini Multimodal Audio)
 // Suporta envio de áudio binário gravado à beira-leito com reconhecimento em português (pt-BR).
+import { transcribeAudio } from "@/lib/assemblyai";
 
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
@@ -49,80 +50,9 @@ export const audioTranscriptionService = {
 
   // Transcreve usando AssemblyAI
   async transcribeWithAssemblyAI(audioBlob, onProgress) {
-    const apiKey = this.getAssemblyAIKey();
-    if (!apiKey) throw new Error('Chave da API do AssemblyAI não configurada.');
-
-    if (onProgress) onProgress('Enviando arquivo de áudio para o AssemblyAI...');
-
-    // 1. Upload do áudio binário
-    const uploadRes = await fetch('https://api.assemblyai.com/v2/upload', {
-      method: 'POST',
-      headers: {
-        authorization: apiKey,
-      },
-      body: audioBlob,
-    });
-
-    if (!uploadRes.ok) {
-      const err = await uploadRes.json().catch(() => ({}));
-      throw new Error(err.error || 'Falha no upload do áudio para o AssemblyAI.');
-    }
-
-    const { upload_url } = await uploadRes.json();
-    if (!upload_url) throw new Error('URL de upload não retornada pelo AssemblyAI.');
-
-    if (onProgress) onProgress('Processando transcrição em português com AssemblyAI...');
-
-    // 2. Disparo da transcrição
-    const transcriptRes = await fetch('https://api.assemblyai.com/v2/transcript', {
-      method: 'POST',
-      headers: {
-        authorization: apiKey,
-        'content-type': 'application/json',
-      },
-      body: JSON.stringify({
-        audio_url: upload_url,
-        language_code: 'pt',
-        punctuate: true,
-        format_text: true,
-      }),
-    });
-
-    if (!transcriptRes.ok) {
-      const err = await transcriptRes.json().catch(() => ({}));
-      throw new Error(err.error || 'Falha ao solicitar transcrição ao AssemblyAI.');
-    }
-
-    const { id: transcriptId } = await transcriptRes.json();
-
-    // 3. Polling até conclusão (máximo 35s)
-    const startTime = Date.now();
-    while (Date.now() - startTime < 35000) {
-      await new Promise((r) => setTimeout(r, 1500));
-
-      const pollRes = await fetch(`https://api.assemblyai.com/v2/transcript/${transcriptId}`, {
-        headers: { authorization: apiKey },
-      });
-
-      if (!pollRes.ok) continue;
-
-      const pollData = await pollRes.json();
-      if (pollData.status === 'completed') {
-        return {
-          text: pollData.text || '',
-          engine: 'AssemblyAI',
-          confidence: pollData.confidence,
-        };
-      }
-
-      if (pollData.status === 'error') {
-        throw new Error(pollData.error || 'Erro no processamento do áudio pelo AssemblyAI.');
-      }
-
-      if (onProgress) onProgress('Transcrevendo áudio em alta fidelidade...');
-    }
-
-    throw new Error('Tempo limite excedido na transcrição do AssemblyAI.');
+    // Usa o cliente único da AssemblyAI (lib/assemblyai), que espera até 4 minutos por gravações longas.
+    const text = await transcribeAudio(audioBlob, { apiKey: this.getAssemblyAIKey(), onStage: onProgress || undefined });
+    return { text, engine: "AssemblyAI" };
   },
 
   // Transcreve usando Google Gemini Multimodal Audio
@@ -165,10 +95,11 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
     for (const model of models) {
       try {
         const response = await fetch(
-          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`,
+          `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent`,
           {
             method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
+            // Chave no cabeçalho, não na URL (a URL fica em logs de proxy e no histórico).
+            headers: { 'Content-Type': 'application/json', 'x-goog-api-key': apiKey },
             body: JSON.stringify({
               contents: [
                 {
@@ -243,13 +174,15 @@ Retorne EXCLUSIVAMENTE um objeto JSON válido no formato:
     const apiKey = this.getOpenRouterKey();
     if (!apiKey) throw new Error('Chave do OpenRouter não configurada.');
 
+    // O OpenRouter recebe áudio como "input_audio" com o formato do arquivo. Formato que ele não aceita
+    // (como o webm do Chrome) é recusado aqui, em vez de gastar três chamadas que falhariam.
+    const cleanMime = (audioBlob.type || '').toLowerCase().split(';')[0].trim();
+    const AUDIO_FORMATS = { 'audio/wav': 'wav', 'audio/x-wav': 'wav', 'audio/mpeg': 'mp3', 'audio/mp3': 'mp3', 'audio/ogg': 'ogg', 'audio/flac': 'flac', 'audio/aac': 'aac', 'audio/mp4': 'm4a', 'audio/x-m4a': 'm4a' };
+    const audioFormat = AUDIO_FORMATS[cleanMime];
+    if (!audioFormat) throw new Error(`O OpenRouter não aceita áudio em ${cleanMime || 'formato desconhecido'}.`);
+
     if (onProgress) onProgress('Codificando áudio para transcrição via OpenRouter...');
     const base64Audio = await blobToBase64(audioBlob);
-
-    const rawMime = (audioBlob.type || 'audio/webm').toLowerCase();
-    const cleanMime = rawMime.split(';')[0].trim();
-    const supportedMimes = ['audio/webm', 'audio/mp4', 'audio/ogg', 'audio/wav', 'audio/aac', 'audio/mp3', 'audio/flac'];
-    const sanitizedMimeType = supportedMimes.includes(cleanMime) ? cleanMime : 'audio/webm';
 
     if (onProgress) onProgress('Transcrevendo áudio em alta fidelidade com IA...');
 
@@ -260,8 +193,7 @@ Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções ou explicações.`;
 
     const models = [
       'google/gemini-2.5-flash',
-      'google/gemini-2.0-flash-001',
-      'meta-llama/llama-3.2-11b-vision-instruct'
+      'google/gemini-2.0-flash-001'
     ];
 
     for (const model of models) {
@@ -285,10 +217,8 @@ Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções ou explicações.`;
                     text: prompt
                   },
                   {
-                    type: 'image_url',
-                    image_url: {
-                      url: `data:${sanitizedMimeType};base64,${base64Audio}`
-                    }
+                    type: 'input_audio',
+                    input_audio: { data: base64Audio, format: audioFormat }
                   }
                 ]
               }

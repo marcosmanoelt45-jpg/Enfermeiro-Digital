@@ -92,26 +92,27 @@ export function buildOfflineSbarEvaluation(caseData, sbar) {
   }
 
   // Verificações do Eixo S (Situação) - 0 a 100
-  const hasBed = /leito|quarto|box|enfermaria|\d+/i.test(normS);
+  // Regras com limite de palavra e número onde a rubrica pede número ("pa" não casa com "paciente").
+  const hasBed = /\b(?:leito|quarto|box|enfermaria|apto|uti)\b/i.test(normS);
   const hasAdmissionReason = /dpo|admi|interna|queixa|cirurg|crise|dor|pos-op|diagnost/i.test(normS);
   const situationScore = hasBed && hasAdmissionReason ? (normS.length > 25 ? 95 : 80) : hasBed || hasAdmissionReason ? 60 : 30;
 
   // Verificações do Eixo B (Histórico) - 0 a 100
   const hasAllergy = /alergia|alergic|sem alergia|nega alergia/i.test(fullText);
-  const hasComorbidities = /has|hipertens|dm|diab|icc|asma|alzheimer|comorbidade|remedio|medicac|historico/i.test(normB);
+  const hasComorbidities = /\b(?:has|dm2?|icc|dpoc|avc)\b|hipertens|diabet|asma|alzheimer|demencia|comorbidade|remedio|medicac|historico/i.test(normB);
   const backgroundScore = hasAllergy && hasComorbidities ? (normB.length > 30 ? 95 : 80) : hasAllergy || hasComorbidities ? 60 : 25;
 
   // Verificações do Eixo A (Avaliação) - 0 a 100
-  const hasVitalsPa = /pa|pressao|\d{2,3}\s*\/\s*\d{2,3}|normotens|hipertens/i.test(normA);
-  const hasVitalsSat = /sat|oxim|spo2|%|oxigen/i.test(normA);
-  const hasVitalsFc = /fc|bpm|cardiac|pulso/i.test(normA);
-  const hasExamFinding = /dor|dreno|curativo|estertor|sibil|consciencia|eva|glasgow|diurese/i.test(normA);
+  const hasVitalsPa = /\b(?:pa|pressao(?: arterial)?)\b\D{0,10}\d{1,3}\s*(?:\/|x|por)\s*\d{1,3}|\b\d{2,3}\s*(?:\/|x)\s*\d{2,3}\b/i.test(normA);
+  const hasVitalsSat = /\b(?:sat(?:o2)?|spo2|saturacao|saturando)\b\D{0,10}\d{2,3}|\b\d{2,3}\s*%/i.test(normA);
+  const hasVitalsFc = /\b(?:fc|pulso|frequencia cardiaca)\b\D{0,10}\d{2,3}|\b\d{2,3}\s*bpm\b/i.test(normA);
+  const hasExamFinding = /\b(?:dor|dreno|curativo|eva|glasgow|diurese|edema)\b|estertor|sibil|consciencia|ausculta|orientad/i.test(normA);
   const vitalsCount = [hasVitalsPa, hasVitalsSat, hasVitalsFc, hasExamFinding].filter(Boolean).length;
   const assessmentScore = vitalsCount >= 3 ? 95 : vitalsCount === 2 ? 75 : vitalsCount === 1 ? 50 : 25;
 
   // Verificações do Eixo R (Recomendação) - 0 a 100
-  const hasActionTiming = /as|\dh|hora|noite|manha|proximo|vigiar|checar|apraz/i.test(normR);
-  const hasSpecificAction = /administrar|dreno|exame|balanco|decurbito|grade|analgesia|oxigenio|reavaliar|colher/i.test(normR);
+  const hasActionTiming = /\b(?:as\s*)?\d{1,2}\s*(?:h|hs|horas)\b|\ba cada \d+|\bde \d+ em \d+|\bproximo plantao\b|\bapraz/i.test(normR);
+  const hasSpecificAction = /administrar|dreno|exame|balanco|decubito|grade|analgesia|oxigenio|reavaliar|colher/i.test(normR);
   const recommendationScore = hasActionTiming && hasSpecificAction ? 95 : hasActionTiming || hasSpecificAction ? 70 : 30;
 
   // Cálculo Geral do Índice de Segurança
@@ -195,6 +196,42 @@ export function buildOfflineSbarEvaluation(caseData, sbar) {
  * @param {object} params.sbar - Objeto com { situation, background, assessment, recommendation }
  * @returns {Promise<object>} Avaliação formativa do Goti IA
  */
+const PILLARS = ["situation", "background", "assessment", "recommendation"];
+const clampScore = (v) => Math.min(100, Math.max(0, Math.round(v)));
+
+function describeCaseVitals(v = {}) {
+  const pa = v.pa_sistolica && v.pa_diastolica ? `PA ${v.pa_sistolica}/${v.pa_diastolica} mmHg` : "PA não registrada";
+  const fc = v.fc ? `FC ${v.fc} bpm` : "FC não registrada";
+  const sat = v.sat ? `SatO2 ${v.sat}%` : "SatO2 não registrada";
+  const fr = v.fr ? `FR ${v.fr} irpm` : "FR não registrada";
+  return [pa, fc, sat, fr].join(", ");
+}
+
+// Só aceita a resposta da IA com nota numérica válida. Pilar ausente usa a nota calculada
+// sobre o mesmo texto, nunca um valor fixo.
+export function normalizeEvaluation(ai, offline) {
+  const score = Number(ai?.safetyScore);
+  if (!ai || !Number.isFinite(score)) return offline;
+  const pillarScores = {};
+  for (const key of PILLARS) {
+    const p = ai.pillarScores?.[key];
+    const n = Number(p?.score);
+    pillarScores[key] = Number.isFinite(n)
+      ? { score: clampScore(n), feedback: typeof p.feedback === "string" && p.feedback ? p.feedback : offline.pillarScores[key].feedback }
+      : offline.pillarScores[key];
+  }
+  const list = (v, fallback) => (Array.isArray(v) ? v.filter((x) => typeof x === "string") : fallback);
+  return {
+    ...offline,
+    ...ai,
+    safetyScore: clampScore(score),
+    pillarScores,
+    criticalOmissions: list(ai.criticalOmissions, offline.criticalOmissions),
+    strengths: list(ai.strengths, offline.strengths),
+    socraticQuestions: list(ai.socraticQuestions, offline.socraticQuestions)
+  };
+}
+
 export async function evaluateSbarHandoff({ caseData, sbar }) {
   const sanitizedSituation = sanitizeTextForLGPD(sbar?.situation || "");
   const sanitizedBackground = sanitizeTextForLGPD(sbar?.background || "");
@@ -234,9 +271,9 @@ Retorne ESTRITAMENTE um JSON no seguinte formato:
 }`;
 
   const userPrompt = `DADOS DO CASO CLÍNICO:
-Paciente: ${caseData?.name || "J.S."} (${caseData?.age || "50"} anos) • Leito: ${caseData?.bed || "Leito 12"}
-Diagnóstico: ${caseData?.diagnosis || caseData?.title || "Pós-operatório / Descompensação Clínica"}
-Sinais Vitais Registrados: PA ${caseData?.vitals?.pa_sistolica || "120"}/${caseData?.vitals?.pa_diastolica || "80"} mmHg, FC ${caseData?.vitals?.fc || "80"} bpm, SatO2 ${caseData?.vitals?.sat || "96"}%, FR ${caseData?.vitals?.fr || "18"} irpm
+Paciente: ${caseData?.name || "não informado"} (${caseData?.age ? `${caseData.age} anos` : "idade não informada"}) • Leito: ${caseData?.bed || "não informado"}
+Diagnóstico: ${caseData?.diagnosis || caseData?.title || "não informado"}
+Sinais Vitais Registrados: ${describeCaseVitals(caseData?.vitals)}
 
 RELATÓRIO SBAR ELABORADO PELO ESTUDANTE:
 - S (Situação): ${sanitizedSituation || "Não informada"}
@@ -246,20 +283,19 @@ RELATÓRIO SBAR ELABORADO PELO ESTUDANTE:
 
 Avalie o raciocínio clínico com foco no rigor de segurança do paciente. Deduza pontos se faltarem dados objetivos e explique o motivo.`;
 
-  try {
-    const aiResponse = await callGemini(systemPrompt, userPrompt);
-    if (aiResponse && aiResponse.safetyScore !== undefined) {
-      return aiResponse;
-    }
-  } catch (error) {
-    console.warn("[sbarTutorService] Fallback para motor heurístico estruturado:", error);
-  }
-
-  // Fallback estruturado garantido
-  return buildOfflineSbarEvaluation(caseData, {
+  const offline = buildOfflineSbarEvaluation(caseData, {
     situation: sanitizedSituation,
     background: sanitizedBackground,
     assessment: sanitizedAssessment,
     recommendation: sanitizedRecommendation
   });
+
+  try {
+    const aiResponse = await callGemini(systemPrompt, userPrompt);
+    return normalizeEvaluation(aiResponse, offline);
+  } catch (error) {
+    console.warn("[sbarTutorService] Fallback para motor heurístico estruturado:", error);
+  }
+
+  return offline;
 }
