@@ -66,7 +66,7 @@ export default function VitalsChips({ vitals, text = "", onInsertMissing }) {
                 type="button"
                 onClick={() => onInsertMissing && onInsertMissing(item)}
                 title={`Clique para adicionar: ${item.desc}`}
-                className="group inline-flex items-center gap-1.5 rounded-lg border border-amber-300 dark:border-amber-800 bg-white/95 dark:bg-slate-900 px-2.5 py-1 text-xs text-slate-700 dark:text-slate-200 hover:border-amber-400 dark:hover:border-amber-600 hover:bg-amber-50/80 dark:hover:bg-slate-800 transition-all text-left shadow-2xs"
+                className="group inline-flex items-center gap-1.5 rounded-lg border border-amber-300 dark:border-amber-800 bg-white/95 dark:bg-slate-900 px-2.5 py-1 text-xs text-slate-700 dark:text-slate-200 hover:border-amber-400 dark:hover:border-amber-600 hover:bg-amber-50/80 dark:hover:bg-slate-800 transition-all text-left shadow-sm"
               >
                 <span className="h-2 w-2 rounded-full bg-amber-500 group-hover:scale-125 transition-transform" />
                 <span className="font-medium text-slate-800 dark:text-slate-100">{item.label}</span>

@@ -53,7 +53,7 @@ export default function StreakHeroCard({ streakData, onUpdate }) {
               <span className="text-2xl sm:text-3xl font-black tracking-tight text-slate-900 dark:text-slate-100">
                 {streak} {streak === 1 ? 'dia' : 'dias'}
               </span>
-              <span className="inline-flex items-center gap-1 rounded-full bg-[#FF9600]/15 dark:bg-[#FF9600]/20 px-2.5 py-0.5 text-xs font-extrabold text-[#d97706] dark:text-amber-400 border border-amber-300/80 dark:border-amber-700/60 shadow-2xs">
+              <span className="inline-flex items-center gap-1 rounded-full bg-[#FF9600]/15 dark:bg-[#FF9600]/20 px-2.5 py-0.5 text-xs font-extrabold text-[#d97706] dark:text-amber-400 border border-amber-300/80 dark:border-amber-700/60 shadow-sm">
                 <Sparkles className="h-3.5 w-3.5 stroke-[2.5]" /> Ofensiva Clínica
               </span>
             </div>

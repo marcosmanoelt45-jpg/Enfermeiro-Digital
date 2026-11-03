@@ -296,7 +296,7 @@ export default function Turmas() {
 
       <main className="mx-auto max-w-2xl px-4 py-4 space-y-3">
         {/* CARD DA TURMA MODELO / DEMONSTRAÇÃO */}
-        <div className="rounded-2xl border-2 border-teal-200 dark:border-teal-800/60 bg-gradient-to-r from-teal-50/80 to-sky-50/80 dark:from-slate-900 dark:to-slate-900/90 p-4 shadow-2xs">
+        <div className="rounded-2xl border-2 border-teal-200 dark:border-teal-800/60 bg-gradient-to-r from-teal-50/80 to-sky-50/80 dark:from-slate-900 dark:to-slate-900/90 p-4 shadow-sm">
           <div className="flex items-start justify-between gap-3">
             <div className="flex items-start gap-3">
               <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-teal-600 text-white shadow-sm">

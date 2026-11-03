@@ -122,7 +122,7 @@ export default function Login() {
       <Button
         type="button"
         variant="outline"
-        className="w-full h-12 text-sm font-semibold mb-5 rounded-xl border-slate-700 hover:bg-slate-800 text-slate-200 transition shadow-2xs"
+        className="w-full h-12 text-sm font-semibold mb-5 rounded-xl border-slate-700 hover:bg-slate-800 text-slate-200 transition shadow-sm"
         onClick={handleGoogle}
         disabled={loading || googleLoading}
       >
@@ -239,7 +239,7 @@ export default function Login() {
         <Button
           type="button"
           variant="outline"
-          className="w-full text-xs rounded-xl h-11 border-teal-800 bg-teal-950/40 hover:bg-teal-900/60 text-[#20D5B5] font-bold shadow-2xs transition"
+          className="w-full text-xs rounded-xl h-11 border-teal-800 bg-teal-950/40 hover:bg-teal-900/60 text-[#20D5B5] font-bold shadow-sm transition"
           onClick={handleDemoLogin}
           disabled={loading}
         >

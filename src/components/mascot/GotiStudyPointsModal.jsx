@@ -116,7 +116,8 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
               triggerHaptic(20);
               onClose();
             }}
-            className="p-2 rounded-xl text-[#9FB3C6] hover:text-slate-200 hover:bg-slate-800 transition"
+            aria-label="Fechar"
+            className="grid size-11 place-items-center rounded-xl text-[#9FB3C6] hover:text-white hover:bg-[#1F3045] transition"
           >
             <X className="w-5 h-5" />
           </button>
@@ -155,7 +156,7 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
           <div className="rounded-2xl border-2 border-sky-800 bg-gradient-to-r from-sky-50/80 via-blue-50/40 to-white dark:from-sky-950/40 dark:via-slate-900 dark:to-slate-900 p-4 shadow-sm flex flex-col sm:flex-row items-center justify-between gap-4">
             <div className="flex items-center gap-3.5">
               <div className="w-12 h-12 rounded-2xl bg-sky-400/100/15 border border-sky-500/30 flex items-center justify-center shrink-0 text-sky-400">
-                <Snowflake className="w-6 h-6 animate-pulse" />
+                <Snowflake className="w-6 h-6" />
               </div>
               <div className="space-y-0.5">
                 <div className="flex items-center gap-2">
@@ -177,10 +178,11 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
               size="sm"
               onClick={handleBuyStreakFreeze}
               disabled={currentPe < 30}
-              className="rounded-xl bg-sky-600 hover:bg-sky-700 text-white text-xs font-bold shrink-0 flex items-center gap-1.5 shadow-2xs py-2 px-4 tap-press disabled:opacity-50"
+              variant={currentPe < 30 ? "locked" : "info"}
+              className="shrink-0"
             >
               <Snowflake className="w-3.5 h-3.5" />
-              <span>Comprar por 30 PE</span>
+              <span>{currentPe < 30 ? `Faltam ${30 - currentPe} PE` : "Comprar por 30 PE"}</span>
             </Button>
           </div>
 
@@ -200,7 +202,7 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
               return (
                 <div
                   key={index}
-                  className="p-3 sm:p-3.5 rounded-2xl border border-[#1F3045] bg-slate-900/90 flex items-center justify-between gap-3 shadow-2xs"
+                  className="p-3 sm:p-3.5 rounded-2xl border border-[#1F3045] bg-slate-900/90 flex items-center justify-between gap-3 shadow-sm"
                 >
                   <div className="flex items-start gap-3">
                     <div className="w-9 h-9 rounded-xl bg-amber-950/60 border border-amber-800 text-amber-400 flex items-center justify-center shrink-0 mt-0.5">
@@ -227,7 +229,7 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
 
         {/* Rodapé explicativo */}
         <div className="p-4 bg-[#0E1722] border-t border-[#1F3045] flex items-center justify-between text-[11px] text-[#9FB3C6]">
-          <span>💡 Seus pontos são vitalícios e medem seu domínio formativo.</span>
+          <span>PE acumulam com seu estudo e podem ser trocados por proteções de ofensiva.</span>
           <button
             onClick={() => {
               triggerHaptic(15);

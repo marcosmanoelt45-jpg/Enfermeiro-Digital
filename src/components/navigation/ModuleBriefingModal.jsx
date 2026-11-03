@@ -111,7 +111,7 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
         {/* Topo com Título e Badge */}
         <div className="p-5 border-b border-slate-800/80 bg-gradient-to-r from-teal-50 via-white to-emerald-50/30 dark:from-slate-950 dark:via-slate-900 dark:to-teal-950/20 flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-12 h-12 rounded-2xl bg-teal-950/80 border border-teal-800 text-teal-400 flex items-center justify-center shrink-0 shadow-2xs">
+            <div className="w-12 h-12 rounded-2xl bg-teal-950/80 border border-teal-800 text-teal-400 flex items-center justify-center shrink-0 shadow-sm">
               <IconComp className="w-6 h-6 stroke-[2.2]" />
             </div>
             <div>
@@ -171,7 +171,7 @@ export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelec
                 <button
                   key={act.id}
                   onClick={() => handleActionClick(act)}
-                  className={`w-full p-3.5 sm:p-4 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all active:scale-98 ${
+                  className={`w-full p-3.5 sm:p-4 rounded-2xl border text-left flex items-center justify-between gap-3 transition-all active:scale-[0.98] ${
                     act.primary
                       ? "bg-[#20D5B5] text-[#06302E] hover:brightness-105 border-[#149F86] shadow-md shadow-teal-900/15"
                       : "bg-[#131F2E] hover:border-teal-600 border-[#1F3045] text-slate-200"

@@ -60,7 +60,7 @@ export default function ProcedureSafetyAlerts({ safetyAlerts = [], cofenNorm = '
 
       {/* Respaldo Legal & COFEN */}
       {cofenNorm && (
-        <div className="flex items-start gap-3 p-4 rounded-2xl bg-teal-950/40 border border-teal-800 text-[#20D5B5] shadow-2xs">
+        <div className="flex items-start gap-3 p-4 rounded-2xl bg-teal-950/40 border border-teal-800 text-[#20D5B5] shadow-sm">
           <Scale className="h-5 w-5 text-teal-400 shrink-0 mt-0.5" />
           <div className="text-xs">
             <span className="font-bold block text-teal-100">

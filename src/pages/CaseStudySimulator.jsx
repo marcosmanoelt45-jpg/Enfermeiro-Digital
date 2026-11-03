@@ -574,7 +574,7 @@ export default function CaseStudySimulator() {
               variant="outline"
               size="sm"
               onClick={handleSaveDraft}
-              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-semibold flex items-center gap-1.5 shadow-sm"
               title="Salvar rascunho do caso clínico no Histórico"
             >
               <BookmarkPlus className="h-3.5 w-3.5 text-[#20D5B5]" />
@@ -586,7 +586,7 @@ export default function CaseStudySimulator() {
               variant="outline"
               size="sm"
               onClick={() => setIsHistoryOpen(true)}
-              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-semibold flex items-center gap-1.5 shadow-2xs"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs font-semibold flex items-center gap-1.5 shadow-sm"
             >
               <History className="h-3.5 w-3.5 text-[#20D5B5]" />
               <span className="hidden sm:inline">Histórico</span>
@@ -595,7 +595,7 @@ export default function CaseStudySimulator() {
             <Button
               onClick={() => navigate('/passagem-plantao', { state: { caseData: currentCase } })}
               variant="outline"
-              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs flex items-center gap-2 font-semibold shadow-2xs"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs flex items-center gap-2 font-semibold shadow-sm"
               title="Pratique a passagem de plantão deste paciente na metodologia SBAR"
             >
               <ArrowRightLeft className="h-4 w-4 text-[#20D5B5]" />
@@ -625,7 +625,7 @@ export default function CaseStudySimulator() {
           className="p-4 sm:p-5 rounded-3xl bg-[#131F2E] border border-[#1F3045] hover:border-[#20D5B5]/50 transition-all cursor-pointer flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 group"
         >
           <div className="flex items-center gap-3.5">
-            <div className="p-3 rounded-2xl bg-[#0E1722] border border-[#1F3045] text-[#20D5B5] group-hover:scale-105 transition-transform shadow-2xs">
+            <div className="p-3 rounded-2xl bg-[#0E1722] border border-[#1F3045] text-[#20D5B5] group-hover:scale-105 transition-transform shadow-sm">
               <History className="h-5 w-5" />
             </div>
             <div>
@@ -690,7 +690,7 @@ export default function CaseStudySimulator() {
           <Button
             onClick={handleGenerateRandom}
             variant="outline"
-            className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs font-bold flex items-center gap-2 shadow-2xs self-start md:self-auto shrink-0 py-2.5 px-4"
+            className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#20D5B5] hover:bg-[#20D5B5]/10 text-xs font-bold flex items-center gap-2 shadow-sm self-start md:self-auto shrink-0 py-2.5 px-4"
           >
             <Shuffle className="h-4 w-4 text-[#20D5B5]" />
             <span>Sortear Novo Caso Clínico</span>
@@ -1075,7 +1075,7 @@ export default function CaseStudySimulator() {
 
                 {/* Dica Revelada pelo Goti */}
                 {currentHint && (
-                  <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-800 text-xs text-amber-200 flex items-start gap-3.5 animate-in fade-in shadow-2xs">
+                  <div className="p-4 rounded-2xl bg-amber-950/40 border border-amber-800 text-xs text-amber-200 flex items-start gap-3.5 animate-in fade-in shadow-sm">
                     <GotiAnimated animation="pointing" size="sm" className="w-14 h-14 shrink-0 mt-0.5 drop-shadow-sm" />
                     <div className="space-y-1">
                       <span className="font-bold flex items-center gap-1.5 text-amber-300 text-xs">
@@ -1138,7 +1138,7 @@ export default function CaseStudySimulator() {
                             type="button"
                             size="sm"
                             onClick={detectiveFeedback.onConfirm}
-                            className="rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-2xs h-8"
+                            className="rounded-xl text-xs font-bold bg-amber-600 hover:bg-amber-700 text-white shadow-sm h-8"
                           >
                             {detectiveFeedback.actionLabel || "Confirmar Escolha"}
                           </Button>
@@ -1337,7 +1337,7 @@ export default function CaseStudySimulator() {
                   <Button
                     variant="outline"
                     onClick={() => setActiveStep(2)}
-                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-2xs"
+                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 shadow-sm"
                   >
                     <ArrowLeft className="h-4 w-4" /> Voltar para Diagnóstico
                   </Button>
@@ -1377,7 +1377,7 @@ export default function CaseStudySimulator() {
                         );
                       }
                     }}
-                    className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs py-2 px-3 self-start sm:self-auto tap-press"
+                    className="rounded-xl bg-teal-600 hover:bg-teal-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm py-2 px-3 self-start sm:self-auto tap-press"
                   >
                     <Sparkles className="w-3.5 h-3.5 text-amber-300" />
                     <span>Dúvidas? Fale com o Goti!</span>
@@ -1403,7 +1403,7 @@ export default function CaseStudySimulator() {
                   <Button
                     variant="outline"
                     onClick={() => setActiveStep(3)}
-                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 w-full sm:w-auto shadow-2xs"
+                    className="rounded-xl border-slate-700 bg-slate-800 text-slate-100 hover:bg-slate-700 text-xs font-bold flex items-center gap-1.5 w-full sm:w-auto shadow-sm"
                   >
                     <ArrowLeft className="h-4 w-4" /> Voltar para Metas
                   </Button>
@@ -1510,7 +1510,7 @@ export default function CaseStudySimulator() {
                   <Button
                     variant="outline"
                     onClick={() => setActiveStep(4)}
-                    className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white text-xs font-bold flex items-center gap-1.5 shadow-2xs py-3 px-5"
+                    className="rounded-2xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white text-xs font-bold flex items-center gap-1.5 shadow-sm py-3 px-5"
                   >
                     <ArrowLeft className="h-4 w-4" /> Voltar
                   </Button>

@@ -349,7 +349,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
           className="flex-1 overflow-y-auto p-4 sm:p-5 space-y-4 text-xs sm:text-sm bg-slate-900/60"
         >
           {/* Card de Boas-Vindas */}
-          <div className="p-3.5 rounded-2xl bg-teal-950/40 border border-teal-800/80 flex items-start gap-3.5 shadow-2xs">
+          <div className="p-3.5 rounded-2xl bg-teal-950/40 border border-teal-800/80 flex items-start gap-3.5 shadow-sm">
             <img
               src={gotiLogoOficial}
               alt="Goti Preceptor"
@@ -386,7 +386,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
                 )}
 
                 <div
-                  className={`max-w-[85%] rounded-2xl p-3.5 shadow-2xs leading-relaxed ${
+                  className={`max-w-[85%] rounded-2xl p-3.5 shadow-sm leading-relaxed ${
                     isUser
                       ? "bg-[#20D5B5] text-[#06302E] rounded-br-xs font-semibold"
                       : "bg-slate-800/90 text-slate-100 rounded-bl-xs border border-slate-700/80"

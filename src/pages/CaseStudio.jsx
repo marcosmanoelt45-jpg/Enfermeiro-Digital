@@ -816,7 +816,7 @@ export default function CaseStudio() {
               variant="outline"
               size="sm"
               onClick={() => setIsHistoryModalOpen(true)}
-              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs flex items-center gap-1.5 shadow-2xs font-semibold"
+              className="rounded-xl border-[#1F3045] bg-[#16222E] text-[#9FB3C6] hover:text-white hover:bg-[#1E2E3E] text-xs flex items-center gap-1.5 shadow-sm font-semibold"
             >
               <History className="h-3.5 w-3.5 text-[#20D5B5]" />
               <span>Histórico de Casos</span>
@@ -1044,7 +1044,7 @@ export default function CaseStudio() {
 
                 {/* Status Dinâmico de Transcrição por IA */}
                 {isAudioTranscribing && (
-                  <div className="rounded-2xl border border-teal-800 bg-teal-950/60 p-3.5 text-xs text-teal-300 flex items-center gap-2.5 animate-pulse shadow-2xs">
+                  <div className="rounded-2xl border border-teal-800 bg-teal-950/60 p-3.5 text-xs text-teal-300 flex items-center gap-2.5 animate-pulse shadow-sm">
                     <AudioLines className="h-4 w-4 text-teal-400 shrink-0" />
                     <span className="font-semibold">{audioStage || "Processando e transcrevendo áudio com inteligência artificial..."}</span>
                   </div>
