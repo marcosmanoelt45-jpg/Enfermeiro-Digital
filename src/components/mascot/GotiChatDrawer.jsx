@@ -129,6 +129,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
   const [messages, setMessages] = useState(() => gotiPreceptorService.getHistory());
   const [inputText, setInputText] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [modoOffline, setModoOffline] = useState(false);
   const [gotiState, setGotiState] = useState("idle"); // "idle" | "speaking" | "celebrating" | "thinking"
   const [thinkingStep, setThinkingStep] = useState(0);
   const messagesContainerRef = useRef(null);
@@ -235,6 +236,7 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
       const minDeliberationPromise = new Promise((resolve) => setTimeout(resolve, 900));
       await Promise.all([sendPromise, minDeliberationPromise]);
       setMessages(gotiPreceptorService.getHistory());
+      setModoOffline(Boolean(gotiPreceptorService.lastAnswerOffline));
       setGotiState("speaking");
       setTimeout(() => setGotiState("idle"), 2500);
     } catch (err) {
@@ -304,8 +306,8 @@ export default function GotiChatDrawer({ isOpen, onClose, initialQuery = null })
                 <h3 className="text-base sm:text-lg font-black text-white leading-tight">
                   Goti IA
                 </h3>
-                <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-emerald-950 text-emerald-300 border border-emerald-800">
-                  {gotiState === "thinking" ? "Raciocinando..." : gotiState === "speaking" ? "Explicando..." : "Pronto"}
+                <span className={`text-[10px] font-extrabold px-2 py-0.5 rounded-full border ${modoOffline && gotiState !== "thinking" ? "bg-[#FFC247]/15 text-[#FFC247] border-[#FFC247]/40" : "bg-[#3DD68C]/15 text-[#3DD68C] border-[#3DD68C]/40"}`}>
+                  {gotiState === "thinking" ? "Raciocinando..." : modoOffline ? "Modo offline" : gotiState === "speaking" ? "Explicando..." : "Pronto"}
                 </span>
               </div>
               <p className="text-xs text-slate-300 font-medium">
