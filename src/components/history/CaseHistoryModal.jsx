@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import {
   X,
   History,
@@ -12,7 +13,10 @@ import {
   Hourglass
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { AnimatedProgress } from "@/components/ui/animated-progress";
+import { AnimatedNumber } from "@/components/ui/animated-number";
 import { clinicalHistoryService, MODULE_LABELS } from "@/services/clinicalHistoryService";
+import { scrimVariants, sheetVariants } from "@/lib/motion";
 
 export default function CaseHistoryModal({
   isOpen,
@@ -26,13 +30,34 @@ export default function CaseHistoryModal({
   const [activities, setActivities] = useState([]);
   const [activeFilter, setActiveFilter] = useState(defaultModuleFilter);
   const [stats, setStats] = useState({ total: 0, completedCount: 0, inProgressCount: 0 });
+  const [confirmDeleteId, setConfirmDeleteId] = useState(null);
 
   // Sincronizar filtro quando abrir com módulo padrão
   useEffect(() => {
     if (isOpen) {
       setActiveFilter(defaultModuleFilter);
+      setConfirmDeleteId(null);
     }
   }, [isOpen, defaultModuleFilter]);
+
+  // Fechar com tecla Escape
+  useEffect(() => {
+    if (!isOpen) return;
+    const handleKeyDown = (e) => {
+      if (e.key === "Escape") onClose();
+    };
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [isOpen, onClose]);
+
+  // Timer para cancelar confirmação inline de exclusão após 3s
+  useEffect(() => {
+    if (!confirmDeleteId) return;
+    const timer = setTimeout(() => {
+      setConfirmDeleteId(null);
+    }, 3000);
+    return () => clearTimeout(timer);
+  }, [confirmDeleteId]);
 
   function loadActivities() {
     const filterToUse = lockModuleFilter ? defaultModuleFilter : activeFilter;
@@ -58,240 +83,295 @@ export default function CaseHistoryModal({
     }
   }, [isOpen, activeFilter, defaultModuleFilter, lockModuleFilter]);
 
-  function handleDelete(id, e) {
+  function handleDeleteClick(id, e) {
     e.stopPropagation();
-    if (window.confirm("Deseja realmente remover este registro do seu histórico?")) {
+    if (confirmDeleteId === id) {
       clinicalHistoryService.deleteActivity(id);
+      setConfirmDeleteId(null);
       loadActivities();
+    } else {
+      setConfirmDeleteId(id);
     }
   }
-
-  if (!isOpen) return null;
 
   const displayTitle = title || (lockModuleFilter && defaultModuleFilter !== "all" && MODULE_LABELS[defaultModuleFilter]
     ? `Histórico: ${MODULE_LABELS[defaultModuleFilter]}`
     : "Histórico de Casos & Prática Clínica");
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in">
-      <div
-        className="w-full max-w-3xl max-h-[90vh] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 rounded-3xl shadow-2xl flex flex-col overflow-hidden text-slate-800 dark:text-slate-100 transition-all"
-        onClick={(e) => e.stopPropagation()}
-      >
-        {/* Cabeçalho do Modal */}
-        <div className="p-4 sm:p-5 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-gradient-to-r from-emerald-50/50 via-white to-teal-50/40 dark:from-slate-950 dark:via-slate-900 dark:to-emerald-950/20">
-          <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-2xl bg-emerald-600 text-white flex items-center justify-center shadow-md shadow-emerald-600/20 shrink-0">
-              <History className="w-5 h-5" />
-            </div>
-            <div>
-              <h2 className="text-base sm:text-lg font-bold text-slate-900 dark:text-white flex items-center gap-2">
-                <span>{displayTitle}</span>
-                <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-emerald-100 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                  {stats.total} {stats.total === 1 ? "registro" : "registros"}
-                </span>
-              </h2>
-              <p className="text-xs text-slate-500 dark:text-slate-400">
-                {lockModuleFilter
-                  ? "Atividades e rascunhos exclusivos deste módulo. Retome seu progresso ou veja o resultado."
-                  : "Acompanhe o tempo de resolução, status de envio e retome atividades a qualquer momento."}
-              </p>
-            </div>
-          </div>
-
-          <button
+    <AnimatePresence>
+      {isOpen && (
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="case-history-title"
+          className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4"
+        >
+          {/* Fundo Escuro com Scrim */}
+          <motion.div
+            variants={scrimVariants}
+            initial="hidden"
+            animate="show"
+            exit="exit"
             onClick={onClose}
-            className="p-2 rounded-xl text-slate-400 hover:text-slate-700 dark:hover:text-slate-200 hover:bg-slate-100 dark:hover:bg-slate-800 transition shrink-0"
+            className="fixed inset-0 bg-black/80 backdrop-blur-xs"
+          />
+
+          {/* Modal / Folha Inferior Animada */}
+          <motion.div
+            variants={sheetVariants}
+            initial="hidden"
+            animate="show"
+            exit="exit"
+            onClick={(e) => e.stopPropagation()}
+            className="relative w-full max-w-3xl max-h-[92vh] sm:max-h-[85vh] bg-[#0E1722] border border-[#1F3045] rounded-t-3xl sm:rounded-3xl shadow-2xl flex flex-col overflow-hidden text-[#EAF2F8] z-10"
           >
-            <X className="w-5 h-5" />
-          </button>
-        </div>
-
-        {/* Resumo Rápido de Métricas */}
-        <div className="px-4 sm:px-6 py-3 bg-slate-50/80 dark:bg-slate-800/40 border-b border-slate-100 dark:border-slate-800 grid grid-cols-3 gap-2 text-center text-xs">
-          <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-            <span className="text-slate-400 block text-[10px] uppercase font-bold">Total do Módulo</span>
-            <strong className="text-slate-900 dark:text-slate-100 text-sm font-black">{stats.total}</strong>
-          </div>
-          <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-            <span className="text-emerald-700 dark:text-emerald-400 block text-[10px] uppercase font-bold">Concluídos (100%)</span>
-            <strong className="text-emerald-700 dark:text-emerald-400 text-sm font-black">{stats.completedCount}</strong>
-          </div>
-          <div className="p-2 rounded-xl bg-white dark:bg-slate-900 border border-slate-200/80 dark:border-slate-800 shadow-2xs">
-            <span className="text-amber-700 dark:text-amber-400 block text-[10px] uppercase font-bold">Em Andamento</span>
-            <strong className="text-amber-700 dark:text-amber-400 text-sm font-black">{stats.inProgressCount}</strong>
-          </div>
-        </div>
-
-        {/* Barra de Filtros (Aparece somente quando lockModuleFilter não estiver travado) */}
-        {!lockModuleFilter && (
-          <div className="px-4 sm:px-6 py-2.5 border-b border-slate-100 dark:border-slate-800 flex items-center gap-2 overflow-x-auto no-scrollbar">
-            {[
-              { id: "all", label: "Todas as Atividades" },
-              { id: "sbar", label: "Passagem SBAR" },
-              { id: "case_builder", label: "Montador de Casos" },
-              { id: "case_simulator", label: "Simulador de Casos" },
-              { id: "dosage", label: "Cálculo de Doses" },
-            ].map((flt) => (
-              <button
-                key={flt.id}
-                onClick={() => setActiveFilter(flt.id)}
-                className={`px-3 py-1 rounded-full text-xs font-semibold whitespace-nowrap transition-all ${
-                  activeFilter === flt.id
-                    ? "bg-emerald-600 text-white shadow-xs"
-                    : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-700"
-                }`}
-              >
-                {flt.label}
-              </button>
-            ))}
-          </div>
-        )}
-
-        {/* Lista de Atividades com Rolagem */}
-        <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
-          {activities.length === 0 ? (
-            <div className="py-12 text-center space-y-3">
-              <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-800 text-slate-400 flex items-center justify-center mx-auto">
-                <Hourglass className="w-6 h-6" />
-              </div>
-              <h3 className="text-sm font-bold text-slate-800 dark:text-slate-200">
-                Nenhuma atividade encontrada neste filtro
-              </h3>
-              <p className="text-xs text-slate-500 dark:text-slate-400 max-w-sm mx-auto">
-                Inicie um caso clínico, monte um perfil ou realize uma passagem SBAR. Todas as suas práticas ficarão salvas automaticamente aqui!
-              </p>
-            </div>
-          ) : (
-            activities.map((act) => {
-              const isCompleted = act.status === "concluido";
-              const dateFormatted = new Date(act.updatedAt).toLocaleDateString("pt-BR", {
-                day: "2-digit",
-                month: "short",
-                year: "numeric",
-                hour: "2-digit",
-                minute: "2-digit",
-              });
-
-              return (
-                <div
-                  key={act.id}
-                  className="p-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900/90 hover:border-emerald-300 dark:hover:border-emerald-800 shadow-xs hover:shadow-md transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
-                >
-                  <div className="space-y-2 flex-1 min-w-0">
-                    <div className="flex items-center gap-2 flex-wrap">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300">
-                        {act.moduleLabel || "Clínica"}
-                      </span>
-
-                      {isCompleted ? (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-50 dark:bg-emerald-950/60 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800">
-                          <CheckCircle2 className="w-3 h-3 text-emerald-600 dark:text-emerald-400" />
-                          Concluído (100%)
-                        </span>
-                      ) : (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-amber-50 dark:bg-amber-950/60 text-amber-800 dark:text-amber-300 border border-amber-200 dark:border-amber-800">
-                          <Clock className="w-3 h-3 text-amber-600 dark:text-amber-400" />
-                          Em Andamento ({act.progressPercentage}%)
-                        </span>
-                      )}
-
-                      {act.score !== null && act.score !== undefined && (
-                        <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-teal-50 dark:bg-teal-950/60 text-teal-800 dark:text-teal-300 border border-teal-200 dark:border-teal-800">
-                          <Award className="w-3 h-3 text-teal-600 dark:text-teal-400" />
-                          Nota: {act.score}/100
-                        </span>
-                      )}
-                    </div>
-
-                    <div>
-                      <h4 className="text-sm font-bold text-slate-900 dark:text-slate-100 truncate">
-                        {act.title}
-                      </h4>
-                      <p className="text-xs text-slate-500 dark:text-slate-400 line-clamp-1">
-                        {act.patientInfo}
-                      </p>
-                    </div>
-
-                    <div className="flex items-center gap-4 text-[11px] text-slate-500 dark:text-slate-400 flex-wrap">
-                      <span className="flex items-center gap-1">
-                        <Calendar className="w-3.5 h-3.5 text-slate-400" />
-                        {dateFormatted}
-                      </span>
-                      <span className="flex items-center gap-1">
-                        <Clock className="w-3.5 h-3.5 text-slate-400" />
-                        Tempo dedicado: <strong className="text-slate-700 dark:text-slate-300 font-semibold">{clinicalHistoryService.formatDuration(act.durationSeconds)}</strong>
-                      </span>
-                    </div>
-
-                    {/* Barra de Progresso */}
-                    <div className="w-full bg-slate-100 dark:bg-slate-800 h-1.5 rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-300 ${
-                          isCompleted ? "bg-emerald-500" : "bg-amber-500"
-                        }`}
-                        style={{ width: `${act.progressPercentage}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  {/* Ações */}
-                  <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800">
-                    {!isCompleted ? (
-                      <Button
-                        size="sm"
-                        onClick={() => {
-                          if (onResumeActivity) onResumeActivity(act);
-                          onClose();
-                        }}
-                        className="rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs h-9 px-4 flex items-center gap-1.5 shadow-xs"
-                      >
-                        <Play className="w-3.5 h-3.5" />
-                        <span>Entrar de Novo</span>
-                      </Button>
-                    ) : (
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        onClick={() => {
-                          if (onViewEvaluation) onViewEvaluation(act);
-                          else if (onResumeActivity) onResumeActivity(act);
-                          onClose();
-                        }}
-                        className="rounded-xl border-emerald-300 dark:border-emerald-700 text-emerald-800 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 font-semibold text-xs h-9 px-3.5 flex items-center gap-1.5"
-                      >
-                        <FileText className="w-3.5 h-3.5" />
-                        <span>Ver Resultado</span>
-                      </Button>
-                    )}
-
-                    <button
-                      onClick={(e) => handleDelete(act.id, e)}
-                      title="Excluir registro"
-                      className="p-1.5 text-slate-400 hover:text-rose-600 dark:hover:text-rose-400 rounded-lg hover:bg-rose-50 dark:hover:bg-rose-950/40 transition"
-                    >
-                      <Trash2 className="w-3.5 h-3.5" />
-                    </button>
-                  </div>
+            {/* Cabeçalho do Modal */}
+            <div className="p-4 sm:p-5 border-b border-[#1F3045] flex items-center justify-between bg-[#131F2E]">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-2xl bg-[#20D5B5]/15 border border-[#20D5B5]/30 text-[#20D5B5] flex items-center justify-center shrink-0">
+                  <History className="w-5 h-5" />
                 </div>
-              );
-            })
-          )}
-        </div>
+                <div>
+                  <h2 id="case-history-title" className="text-base sm:text-lg font-black text-white flex items-center gap-2">
+                    <span>{displayTitle}</span>
+                    <span className="text-xs font-semibold px-2 py-0.5 rounded-full bg-[#20D5B5]/20 text-[#20D5B5] border border-[#20D5B5]/30">
+                      <AnimatedNumber value={stats.total} /> {stats.total === 1 ? "registro" : "registros"}
+                    </span>
+                  </h2>
+                  <p className="text-xs text-[#9FB3C6]">
+                    {lockModuleFilter
+                      ? "Atividades e rascunhos exclusivos deste módulo. Retome seu progresso ou veja o resultado."
+                      : "Acompanhe o tempo de resolução, status e retome suas atividades clínicas a qualquer momento."}
+                  </p>
+                </div>
+              </div>
 
-        {/* Rodapé do Modal */}
-        <div className="p-4 border-t border-slate-100 dark:border-slate-800 bg-slate-50/50 dark:bg-slate-900/50 flex items-center justify-between text-xs text-slate-500 dark:text-slate-400">
-          <span>Seu progresso é gravado automaticamente em tempo real.</span>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={onClose}
-            className="rounded-xl font-semibold text-xs"
-          >
-            Fechar
-          </Button>
+              <Button
+                variant="ghost"
+                size="icon"
+                onClick={onClose}
+                aria-label="Fechar histórico"
+                className="text-[#9FB3C6] hover:text-white shrink-0"
+              >
+                <X className="w-5 h-5" />
+              </Button>
+            </div>
+
+            {/* Resumo Rápido de Métricas com AnimatedNumber */}
+            <div className="px-4 sm:px-6 py-3 bg-[#0B131D] border-b border-[#1F3045] grid grid-cols-3 gap-2.5 text-center text-xs">
+              <div className="p-2.5 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                <span className="text-[#9FB3C6] block text-[10px] uppercase font-bold">Total</span>
+                <strong className="text-white text-sm font-black">
+                  <AnimatedNumber value={stats.total} />
+                </strong>
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                <span className="text-[#3DD68C] block text-[10px] uppercase font-bold">Concluídos</span>
+                <strong className="text-[#3DD68C] text-sm font-black">
+                  <AnimatedNumber value={stats.completedCount} />
+                </strong>
+              </div>
+              <div className="p-2.5 rounded-xl bg-[#131F2E] border border-[#1F3045]">
+                <span className="text-[#FFC247] block text-[10px] uppercase font-bold">Em Andamento</span>
+                <strong className="text-[#FFC247] text-sm font-black">
+                  <AnimatedNumber value={stats.inProgressCount} />
+                </strong>
+              </div>
+            </div>
+
+            {/* Barra de Filtros com todos os módulos (profile-10) */}
+            {!lockModuleFilter && (
+              <div className="px-4 sm:px-6 py-2.5 border-b border-[#1F3045] bg-[#0E1722] flex items-center gap-2 overflow-x-auto scrollbar-none">
+                <button
+                  type="button"
+                  onClick={() => setActiveFilter("all")}
+                  className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                    activeFilter === "all"
+                      ? "bg-[#20D5B5] text-[#0E1722]"
+                      : "bg-[#131F2E] border border-[#1F3045] text-[#9FB3C6] hover:text-white"
+                  }`}
+                >
+                  Todas as Atividades
+                </button>
+                {Object.entries(MODULE_LABELS).map(([modKey, modLabel]) => (
+                  <button
+                    key={modKey}
+                    type="button"
+                    onClick={() => setActiveFilter(modKey)}
+                    className={`px-3 py-1 rounded-full text-xs font-bold whitespace-nowrap transition-all cursor-pointer ${
+                      activeFilter === modKey
+                        ? "bg-[#20D5B5] text-[#0E1722]"
+                        : "bg-[#131F2E] border border-[#1F3045] text-[#9FB3C6] hover:text-white"
+                    }`}
+                  >
+                    {modLabel.split(" ")[0]}
+                  </button>
+                ))}
+              </div>
+            )}
+
+            {/* Lista de Atividades com Rolagem */}
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 space-y-3">
+              {activities.length === 0 ? (
+                <div className="py-12 text-center space-y-3">
+                  <div className="w-12 h-12 rounded-2xl bg-[#131F2E] text-[#9FB3C6] flex items-center justify-center mx-auto border border-[#1F3045]">
+                    <Hourglass className="w-6 h-6" />
+                  </div>
+                  <h3 className="text-sm font-bold text-white">
+                    Nenhuma atividade encontrada neste filtro
+                  </h3>
+                  <p className="text-xs text-[#9FB3C6] max-w-sm mx-auto">
+                    Inicie um caso clínico, cálculo de doses ou passagem SBAR. Todas as suas práticas ficarão salvas automaticamente aqui!
+                  </p>
+                </div>
+              ) : (
+                activities.map((act) => {
+                  const isCompleted = act.status === "concluido";
+                  const dateFormatted = new Date(act.finishedAt || act.updatedAt).toLocaleDateString("pt-BR", {
+                    day: "2-digit",
+                    month: "short",
+                    year: "numeric",
+                    hour: "2-digit",
+                    minute: "2-digit",
+                  });
+                  const isConfirmingThis = confirmDeleteId === act.id;
+
+                  return (
+                    <div
+                      key={act.id}
+                      className="p-4 rounded-2xl border border-[#1F3045] bg-[#131F2E] hover:border-[#27394B] shadow-xs transition-all flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+                    >
+                      <div className="space-y-2 flex-1 min-w-0">
+                        <div className="flex items-center gap-2 flex-wrap">
+                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#0E1722] border border-[#27394B] text-[#20D5B5]">
+                            {act.moduleLabel || "Clínica"}
+                          </span>
+
+                          {isCompleted ? (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#3DD68C]/15 text-[#3DD68C] border border-[#3DD68C]/30">
+                              <CheckCircle2 className="w-3 h-3 text-[#3DD68C]" />
+                              Concluído
+                            </span>
+                          ) : (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#FFC247]/15 text-[#FFC247] border border-[#FFC247]/30">
+                              <Clock className="w-3 h-3 text-[#FFC247]" />
+                              Em Andamento ({act.progressPercentage || 0}%)
+                            </span>
+                          )}
+
+                          {act.score !== null && act.score !== undefined && (
+                            <span className="inline-flex items-center gap-1 text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
+                              <Award className="w-3 h-3 text-[#20D5B5]" />
+                              Nota: {act.score}/100
+                            </span>
+                          )}
+                        </div>
+
+                        <div>
+                          <h4 className="text-sm font-bold text-white truncate">
+                            {act.title}
+                          </h4>
+                          <p className="text-xs text-[#9FB3C6] line-clamp-1">
+                            {act.patientInfo}
+                          </p>
+                        </div>
+
+                        <div className="flex items-center gap-4 text-[11px] text-[#9FB3C6] flex-wrap font-mono">
+                          <span className="flex items-center gap-1">
+                            <Calendar className="w-3.5 h-3.5 text-[#9FB3C6]" />
+                            {dateFormatted}
+                          </span>
+                          <span className="flex items-center gap-1">
+                            <Clock className="w-3.5 h-3.5 text-[#9FB3C6]" />
+                            Tempo: <strong className="text-white font-semibold">{clinicalHistoryService.formatDuration(act.durationSeconds)}</strong>
+                          </span>
+                        </div>
+
+                        {/* Barra de Progresso com AnimatedProgress */}
+                        <div className="pt-1">
+                          <AnimatedProgress
+                            value={act.progressPercentage || (isCompleted ? 100 : 0)}
+                            tone={isCompleted ? "success" : "warning"}
+                            className="h-2"
+                            label={`Progresso da sessão: ${act.title}`}
+                          />
+                        </div>
+                      </div>
+
+                      {/* Ações (profile-10: Button do design system + inline confirm) */}
+                      <div className="flex sm:flex-col items-center sm:items-end justify-between gap-2 shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-[#1F3045]">
+                        {!isCompleted ? (
+                          <Button
+                            variant="primary"
+                            size="sm"
+                            onClick={() => {
+                              if (onResumeActivity) onResumeActivity(act);
+                              onClose();
+                            }}
+                            className="h-8 text-xs font-bold"
+                          >
+                            <Play className="w-3.5 h-3.5 mr-1" />
+                            <span>Continuar</span>
+                          </Button>
+                        ) : (
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              if (onViewEvaluation) onViewEvaluation(act);
+                              else if (onResumeActivity) onResumeActivity(act);
+                              onClose();
+                            }}
+                            className="h-8 text-xs font-semibold"
+                          >
+                            <FileText className="w-3.5 h-3.5 mr-1" />
+                            <span>Ver Resultado</span>
+                          </Button>
+                        )}
+
+                        {/* Exclusão com confirmação inline de dois toques */}
+                        {isConfirmingThis ? (
+                          <Button
+                            variant="danger"
+                            size="sm"
+                            onClick={(e) => handleDeleteClick(act.id, e)}
+                            className="h-7 px-2 text-[11px] font-black animate-in fade-in"
+                          >
+                            Remover?
+                          </Button>
+                        ) : (
+                          <button
+                            type="button"
+                            onClick={(e) => handleDeleteClick(act.id, e)}
+                            aria-label={`Excluir ${act.title}`}
+                            className="p-1.5 text-[#9FB3C6] hover:text-[#FF6B6B] rounded-lg hover:bg-rose-500/10 transition"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  );
+                })
+              )}
+            </div>
+
+            {/* Rodapé do Modal */}
+            <div className="p-4 border-t border-[#1F3045] bg-[#131F2E] flex items-center justify-between text-xs text-[#9FB3C6]">
+              <span>Progresso salvo automaticamente no seu perfil.</span>
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={onClose}
+                className="text-xs font-bold"
+              >
+                Fechar
+              </Button>
+            </div>
+          </motion.div>
         </div>
-      </div>
-    </div>
+      )}
+    </AnimatePresence>
   );
 }

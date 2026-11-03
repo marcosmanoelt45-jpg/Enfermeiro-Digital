@@ -349,7 +349,9 @@ export const clinicalHistoryService = {
         localStorage.removeItem(k);
         const rk = getRevisaoKey(userId);
         localStorage.removeItem(rk);
-        // Também limpa chave legada se existir
+        // Também limpa chaves globais e legadas para garantir que não retornem (profile-4)
+        localStorage.removeItem(STORAGE_KEY);
+        localStorage.removeItem(REVISAO_STORAGE_KEY);
         localStorage.removeItem('enfermeiro_historico_videochamadas');
       }
       return true;
