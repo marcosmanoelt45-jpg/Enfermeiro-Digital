@@ -11,9 +11,10 @@ import {
   CheckCircle2
 } from "lucide-react";
 import { useAuth } from "@/lib/AuthContext";
-import { PACIENTES, gerarCasoAleatorio } from "@/data/simuladorCasosData";
+import { PACIENTES, CASOS_SIMULADOR, gerarCasoAleatorio } from "@/data/simuladorCasosData";
 import { falar, pararFala } from "@/services/simuladorVozService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
+import { toast } from "@/components/ui/use-toast";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
 import { celebrate } from "@/lib/celebrate";
 import { vibrate } from "@/lib/motion";
@@ -214,8 +215,17 @@ export default function Videochamada() {
   function handleIniciarSessaoPratica({ mode, categoria, topicoNome }) {
     pararFala();
 
-    // Sorteia aleatoriamente Marcus ou Teresinha
-    const novoPaciente = Math.random() < 0.5 ? "marcus" : "teresinha";
+    // Com tema escolhido, sorteia só entre pacientes que têm questões suficientes desse tema
+    // (cada paciente cobre temas diferentes).
+    const sortear = (ids) => ids[Math.floor(Math.random() * ids.length)];
+    const elegiveis = ["marcus", "teresinha"].filter(
+      (id) => (CASOS_SIMULADOR[id]?.passos || []).filter((q) => q.categoriaPratica === categoria).length >= 4
+    );
+    const temaEspecifico = categoria && categoria !== "todos" && mode !== "revisao";
+    if (temaEspecifico && elegiveis.length === 0) {
+      toast({ title: "Poucas questões deste tema", description: "Ainda não há questões suficientes; a sessão será mista." });
+    }
+    const novoPaciente = temaEspecifico && elegiveis.length ? sortear(elegiveis) : sortear(["marcus", "teresinha"]);
     setPacienteId(novoPaciente);
 
     let labelsModo = "Atividade Normal (7 a 9)";
@@ -309,8 +319,7 @@ export default function Videochamada() {
             clinicalHistoryService.removerQuestoesRevisao([questaoAtual], user?.id);
           }
         } else {
-          // Acertou na 2ª tentativa (após dica amarela): Finaliza como amarela resolvida
-          setAcertos((prev) => prev + 1);
+          // Acertou na 2ª tentativa (após dica amarela): continua contando só como amarela, não como acerto de primeira
           setQuestaoStates((prev) => ({
             ...prev,
             [stepIndex]: {
@@ -373,6 +382,13 @@ export default function Videochamada() {
     pararFala();
 
     if (stepIndex >= totalQuestoes) {
+      // Só fecha a sessão com todas respondidas: volta para a primeira pendente.
+      const pendentes = Array.from({ length: totalQuestoes }, (_, i) => i + 1).filter((n) => !questaoStates[n]?.isFinalizada);
+      if (pendentes.length > 0) {
+        setStepIndex(pendentes[0]);
+        toast({ title: `Faltam ${pendentes.length} questões`, description: "Responda todas para ver o resumo final." });
+        return;
+      }
       finalizarAtendimento();
     } else {
       const nextStep = stepIndex + 1;
@@ -401,7 +417,11 @@ export default function Videochamada() {
   function finalizarAtendimento() {
     const tempoTotalSegundos = Math.max(1, Math.round((Date.now() - startTime) / 1000));
     const paciente = PACIENTES[pacienteId] || PACIENTES.marcus;
-    const taxaAproveitamento = Math.round((acertos / totalQuestoes) * 100);
+    // Acerto de primeira vale 1; acerto na segunda tentativa vale meio.
+    const estados = Object.values(questaoStates);
+    const verdes = estados.filter((st) => st.status === "verde").length;
+    const amarelasResolvidas = estados.filter((st) => st.status === "amarela" && st.isFinalizada).length;
+    const taxaAproveitamento = Math.round(((verdes + 0.5 * amarelasResolvidas) / totalQuestoes) * 100);
 
     const listaQuestoesFinal = todasQuestoes.map((q, idx) => {
       const qNum = idx + 1;
@@ -409,7 +429,7 @@ export default function Videochamada() {
       return {
         ...q,
         numQuestao: qNum,
-        status: st.status === "aberta" ? "amarela" : st.status,
+        status: st.isFinalizada ? st.status : "pulada",
         escolhaAluno: st.selectedChoice,
         alternativaEscolhidaTexto: st.selectedChoice !== null ? q.opcoes[st.selectedChoice] : null,
         gabaritoTexto: q.opcoes[q.correta]
@@ -732,9 +752,12 @@ export default function Videochamada() {
                       key={qNum}
                       type="button"
                       onClick={() => {
+                        if (qNum > maxStepAlcancado) return;
                         pararFala();
                         setStepIndex(qNum);
                       }}
+                      disabled={qNum > maxStepAlcancado}
+                      aria-disabled={qNum > maxStepAlcancado}
                       className={`w-7 h-7 rounded-lg border text-xs font-mono flex items-center justify-center shrink-0 transition cursor-pointer ${dotColor} ${
                         isCurrent ? "ring-2 ring-white scale-105 shadow-md" : "hover:border-white/50"
                       }`}

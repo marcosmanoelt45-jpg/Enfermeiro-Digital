@@ -154,6 +154,11 @@ export default function SbarHandoffLab() {
   const [processingField, setProcessingField] = useState(null);
 
   const recognitionRef = useRef(null);
+  // sessionRef muda a cada troca de caso, limpeza ou envio: transcrição antiga que chegar depois é descartada.
+  // startIdRef invalida um pedido de microfone que ainda esperava permissão.
+  const sessionRef = useRef(0);
+  const startIdRef = useRef(0);
+  const mountedRef = useRef(true);
   const mediaRecorderRef = useRef(null);
   const audioChunksRef = useRef([]);
   const streamRef = useRef(null);
@@ -180,12 +185,17 @@ export default function SbarHandoffLab() {
 
   // Limpeza de recursos de áudio ao desmontar
   useEffect(() => {
+    mountedRef.current = true;
     return () => {
+      mountedRef.current = false;
+      sessionRef.current++;
+      startIdRef.current++;
       if (timerRef.current) clearInterval(timerRef.current);
       if (recognitionRef.current) {
         try {
           recognitionRef.current.onend = null;
-          recognitionRef.current.stop();
+          recognitionRef.current.onresult = null;
+          recognitionRef.current.abort();
         } catch {}
         recognitionRef.current = null;
       }
@@ -293,8 +303,11 @@ export default function SbarHandoffLab() {
 
   async function stopListening(fieldNameOverride = null) {
     const targetField = fieldNameOverride || activeListeningField;
+    const token = sessionRef.current;
+    const stillCurrent = () => mountedRef.current && token === sessionRef.current;
 
     isListeningRef.current = false;
+    startIdRef.current++;
 
     // 1. Limpa o cronômetro visual
     if (timerRef.current) {
@@ -304,9 +317,12 @@ export default function SbarHandoffLab() {
 
     // 2. Encerra a Web Speech API
     if (recognitionRef.current) {
+      // abort() em vez de stop(): stop() ainda entregaria o resultado final, duplicando o fim da fala
+      // que já é gravado no flush abaixo.
       try {
         recognitionRef.current.onend = null;
-        recognitionRef.current.stop();
+        recognitionRef.current.onresult = null;
+        recognitionRef.current.abort();
       } catch {}
       recognitionRef.current = null;
     }
@@ -375,12 +391,12 @@ export default function SbarHandoffLab() {
       if (currentText.length > textLenBefore || pendingInterim.length > 0) {
         setToastMessage(`Transcrição do pilar ${targetField.toUpperCase()} concluída com sucesso!`);
         setTimeout(() => setToastMessage(""), 3000);
-      } else if (recordedBlob && targetField && recordedBlob.size > 1500) {
+      } else if (recordedBlob && targetField && recordedBlob.size > 1500 && stillCurrent()) {
         // Fallback com IA (Gemini / AssemblyAI) se a Web Speech não digitou texto
         setIsTranscribingWithAi(true);
         setToastMessage("Transcrevendo o áudio gravado em alta fidelidade...");
         const result = await audioTranscriptionService.transcribe(recordedBlob);
-        if (result && result.text) {
+        if (result && result.text && stillCurrent()) {
           setSbarData((prev) => {
             const prevText = prev[targetField] ? prev[targetField].trim() + " " : "";
             return {
@@ -440,10 +456,16 @@ export default function SbarHandoffLab() {
     }, 1000);
 
     // 1. Solicita e abre microfone com getUserMedia nativo do navegador
+    const myStartId = ++startIdRef.current;
     let stream = null;
     try {
       if (navigator.mediaDevices && navigator.mediaDevices.getUserMedia) {
         stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+        // Se o aluno trocou de campo ou saiu da tela enquanto a permissão estava pendente, fecha este microfone.
+        if (!mountedRef.current || myStartId !== startIdRef.current) {
+          stream.getTracks().forEach((t) => t.stop());
+          return;
+        }
         streamRef.current = stream;
       }
     } catch (err) {
@@ -568,6 +590,7 @@ export default function SbarHandoffLab() {
   }
 
   function handleSelectScenario(idx) {
+    sessionRef.current++;
     if (isListening) stopListening();
     setActiveScenarioIdx(idx);
     setCurrentCase(PRESET_HANDOFF_SCENARIOS[idx]);
@@ -603,6 +626,7 @@ export default function SbarHandoffLab() {
   }
 
   function handleClearFields() {
+    sessionRef.current++;
     if (isListening) stopListening();
     setSbarData({ situation: "", background: "", assessment: "", recommendation: "" });
     setTutorEvaluation(null);
@@ -611,7 +635,11 @@ export default function SbarHandoffLab() {
   }
 
   async function handleEvaluateSbar() {
-    if (isListening) stopListening();
+    // Avaliar com um ditado ainda em andamento enviaria o texto incompleto.
+    if (isListening || voiceStarting || isProcessingAudio) {
+      toast({ title: "Ditado em andamento", description: "Finalize o ditado e aguarde a transcrição antes de enviar para o Goti." });
+      return;
+    }
     const isAnyFilled = sbarData.situation || sbarData.background || sbarData.assessment || sbarData.recommendation;
     if (!isAnyFilled) {
       toast({ title: "SBAR vazio", description: "Preencha ao menos uma etapa do SBAR antes de enviar para o Goti avaliar." });
@@ -642,7 +670,7 @@ export default function SbarHandoffLab() {
           title: `Passagem SBAR: ${currentCase?.title || "Caso Clínico"}`,
           patientInfo: `${currentCase?.name || "Paciente"} (${currentCase?.age || "?"}a) • ${currentCase?.sector || "Enfermaria"}`,
           durationSeconds: activitySeconds,
-          score: evaluation?.safetyScore || 100,
+          score: Number.isFinite(Number(evaluation?.safetyScore)) ? Number(evaluation.safetyScore) : 0,
           evaluation: evaluation,
           formData: { sbarData, currentCase }
         });
@@ -1737,7 +1765,7 @@ export default function SbarHandoffLab() {
                   { key: "assessment", label: "A - Avaliação", letter: "A" },
                   { key: "recommendation", label: "R - Recomendação", letter: "R" }
                 ].map((pillar) => {
-                  const data = tutorEvaluation.pillarScores?.[pillar.key] || { score: 75, feedback: "Informações registradas com clareza." };
+                  const data = tutorEvaluation.pillarScores?.[pillar.key] || { score: 0, feedback: "Pilar não avaliado." };
                   return (
                     <div key={pillar.key} className="p-3.5 rounded-xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-800/60 space-y-1">
                       <div className="flex items-center justify-between">
@@ -1818,7 +1846,7 @@ export default function SbarHandoffLab() {
         <GotiEvaluationModal
           isOpen={showGotiEvaluationModal}
           onClose={() => setShowGotiEvaluationModal(false)}
-          score={tutorEvaluation?.safetyScore ?? 100}
+          score={Number(tutorEvaluation?.safetyScore) || 0}
           scoreLabel="Índice de Segurança SBAR"
           activityTitle={`Passagem SBAR: ${currentCase?.title || "Caso Clínico"}`}
           comment={tutorEvaluation?.summaryFeedback || tutorEvaluation?.gotiMentorship || tutorEvaluation?.florenceMentorship || "Excelente comunicação beira-leito!"}
