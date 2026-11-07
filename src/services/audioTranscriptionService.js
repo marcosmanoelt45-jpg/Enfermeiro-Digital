@@ -1,6 +1,6 @@
 // Serviço de Transcrição de Áudio Clínico (AssemblyAI & Google Gemini Multimodal Audio)
 // Suporta envio de áudio binário gravado à beira-leito com reconhecimento em português (pt-BR).
-import { transcribeAudio } from "@/lib/assemblyai";
+import { transcrever, temSessaoDoServidor } from "@/features/cena/servidor";
 
 function blobToBase64(blob) {
   return new Promise((resolve, reject) => {
@@ -16,14 +16,6 @@ function blobToBase64(blob) {
 }
 
 export const audioTranscriptionService = {
-  // Retorna a chave do AssemblyAI se configurada no localStorage do usuário
-  getAssemblyAIKey() {
-    return (
-      (typeof localStorage !== 'undefined' && localStorage.getItem('enfermeiro_assemblyai_api_key')) ||
-      ''
-    ).trim();
-  },
-
   // Retorna a chave do Gemini pessoal (localStorage); chaves do projeto ficam só no servidor
   getGeminiKey() {
     return (
@@ -42,16 +34,15 @@ export const audioTranscriptionService = {
 
   // Identifica qual motor de transcrição está ativo por padrão
   getActiveEngine() {
-    if (this.getAssemblyAIKey()) return 'AssemblyAI';
+    if (temSessaoDoServidor()) return 'AssemblyAI';
     if (this.getGeminiKey()) return 'Google Gemini (Multimodal)';
     if (this.getOpenRouterKey()) return 'OpenRouter (Multimodal)';
     return 'Navegador (Web Speech API)';
   },
 
-  // Transcreve usando AssemblyAI
-  async transcribeWithAssemblyAI(audioBlob, onProgress) {
-    // Usa o cliente único da AssemblyAI (lib/assemblyai), que espera até 4 minutos por gravações longas.
-    const text = await transcribeAudio(audioBlob, { apiKey: this.getAssemblyAIKey(), onStage: onProgress || undefined });
+  // Transcreve pelo servidor (Edge Function "transcrever"): a chave da AssemblyAI nunca fica no navegador.
+  async transcribeWithAssemblyAI(audioBlob, onProgress, duracaoSeg) {
+    const text = await transcrever(audioBlob, { duracaoSeg, onEtapa: onProgress || undefined });
     return { text, engine: "AssemblyAI" };
   },
 
@@ -250,11 +241,11 @@ Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções ou explicações.`;
   },
 
   // Método principal que orquestra a transcrição em cascata
-  async transcribe(audioBlob, existingTranscript = '', onProgress = null) {
-    // 1. Se tem AssemblyAI configurado, prioriza AssemblyAI
-    if (audioBlob && this.getAssemblyAIKey()) {
+  async transcribe(audioBlob, existingTranscript = '', onProgress = null, duracaoSeg) {
+    // 1. Com sessão do servidor, prioriza a transcrição do servidor (AssemblyAI)
+    if (audioBlob && temSessaoDoServidor()) {
       try {
-        return await this.transcribeWithAssemblyAI(audioBlob, onProgress);
+        return await this.transcribeWithAssemblyAI(audioBlob, onProgress, duracaoSeg);
       } catch (err) {
         console.warn('Falha na transcrição com AssemblyAI, tentando fallback:', err);
       }
@@ -290,18 +281,5 @@ Retorne EXCLUSIVAMENTE o texto transcrito, sem introduções ou explicações.`;
     throw new Error(
       'Nenhuma transcrição foi gerada. Fale mais perto do microfone ou digite o texto.'
     );
-  },
-
-  // Testa conexão com AssemblyAI
-  async testAssemblyAIConnection(key) {
-    if (!key || !key.trim()) throw new Error('Chave vazia');
-    const res = await fetch('https://api.assemblyai.com/v2/transcript?limit=1', {
-      headers: { authorization: key.trim() },
-    });
-    if (!res.ok) {
-      const err = await res.json().catch(() => ({}));
-      throw new Error(err.error || 'Chave do AssemblyAI inválida ou sem permissão.');
-    }
-    return true;
   },
 };

@@ -164,7 +164,7 @@ export default function AudioAssessment() {
         return;
       }
       // Tenta todos os motores configurados, em ordem (AssemblyAI, Gemini, OpenRouter).
-      const res = await audioTranscriptionService.transcribe(recorder.blob, "", setStage);
+      const res = await audioTranscriptionService.transcribe(recorder.blob, "", setStage, recorder.seconds);
       const text = res?.text || "";
 
       if (!text) {

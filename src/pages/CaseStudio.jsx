@@ -39,7 +39,7 @@ import ClinicalGuideTabs from "@/components/audio/ClinicalGuideTabs";
 import RecorderPanel from "@/components/audio/RecorderPanel";
 import { parseVitalsFromTranscript } from "@/lib/vitalsParser";
 import { audioTranscriptionService } from "@/services/audioTranscriptionService";
-import { getAssemblyAiKey, transcribeAudio } from "@/lib/assemblyai";
+import { transcrever, temSessaoDoServidor } from "@/features/cena/servidor";
 import {
   computeGlobalRisk,
   computeBradenTotal,
@@ -213,13 +213,13 @@ export default function CaseStudio() {
 
     setIsAudioTranscribing(true);
     try {
-      const hasAssemblyKey = Boolean(getAssemblyAiKey());
+      const hasAssemblyKey = temSessaoDoServidor();
       const hasGeminiKey = Boolean(audioTranscriptionService.getGeminiKey());
       let text = "";
       if (hasAssemblyKey) {
-        text = await transcribeAudio(audioRecorder.blob, {
-          apiKey: getAssemblyAiKey(),
-          onStage: setAudioStage,
+        text = await transcrever(audioRecorder.blob, {
+          duracaoSeg: audioRecorder.seconds,
+          onEtapa: setAudioStage,
         });
       } else if (hasGeminiKey) {
         const res = await audioTranscriptionService.transcribeWithGemini(
