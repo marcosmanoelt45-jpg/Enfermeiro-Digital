@@ -5,7 +5,7 @@
 ## Fases
 | Fase | Status | PR | Data | Observações |
 |---|---|---|---|---|
-| F0 Base do repositório | em andamento | — | 06/11/2026 | 0.1 e 0.2 feitas; 0.3–0.7 pendentes. Branch `feat/cenas-f0-base`, a partir de `origin/main` @ 027f623 |
+| F0 Base do repositório | em andamento | — | 06/11/2026 | 0.1 a 0.3 feitas; 0.4–0.7 pendentes. Branch `feat/cenas-f0-base`, a partir de `origin/main` @ 027f623 |
 | F1 Base do servidor | pendente | — | — | — |
 | F2 Motor Cena ao Vivo | pendente | — | — | — |
 | F3 Consulta: conversa | pendente | — | — | — |

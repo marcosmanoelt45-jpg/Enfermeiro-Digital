@@ -22,6 +22,8 @@
     "src/pages/**/*.js",
     "src/pages/**/*.jsx",
     "src/services/**/*.js",
+    "src/features/**/*.js",
+    "src/features/**/*.jsx",
     "src/App.jsx",
     "src/main.jsx"
   ],
