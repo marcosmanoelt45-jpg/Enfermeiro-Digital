@@ -64,6 +64,11 @@ export const consulta = {
   retomar: (sessaoId) => invocarFuncao(invoke, "cena-ia", { acao: "retomar_consulta", sessaoId }, { timeoutMs: 15000, tentativas: 2 }),
 };
 
+// Plantão com a Enfermeira: o servidor avalia as respostas (texto pela IA, números e lacunas por código).
+export const plantao = {
+  avaliar: ({ cenarioId, respostas, lacunas }) => invocarFuncao(invoke, "cena-ia", { acao: "avaliar_plantao", cenarioId, respostas, lacunas }, { timeoutMs: 30000, tentativas: 1 }),
+};
+
 // Relatório e conversa de uma consulta ENCERRADA, lidos direto das tabelas (a RLS só entrega o que é do aluno e,
 // no caso dos turnos, só depois de encerrada; a ficha nunca é legível).
 export async function obterRelatorioDaConsulta(sessaoId) {

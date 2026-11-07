@@ -1,0 +1,790 @@
+{
+ "personagem": "enfermeira-ana",
+ "perfilVoicebox": "Ana",
+ "falas": [
+  {
+   "id": "plt.abertura.1",
+   "texto": "Oi! Cheguei pro plantão. Pode me passar o paciente?"
+  },
+  {
+   "id": "plt.abertura.2",
+   "texto": "Boa noite. Vou te fazendo umas perguntas, pode ser?"
+  },
+  {
+   "id": "plt.abertura.3",
+   "texto": "Oi, tudo bem? Me passa o plantão, vou perguntando conforme você vai falando."
+  },
+  {
+   "id": "plt.r.ok.1",
+   "texto": "Certo."
+  },
+  {
+   "id": "plt.r.ok.2",
+   "texto": "Entendi."
+  },
+  {
+   "id": "plt.r.ok.3",
+   "texto": "Anotado."
+  },
+  {
+   "id": "plt.r.ok.4",
+   "texto": "Beleza, obrigada."
+  },
+  {
+   "id": "plt.r.ok.5",
+   "texto": "Ok, continua."
+  },
+  {
+   "id": "plt.r.ok.6",
+   "texto": "Tá, entendi."
+  },
+  {
+   "id": "plt.r.faltou_numero.1",
+   "texto": "Faltou número aí. Quanto estava?"
+  },
+  {
+   "id": "plt.r.faltou_numero.2",
+   "texto": "Me dá os valores, quanto deu?"
+  },
+  {
+   "id": "plt.r.faltou_numero.3",
+   "texto": "Preciso dos números certinhos. Quanto era?"
+  },
+  {
+   "id": "plt.r.nao_avaliou.1",
+   "texto": "Ué, você não avaliou isso? Vai lá ver e depois me conta."
+  },
+  {
+   "id": "plt.r.nao_avaliou.2",
+   "texto": "Hum, parece que isso não foi examinado. Tem que olhar antes de passar."
+  },
+  {
+   "id": "plt.r.nao_avaliou.3",
+   "texto": "Sem avaliação eu não consigo seguir nisso. Anota pra olhar depois."
+  },
+  {
+   "id": "plt.r.encerrar.1",
+   "texto": "Ok, era isso. Obrigada pelo plantão."
+  },
+  {
+   "id": "plt.r.encerrar.2",
+   "texto": "Perfeito, é isso. Pode ir descansar, eu assumo daqui."
+  },
+  {
+   "id": "plt.pos_op.s1",
+   "texto": "Quem é o paciente e por que ele está internado?"
+  },
+  {
+   "id": "plt.pos_op.s2",
+   "texto": "Qual o leito e em que dia de pós-operatório ele está?"
+  },
+  {
+   "id": "plt.pos_op.b1",
+   "texto": "Ele tem alergia ou alguma doença de base que eu precise saber?"
+  },
+  {
+   "id": "plt.pos_op.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.pos_op.a2",
+   "texto": "E a ferida e o dreno? Quanto saiu?"
+  },
+  {
+   "id": "plt.pos_op.a3",
+   "texto": "Como está o abdome? Ele tem dor?"
+  },
+  {
+   "id": "plt.pos_op.r1",
+   "texto": "O que eu preciso vigiar no meu plantão?"
+  },
+  {
+   "id": "plt.pos_op.r2",
+   "texto": "Tem medicação ou exame com horário pra eu checar?"
+  },
+  {
+   "id": "plt.icc.s1",
+   "texto": "Quem é o paciente e por que ele está na UTI?"
+  },
+  {
+   "id": "plt.icc.b1",
+   "texto": "Ele tem alguma alergia que eu precise saber?"
+  },
+  {
+   "id": "plt.icc.b2",
+   "texto": "Quais são as doenças de base dele?"
+  },
+  {
+   "id": "plt.icc.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.icc.a2",
+   "texto": "Como está o pulmão? Você auscultou?"
+  },
+  {
+   "id": "plt.icc.a3",
+   "texto": "E as pernas, tem edema?"
+  },
+  {
+   "id": "plt.icc.a4",
+   "texto": "E o pescoço, como estão as jugulares?"
+  },
+  {
+   "id": "plt.icc.r1",
+   "texto": "O que eu preciso fazer neste plantão?"
+  },
+  {
+   "id": "plt.icc.r2",
+   "texto": "Tem medicação com horário?"
+  },
+  {
+   "id": "plt.delirium.s1",
+   "texto": "Quem é a paciente e por que ela está internada?"
+  },
+  {
+   "id": "plt.delirium.s2",
+   "texto": "Qual o leito e em que dia de internação ela está?"
+  },
+  {
+   "id": "plt.delirium.b1",
+   "texto": "Ela tem alergia ou doença de base que eu precise saber?"
+  },
+  {
+   "id": "plt.delirium.b2",
+   "texto": "Ela já caiu antes?"
+  },
+  {
+   "id": "plt.delirium.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.delirium.a2",
+   "texto": "Como está a atenção e a orientação dela?"
+  },
+  {
+   "id": "plt.delirium.a3",
+   "texto": "E o acesso venoso, como está?"
+  },
+  {
+   "id": "plt.delirium.a4",
+   "texto": "Como está a segurança no leito?"
+  },
+  {
+   "id": "plt.delirium.r1",
+   "texto": "O que eu preciso fazer pra evitar queda neste plantão?"
+  },
+  {
+   "id": "plt.dpoc.s1",
+   "texto": "Quem é o paciente e por que ele está internado?"
+  },
+  {
+   "id": "plt.dpoc.s2",
+   "texto": "Qual o leito e há quanto tempo ele está aqui?"
+  },
+  {
+   "id": "plt.dpoc.b1",
+   "texto": "Ele tem alergia a algum medicamento?"
+  },
+  {
+   "id": "plt.dpoc.b2",
+   "texto": "Qual o grau do DPOC e o que ele usa em casa?"
+  },
+  {
+   "id": "plt.dpoc.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.dpoc.a2",
+   "texto": "Como está o pulmão? Você auscultou?"
+  },
+  {
+   "id": "plt.dpoc.a3",
+   "texto": "E o esforço respiratório, como está?"
+  },
+  {
+   "id": "plt.dpoc.a4",
+   "texto": "Ele está com oxigênio? Quanto e qual a saturação?"
+  },
+  {
+   "id": "plt.dpoc.r1",
+   "texto": "Qual o alvo de saturação e o que eu devo vigiar?"
+  },
+  {
+   "id": "plt.sepse_urinaria.s1",
+   "texto": "Quem é a paciente e por que ela está na emergência?"
+  },
+  {
+   "id": "plt.sepse_urinaria.s2",
+   "texto": "Qual o leito e há quanto tempo ela chegou?"
+  },
+  {
+   "id": "plt.sepse_urinaria.b1",
+   "texto": "Ela tem alergia ou alguma doença de base?"
+  },
+  {
+   "id": "plt.sepse_urinaria.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.sepse_urinaria.a2",
+   "texto": "Como está a perfusão? Pele e enchimento capilar?"
+  },
+  {
+   "id": "plt.sepse_urinaria.a3",
+   "texto": "Como está a diurese?"
+  },
+  {
+   "id": "plt.sepse_urinaria.a4",
+   "texto": "E o nível de consciência dela?"
+  },
+  {
+   "id": "plt.sepse_urinaria.r1",
+   "texto": "Quanto de volume ela precisa receber e em quanto tempo?"
+  },
+  {
+   "id": "plt.sepse_urinaria.r2",
+   "texto": "O antibiótico pode ser dado já? O que vem antes?"
+  },
+  {
+   "id": "plt.avc_isquemico.s1",
+   "texto": "Quem é o paciente e por que ele está na UTI?"
+  },
+  {
+   "id": "plt.avc_isquemico.s2",
+   "texto": "Que tratamento ele fez e há quanto tempo?"
+  },
+  {
+   "id": "plt.avc_isquemico.b1",
+   "texto": "Quais as doenças de base e alergias dele?"
+  },
+  {
+   "id": "plt.avc_isquemico.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.avc_isquemico.a2",
+   "texto": "E o nível de consciência, como está?"
+  },
+  {
+   "id": "plt.avc_isquemico.a3",
+   "texto": "E a força? Ele tem déficit?"
+  },
+  {
+   "id": "plt.avc_isquemico.a4",
+   "texto": "Teve sangramento ou dor de cabeça?"
+  },
+  {
+   "id": "plt.avc_isquemico.r1",
+   "texto": "Qual o limite de pressão e de quanto em quanto tempo eu meço?"
+  },
+  {
+   "id": "plt.avc_isquemico.r2",
+   "texto": "O que eu não posso fazer com ele nas próximas horas?"
+  },
+  {
+   "id": "plt.iam_st.s1",
+   "texto": "Quem é o paciente e o que ele fez?"
+  },
+  {
+   "id": "plt.iam_st.s2",
+   "texto": "Qual o leito e há quanto tempo ele chegou da hemodinâmica?"
+  },
+  {
+   "id": "plt.iam_st.b1",
+   "texto": "Ele tem alergia ou doença de base?"
+  },
+  {
+   "id": "plt.iam_st.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.iam_st.a2",
+   "texto": "Ele tem dor no peito? E o ritmo no monitor?"
+  },
+  {
+   "id": "plt.iam_st.a3",
+   "texto": "Como está o local da punção na virilha?"
+  },
+  {
+   "id": "plt.iam_st.a4",
+   "texto": "E o pulso do pé direito, está presente?"
+  },
+  {
+   "id": "plt.iam_st.r1",
+   "texto": "Quanto tempo ele fica deitado e com a perna esticada?"
+  },
+  {
+   "id": "plt.iam_st.r2",
+   "texto": "Que medicação eu dou e de quanto em quanto tempo olho a punção?"
+  },
+  {
+   "id": "plt.trauma_cranio.s1",
+   "texto": "Quem é o paciente e o que aconteceu?"
+  },
+  {
+   "id": "plt.trauma_cranio.s2",
+   "texto": "Qual o leito e o que a tomografia mostrou?"
+  },
+  {
+   "id": "plt.trauma_cranio.b1",
+   "texto": "Ele tem alergia, doença de base ou usa algum remédio?"
+  },
+  {
+   "id": "plt.trauma_cranio.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.trauma_cranio.a2",
+   "texto": "Quanto está o Glasgow dele?"
+  },
+  {
+   "id": "plt.trauma_cranio.a3",
+   "texto": "Como estão as pupilas?"
+  },
+  {
+   "id": "plt.trauma_cranio.a4",
+   "texto": "Ele tem dor de cabeça ou vomitou?"
+  },
+  {
+   "id": "plt.trauma_cranio.r1",
+   "texto": "De quanto em quanto tempo eu avalio o Glasgow e as pupilas?"
+  },
+  {
+   "id": "plt.trauma_cranio.r2",
+   "texto": "Quando devo chamar o neurocirurgião?"
+  },
+  {
+   "id": "plt.cetoacidose_pediatrica.s1",
+   "texto": "Quem é a paciente e por que ela está na UTI?"
+  },
+  {
+   "id": "plt.cetoacidose_pediatrica.s2",
+   "texto": "Qual era a glicemia e a gasometria quando chegou?"
+  },
+  {
+   "id": "plt.cetoacidose_pediatrica.b1",
+   "texto": "Ela tem alergia ou doença de base?"
+  },
+  {
+   "id": "plt.cetoacidose_pediatrica.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.cetoacidose_pediatrica.a2",
+   "texto": "Como está a respiração dela? Pode contar a frequência?"
+  },
+  {
+   "id": "plt.cetoacidose_pediatrica.a3",
+   "texto": "Como está a glicemia agora?"
+  },
+  {
+   "id": "plt.cetoacidose_pediatrica.a4",
+   "texto": "E o potássio, como está?"
+  },
+  {
+   "id": "plt.cetoacidose_pediatrica.r1",
+   "texto": "Quando eu coloco glicose no soro?"
+  },
+  {
+   "id": "plt.cetoacidose_pediatrica.r2",
+   "texto": "Que exames e controles eu faço neste plantão?"
+  },
+  {
+   "id": "plt.pre_eclampsia_grave.s1",
+   "texto": "Quem é a paciente e por que ela está aqui?"
+  },
+  {
+   "id": "plt.pre_eclampsia_grave.s2",
+   "texto": "Que medicação ela está recebendo e há quanto tempo?"
+  },
+  {
+   "id": "plt.pre_eclampsia_grave.b1",
+   "texto": "Ela tem alergia ou pressão alta de antes?"
+  },
+  {
+   "id": "plt.pre_eclampsia_grave.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.pre_eclampsia_grave.a2",
+   "texto": "E os reflexos, como estão?"
+  },
+  {
+   "id": "plt.pre_eclampsia_grave.a3",
+   "texto": "Como está a diurese?"
+  },
+  {
+   "id": "plt.pre_eclampsia_grave.a4",
+   "texto": "E o bebê? Como estão os batimentos?"
+  },
+  {
+   "id": "plt.pre_eclampsia_grave.r1",
+   "texto": "O que eu monitoro e quando aviso o médico?"
+  },
+  {
+   "id": "plt.pre_eclampsia_grave.r2",
+   "texto": "Tem algum antídoto que eu deva deixar pronto?"
+  },
+  {
+   "id": "plt.pancreatite_aguda.s1",
+   "texto": "Quem é o paciente e por que ele está na UTI?"
+  },
+  {
+   "id": "plt.pancreatite_aguda.s2",
+   "texto": "Qual o leito e em que dia da pancreatite ele está?"
+  },
+  {
+   "id": "plt.pancreatite_aguda.b1",
+   "texto": "Ele tem alergia, bebe ou tem doença de base?"
+  },
+  {
+   "id": "plt.pancreatite_aguda.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.pancreatite_aguda.a2",
+   "texto": "Como está a dor? E o abdome?"
+  },
+  {
+   "id": "plt.pancreatite_aguda.a3",
+   "texto": "Quanto saiu pela sonda nasogástrica?"
+  },
+  {
+   "id": "plt.pancreatite_aguda.a4",
+   "texto": "Quanto ele urinou nas últimas horas?"
+  },
+  {
+   "id": "plt.pancreatite_aguda.r1",
+   "texto": "Quais exames eu colho amanhã cedo?"
+  },
+  {
+   "id": "plt.pancreatite_aguda.r2",
+   "texto": "Quando eu faço analgesia de resgate?"
+  },
+  {
+   "id": "plt.choque_anafilatico.s1",
+   "texto": "Quem é a paciente e o que aconteceu com ela?"
+  },
+  {
+   "id": "plt.choque_anafilatico.s2",
+   "texto": "Qual o leito e há quanto tempo foi o episódio?"
+  },
+  {
+   "id": "plt.choque_anafilatico.b1",
+   "texto": "Ela já sabia de alguma alergia?"
+  },
+  {
+   "id": "plt.choque_anafilatico.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.choque_anafilatico.a2",
+   "texto": "Como está a respiração? Ainda tem estridor?"
+  },
+  {
+   "id": "plt.choque_anafilatico.a3",
+   "texto": "E a pele, como estão as lesões?"
+  },
+  {
+   "id": "plt.choque_anafilatico.a4",
+   "texto": "O que foi dado de medicação no atendimento?"
+  },
+  {
+   "id": "plt.choque_anafilatico.r1",
+   "texto": "Quanto tempo ela fica em observação e por quê?"
+  },
+  {
+   "id": "plt.choque_anafilatico.r2",
+   "texto": "Já identificamos a alergia dela? O que não pode ser usado?"
+  },
+  {
+   "id": "plt.queimado_agudo.s1",
+   "texto": "Quem é o paciente e o que aconteceu?"
+  },
+  {
+   "id": "plt.queimado_agudo.s2",
+   "texto": "Qual o leito e quanto da pele foi queimada?"
+  },
+  {
+   "id": "plt.queimado_agudo.b1",
+   "texto": "Qual o peso, e ele tem alergia ou doença de base?"
+  },
+  {
+   "id": "plt.queimado_agudo.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.queimado_agudo.a2",
+   "texto": "Quanto ele está urinando por hora?"
+  },
+  {
+   "id": "plt.queimado_agudo.a3",
+   "texto": "Como estão as extremidades?"
+  },
+  {
+   "id": "plt.queimado_agudo.a4",
+   "texto": "E o rosto e a respiração, como estão?"
+  },
+  {
+   "id": "plt.queimado_agudo.r1",
+   "texto": "Quanto de Ringer ele recebe e como eu ajusto a vazão?"
+  },
+  {
+   "id": "plt.queimado_agudo.r2",
+   "texto": "O que eu faço antes do curativo?"
+  },
+  {
+   "id": "plt.politrauma_bacia.s1",
+   "texto": "Quem é o paciente e o que ele tem?"
+  },
+  {
+   "id": "plt.politrauma_bacia.s2",
+   "texto": "Qual o leito e há quanto tempo ele chegou?"
+  },
+  {
+   "id": "plt.politrauma_bacia.b1",
+   "texto": "Ele tem alergia ou doença de base?"
+  },
+  {
+   "id": "plt.politrauma_bacia.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.politrauma_bacia.a2",
+   "texto": "Como está a contenção da pelve?"
+  },
+  {
+   "id": "plt.politrauma_bacia.a3",
+   "texto": "E os pulsos das pernas, como estão?"
+  },
+  {
+   "id": "plt.politrauma_bacia.a4",
+   "texto": "Como está o hematócrito dele?"
+  },
+  {
+   "id": "plt.politrauma_bacia.r1",
+   "texto": "Posso mexer na contenção pélvica?"
+  },
+  {
+   "id": "plt.politrauma_bacia.r2",
+   "texto": "O que eu controlo e que exame vem a seguir?"
+  },
+  {
+   "id": "plt.hemorragia_digestiva.s1",
+   "texto": "Quem é o paciente e por que ele está aqui?"
+  },
+  {
+   "id": "plt.hemorragia_digestiva.s2",
+   "texto": "Qual o leito e há quanto tempo ele chegou?"
+  },
+  {
+   "id": "plt.hemorragia_digestiva.b1",
+   "texto": "Ele tem alergia ou doença de base?"
+  },
+  {
+   "id": "plt.hemorragia_digestiva.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.hemorragia_digestiva.a2",
+   "texto": "Ele sangrou de novo? Como estão as fezes?"
+  },
+  {
+   "id": "plt.hemorragia_digestiva.a3",
+   "texto": "Como está a consciência dele?"
+  },
+  {
+   "id": "plt.hemorragia_digestiva.a4",
+   "texto": "O acesso central está funcionando?"
+  },
+  {
+   "id": "plt.hemorragia_digestiva.r1",
+   "texto": "Como eu posiciono e o que ele pode comer?"
+  },
+  {
+   "id": "plt.hemorragia_digestiva.r2",
+   "texto": "Para onde ele vai e quando?"
+  },
+  {
+   "id": "plt.tep_pos_op.s1",
+   "texto": "Quem é o paciente e por que ele está na UTI?"
+  },
+  {
+   "id": "plt.tep_pos_op.s2",
+   "texto": "Qual o leito e há quanto tempo ele chegou?"
+  },
+  {
+   "id": "plt.tep_pos_op.b1",
+   "texto": "Qual foi a cirurgia dele? Tem alergia?"
+  },
+  {
+   "id": "plt.tep_pos_op.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.tep_pos_op.a2",
+   "texto": "Como está o oxigênio dele?"
+  },
+  {
+   "id": "plt.tep_pos_op.a3",
+   "texto": "E as panturrilhas, como estão?"
+  },
+  {
+   "id": "plt.tep_pos_op.a4",
+   "texto": "Ele tem algum sangramento?"
+  },
+  {
+   "id": "plt.tep_pos_op.r1",
+   "texto": "Qual a dose da heparina e quando colho o TTPA?"
+  },
+  {
+   "id": "plt.tep_pos_op.r2",
+   "texto": "Ele pode sair do leito?"
+  },
+  {
+   "id": "plt.falciforme_toracica.s1",
+   "texto": "Quem é o paciente e o que aconteceu hoje?"
+  },
+  {
+   "id": "plt.falciforme_toracica.s2",
+   "texto": "Qual o leito e há quanto tempo piorou?"
+  },
+  {
+   "id": "plt.falciforme_toracica.b1",
+   "texto": "Ele tem alergia? Como são as crises dele?"
+  },
+  {
+   "id": "plt.falciforme_toracica.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.falciforme_toracica.a2",
+   "texto": "Como está o oxigênio dele?"
+  },
+  {
+   "id": "plt.falciforme_toracica.a3",
+   "texto": "Como está a dor dele?"
+  },
+  {
+   "id": "plt.falciforme_toracica.a4",
+   "texto": "O que mostrou o RX de tórax?"
+  },
+  {
+   "id": "plt.falciforme_toracica.r1",
+   "texto": "Que antibióticos ele recebe?"
+  },
+  {
+   "id": "plt.falciforme_toracica.r2",
+   "texto": "O que eu faço de hora em hora e que exame sai amanhã?"
+  },
+  {
+   "id": "plt.bronquiolite_lactente.s1",
+   "texto": "Quem é o bebê e por que ele está internado?"
+  },
+  {
+   "id": "plt.bronquiolite_lactente.s2",
+   "texto": "Qual o leito e há quanto tempo ele está aqui?"
+  },
+  {
+   "id": "plt.bronquiolite_lactente.b1",
+   "texto": "Ele tem alguma alergia? Nasceu a termo? Tem asma na família?"
+  },
+  {
+   "id": "plt.bronquiolite_lactente.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.bronquiolite_lactente.a2",
+   "texto": "E o esforço respiratório, como está?"
+  },
+  {
+   "id": "plt.bronquiolite_lactente.a3",
+   "texto": "Ele está mamando? E as fraldas?"
+  },
+  {
+   "id": "plt.bronquiolite_lactente.a4",
+   "texto": "Ele está com oxigênio? Quanto?"
+  },
+  {
+   "id": "plt.bronquiolite_lactente.r1",
+   "texto": "O que eu faço no meu plantão?"
+  },
+  {
+   "id": "plt.bronquiolite_lactente.r2",
+   "texto": "Quando eu devo chamar o médico?"
+  },
+  {
+   "id": "plt.paliativos_terminal.s1",
+   "texto": "Quem é a paciente e qual o plano de cuidado?"
+  },
+  {
+   "id": "plt.paliativos_terminal.s2",
+   "texto": "Qual o quarto e quem está com ela?"
+  },
+  {
+   "id": "plt.paliativos_terminal.b1",
+   "texto": "Qual a doença dela e há diretivas de vontade?"
+  },
+  {
+   "id": "plt.paliativos_terminal.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.paliativos_terminal.a2",
+   "texto": "Ela parece sentir dor ou desconforto?"
+  },
+  {
+   "id": "plt.paliativos_terminal.a3",
+   "texto": "Como está o acesso da hipodermóclise?"
+  },
+  {
+   "id": "plt.paliativos_terminal.a4",
+   "texto": "Como está a respiração dela?"
+  },
+  {
+   "id": "plt.paliativos_terminal.r1",
+   "texto": "Que cuidados eu mantenho no plantão?"
+  },
+  {
+   "id": "plt.paliativos_terminal.r2",
+   "texto": "Quando eu dou a dose de resgate de morfina?"
+  },
+  {
+   "id": "plt.crise_tireotoxica.s1",
+   "texto": "Quem é a paciente e por que ela está na UTI?"
+  },
+  {
+   "id": "plt.crise_tireotoxica.s2",
+   "texto": "Qual o leito e quanto deu o escore de Burch-Wartofsky?"
+  },
+  {
+   "id": "plt.crise_tireotoxica.b1",
+   "texto": "Qual a doença de base? Tem alergia?"
+  },
+  {
+   "id": "plt.crise_tireotoxica.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.crise_tireotoxica.a2",
+   "texto": "Como está a temperatura e a pele?"
+  },
+  {
+   "id": "plt.crise_tireotoxica.a3",
+   "texto": "E o ritmo cardíaco no monitor?"
+  },
+  {
+   "id": "plt.crise_tireotoxica.a4",
+   "texto": "Ela tem tremor? E o pulmão, como está?"
+  },
+  {
+   "id": "plt.crise_tireotoxica.r1",
+   "texto": "Que medicações eu dou e em que ordem?"
+  },
+  {
+   "id": "plt.crise_tireotoxica.r2",
+   "texto": "Tem algum remédio que eu não posso dar a ela?"
+  }
+ ]
+}
