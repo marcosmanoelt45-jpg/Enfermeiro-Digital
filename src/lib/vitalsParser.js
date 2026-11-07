@@ -2,6 +2,8 @@
 // Reconhece PA, FC, FR, Tax, SatO₂, HGT e a intensidade da dor (CALOI / EVA) nos formatos mais comuns de ditado,
 // inclusive quando a transcrição cola o valor na sigla ("FR11", "FC12", "PA120x80").
 
+import { extensoParaDigitos } from "./numerosPorExtenso.js";
+
 const RANGES = {
   fc: { min: 5, max: 300 },
   fr: { min: 3, max: 80 },
@@ -12,8 +14,10 @@ const RANGES = {
 };
 
 function normalize(text) {
-  return String(text || "")
+  // Números por extenso viram dígitos antes de tudo ("pressão doze por oito" → "pressão 12 por 8").
+  return extensoParaDigitos(String(text || ""))
     .toLowerCase()
+    .replace(/(\d+)\s+e\s+(?:meio|meia)\b/g, "$1.5") // "38 e meio" → 38.5
     .replace(/(\d)\s*(?:v[ií]rgula|ponto)\s*(\d)/g, "$1.$2") // "36 vírgula 5" → 36.5
     .replace(/\s+/g, " ")
     .trim();
@@ -42,14 +46,17 @@ function pickPressure(text) {
   const patterns = [
     // Com rótulo aceita o ditado em cmHg: "PA 12 por 8" vira 120x80.
     { re: /\b(?:pa|press[aã]o)(?:\s+arterial)?(?![a-záàâãéêíóôõúç])\D{0,12}?(\d{1,3})\s*(?:x|\/|por|e)\s*(\d{1,3})/g, labelled: true },
-    { re: /(\d{2,3})\s*(?:x|\/|por)\s*(\d{2,3})/g, labelled: false }
+    { re: /(\d{2,3})\s*(?:x|\/|por)\s*(\d{2,3})/g, labelled: false },
+    // Sem rótulo, "12x8" ou "12 por 8": só em cmHg plausível (sistólica 9 a 30, diastólica 5 a 20).
+    { re: /\b(\d{1,2})\s*(?:x|\/|por)\s*(\d{1,2})\b/g, labelled: false, cmHg: true }
   ];
-  for (const { re, labelled } of patterns) {
+  for (const { re, labelled, cmHg } of patterns) {
     for (const match of text.matchAll(re)) {
       let systolic = toNum(match[1]);
       let diastolic = toNum(match[2]);
       if (systolic === null || diastolic === null) continue;
-      if (labelled && systolic < 30 && diastolic < 20) {
+      if (cmHg && !(systolic >= 9 && systolic <= 30 && diastolic >= 5 && diastolic <= 20)) continue;
+      if ((labelled || cmHg) && systolic < 30 && diastolic < 20) {
         systolic *= 10;
         diastolic *= 10;
       }

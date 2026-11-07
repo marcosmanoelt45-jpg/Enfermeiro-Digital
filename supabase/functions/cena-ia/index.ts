@@ -13,6 +13,7 @@ import { criarConsulta } from "./acoes/criarConsulta.ts";
 import { turnoConsulta } from "./acoes/turnoConsulta.ts";
 import { retomarConsulta } from "./acoes/retomarConsulta.ts";
 import { finalizarConsulta } from "./acoes/finalizarConsulta.ts";
+import { avaliarPlantao } from "./acoes/avaliarPlantao.ts";
 import { montarResposta } from "./acoes/resposta.ts";
 import { criarRepositorio } from "./repositorio.ts";
 
@@ -46,6 +47,18 @@ const Entrada = z.discriminatedUnion("acao", [
       intervencoes: z.array(z.string().trim().min(1).max(160)).max(8),
       examesFeitos: z.array(z.object({ minijogoId: z.string().max(60), resultado: z.unknown().optional() })).max(6).optional(),
     }),
+  }),
+  z.object({
+    acao: z.literal("avaliar_plantao"),
+    cenarioId: z.string().regex(/^[a-z0-9_]{2,60}$/),
+    respostas: z.array(z.object({
+      perguntaId: z.string().regex(/^plt\.[a-z0-9_]+\.[a-z0-9_]+$/),
+      letra: z.enum(["S", "B", "A", "R"]),
+      texto: z.string().trim().min(1).max(600),
+      conferenciaNumerica: z.record(z.string().max(30), z.enum(["ok", "errado", "nao_informado"])).optional(),
+      semAvaliacao: z.boolean().optional(),
+    })).min(1).max(12),
+    lacunas: z.record(z.string().max(40), z.object({ avaliada: z.boolean(), achado: z.string().max(200).optional() })),
   }),
 ]);
 
@@ -85,6 +98,10 @@ Deno.serve(async (req) => {
       case "finalizar_consulta": {
         const cota = () => consumirCota(usuario.supabaseUsuario, "avaliacao", limiteDe("avaliacao"));
         return ok(await finalizarConsulta(usuario.userId, dados, { ...deps, cota }));
+      }
+      case "avaliar_plantao": {
+        const cota = () => consumirCota(usuario.supabaseUsuario, "avaliacao", limiteDe("avaliacao"));
+        return ok(await avaliarPlantao(usuario.userId, dados, { llm: chamarLLM, cota }));
       }
     }
   } catch (e) {
