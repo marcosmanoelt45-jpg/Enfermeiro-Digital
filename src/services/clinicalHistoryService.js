@@ -46,6 +46,7 @@ export const MODULE_TYPES = {
   SYSTEMS_ASSESSMENT: 'systems_assessment',
   CONSULTA: 'consulta',
   TECNICA: 'tecnica',
+  CALCULO_MEDICO: 'calculo_medico',
 };
 
 export const MODULE_LABELS = {
@@ -58,6 +59,7 @@ export const MODULE_LABELS = {
   systems_assessment: 'Avaliação Clínica',
   consulta: 'Consulta ao Vivo',
   tecnica: 'Técnicas (Minijogos)',
+  calculo_medico: 'Cálculo com o Médico',
 };
 
 function getStorage(userId) {

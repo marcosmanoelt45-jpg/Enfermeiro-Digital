@@ -4,10 +4,13 @@
  * Motor de Geração Procedural Infinito de Cálculos Farmacêuticos & Doses
  */
 
+// Fonte de números aleatórios da chamada em curso (síncrona). Cada gerador aceita `rng` para ser reproduzível.
+let rngAtivo = Math.random;
+
 function shuffleArray(array) {
   const arr = [...array];
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rngAtivo() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
   return arr;
@@ -38,15 +41,18 @@ function ensureUniqueDistractors(correct, distractors, fallback) {
 /**
  * 1. Gerador de Macrogotas em Horas
  */
-export function generateMacrogotasHoras() {
+export function generateMacrogotasHoras(rng = Math.random) {
+  rngAtivo = rng;
   const cases = [
-    { vol: 250, times: [4, 6] },
-    { vol: 500, times: [6, 8, 12] },
-    { vol: 1000, times: [8, 12, 24] }
+    { vol: 100, times: [1, 2] },
+    { vol: 250, times: [4, 6, 8] },
+    { vol: 500, times: [4, 6, 8, 12] },
+    { vol: 1000, times: [6, 8, 12, 24] }
   ];
-  const c = cases[Math.floor(Math.random() * cases.length)];
-  const time = c.times[Math.floor(Math.random() * c.times.length)];
-  const solution = ["SF 0,9%", "SG 5%", "RL"][Math.floor(Math.random() * 3)];
+  const c = cases[Math.floor(rngAtivo() * cases.length)];
+  const time = c.times[Math.floor(rngAtivo() * c.times.length)];
+  const solucoes = ["SF 0,9%", "SG 5%", "RL", "Ringer simples"];
+  const solution = solucoes[Math.floor(rngAtivo() * solucoes.length)];
 
   const rawResult = c.vol / (time * 3);
   const correct = Math.round(rawResult);
@@ -56,6 +62,10 @@ export function generateMacrogotasHoras() {
   return {
     id: `proc_macro_h_${Date.now()}`,
     category: "Macrogotas / Horas",
+    tipo: "gotejamento_macro",
+    prescricao: { farmaco: solution, dose: c.vol, unidadeDose: "mL", via: "IV", frequencia: `em ${time} horas` },
+    disponivel: "equipo de macrogotas",
+    entrada: { kind: "macro_h", volumeMl: c.vol, horas: time },
     title: `Infusão de ${solution} ${c.vol} mL`,
     description: `Prescrição: ${solution} ${c.vol} mL IV em ${time} horas via macrogotas.`,
     solutionName: solution,
@@ -85,14 +95,16 @@ export function generateMacrogotasHoras() {
 /**
  * 2. Gerador de Microgotas em Horas
  */
-export function generateMicrogotasHoras() {
+export function generateMicrogotasHoras(rng = Math.random) {
+  rngAtivo = rng;
   const cases = [
-    { vol: 100, times: [4, 6] },
-    { vol: 250, times: [6, 8, 12] },
-    { vol: 500, times: [12, 24] }
+    { vol: 100, times: [2, 4, 6] },
+    { vol: 250, times: [4, 6, 8, 12] },
+    { vol: 500, times: [8, 12, 24] }
   ];
-  const c = cases[Math.floor(Math.random() * cases.length)];
-  const time = c.times[Math.floor(Math.random() * c.times.length)];
+  const c = cases[Math.floor(rngAtivo() * cases.length)];
+  const time = c.times[Math.floor(rngAtivo() * c.times.length)];
+  const solucao = ["Soro pediátrico", "SG 5% pediátrico"][Math.floor(rngAtivo() * 2)];
   
   const rawResult = c.vol / time;
   const correct = Math.round(rawResult);
@@ -102,9 +114,13 @@ export function generateMicrogotasHoras() {
   return {
     id: `proc_micro_h_${Date.now()}`,
     category: "Microgotas / Horas",
+    tipo: "gotejamento_micro",
+    prescricao: { farmaco: solucao, dose: c.vol, unidadeDose: "mL", via: "IV", frequencia: `em ${time} horas` },
+    disponivel: "equipo de microgotas",
+    entrada: { kind: "micro_h", volumeMl: c.vol, horas: time },
     title: "Infusão em Microgotas",
-    description: `Prescrição: Soro Pediátrico ${c.vol} mL IV em ${time} horas via microgotas.`,
-    solutionName: "Soro Pediátrico",
+    description: `Prescrição: ${solucao} ${c.vol} mL IV em ${time} horas via microgotas.`,
+    solutionName: solucao,
     volume: `${c.vol} mL`,
     route: "IV",
     time: `${time} h`,
@@ -131,14 +147,22 @@ export function generateMicrogotasHoras() {
 /**
  * 3. Gerador de Macrogotas em Minutos
  */
-export function generateMacrogotasMinutos() {
+export function generateMacrogotasMinutos(rng = Math.random) {
+  rngAtivo = rng;
   const cases = [
     { drug: "Metronidazol", vol: 100, min: 30 },
+    { drug: "Metronidazol", vol: 100, min: 60 },
     { drug: "Ciprofloxacino", vol: 200, min: 60 },
+    { drug: "Ciprofloxacino", vol: 200, min: 120 },
     { drug: "Paracetamol", vol: 100, min: 15 },
-    { drug: "Ceftriaxona", vol: 100, min: 30 }
+    { drug: "Paracetamol", vol: 100, min: 30 },
+    { drug: "Ceftriaxona", vol: 100, min: 30 },
+    { drug: "Ceftriaxona", vol: 100, min: 60 },
+    { drug: "Vancomicina", vol: 200, min: 60 },
+    { drug: "Vancomicina", vol: 200, min: 120 },
+    { drug: "Meropenem", vol: 100, min: 30 }
   ];
-  const c = cases[Math.floor(Math.random() * cases.length)];
+  const c = cases[Math.floor(rngAtivo() * cases.length)];
   const rawResult = (c.vol * 20) / c.min;
   const correct = Math.round(rawResult);
 
@@ -147,6 +171,10 @@ export function generateMacrogotasMinutos() {
   return {
     id: `proc_macro_min_${Date.now()}`,
     category: "Macrogotas / Minutos",
+    tipo: "gotejamento_macro",
+    prescricao: { farmaco: c.drug, dose: c.vol, unidadeDose: "mL", via: "IV", frequencia: `em ${c.min} minutos` },
+    disponivel: "equipo de macrogotas",
+    entrada: { kind: "macro_min", volumeMl: c.vol, minutos: c.min },
     title: `${c.drug} em ${c.min} min`,
     description: `Prescrição: ${c.drug} ${c.vol} mL para infundir em ${c.min} minutos via macrogotas.`,
     solutionName: c.drug,
@@ -176,15 +204,17 @@ export function generateMacrogotasMinutos() {
 /**
  * 4. Gerador de BIC
  */
-export function generateBicInfusion() {
+export function generateBicInfusion(rng = Math.random) {
+  rngAtivo = rng;
   const cases = [
-    { drug: "Heparina", dose: 25000, unit: "UI", vol: 250, rates: [800, 1000, 1200] },
-    { drug: "Nitroglicerina", dose: 50, unit: "mg", vol: 250, rates: [5, 10, 20], mode: "mcg/min" },
-    { drug: "KCl 10%", dose: 40, unit: "mEq", vol: 500, rates: [10], safety: "Máx 10 mEq/h em veia periférica." }
+    { drug: "Heparina", dose: 25000, unit: "UI", vol: 250, rates: [800, 1000, 1200, 1500] },
+    { drug: "Nitroglicerina", dose: 50, unit: "mg", vol: 250, rates: [5, 10, 20, 40], mode: "mcg/min" },
+    { drug: "KCl 10%", dose: 40, unit: "mEq", vol: 500, rates: [10], safety: "Máx 10 mEq/h em veia periférica." },
+    { drug: "Insulina regular", dose: 100, unit: "UI", vol: 100, rates: [2, 4, 6, 8] }
   ];
 
-  const c = cases[Math.floor(Math.random() * cases.length)];
-  const rate = c.rates[Math.floor(Math.random() * c.rates.length)];
+  const c = cases[Math.floor(rngAtivo() * cases.length)];
+  const rate = c.rates[Math.floor(rngAtivo() * c.rates.length)];
   
   let correct, explanation;
   const concentration = c.dose / c.vol;
@@ -213,6 +243,10 @@ export function generateBicInfusion() {
   return {
     id: `proc_bic_${Date.now()}`,
     category: "Bomba de Infusão (BIC)",
+    tipo: "bic",
+    prescricao: { farmaco: c.drug, dose: rate, unidadeDose: c.mode || `${c.unit}/h`, via: "IV contínua", frequencia: "contínuo" },
+    disponivel: `${c.dose.toLocaleString("pt-BR")} ${c.unit} em ${c.vol} mL`,
+    entrada: c.mode === "mcg/min" ? { kind: "bic_mcgmin", doseMcgMin: rate, quantidadeMg: c.dose, volumeMl: c.vol } : { kind: "bic_conc", doseHora: rate, quantidade: c.dose, volumeMl: c.vol },
     highAlert: true,
     title: `Infusão de ${c.drug}`,
     description: `Prescrição: ${c.drug} ${rate} ${c.mode || c.unit + "/h"}. Solução: ${c.dose}${c.unit} em ${c.vol}mL.`,
@@ -234,11 +268,12 @@ export function generateBicInfusion() {
 /**
  * 5. Gerador de Penicilina
  */
-export function generatePenicilinaCristalina() {
+export function generatePenicilinaCristalina(rng = Math.random) {
+  rngAtivo = rng;
   const totalUI = 5000000;
   const solute = 2; // mL do pó
   const water = 8; // mL AD
-  const prescribed = [1000000, 2000000, 2500000][Math.floor(Math.random() * 3)];
+  const prescribed = [1000000, 2000000, 2500000, 3000000, 4000000][Math.floor(rngAtivo() * 5)];
   const correct = (prescribed * 10) / totalUI;
   // Alternativas sempre diferentes da resposta: um valor fixo podia coincidir com ela (ex.: 2.500.000 UI = 5 mL).
   const pd = ensureUniqueDistractors(correct, [(prescribed * 8) / totalUI, correct * 2, correct / 2], 0.5);
@@ -246,6 +281,10 @@ export function generatePenicilinaCristalina() {
   return {
     id: `proc_pen_${Date.now()}`,
     category: "Diluição",
+    tipo: "reconstituicao",
+    prescricao: { farmaco: "Penicilina cristalina", dose: prescribed, unidadeDose: "UI", via: "IV", frequencia: "no horário" },
+    disponivel: "frasco de 5.000.000 UI (o pó ocupa 2 mL), dilui em 8 mL de água destilada",
+    entrada: { kind: "regra3", prescrito: prescribed, frasco: totalUI, volumeMl: 10 },
     title: "Penicilina Cristalina",
     description: `Prescrição: Penicilina ${prescribed.toLocaleString()} UI. Frasco: 5M UI (pó = 2mL) + 8mL AD.`,
     solutionName: "Penicilina 5M", volume: "10 mL", route: "IV", time: "Horário", device: "Seringa",
@@ -270,19 +309,24 @@ export function generatePenicilinaCristalina() {
 /**
  * 6. Gerador Pediátrico / Rediluição
  */
-export function generatePediatricRedilution() {
+export function generatePediatricRedilution(rng = Math.random) {
+  rngAtivo = rng;
   const cases = [
-    { drug: "Hidrocortisona", vial: 500, dil: 5, doses: [50, 100, 150] },
-    { drug: "Ceftriaxona", vial: 1000, dil: 10, doses: [200, 250, 500] }
+    { drug: "Hidrocortisona", vial: 500, dil: 5, doses: [50, 100, 150, 200] },
+    { drug: "Ceftriaxona", vial: 1000, dil: 10, doses: [200, 250, 500, 750] }
   ];
-  const c = cases[Math.floor(Math.random() * cases.length)];
-  const dose = c.doses[Math.floor(Math.random() * c.doses.length)];
+  const c = cases[Math.floor(rngAtivo() * cases.length)];
+  const dose = c.doses[Math.floor(rngAtivo() * c.doses.length)];
   const correct = (dose * c.dil) / c.vial;
   const dd = ensureUniqueDistractors(correct, [correct * 2, correct * 0.5, correct * 10], 0.5);
 
   return {
     id: `proc_ped_${Date.now()}`,
     category: "Pediátrico / Rediluição",
+    tipo: "pediatrica",
+    prescricao: { farmaco: c.drug, dose, unidadeDose: "mg", via: "IV", frequencia: "dose única" },
+    disponivel: `frasco de ${c.vial} mg em ${c.dil} mL`,
+    entrada: { kind: "regra3", prescrito: dose, frasco: c.vial, volumeMl: c.dil },
     title: c.drug,
     description: `Prescrição: ${c.drug} ${dose} mg. Disponível: ${c.vial} mg em ${c.dil} mL.`,
     solutionName: c.drug, volume: `${c.dil} mL`, route: "IV", time: "Dose", device: "Seringa",
@@ -303,10 +347,11 @@ export function generatePediatricRedilution() {
   };
 }
 
-export function generateProceduralDosageProblem() {
+export function generateProceduralDosageProblem(rng = Math.random) {
+  rngAtivo = rng;
   const generators = [
     generateMacrogotasHoras, generateMicrogotasHoras, generateMacrogotasMinutos,
     generateBicInfusion, generatePenicilinaCristalina, generatePediatricRedilution
   ];
-  return generators[Math.floor(Math.random() * generators.length)]();
+  return generators[Math.floor(rngAtivo() * generators.length)](rng);
 }

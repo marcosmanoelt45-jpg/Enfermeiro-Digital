@@ -11,7 +11,7 @@
 | F3 Consulta: conversa | feita no branch, falta a bateria de IA | — | 06/11/2026 | Branch `feat/cenas-f3-consulta` (empilhado sobre a F2). 3.1–3.6 feitas e verificadas; a bateria 3.7 está escrita e testada, mas NÃO rodou (precisa de branch do Supabase, `CENA_IA_DEBUG=1` e usuário de teste). Flag `consulta` desligada |
 | F4 Consulta: fechamento | feita no branch (sem quiz D7) | — | 06/11/2026 | Branch `feat/cenas-f4-fechamento` (empilhado sobre a F3). Pontuação por código, ação `finalizar_consulta`, registro, relatório, histórico e XP. IA do avaliador não rodou (sem branch do Supabase) |
 | F5 Minijogos + Técnicas | pronta no branch (sem sons) | #12 | 07/11/2026 | Motor, 5 tipos, 3 minijogos à mão + 29 gerados, `/tecnicas` com abas POPs/Vídeos embutidas (`VideotecaConteudo`), `procedures-1` corrigido (tempo e fim vêm das mensagens do YouTube). Falta só: sons da ausculta, que dependem de licença do dono |
-| F6 Cálculo com o Médico | pendente | — | — | — |
+| F6 Cálculo com o Médico | pronta no branch (flag desligada) | a abrir | 07/11/2026 | Geradores com semente, banco de 133 itens (28 com erro) verificado por fórmulas independentes, `numerosFalados` (42 casos), página nova atrás da flag `calculoMedico` em `/laboratorio-calculos`. mp3 do Dr. Rui ainda não gerados (voz do navegador) |
 | F7 Plantão com a Enfermeira | pendente | — | — | — |
 | F8 Navegação final | pendente | — | — | — |
 | P1 Arte (Flow) | pendente | — | — | personagens prontos: marcus, teresinha (parcial) |
@@ -74,6 +74,15 @@
 - Cada região de `tocar-regiao` pode ter `vista` própria (ausculta: 6 anteriores + 6 posteriores).
 - Fonte do POP de curativo marcada como "conferir fonte" na bandeja.
 - Minijogo gerado de semiologia usa id com hífen (`escolher-aspecto-secrecao`).
+
+## Divergências da F6
+- **Banco com 133 itens, não 150.** Os geradores só têm cerca de 110 combinações distintas; com teto por gerador (para balancear os tipos) ficaram 85 gerados + 20 autorais + 28 com erro (21%). Para chegar a 150 é preciso ampliar os casos dos geradores. `scripts/calculo/gerar-banco.mjs` é determinístico (rodar duas vezes gera o mesmo arquivo).
+- **Geradores ampliados e com metadados.** `proceduralDosageGenerator.js` agora aceita `rng` (padrão `Math.random`), devolve `tipo`, `prescricao`, `disponivel` e `entrada` (só dados) e tem mais casos (soluções, tempos, insulina na BIC, doses de nitroglicerina em mcg/min até 40). `entrada` alimenta a conferência independente de `verificar.test.mjs`.
+- **Tolerância.** Inteiros (gts/min, mcgts/min, ampolas): resposta tem de ser o inteiro; com casa decimal a menos de 0,5 vale "Quase! Arredonde", sem penalidade. Decimais (mL, mL/h, mcg/min): 0,05 absoluto.
+- **`CenaAoVivo` ganhou 3 props opcionais:** `slotAbaixoPalco`, `slotControle({enviar, podeEnviar, status})` e `placeholderFala`. Todas as respostas (teclado, voz, texto, "Questionar", "Próxima") passam por `onEnviar`; a página usa uma ref para dizer a ação.
+- **Pressa do modo corrido só aparece na tela** (aos 60 s, em texto). O médico não fala sozinho fora de turno: a cena só toca falas devolvidas por `onEnviar`. Se o dono quiser a pressa falada, a cena precisa de uma ação para falas fora de turno.
+- **Gênero neutro nas falas.** O Dr. Rui não diz "enfermeira" nem "certa de questionar": o aluno pode ser de qualquer gênero.
+- **Não testado:** voz do aluno com o microfone (só desktop com teclado), mp3 do Dr. Rui (rodar `node scripts/voicebox/gerar-falas.mjs` com o perfil "Rui" no VoiceBox) e aparelho real.
 
 ## Medições
 - Latência do turno da Consulta (mediana 4G): —
