@@ -5,7 +5,7 @@
 ## Fases
 | Fase | Status | PR | Data | Observações |
 |---|---|---|---|---|
-| F0 Base do repositório | em andamento | — | 06/11/2026 | 0.1 a 0.4 feitas; 0.5–0.7 pendentes. Branch `feat/cenas-f0-base`, a partir de `origin/main` @ 027f623 |
+| F0 Base do repositório | em andamento | — | 06/11/2026 | 0.1 a 0.5 feitas; 0.6–0.7 pendentes. Branch `feat/cenas-f0-base`, a partir de `origin/main` @ 027f623 |
 | F1 Base do servidor | pendente | — | — | — |
 | F2 Motor Cena ao Vivo | pendente | — | — | — |
 | F3 Consulta: conversa | pendente | — | — | — |
@@ -21,6 +21,7 @@
 - **framer-motion:** o `App.jsx` usa `LazyMotion`. Em código novo importe `{ m as motion } from "framer-motion"`; o import direto de `motion` carrega o motor inteiro de novo.
 - **Tailwind 3.4:** só classes do Tailwind 3 (`shadow-sm`, `rounded-sm`, `focus:outline-none`). `shadow-xs`, `shadow-2xs`, `rounded-xs`, `outline-hidden`, `blur-xs` e meios-passos como `w-4.5` não geram estilo.
 - **Registro de módulos (F0 0.4):** `src/features/navegacao/modulos.js` guarda os módulos com o lugar de cada um no `header`, no `dock` e na `trilha`, mais a lista `GAVETA_PRATICA`. As funções `modulosDoHeader()`, `itensDoDock()`, `opcoesDaGavetaPratica()` e `modulosDaTrilha()` aceitam `ativa` e a lista como parâmetros, para testar sem mexer em flags reais. Para um módulo novo: acrescente a rota em `ROTAS_CONHECIDAS`, o módulo em `MODULOS` com `flag` e, se ele ocupar a gaveta, a opção em `GAVETA_PRATICA`. Ícones por nome em `icones.js`.
+- **PageShell (F0 0.5):** `src/components/layout/PageShell.jsx` para as páginas novas (as antigas não migram). `larguraMax="xl"` (padrão) é `max-w-xl` em qualquer tela; `"4xl"` é `max-w-xl md:max-w-4xl`, o padrão de Procedimentos. `semDock` tira o menu de baixo e o espaço dele; para isso o `StudentFooter` ganhou `showDock` (padrão ligado). Como o menu vem dentro do `StudentFooter`, uma página nova **não** renderiza `<MobileBottomDock />` à parte (foi o erro do menu duplicado, PR #6).
 - **Referências da IA do paciente (F3):** o dono vai usar prints e vídeos de conversas com IA como referência de tom e de comportamento. Notas em `docs/plano/ia/referencias-paciente.md`.
 
 ## Divergências entre plano e código encontradas

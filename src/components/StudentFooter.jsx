@@ -4,12 +4,13 @@ import { ShieldCheck } from "lucide-react";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 import gotiLogoOficial from "@/assets/goti-icone-oficial.png";
 
-export default function StudentFooter() {
+// `showDock` (padrão: ligado) deixa as páginas sem o menu de baixo, como o PageShell com semDock.
+export default function StudentFooter({ showDock = true }) {
   const navigate = useNavigate();
 
   return (
     <>
-      <footer className="mt-auto border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-950 pt-6 pb-24 md:py-6 text-slate-500 dark:text-slate-400 transition-colors">
+      <footer className={`mt-auto border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-950 pt-6 ${showDock ? "pb-24" : "pb-6"} md:py-6 text-slate-500 dark:text-slate-400 transition-colors`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-2">
             <img
@@ -39,7 +40,7 @@ export default function StudentFooter() {
       </footer>
 
       {/* Dock Inferior Móvel Estilo Orizon (Aparece em telas < md) */}
-      <MobileBottomDock />
+      {showDock && <MobileBottomDock />}
     </>
   );
 }
