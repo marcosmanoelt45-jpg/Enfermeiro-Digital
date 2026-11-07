@@ -18,6 +18,9 @@ export interface OpcoesLLM {
   apiKey?: string;
   modelos?: string[];
   provedor?: Provedor;
+  // Chave do OpenRouter usada como reserva quando o Gemini falha (nos testes, injetada; em produção vem do env).
+  chaveReserva?: string;
+  esperaRepeticaoMs?: number;
   fetchImpl?: typeof fetch;
 }
 
@@ -28,11 +31,13 @@ export interface RespostaLLM {
   uso: { entrada: number | null; saida: number | null } | null;
 }
 
-export const MODELOS_PADRAO = ["google/gemini-2.5-flash", "openai/gpt-4o-mini", "deepseek/deepseek-chat"];
+// OpenRouter (reserva): modelos rápidos e sem "raciocínio" primeiro.
+export const MODELOS_PADRAO = ["openai/gpt-4o-mini", "google/gemini-2.5-flash-lite", "deepseek/deepseek-chat"];
 // Modelos do Gemini direto (API compatível com OpenAI do Google AI Studio).
 // Apelidos "-latest" primeiro (não são aposentados); os numerados ficam de reserva.
 // O lite responde em cerca de 1 s; o flash "pensa" e levou de 10 a 25 s (timeouts). Os gemini-2.5 foram aposentados (404).
-export const MODELOS_GEMINI = ["gemini-flash-lite-latest", "gemini-flash-latest"];
+// gemini-flash-latest saiu: levava de 10 a 25 s e estourava o tempo. Se o lite falhar, cai no OpenRouter.
+export const MODELOS_GEMINI = ["gemini-flash-lite-latest"];
 
 export type Provedor = "gemini" | "openrouter";
 
@@ -160,6 +165,11 @@ export async function chamarLLM(opcoes: OpcoesLLM): Promise<RespostaLLM> {
         const { reasoning_effort: _r, ...semRaciocinio } = corpo;
         resposta = await enviar(semRaciocinio);
       }
+      // Gemini sobrecarregado (503) costuma passar em menos de 1 s: tenta mais uma vez antes de desistir.
+      if (resposta.status === 503 && provedor === "gemini") {
+        await new Promise((r) => setTimeout(r, opcoes.esperaRepeticaoMs ?? 700));
+        resposta = await enviar(corpo);
+      }
 
       if (!resposta.ok) {
         // Só o status: o corpo do erro pode repetir parte do que foi enviado.
@@ -207,6 +217,13 @@ export async function chamarLLM(opcoes: OpcoesLLM): Promise<RespostaLLM> {
       const segunda = await tentar(descobertos);
       if (segunda) return segunda;
     }
+  }
+
+  // Gemini fora do ar: usa o OpenRouter como reserva, se a chave dele existir.
+  const chaveReserva = opcoes.chaveReserva ?? (opcoes.apiKey ? undefined : lerEnv("OPENROUTER_API_KEY"));
+  if (provedor === "gemini" && chaveReserva) {
+    logEvento("llm_reserva_openrouter", {});
+    return chamarLLM({ ...opcoes, provedor: "openrouter", apiKey: chaveReserva, modelos: MODELOS_PADRAO, chaveReserva: undefined });
   }
 
   throw new ErroApp("IA_INDISPONIVEL", "Todos os modelos de IA falharam.");

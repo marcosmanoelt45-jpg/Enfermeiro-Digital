@@ -187,3 +187,32 @@ test("Gemini: se o modelo recusa reasoning_effort (400), repete sem ele", async 
   assert.equal(corpos.length, 2);
   assert.equal(corpos[1].reasoning_effort, undefined);
 });
+
+test("Gemini 503 (sobrecarregado): repete uma vez no mesmo modelo", async () => {
+  let n = 0;
+  const fetchImpl = async () => (++n === 1 ? resposta({}, 503) : completa("voltou"));
+  const r = await chamarLLM({ mensagens: [{ role: "user", content: "x" }], provedor: "gemini", apiKey: "k", modelos: ["gemini-flash-lite-latest"], esperaRepeticaoMs: 1, fetchImpl });
+  assert.equal(r.texto, "voltou");
+  assert.equal(n, 2);
+});
+
+test("Gemini fora do ar: cai no OpenRouter com a chave reserva", async () => {
+  const urls = [];
+  const fetchImpl = async (url, init) => {
+    urls.push(String(url));
+    if (String(url).includes("generativelanguage")) return resposta({}, 503);
+    assert.equal(init.headers.Authorization, "Bearer chave-or");
+    return completa("pelo openrouter");
+  };
+  const r = await chamarLLM({ mensagens: [{ role: "user", content: "x" }], provedor: "gemini", apiKey: "k", modelos: ["gemini-flash-lite-latest"], chaveReserva: "chave-or", esperaRepeticaoMs: 1, fetchImpl });
+  assert.equal(r.texto, "pelo openrouter");
+  assert.equal(r.modelo, MODELOS_PADRAO[0]);
+  assert.ok(urls.some((u) => u.includes("openrouter.ai")));
+});
+
+test("sem chave reserva, Gemini fora do ar dá IA_INDISPONIVEL", async () => {
+  await assert.rejects(
+    () => chamarLLM({ mensagens: [{ role: "user", content: "x" }], provedor: "gemini", apiKey: "k", modelos: ["gemini-flash-lite-latest"], esperaRepeticaoMs: 1, fetchImpl: async () => resposta({}, 503) }),
+    (e) => e instanceof ErroApp && e.codigo === "IA_INDISPONIVEL",
+  );
+});
