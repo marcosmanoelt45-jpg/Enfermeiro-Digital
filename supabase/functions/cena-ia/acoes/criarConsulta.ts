@@ -74,7 +74,10 @@ export function completarFicha(bruta: any, { arq, entrada, personalidadeId, sina
   };
 }
 
-export async function criarConsulta(userId: string, entrada: EntradaCriar, { repo, llm, sorteio = Math.random }: Dependencias) {
+// Prazo total da IA para montar a ficha; depois disso vale o modelo pronto do caso.
+export const PRAZO_FICHA_MS = 12000;
+
+export async function criarConsulta(userId: string, entrada: EntradaCriar, { repo, llm, sorteio = Math.random, prazoFichaMs }: Dependencias) {
   const inicio = Date.now();
 
   // 1. Escolhe o arquétipo: pedido, sorteado pelo tema, ou qualquer um.
@@ -104,9 +107,17 @@ export async function criarConsulta(userId: string, entrada: EntradaCriar, { rep
   let modelo: string | null = null;
   let tentativas = 0;
   let mensagensAtuais = mensagens;
+  // Prazo total para a IA: o aluno não pode esperar mais que isso (o cliente desiste em 30 s).
+  // Passou do prazo ou a ficha veio inválida: usa o modelo pronto do caso, que é imediato.
+  const prazoFinal = Date.now() + (prazoFichaMs ?? PRAZO_FICHA_MS);
   for (; tentativas < 2 && !ficha; tentativas++) {
+    const restante = prazoFinal - Date.now();
+    if (restante < 4000) break;
     try {
-      const resp = await llm({ mensagens: mensagensAtuais, json: PARAMETROS_FICHA.json, temperatura: PARAMETROS_FICHA.temperatura, maxTokens: PARAMETROS_FICHA.maxTokens, timeoutMs: PARAMETROS_FICHA.timeoutMs });
+      const resp = await Promise.race([
+        llm({ mensagens: mensagensAtuais, json: PARAMETROS_FICHA.json, temperatura: PARAMETROS_FICHA.temperatura, maxTokens: PARAMETROS_FICHA.maxTokens, timeoutMs: Math.min(PARAMETROS_FICHA.timeoutMs, restante) }),
+        new Promise<never>((_, rejeitar) => setTimeout(() => rejeitar(new ErroApp("IA_INDISPONIVEL", "prazo da ficha")), restante)),
+      ]);
       modelo = resp.modelo;
       const candidata = completarFicha(extrairJson(resp.texto), { arq, entrada, personalidadeId: personalidade.id, sinais, sorteio });
       const r = validarFicha(candidata, opcoesValidacao);

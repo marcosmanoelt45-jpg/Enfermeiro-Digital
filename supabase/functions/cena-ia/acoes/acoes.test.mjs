@@ -401,3 +401,12 @@ test("retomar: devolve a conversa e o briefing de uma sessão ativa; encerrada o
   repo.db.sessoes.get(sessaoId).status = "encerrada";
   await assert.rejects(retomarConsulta(USER, { sessaoId }, { repo }), (e) => e.codigo === "SESSAO_ENCERRADA");
 });
+
+test("criar: IA lenta passa do prazo e a consulta sai na hora com o modelo pronto", async () => {
+  const repoLento = repoEmMemoria();
+  const llmLento = async () => new Promise((r) => setTimeout(() => r({ texto: "{}", modelo: "lento", truncado: false, uso: null }), 5000));
+  const inicio = Date.now();
+  const r = await criarConsulta(USER, { arquetipoId: null, tema: null, idade: 70, sexo: "M", personagemId: "marcus", personalidadeId: "colaborativo", dificuldade: "normal" }, { repo: repoLento, llm: llmLento, sorteio: () => 0.3, prazoFichaMs: 300 });
+  assert.ok(Date.now() - inicio < 2000, `demorou ${Date.now() - inicio} ms`);
+  assert.ok(r.sessaoId);
+});

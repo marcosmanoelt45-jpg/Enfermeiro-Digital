@@ -63,6 +63,8 @@ export interface Dependencias {
   llm: ChamarLLM;
   // Sorteios injetáveis (0 <= n < 1) para testar sem acaso.
   sorteio?: () => number;
+  // Prazo total da IA na criação da ficha (testes usam um valor curto).
+  prazoFichaMs?: number;
   agora?: () => number;
 }
 
