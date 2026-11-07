@@ -12,6 +12,7 @@ export const ROTAS_CONHECIDAS = [
   "/simulador-casos",
   "/passagem-plantao",
   "/consulta",
+  "/tecnicas",
   "/laboratorio-calculos",
   "/conta",
 ];
@@ -48,7 +49,8 @@ export const MODULOS = [
     grupo: "principal",
     flag: null,
     header: { rotulo: "Procedimentos", icone: "Video", ordem: 30 },
-    dock: { rotulo: "Vídeos", icone: "Video", ordem: 40 },
+    // Com a flag "tecnicas" ligada, a aba Técnicas assume o lugar de Vídeos (mesma posição).
+    dock: { rotulo: "Vídeos", icone: "Video", ordem: 40, ocultoComFlag: "tecnicas" },
     trilha: {
       titulo: "Videoteca de Procedimentos & POPs",
       subtitulo: "8 min · Vídeos + Checklists Operacionais",
@@ -106,6 +108,21 @@ export const MODULOS = [
       selo: "4 Modos",
       icone: "Calculator",
       ordem: 20,
+    },
+  },
+  {
+    id: "tecnicas",
+    rota: "/tecnicas",
+    grupo: "pratica",
+    flag: "tecnicas",
+    header: { rotulo: "Técnicas", icone: "Video", ordem: 35, novo: true },
+    dock: { rotulo: "Técnicas", icone: "Video", ordem: 40 },
+    trilha: {
+      titulo: "Técnicas: minijogos, POPs e vídeos",
+      subtitulo: "5 min · Pratique com as mãos",
+      selo: "NOVO",
+      icone: "Video",
+      ordem: 45,
     },
   },
   {
@@ -221,7 +238,7 @@ export function modulosDoHeader(ativa = flagAtiva, modulos = MODULOS) {
 // Abas do menu de baixo. `gaveta: true` marca a aba que abre a gaveta em vez de navegar.
 export function itensDoDock(ativa = flagAtiva, modulos = MODULOS) {
   return modulos
-    .filter((m) => m.dock && visivel(m, ativa))
+    .filter((m) => m.dock && visivel(m, ativa) && !(m.dock.ocultoComFlag && ativa(m.dock.ocultoComFlag)))
     .map((m) => ({
       id: m.id,
       rotulo: m.dock.rotulo,

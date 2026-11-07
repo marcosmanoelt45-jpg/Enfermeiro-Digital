@@ -45,6 +45,7 @@ export const MODULE_TYPES = {
   PROCEDURES: 'procedures',
   SYSTEMS_ASSESSMENT: 'systems_assessment',
   CONSULTA: 'consulta',
+  TECNICA: 'tecnica',
 };
 
 export const MODULE_LABELS = {
@@ -56,6 +57,7 @@ export const MODULE_LABELS = {
   procedures: 'Videoteca de Procedimentos',
   systems_assessment: 'Avaliação Clínica',
   consulta: 'Consulta ao Vivo',
+  tecnica: 'Técnicas (Minijogos)',
 };
 
 function getStorage(userId) {

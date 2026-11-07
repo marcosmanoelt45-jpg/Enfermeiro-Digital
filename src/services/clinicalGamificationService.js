@@ -665,6 +665,9 @@ export const clinicalGamificationService = {
       earnedXp = customXp || 35;
       state.sbarHandoffsCount = (state.sbarHandoffsCount || 0) + 1;
       state.solvedCases = (state.solvedCases || 0) + 1;
+    } else if (type === 'tecnica') {
+      earnedXp = customXp || 30;
+      state.solvedCases = (state.solvedCases || 0) + 1;
     } else if (type === 'consulta') {
       earnedXp = customXp || 40;
       state.solvedCases = (state.solvedCases || 0) + 1;
