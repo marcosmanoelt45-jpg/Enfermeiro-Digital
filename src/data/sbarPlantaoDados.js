@@ -294,9 +294,9 @@ export const PLANTAO_EXTRAS = {
       }),
       lacuna({
         campo: "seguranca_leito", rotulo: "Segurança no leito",
-        valorEsperado: "grades elevadas dos dois lados, cama baixa e acompanhante presente",
+        valorEsperado: "grades elevadas dos dois lados e acompanhante presente",
         pergunta: "Você confere as medidas de segurança no leito. O que encontra?",
-        feedbackCerto: "Isso. Grades elevadas, cama baixa e acompanhante presente reduzem o risco de queda sem contenção.",
+        feedbackCerto: "Isso. Grades elevadas e acompanhante presente reduzem o risco de queda sem contenção.",
         erradas: [
           ["contenção mecânica nos punhos e grades abaixadas", "Não há contenção, e as grades devem ficar elevadas."],
           ["sem grades, cama alta e sem acompanhante", "O leito está protegido e há acompanhante."],

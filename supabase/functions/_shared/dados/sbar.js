@@ -327,7 +327,7 @@ export const CENARIOS_PLANTAO = [
    {
     "campo": "seguranca_leito",
     "rotulo": "Segurança no leito",
-    "valorEsperado": "grades elevadas dos dois lados, cama baixa e acompanhante presente"
+    "valorEsperado": "grades elevadas dos dois lados e acompanhante presente"
    }
   ],
   "perguntas": [
