@@ -16,12 +16,14 @@ import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import EnfereSplash from '@/components/EnfereSplash';
+import { flagAtiva } from '@/features/flags';
 
 // Páginas Principais Carregadas sob Demanda (Code-Splitting)
 const StudentDashboard = lazy(() => import('@/pages/StudentDashboard'));
 const CaseStudySimulator = lazy(() => import('@/pages/CaseStudySimulator'));
 const CaseStudio = lazy(() => import('@/pages/CaseStudio'));
 const MedicationDosageLab = lazy(() => import('@/pages/MedicationDosageLab'));
+const CalculoPage = lazy(() => import('@/features/calculo/CalculoPage'));
 const PrivacyPolicyLGPD = lazy(() => import('@/pages/PrivacyPolicyLGPD'));
 const CaseLibrary = lazy(() => import('@/pages/CaseLibrary'));
 const References = lazy(() => import('@/pages/References'));
@@ -170,9 +172,9 @@ const AuthenticatedApp = () => {
           <Route path="/case-studio" element={<CaseStudio />} />
           <Route path="/simulador-casos" element={<CaseStudySimulator />} />
           <Route path="/case-study" element={<CaseStudySimulator />} />
-          <Route path="/laboratorio-calculos" element={<MedicationDosageLab />} />
-          <Route path="/calculo-doses" element={<MedicationDosageLab />} />
-          <Route path="/dosage-lab" element={<MedicationDosageLab />} />
+          <Route path="/laboratorio-calculos" element={flagAtiva('calculoMedico') ? <CalculoPage /> : <MedicationDosageLab />} />
+          <Route path="/calculo-doses" element={flagAtiva('calculoMedico') ? <CalculoPage /> : <MedicationDosageLab />} />
+          <Route path="/dosage-lab" element={flagAtiva('calculoMedico') ? <CalculoPage /> : <MedicationDosageLab />} />
           <Route path="/sistemas-organicos" element={<Navigate to="/" replace />} />
           <Route path="/systems-assessment" element={<Navigate to="/" replace />} />
           <Route path="/banco-casos" element={<CaseLibrary />} />

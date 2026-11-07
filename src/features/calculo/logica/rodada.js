@@ -93,7 +93,8 @@ export function aplicar(estado, evento) {
   }
 
   if (evento.tipo === "resposta") {
-    // Calcular uma prescrição errada: o médico para o aluno. Erro grave.
+    // Calcular uma prescrição errada: o médico para o aluno. Erro grave. (Texto que nem é número não conta como cálculo.)
+    if (comErro && lerValor(evento.valor) === null) return { estado, reacao: null, aviso: "invalido" };
     if (comErro) return { estado: { ...estado, finalizado: true, resultado: "erro", grave: true, primeira: false, mostrarMemoria: true }, reacao: "erro_grave" };
     const r = avaliarResposta(item, evento.valor, evento.unidadeDita);
     if (r.estado === "invalido") return { estado, reacao: null, aviso: "invalido" };

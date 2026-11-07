@@ -24,6 +24,7 @@ export default function ControleFala({
   onDescartar,
   onPedirPermissao,
   desabilitado = false,
+  placeholder,
 }) {
   const [texto, setTexto] = useState("");
   const [dica, setDica] = useState(false);
@@ -123,7 +124,7 @@ export default function ControleFala({
               enviar();
             }
           }}
-          placeholder={suportaVoz ? "Fale ou escreva sua pergunta" : "Escreva sua pergunta"}
+          placeholder={placeholder ?? (suportaVoz ? "Fale ou escreva sua pergunta" : "Escreva sua pergunta")}
           disabled={desabilitado || status === "processando"}
           className="min-h-[48px] max-h-[120px] resize-none bg-[#131F2E] border-[#27394B] text-[#EAF2F8]"
           aria-label="Sua fala"
@@ -176,4 +177,5 @@ ControleFala.propTypes = {
   onDescartar: PropTypes.func,
   onPedirPermissao: PropTypes.func,
   desabilitado: PropTypes.bool,
+  placeholder: PropTypes.string,
 };

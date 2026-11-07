@@ -245,7 +245,7 @@ export function generateBicInfusion(rng = Math.random) {
     category: "Bomba de Infusão (BIC)",
     tipo: "bic",
     prescricao: { farmaco: c.drug, dose: rate, unidadeDose: c.mode || `${c.unit}/h`, via: "IV contínua", frequencia: "contínuo" },
-    disponivel: `${c.dose} ${c.unit} em ${c.vol} mL`,
+    disponivel: `${c.dose.toLocaleString("pt-BR")} ${c.unit} em ${c.vol} mL`,
     entrada: c.mode === "mcg/min" ? { kind: "bic_mcgmin", doseMcgMin: rate, quantidadeMg: c.dose, volumeMl: c.vol } : { kind: "bic_conc", doseHora: rate, quantidade: c.dose, volumeMl: c.vol },
     highAlert: true,
     title: `Infusão de ${c.drug}`,

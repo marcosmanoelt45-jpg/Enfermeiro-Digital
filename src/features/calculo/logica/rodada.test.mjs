@@ -117,13 +117,21 @@ test("NENHUMA prescrição com erro aceita cálculo como correto (qualquer valor
   const erros = banco.filter((i) => i.erroProposital);
   assert.ok(erros.length >= 20);
   for (const item of erros) {
-    for (const valor of ["0", "1", "2,5", "10", "42", "7,5", "1000", "abc", ""]) {
+    for (const valor of ["0", "1", "2,5", "10", "42", "7,5", "1000"]) {
       const r = aplicar(novoEstadoItem(item), { tipo: "resposta", valor, unidadeDita: null });
       assert.ok(r.estado.finalizado, `${item.id} aceitou ${valor} como andamento`);
       assert.equal(r.estado.resultado, "erro", `${item.id} ${valor}`);
       assert.equal(r.estado.grave, true, `${item.id} ${valor}`);
       assert.equal(r.reacao, "erro_grave");
     }
+  }
+});
+
+test("texto que não é número não conta como cálculo, nem na prescrição com erro", () => {
+  for (const valor of ["abc", "", null, "42abc"]) {
+    const r = aplicar(novoEstadoItem(comErro()), { tipo: "resposta", valor });
+    assert.equal(r.aviso, "invalido");
+    assert.ok(!r.estado.finalizado && !r.estado.grave);
   }
 });
 

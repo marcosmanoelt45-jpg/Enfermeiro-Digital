@@ -32,6 +32,9 @@ export default function CenaAoVivo({
   permitirVoz = true,
   turnosIniciais = null,
   autoIniciar = false,
+  slotAbaixoPalco = null,
+  slotControle = null,
+  placeholderFala,
 }) {
   const [estado, dispatch] = useReducer(cenaReducer, undefined, () => (turnosIniciais ? criarEstado({ status: "aguardando_aluno", turnos: turnosIniciais }) : criarEstado()));
   const voz = useVozPersonagem(personagemId);
@@ -138,6 +141,8 @@ export default function CenaAoVivo({
 
       <PersonagemStage personagemId={personagemId} emocao={emocao} falando={voz.falando} onReacaoTerminou={() => setReacao(null)} />
 
+      {slotAbaixoPalco}
+
       {acoes.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {acoes.map((a) => (
@@ -166,7 +171,10 @@ export default function CenaAoVivo({
           {bloqueado ? (
             <EstadoBloqueado tipo={bloqueado.tipo} mensagem={bloqueado.mensagem} acao={bloqueado.acao} />
           ) : (
+            <>
+            {slotControle?.({ enviar: enviarTexto, podeEnviar: estado.status === "aguardando_aluno" || estado.status === "revisando_texto", status: estado.status })}
             <ControleFala
+              placeholder={placeholderFala}
               status={estado.status}
               suportaVoz={suportaVoz}
               segurando={aluno.segurando}
@@ -181,6 +189,7 @@ export default function CenaAoVivo({
               onDescartar={() => dispatch({ tipo: "SOLTOU", texto: "" })}
               desabilitado={estado.status === "encerrada" || estado.status === "ocioso"}
             />
+            </>
           )}
         </>
       )}
@@ -201,4 +210,7 @@ CenaAoVivo.propTypes = {
   permitirVoz: PropTypes.bool,
   turnosIniciais: PropTypes.array,
   autoIniciar: PropTypes.bool,
+  slotAbaixoPalco: PropTypes.node,
+  slotControle: PropTypes.func,
+  placeholderFala: PropTypes.string,
 };

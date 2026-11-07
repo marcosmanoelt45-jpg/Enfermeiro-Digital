@@ -30,18 +30,21 @@ function numeroFalado(n) {
   return n.toLocaleString("pt-BR");
 }
 const capitaliza = (s) => s.charAt(0).toUpperCase() + s.slice(1);
+// No meio da frase o nome do fármaco vai em minúscula, menos siglas (AAS, SF) e nomes já expandidos.
+const meioDeFrase = (s) => (/^[A-Z]{2}/.test(s) ? s : s.charAt(0).toLowerCase() + s.slice(1));
 
 function enunciadoGerado(item, i) {
   const { tipo, prescricao: p, disponivel } = item;
   const v = i % 3;
-  const farmaco = falar(p.farmaco);
+  const farmacoCheio = falar(p.farmaco);
+  const farmaco = meioDeFrase(farmacoCheio);
   if (tipo === "gotejamento_macro" || tipo === "gotejamento_micro") {
     const micro = tipo === "gotejamento_micro";
     const gotas = micro ? "microgotas" : "gotas";
     const equipo = micro ? "microgotas" : "macrogotas";
     const base = [
       `Olha, ${farmaco} ${p.dose} mililitros ${p.frequencia}, no equipo de ${equipo}. Quantas ${gotas} por minuto?`,
-      `${capitaliza(farmaco)}, ${p.dose} mililitros, ${p.frequencia}. Equipo de ${equipo}. Qual é o gotejamento?`,
+      `${capitaliza(farmacoCheio)}, ${p.dose} mililitros, ${p.frequencia}. Equipo de ${equipo}. Qual é o gotejamento?`,
       `Prescrevi ${farmaco}, ${p.dose} mililitros ${p.frequencia}, no ${equipo}. Me diz o gotejamento em ${gotas} por minuto.`,
     ];
     return base[v];
@@ -50,15 +53,16 @@ function enunciadoGerado(item, i) {
     const dose = `${numeroFalado(p.dose)} ${UNIDADE_FALADA[p.unidadeDose] ?? falar(p.unidadeDose)}`;
     return [
       `Deixa ${farmaco} a ${dose} na bomba. A solução é ${falar(disponivel)}. Qual vazão você programa, em mililitros por hora?`,
-      `${capitaliza(farmaco)}, ${dose}, contínuo. Tem ${falar(disponivel)}. Quantos mililitros por hora na bomba?`,
+      `${capitaliza(farmacoCheio)}, ${dose}, contínuo. Tem ${falar(disponivel)}. Quantos mililitros por hora na bomba?`,
       `Programa ${farmaco} em ${dose}. A solução preparada é ${falar(disponivel)}. Me diz a vazão em mililitros por hora.`,
     ][v];
   }
-  const dose = `${numeroFalado(p.dose)} ${UNIDADE_FALADA[p.unidadeDose] ?? falar(p.unidadeDose)}`;
+  const u = UNIDADE_FALADA[p.unidadeDose] ?? falar(p.unidadeDose);
+  const dose = `${numeroFalado(p.dose)}${p.dose >= 1e6 && p.dose % 1e5 === 0 ? " de" : ""} ${u}`;
   const via = p.via === "IV" ? "na veia" : p.via === "SC" ? "subcutânea" : p.via;
   return [
     `Olha, faz ${dose} de ${farmaco}, ${via}. Tem ${falar(disponivel)}. Quantos mililitros você aspira?`,
-    `${capitaliza(farmaco)} ${dose}, ${via}. A apresentação é ${falar(disponivel)}. Quantos mililitros aspira?`,
+    `${capitaliza(farmacoCheio)} ${dose}, ${via}. A apresentação é ${falar(disponivel)}. Quantos mililitros aspira?`,
     `Prescrevi ${dose} de ${farmaco}, ${via}. Disponível: ${falar(disponivel)}. Quanto você aspira, em mililitros?`,
   ][v];
 }
@@ -75,7 +79,7 @@ const REACOES = {
   "calc.r.acerto": ["Isso. Pode fazer.", "Certinho. Obrigado.", "Bateu com o meu. Pode seguir.", "Boa. Conta fechada.", "É isso mesmo. Vai lá.", "Perfeito."],
   "calc.r.erro1": ["Hum, não bateu aqui. Confere comigo de novo.", "Tem certeza? Refaz a conta com calma.", "Não é isso. Olha a unidade e tenta de novo.", "Esse valor me preocupou. Confere de novo."],
   "calc.r.erro2": ["Também não. Vamos fazer juntos, olha o passo a passo.", "Calma, acontece. Olha como eu cheguei no valor.", "Errou de novo, mas vê a conta aqui e fixa o caminho."],
-  "calc.r.questionou_certo": ["Boa, você tem razão, eu me confundi. Obrigado por perguntar.", "Ainda bem que você me questionou. Eu errei a prescrição, vou corrigir.", "Você está certa de questionar, escrevi errado. Vou refazer.", "Excelente. Quem questiona evita erro. Corrijo agora."],
+  "calc.r.questionou_certo": ["Boa, você tem razão, eu me confundi. Obrigado por perguntar.", "Ainda bem que você me questionou. Eu errei a prescrição, vou corrigir.", "Foi bom você questionar, escrevi errado. Vou refazer.", "Excelente. Quem questiona evita erro. Corrijo agora."],
   "calc.r.questionou_sem_motivo": ["Essa prescrição está certa, pode fazer.", "Conferi aqui e está certa. Pode seguir com o cálculo.", "Não tem erro nessa. Faz a conta e me diz."],
   "calc.r.pressa": ["Preciso desse valor agora.", "O paciente está esperando, anda.", "Tempo. Quanto deu?"],
   "calc.r.erro_grave": ["Espera… você ia fazer isso mesmo? Essa prescrição está errada.", "Para! Olha de novo a prescrição antes de preparar.", "Você calculou, mas a prescrição tinha problema. Era pra me avisar."],

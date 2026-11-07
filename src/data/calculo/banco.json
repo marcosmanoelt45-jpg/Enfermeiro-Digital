@@ -987,7 +987,7 @@
    "via": "IV contínua",
    "frequencia": "contínuo"
   },
-  "disponivel": "25000 UI em 250 mL",
+  "disponivel": "25.000 UI em 250 mL",
   "entrada": {
    "kind": "bic_conc",
    "doseHora": 1500,
@@ -1196,7 +1196,7 @@
    "via": "IV contínua",
    "frequencia": "contínuo"
   },
-  "disponivel": "25000 UI em 250 mL",
+  "disponivel": "25.000 UI em 250 mL",
   "entrada": {
    "kind": "bic_conc",
    "doseHora": 1000,
@@ -1963,7 +1963,7 @@
    "via": "IV contínua",
    "frequencia": "contínuo"
   },
-  "disponivel": "25000 UI em 250 mL",
+  "disponivel": "25.000 UI em 250 mL",
   "entrada": {
    "kind": "bic_conc",
    "doseHora": 800,
@@ -2870,7 +2870,7 @@
    "via": "IV contínua",
    "frequencia": "contínuo"
   },
-  "disponivel": "25000 UI em 250 mL",
+  "disponivel": "25.000 UI em 250 mL",
   "entrada": {
    "kind": "bic_conc",
    "doseHora": 1200,

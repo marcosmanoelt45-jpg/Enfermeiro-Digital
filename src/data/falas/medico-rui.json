@@ -96,7 +96,7 @@
   },
   {
    "id": "calc.p024.enunciado",
-   "texto": "Olha, faz 4 milhões unidades de Penicilina cristalina, na veia. Tem frasco de 5.000.000 unidades (o pó ocupa 2 mililitros), dilui em 8 mililitros de água destilada. Quantos mililitros você aspira?"
+   "texto": "Olha, faz 4 milhões de unidades de penicilina cristalina, na veia. Tem frasco de 5.000.000 unidades (o pó ocupa 2 mililitros), dilui em 8 mililitros de água destilada. Quantos mililitros você aspira?"
   },
   {
    "id": "calc.p025.enunciado",
@@ -104,7 +104,7 @@
   },
   {
    "id": "calc.p026.enunciado",
-   "texto": "Prescrevi Ringer lactato, 500 mililitros em 4 horas, no macrogotas. Me diz o gotejamento em gotas por minuto."
+   "texto": "Prescrevi ringer lactato, 500 mililitros em 4 horas, no macrogotas. Me diz o gotejamento em gotas por minuto."
   },
   {
    "id": "calc.p027.enunciado",
@@ -116,11 +116,11 @@
   },
   {
    "id": "calc.p029.enunciado",
-   "texto": "Programa Heparina em 1.500 unidades por hora. A solução preparada é 25000 unidades em 250 mililitros. Me diz a vazão em mililitros por hora."
+   "texto": "Programa heparina em 1.500 unidades por hora. A solução preparada é 25.000 unidades em 250 mililitros. Me diz a vazão em mililitros por hora."
   },
   {
    "id": "calc.p030.enunciado",
-   "texto": "Olha, faz 2,5 milhões unidades de Penicilina cristalina, na veia. Tem frasco de 5.000.000 unidades (o pó ocupa 2 mililitros), dilui em 8 mililitros de água destilada. Quantos mililitros você aspira?"
+   "texto": "Olha, faz 2,5 milhões de unidades de penicilina cristalina, na veia. Tem frasco de 5.000.000 unidades (o pó ocupa 2 mililitros), dilui em 8 mililitros de água destilada. Quantos mililitros você aspira?"
   },
   {
    "id": "calc.p031.enunciado",
@@ -128,11 +128,11 @@
   },
   {
    "id": "calc.p032.enunciado",
-   "texto": "Prescrevi Ringer lactato, 250 mililitros em 4 horas, no macrogotas. Me diz o gotejamento em gotas por minuto."
+   "texto": "Prescrevi ringer lactato, 250 mililitros em 4 horas, no macrogotas. Me diz o gotejamento em gotas por minuto."
   },
   {
    "id": "calc.p033.enunciado",
-   "texto": "Olha, Soro pediátrico 250 mililitros em 6 horas, no equipo de microgotas. Quantas microgotas por minuto?"
+   "texto": "Olha, soro pediátrico 250 mililitros em 6 horas, no equipo de microgotas. Quantas microgotas por minuto?"
   },
   {
    "id": "calc.p034.enunciado",
@@ -140,11 +140,11 @@
   },
   {
    "id": "calc.p035.enunciado",
-   "texto": "Programa Heparina em 1 mil unidades por hora. A solução preparada é 25000 unidades em 250 mililitros. Me diz a vazão em mililitros por hora."
+   "texto": "Programa heparina em 1 mil unidades por hora. A solução preparada é 25.000 unidades em 250 mililitros. Me diz a vazão em mililitros por hora."
   },
   {
    "id": "calc.p036.enunciado",
-   "texto": "Olha, faz 3 milhões unidades de Penicilina cristalina, na veia. Tem frasco de 5.000.000 unidades (o pó ocupa 2 mililitros), dilui em 8 mililitros de água destilada. Quantos mililitros você aspira?"
+   "texto": "Olha, faz 3 milhões de unidades de penicilina cristalina, na veia. Tem frasco de 5.000.000 unidades (o pó ocupa 2 mililitros), dilui em 8 mililitros de água destilada. Quantos mililitros você aspira?"
   },
   {
    "id": "calc.p037.enunciado",
@@ -152,11 +152,11 @@
   },
   {
    "id": "calc.p038.enunciado",
-   "texto": "Prescrevi Ringer lactato, 250 mililitros em 6 horas, no macrogotas. Me diz o gotejamento em gotas por minuto."
+   "texto": "Prescrevi ringer lactato, 250 mililitros em 6 horas, no macrogotas. Me diz o gotejamento em gotas por minuto."
   },
   {
    "id": "calc.p039.enunciado",
-   "texto": "Olha, Soro pediátrico 100 mililitros em 2 horas, no equipo de microgotas. Quantas microgotas por minuto?"
+   "texto": "Olha, soro pediátrico 100 mililitros em 2 horas, no equipo de microgotas. Quantas microgotas por minuto?"
   },
   {
    "id": "calc.p040.enunciado",
@@ -164,7 +164,7 @@
   },
   {
    "id": "calc.p041.enunciado",
-   "texto": "Prescrevi 50 miligramas de Hidrocortisona, na veia. Disponível: frasco de 500 miligramas em 5 mililitros. Quanto você aspira, em mililitros?"
+   "texto": "Prescrevi 50 miligramas de hidrocortisona, na veia. Disponível: frasco de 500 miligramas em 5 mililitros. Quanto você aspira, em mililitros?"
   },
   {
    "id": "calc.p042.enunciado",
@@ -176,11 +176,11 @@
   },
   {
    "id": "calc.p044.enunciado",
-   "texto": "Prescrevi Paracetamol, 100 mililitros em 30 minutos, no macrogotas. Me diz o gotejamento em gotas por minuto."
+   "texto": "Prescrevi paracetamol, 100 mililitros em 30 minutos, no macrogotas. Me diz o gotejamento em gotas por minuto."
   },
   {
    "id": "calc.p045.enunciado",
-   "texto": "Deixa Nitroglicerina a 5 microgramas por minuto na bomba. A solução é 50 miligramas em 250 mililitros. Qual vazão você programa, em mililitros por hora?"
+   "texto": "Deixa nitroglicerina a 5 microgramas por minuto na bomba. A solução é 50 miligramas em 250 mililitros. Qual vazão você programa, em mililitros por hora?"
   },
   {
    "id": "calc.p046.enunciado",
@@ -192,7 +192,7 @@
   },
   {
    "id": "calc.p048.enunciado",
-   "texto": "Olha, faz 150 miligramas de Hidrocortisona, na veia. Tem frasco de 500 miligramas em 5 mililitros. Quantos mililitros você aspira?"
+   "texto": "Olha, faz 150 miligramas de hidrocortisona, na veia. Tem frasco de 500 miligramas em 5 mililitros. Quantos mililitros você aspira?"
   },
   {
    "id": "calc.p049.enunciado",
@@ -200,11 +200,11 @@
   },
   {
    "id": "calc.p050.enunciado",
-   "texto": "Prescrevi Ceftriaxona, 100 mililitros em 60 minutos, no macrogotas. Me diz o gotejamento em gotas por minuto."
+   "texto": "Prescrevi ceftriaxona, 100 mililitros em 60 minutos, no macrogotas. Me diz o gotejamento em gotas por minuto."
   },
   {
    "id": "calc.p051.enunciado",
-   "texto": "Olha, Ringer simples 500 mililitros em 6 horas, no equipo de macrogotas. Quantas gotas por minuto?"
+   "texto": "Olha, ringer simples 500 mililitros em 6 horas, no equipo de macrogotas. Quantas gotas por minuto?"
   },
   {
    "id": "calc.p052.enunciado",
@@ -212,11 +212,11 @@
   },
   {
    "id": "calc.p053.enunciado",
-   "texto": "Prescrevi Vancomicina, 200 mililitros em 120 minutos, no macrogotas. Me diz o gotejamento em gotas por minuto."
+   "texto": "Prescrevi vancomicina, 200 mililitros em 120 minutos, no macrogotas. Me diz o gotejamento em gotas por minuto."
   },
   {
    "id": "calc.p054.enunciado",
-   "texto": "Olha, faz 1 milhão unidades de Penicilina cristalina, na veia. Tem frasco de 5.000.000 unidades (o pó ocupa 2 mililitros), dilui em 8 mililitros de água destilada. Quantos mililitros você aspira?"
+   "texto": "Olha, faz 1 milhão de unidades de penicilina cristalina, na veia. Tem frasco de 5.000.000 unidades (o pó ocupa 2 mililitros), dilui em 8 mililitros de água destilada. Quantos mililitros você aspira?"
   },
   {
    "id": "calc.p055.enunciado",
@@ -228,15 +228,15 @@
   },
   {
    "id": "calc.p057.enunciado",
-   "texto": "Deixa Heparina a 800 unidades por hora na bomba. A solução é 25000 unidades em 250 mililitros. Qual vazão você programa, em mililitros por hora?"
+   "texto": "Deixa heparina a 800 unidades por hora na bomba. A solução é 25.000 unidades em 250 mililitros. Qual vazão você programa, em mililitros por hora?"
   },
   {
    "id": "calc.p058.enunciado",
-   "texto": "Penicilina cristalina 2 milhões unidades, na veia. A apresentação é frasco de 5.000.000 unidades (o pó ocupa 2 mililitros), dilui em 8 mililitros de água destilada. Quantos mililitros aspira?"
+   "texto": "Penicilina cristalina 2 milhões de unidades, na veia. A apresentação é frasco de 5.000.000 unidades (o pó ocupa 2 mililitros), dilui em 8 mililitros de água destilada. Quantos mililitros aspira?"
   },
   {
    "id": "calc.p059.enunciado",
-   "texto": "Prescrevi 200 miligramas de Hidrocortisona, na veia. Disponível: frasco de 500 miligramas em 5 mililitros. Quanto você aspira, em mililitros?"
+   "texto": "Prescrevi 200 miligramas de hidrocortisona, na veia. Disponível: frasco de 500 miligramas em 5 mililitros. Quanto você aspira, em mililitros?"
   },
   {
    "id": "calc.p060.enunciado",
@@ -248,7 +248,7 @@
   },
   {
    "id": "calc.p062.enunciado",
-   "texto": "Prescrevi 100 miligramas de Hidrocortisona, na veia. Disponível: frasco de 500 miligramas em 5 mililitros. Quanto você aspira, em mililitros?"
+   "texto": "Prescrevi 100 miligramas de hidrocortisona, na veia. Disponível: frasco de 500 miligramas em 5 mililitros. Quanto você aspira, em mililitros?"
   },
   {
    "id": "calc.p063.enunciado",
@@ -260,7 +260,7 @@
   },
   {
    "id": "calc.p065.enunciado",
-   "texto": "Programa Insulina regular em 4 unidades por hora. A solução preparada é 100 unidades em 100 mililitros. Me diz a vazão em mililitros por hora."
+   "texto": "Programa insulina regular em 4 unidades por hora. A solução preparada é 100 unidades em 100 mililitros. Me diz a vazão em mililitros por hora."
   },
   {
    "id": "calc.p066.enunciado",
@@ -276,7 +276,7 @@
   },
   {
    "id": "calc.p069.enunciado",
-   "texto": "Olha, faz 250 miligramas de Ceftriaxona, na veia. Tem frasco de 1000 miligramas em 10 mililitros. Quantos mililitros você aspira?"
+   "texto": "Olha, faz 250 miligramas de ceftriaxona, na veia. Tem frasco de 1000 miligramas em 10 mililitros. Quantos mililitros você aspira?"
   },
   {
    "id": "calc.p070.enunciado",
@@ -288,7 +288,7 @@
   },
   {
    "id": "calc.p072.enunciado",
-   "texto": "Olha, Metronidazol 100 mililitros em 30 minutos, no equipo de macrogotas. Quantas gotas por minuto?"
+   "texto": "Olha, metronidazol 100 mililitros em 30 minutos, no equipo de macrogotas. Quantas gotas por minuto?"
   },
   {
    "id": "calc.p073.enunciado",
@@ -296,11 +296,11 @@
   },
   {
    "id": "calc.p074.enunciado",
-   "texto": "Prescrevi Ringer simples, 500 mililitros em 8 horas, no macrogotas. Me diz o gotejamento em gotas por minuto."
+   "texto": "Prescrevi ringer simples, 500 mililitros em 8 horas, no macrogotas. Me diz o gotejamento em gotas por minuto."
   },
   {
    "id": "calc.p075.enunciado",
-   "texto": "Olha, Soro pediátrico 100 mililitros em 6 horas, no equipo de microgotas. Quantas microgotas por minuto?"
+   "texto": "Olha, soro pediátrico 100 mililitros em 6 horas, no equipo de microgotas. Quantas microgotas por minuto?"
   },
   {
    "id": "calc.p076.enunciado",
@@ -308,11 +308,11 @@
   },
   {
    "id": "calc.p077.enunciado",
-   "texto": "Programa Insulina regular em 8 unidades por hora. A solução preparada é 100 unidades em 100 mililitros. Me diz a vazão em mililitros por hora."
+   "texto": "Programa insulina regular em 8 unidades por hora. A solução preparada é 100 unidades em 100 mililitros. Me diz a vazão em mililitros por hora."
   },
   {
    "id": "calc.p078.enunciado",
-   "texto": "Deixa Nitroglicerina a 20 microgramas por minuto na bomba. A solução é 50 miligramas em 250 mililitros. Qual vazão você programa, em mililitros por hora?"
+   "texto": "Deixa nitroglicerina a 20 microgramas por minuto na bomba. A solução é 50 miligramas em 250 mililitros. Qual vazão você programa, em mililitros por hora?"
   },
   {
    "id": "calc.p079.enunciado",
@@ -320,7 +320,7 @@
   },
   {
    "id": "calc.p080.enunciado",
-   "texto": "Programa Insulina regular em 2 unidades por hora. A solução preparada é 100 unidades em 100 mililitros. Me diz a vazão em mililitros por hora."
+   "texto": "Programa insulina regular em 2 unidades por hora. A solução preparada é 100 unidades em 100 mililitros. Me diz a vazão em mililitros por hora."
   },
   {
    "id": "calc.p081.enunciado",
@@ -332,11 +332,11 @@
   },
   {
    "id": "calc.p083.enunciado",
-   "texto": "Programa Heparina em 1.200 unidades por hora. A solução preparada é 25000 unidades em 250 mililitros. Me diz a vazão em mililitros por hora."
+   "texto": "Programa heparina em 1.200 unidades por hora. A solução preparada é 25.000 unidades em 250 mililitros. Me diz a vazão em mililitros por hora."
   },
   {
    "id": "calc.p084.enunciado",
-   "texto": "Olha, Ringer simples 100 mililitros em 2 horas, no equipo de macrogotas. Quantas gotas por minuto?"
+   "texto": "Olha, ringer simples 100 mililitros em 2 horas, no equipo de macrogotas. Quantas gotas por minuto?"
   },
   {
    "id": "calc.p085.enunciado",
@@ -356,11 +356,11 @@
   },
   {
    "id": "calc.p089.enunciado",
-   "texto": "Prescrevi Ringer lactato, 1000 mililitros em 12 horas, no macrogotas. Me diz o gotejamento em gotas por minuto."
+   "texto": "Prescrevi ringer lactato, 1000 mililitros em 12 horas, no macrogotas. Me diz o gotejamento em gotas por minuto."
   },
   {
    "id": "calc.p090.enunciado",
-   "texto": "Olha, Ringer lactato 100 mililitros em 1 horas, no equipo de macrogotas. Quantas gotas por minuto?"
+   "texto": "Olha, ringer lactato 100 mililitros em 1 horas, no equipo de macrogotas. Quantas gotas por minuto?"
   },
   {
    "id": "calc.p091.enunciado",
@@ -372,7 +372,7 @@
   },
   {
    "id": "calc.p093.enunciado",
-   "texto": "Olha, Ciprofloxacino 200 mililitros em 120 minutos, no equipo de macrogotas. Quantas gotas por minuto?"
+   "texto": "Olha, ciprofloxacino 200 mililitros em 120 minutos, no equipo de macrogotas. Quantas gotas por minuto?"
   },
   {
    "id": "calc.p094.enunciado",
@@ -380,7 +380,7 @@
   },
   {
    "id": "calc.p095.enunciado",
-   "texto": "Prescrevi Soro pediátrico, 100 mililitros em 4 horas, no microgotas. Me diz o gotejamento em microgotas por minuto."
+   "texto": "Prescrevi soro pediátrico, 100 mililitros em 4 horas, no microgotas. Me diz o gotejamento em microgotas por minuto."
   },
   {
    "id": "calc.p096.enunciado",
@@ -396,7 +396,7 @@
   },
   {
    "id": "calc.p099.enunciado",
-   "texto": "Olha, Ringer simples 1000 mililitros em 8 horas, no equipo de macrogotas. Quantas gotas por minuto?"
+   "texto": "Olha, ringer simples 1000 mililitros em 8 horas, no equipo de macrogotas. Quantas gotas por minuto?"
   },
   {
    "id": "calc.p100.enunciado",
@@ -404,11 +404,11 @@
   },
   {
    "id": "calc.p101.enunciado",
-   "texto": "Prescrevi Soro pediátrico, 500 mililitros em 12 horas, no microgotas. Me diz o gotejamento em microgotas por minuto."
+   "texto": "Prescrevi soro pediátrico, 500 mililitros em 12 horas, no microgotas. Me diz o gotejamento em microgotas por minuto."
   },
   {
    "id": "calc.p102.enunciado",
-   "texto": "Olha, Soro pediátrico 500 mililitros em 24 horas, no equipo de microgotas. Quantas microgotas por minuto?"
+   "texto": "Olha, soro pediátrico 500 mililitros em 24 horas, no equipo de microgotas. Quantas microgotas por minuto?"
   },
   {
    "id": "calc.p103.enunciado",
@@ -416,11 +416,11 @@
   },
   {
    "id": "calc.p104.enunciado",
-   "texto": "Prescrevi Soro pediátrico, 250 mililitros em 8 horas, no microgotas. Me diz o gotejamento em microgotas por minuto."
+   "texto": "Prescrevi soro pediátrico, 250 mililitros em 8 horas, no microgotas. Me diz o gotejamento em microgotas por minuto."
   },
   {
    "id": "calc.p105.enunciado",
-   "texto": "Olha, Soro pediátrico 500 mililitros em 8 horas, no equipo de microgotas. Quantas microgotas por minuto?"
+   "texto": "Olha, soro pediátrico 500 mililitros em 8 horas, no equipo de microgotas. Quantas microgotas por minuto?"
   },
   {
    "id": "calc.p106.enunciado",
@@ -612,7 +612,7 @@
   },
   {
    "id": "calc.r.questionou_certo.3",
-   "texto": "Você está certa de questionar, escrevi errado. Vou refazer."
+   "texto": "Foi bom você questionar, escrevi errado. Vou refazer."
   },
   {
    "id": "calc.r.questionou_certo.4",
