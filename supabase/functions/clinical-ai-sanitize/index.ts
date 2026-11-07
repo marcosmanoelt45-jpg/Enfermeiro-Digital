@@ -1,16 +1,18 @@
 // ==============================================================================
 // clinical-ai-sanitize/index.ts
-// Supabase Edge Function: Blindagem LGPD, Autenticação JWT, Rate Limiting & IA
+// Supabase Edge Function: Blindagem LGPD, autenticação por sessão, cota diária e IA
 // Resolução CFM nº 2.454/2026 e Resolução COFEN nº 736/2024
+//
+// A resposta continua a mesma de antes ({ success, text | plan, provider, truncated }) e os erros seguem
+// no formato antigo { error: "..." }: os clientes de hoje (Goti, plano de cuidados, tutores) dependem dele.
 // ==============================================================================
 
-import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
-import { createClient } from "https://esm.sh/@supabase/supabase-js@2.39.8";
-
-const corsHeaders = {
-  "Access-Control-Allow-Origin": "*",
-  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
-};
+import { corsHeaders, responderOptions } from "../_shared/cors.ts";
+import { exigirUsuario } from "../_shared/auth.ts";
+import { consumirCota, limiteDe } from "../_shared/cota.ts";
+import { ErroApp } from "../_shared/erros.ts";
+import { chamarLLM, extrairJson } from "../_shared/llm.ts";
+import { logEvento } from "../_shared/log.ts";
 
 // ------------------------------------------------------------------------------
 // 1. Sanitização e DLP Server-Side (LGPD)
@@ -38,35 +40,7 @@ function sanitizeClinicalText(text: unknown): string {
 }
 
 // ------------------------------------------------------------------------------
-// 2. Rate Limiting em Memória (por usuário)
-// ------------------------------------------------------------------------------
-interface RateLimitEntry {
-  count: number;
-  resetTime: number;
-}
-const rateLimits = new Map<string, RateLimitEntry>();
-const RATE_LIMIT_MAX = 30; // máximo de 30 requisições por janela
-const RATE_LIMIT_WINDOW_MS = 60 * 1000; // janela de 1 minuto
-
-function checkRateLimit(userId: string): boolean {
-  const now = Date.now();
-  const entry = rateLimits.get(userId);
-
-  if (!entry || now > entry.resetTime) {
-    rateLimits.set(userId, { count: 1, resetTime: now + RATE_LIMIT_WINDOW_MS });
-    return true;
-  }
-
-  if (entry.count >= RATE_LIMIT_MAX) {
-    return false;
-  }
-
-  entry.count += 1;
-  return true;
-}
-
-// ------------------------------------------------------------------------------
-// 3. System Prompt Padrão para Plano NANDA-I / NIC / NOC
+// 2. System Prompt Padrão para Plano NANDA-I / NIC / NOC
 // ------------------------------------------------------------------------------
 const CARE_PLAN_SYSTEM_PROMPT = `Você é um Sistema de Apoio à Decisão Clínica (SADC) especializado em enfermagem fundamentado estritamente na Taxonomia NANDA-I (13ª Edição 2024-2026), Intervenções NIC e Resultados NOC (5ª edição).
 Você receberá dados clínicos desidentificados e anonimizados de um paciente.
@@ -99,141 +73,45 @@ Retorne SEMPRE em formato JSON com o seguinte esquema:
 }`;
 
 // ------------------------------------------------------------------------------
-// 4. Chamada Resiliente ao OpenRouter no Servidor
+// 3. Respostas no formato antigo
 // ------------------------------------------------------------------------------
-async function callOpenRouterBackend({
-  apiKey,
-  systemPrompt,
-  userPrompt,
-  maxTokens = 1500,
-  temperature = 0.3,
-  isJson = false,
-}: {
-  apiKey: string;
-  systemPrompt: string;
-  userPrompt: string;
-  maxTokens?: number;
-  temperature?: number;
-  isJson?: boolean;
-}) {
-  const models = [
-    "google/gemini-2.5-flash",
-    "openai/gpt-4o-mini",
-    "deepseek/deepseek-chat",
-  ];
+const JSON_CORS = { ...corsHeaders, "Content-Type": "application/json" };
 
-  for (const model of models) {
-    try {
-      const payload: Record<string, unknown> = {
-        model,
-        max_tokens: Math.min(Math.max(maxTokens, 400), 3000),
-        temperature,
-        messages: [
-          { role: "system", content: systemPrompt },
-          { role: "user", content: userPrompt },
-        ],
-      };
+function responder(corpo: unknown, status = 200): Response {
+  return new Response(JSON.stringify(corpo), { status, headers: JSON_CORS });
+}
 
-      if (isJson) {
-        payload.response_format = { type: "json_object" };
-      }
-
-      const response = await fetch("https://openrouter.ai/api/v1/chat/completions", {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          "HTTP-Referer": "https://enfermeirodigital.com.br",
-          "X-Title": "Enfere Digital Edge AI",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errText = await response.text();
-        console.warn(`[Edge AI] Modelo ${model} falhou (${response.status}):`, errText);
-        continue;
-      }
-
-      const jsonResp = await response.json();
-      const choice = jsonResp?.choices?.[0];
-      const text = choice?.message?.content || "";
-      const finishReason = choice?.finish_reason || "stop";
-
-      let treatedText = text.trim();
-      if (finishReason === "length") {
-        console.warn("[Edge AI] Resposta truncada por limite de tokens (finish_reason = length).");
-        treatedText += "\n\n*(Nota: Resposta atingiu o limite de extensão configurado).*";
-      }
-
-      return {
-        text: treatedText,
-        finishReason,
-        truncated: finishReason === "length",
-        provider: `OpenRouter (${model})`,
-      };
-    } catch (err) {
-      console.warn(`[Edge AI] Erro na requisição para ${model}:`, err);
-    }
-  }
-
-  throw new Error("Todos os modelos configurados no OpenRouter falharam.");
+function responderErro(e: unknown): Response {
+  if (e instanceof ErroApp) return responder({ error: e.message }, e.status);
+  console.error("[Edge AI] erro inesperado:", e instanceof Error ? e.name : "desconhecido");
+  return responder({ error: "Erro interno no servidor de IA." }, 500);
 }
 
 // ------------------------------------------------------------------------------
-// 5. Servidor HTTP Deno
+// 4. Servidor HTTP Deno
 // ------------------------------------------------------------------------------
-serve(async (req) => {
-  if (req.method === "OPTIONS") {
-    return new Response("ok", { headers: corsHeaders });
-  }
+Deno.serve(async (req) => {
+  const preVoo = responderOptions(req);
+  if (preVoo) return preVoo;
 
   try {
-    // 5.1 Autenticação: exige uma SESSÃO de usuário válida. A chave anon é pública (vai no bundle),
-    // então aceitar só "um header presente" transformaria a chave paga do OpenRouter num proxy aberto.
-    const authHeader = req.headers.get("Authorization");
-    if (!authHeader?.startsWith("Bearer ")) {
-      return new Response(
-        JSON.stringify({ error: "Sessão obrigatória." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+    // 4.1 Sessão de usuário válida (a chave anon é pública) e cota diária no banco, por usuário.
+    const { userId, supabaseUsuario } = await exigirUsuario(req);
+    await consumirCota(supabaseUsuario, "llm", limiteDe("llm"));
+
+    // 4.2 Corpo da requisição
+    // deno-lint-ignore no-explicit-any
+    let requestData: Record<string, any> | null = null;
+    try {
+      requestData = await req.json();
+    } catch {
+      requestData = null;
+    }
+    if (!requestData || typeof requestData !== "object") {
+      return responder({ error: "Corpo da requisição inválido." }, 400);
     }
 
-    const supabaseUrl = Deno.env.get("SUPABASE_URL") ?? "";
-    const supabaseAnonKey = Deno.env.get("SUPABASE_ANON_KEY") ?? "";
-
-    const authClient = createClient(supabaseUrl, supabaseAnonKey, {
-      global: { headers: { Authorization: authHeader } },
-    });
-    const { data: userData, error: userError } = await authClient.auth.getUser();
-    if (userError || !userData?.user?.id) {
-      return new Response(
-        JSON.stringify({ error: "Sessão inválida ou expirada." }),
-        { status: 401, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-    // Limite de taxa sempre pelo id do usuário (nunca por X-Forwarded-For, que o cliente controla)
-    const callerIdentifier = userData.user.id;
-
-    // 5.2 Validação de Rate Limiting por Usuário / IP
-    if (!checkRateLimit(callerIdentifier)) {
-      return new Response(
-        JSON.stringify({ error: "Limite de requisições excedido. Aguarde 1 minuto antes de tentar novamente." }),
-        { status: 429, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // 5.3 Leitura da Chave de Servidor
-    const openRouterApiKey = Deno.env.get("OPENROUTER_API_KEY");
-    if (!openRouterApiKey) {
-      return new Response(
-        JSON.stringify({ error: "OPENROUTER_API_KEY não configurada no Supabase Secrets." }),
-        { status: 503, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
-    }
-
-    // 5.4 Tratamento do Payload da Requisição
-    const requestData = await req.json();
+    const inicio = Date.now();
 
     // Cenário A: Requisição de Plano de Cuidados Estruturado (clinical_data)
     if (requestData.clinical_data) {
@@ -250,82 +128,63 @@ serve(async (req) => {
         },
       };
 
-      const aiResponse = await callOpenRouterBackend({
-        apiKey: openRouterApiKey,
-        systemPrompt: CARE_PLAN_SYSTEM_PROMPT,
-        userPrompt: `DADOS CLÍNICOS ANONIMIZADOS (JSON):\n${JSON.stringify(sanitizedData, null, 2)}`,
+      const resposta = await chamarLLM({
+        mensagens: [
+          { role: "system", content: CARE_PLAN_SYSTEM_PROMPT },
+          { role: "user", content: `DADOS CLÍNICOS ANONIMIZADOS (JSON):\n${JSON.stringify(sanitizedData, null, 2)}` },
+        ],
         maxTokens: 2000,
-        temperature: 0.2,
-        isJson: true,
+        temperatura: 0.2,
+        json: true,
       });
 
-      let planResult;
+      let planResult: Record<string, unknown>;
       try {
-        planResult = JSON.parse(aiResponse.text);
+        planResult = extrairJson(resposta.texto) as Record<string, unknown>;
       } catch {
-        planResult = {
-          resumo: aiResponse.text,
-          prioridade: "moderada",
-          diagnosticos: [],
-        };
+        planResult = { resumo: resposta.texto, prioridade: "moderada", diagnosticos: [] };
       }
 
-      return new Response(
-        JSON.stringify({
-          success: true,
-          plan: {
-            ...planResult,
-            is_preliminary_draft: true,
-            lgpd_sanitized: true,
-            generated_at: new Date().toISOString(),
-          },
-          provider: aiResponse.provider,
-          truncated: aiResponse.truncated,
-        }),
-        { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      logEvento("clinical_ai", { cenario: "A", usuario: userId, modelo: resposta.modelo, truncado: resposta.truncado, ms: Date.now() - inicio });
+      return responder({
+        success: true,
+        plan: {
+          ...planResult,
+          is_preliminary_draft: true,
+          lgpd_sanitized: true,
+          generated_at: new Date().toISOString(),
+        },
+        provider: `OpenRouter (${resposta.modelo})`,
+        truncated: resposta.truncado,
+      });
     }
 
     // Cenário B: Requisição Geral de Inferência (systemPrompt + userPrompt / options)
-    const { systemPrompt, userPrompt, options = {} } = requestData;
+    const { systemPrompt, userPrompt } = requestData;
+    const options = requestData.options && typeof requestData.options === "object" ? requestData.options : {};
     if (!userPrompt) {
-      return new Response(
-        JSON.stringify({ error: "userPrompt ou clinical_data é obrigatório." }),
-        { status: 400, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-      );
+      return responder({ error: "userPrompt ou clinical_data é obrigatório." }, 400);
     }
 
     // Sanitização DLP do conteúdo textual antes do envio à IA externa
-    const sanitizedSystemPrompt = sanitizeClinicalText(systemPrompt || "");
-    const sanitizedUserPrompt = sanitizeClinicalText(userPrompt);
-
-    const isJson = options.responseMimeType === "application/json";
-    const maxTokens = Number(options.maxTokens) || 1500;
-    const temperature = Number(options.temperature) || 0.4;
-
-    const result = await callOpenRouterBackend({
-      apiKey: openRouterApiKey,
-      systemPrompt: sanitizedSystemPrompt,
-      userPrompt: sanitizedUserPrompt,
-      maxTokens,
-      temperature,
-      isJson,
+    const resposta = await chamarLLM({
+      mensagens: [
+        { role: "system", content: sanitizeClinicalText(systemPrompt || "") },
+        { role: "user", content: sanitizeClinicalText(userPrompt) },
+      ],
+      maxTokens: Number(options.maxTokens) || 1500,
+      temperatura: Number(options.temperature) || 0.4,
+      json: options.responseMimeType === "application/json",
     });
 
-    return new Response(
-      JSON.stringify({
-        success: true,
-        text: result.text,
-        provider: result.provider,
-        truncated: result.truncated,
-      }),
-      { headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
-  } catch (error: any) {
-    console.error("[Edge AI Exception]:", error);
-    return new Response(
-      JSON.stringify({ error: error?.message || "Erro interno no servidor de IA." }),
-      { status: 500, headers: { ...corsHeaders, "Content-Type": "application/json" } }
-    );
+    logEvento("clinical_ai", { cenario: "B", usuario: userId, modelo: resposta.modelo, truncado: resposta.truncado, ms: Date.now() - inicio });
+    return responder({
+      success: true,
+      text: resposta.texto,
+      provider: `OpenRouter (${resposta.modelo})`,
+      truncated: resposta.truncado,
+    });
+  } catch (e) {
+    return responderErro(e);
   }
 });
