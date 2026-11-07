@@ -42,6 +42,7 @@
 - Tamanho de `dist/assets` (antes → depois): —
 
 ## Depois (fora do escopo, não esquecer)
+- Goti em produção revela o modelo (família Gemini/Flash) e resume o prompt, como mostra o print de 06/11. Reforçar a regra do prompt e filtrar a saída (`ia/referencias-paciente.md` §1)
 - Trocar o "Cenário B" (prompt livre) da `clinical-ai-sanitize` por uma lista de tarefas permitidas
 - Histórico e gamificação no Supabase em vez do localStorage (hoje se perde ao trocar de aparelho)
 - Voz ao vivo hospedada (D4)
