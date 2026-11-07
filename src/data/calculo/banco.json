@@ -1,0 +1,4738 @@
+[
+ {
+  "id": "p001",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro fisiológico 0,9%",
+   "dose": 1000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1000,
+   "horas": 8
+  },
+  "resposta": 42,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Identifique as variáveis: Volume = 1000 mL | Tempo = 8 horas",
+   "Utilize a fórmula de macrogotas: Gotas/min = V / (T × 3)",
+   "Cálculo: 1000 ÷ (8 × 3) = 1000 ÷ 24 = 41,66...",
+   "Arredondamento: 42 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p001.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_1"
+ },
+ {
+  "id": "p002",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro glicosado 5%",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 12 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 500,
+   "horas": 12
+  },
+  "resposta": 42,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Variáveis: Volume = 500 mL | Tempo = 12 horas",
+   "Fórmula de microgotas/h: Microgotas/min = Volume ÷ Tempo",
+   "Cálculo: 500 ÷ 12 = 41,66...",
+   "Arredondamento: 42 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p002.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_2"
+ },
+ {
+  "id": "p003",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Metronidazol 500 mg (bolsa de 100 mL)",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 30 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 100,
+   "minutos": 30
+  },
+  "resposta": 67,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Tempo em minutos: a constante para macrogotas é 20.",
+   "Fórmula: Gotas/min = (V × 20) ÷ T(min)",
+   "Cálculo: (100 × 20) ÷ 30 = 2000 ÷ 30 = 66,66...",
+   "Arredondamento: 67 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p003.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_3"
+ },
+ {
+  "id": "p004",
+  "tipo": "reconstituicao",
+  "categoria": "Diluição de Antibióticos",
+  "prescricao": {
+   "farmaco": "Penicilina cristalina",
+   "dose": 2000000,
+   "unidadeDose": "UI",
+   "via": "IV",
+   "frequencia": "no horário"
+  },
+  "disponivel": "frasco-ampola de 5.000.000 UI, dilui em 8 mL de água destilada (o pó ocupa 2 mL, volume final de 10 mL)",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 2000000,
+   "frasco": 5000000,
+   "volumeMl": 10
+  },
+  "resposta": 4,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Soluto (pó) = 2 mL. Adicionando 8 mL de diluente = 10 mL total.",
+   "Proporção: 5.000.000 UI --- 10 mL | 2.000.000 UI --- X mL",
+   "Cálculo: X = (2.000.000 × 10) ÷ 5.000.000 = 4 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p004.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_4"
+ },
+ {
+  "id": "p005",
+  "tipo": "bic",
+  "categoria": "Anticoagulação & Alta Vigilância",
+  "prescricao": {
+   "farmaco": "Heparina",
+   "dose": 800,
+   "unidadeDose": "UI/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "25.000 UI em 250 mL de SF 0,9% (100 UI/mL)",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 800,
+   "quantidade": 25000,
+   "volumeMl": 250
+  },
+  "resposta": 8,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 25.000 UI ÷ 250 mL = 100 UI/mL.",
+   "Dose prescrita: 800 UI/h.",
+   "Cálculo: 800 ÷ 100 = 8 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p005.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "prob_5"
+ },
+ {
+  "id": "p006",
+  "tipo": "reconstituicao",
+  "categoria": "Corticoterapia & Emergência",
+  "prescricao": {
+   "farmaco": "Hidrocortisona",
+   "dose": 150,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "frasco-ampola de 500 mg com diluente de 5 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 150,
+   "frasco": 500,
+   "volumeMl": 5
+  },
+  "resposta": 1.5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 500 mg em 5 mL = 100 mg/mL.",
+   "Proporção: 500 mg = 5 mL | 150 mg = X mL",
+   "Cálculo: X = (150 × 5) ÷ 500 = 1,5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p006.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_6"
+ },
+ {
+  "id": "p007",
+  "tipo": "bic",
+  "categoria": "Drogas Vasoativas",
+  "prescricao": {
+   "farmaco": "Noradrenalina",
+   "dose": 12,
+   "unidadeDose": "mL/h",
+   "via": "IV central",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "16 mg em 250 mL (64 mcg/mL)",
+  "entrada": {
+   "kind": "mcgmin_da_vazao",
+   "vazaoMlH": 12,
+   "quantidadeMg": 16,
+   "volumeMl": 250
+  },
+  "resposta": 12.8,
+  "unidade": "mcg/min",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 16.000 mcg ÷ 250 mL = 64 mcg/mL.",
+   "Dose por hora: 12 mL/h × 64 mcg/mL = 768 mcg/h.",
+   "Dose por minuto: 768 ÷ 60 = 12,8 mcg/min."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p007.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "prob_7"
+ },
+ {
+  "id": "p008",
+  "tipo": "gotejamento_macro",
+  "categoria": "Eletrólitos",
+  "prescricao": {
+   "farmaco": "SF 0,9% 500 mL com KCl 10% 20 mL",
+   "dose": 520,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 4 horas"
+  },
+  "disponivel": "equipo de macrogotas; ampola de KCl 10% de 10 mL (13,4 mEq)",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 520,
+   "horas": 4
+  },
+  "resposta": 43,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume total = 500 mL SF + 20 mL KCl = 520 mL.",
+   "Tempo = 4 horas. Fórmula: V / (T × 3)",
+   "Cálculo: 520 ÷ 12 = 43,33...",
+   "Resposta: 43 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p008.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": true,
+  "origem": "prob_8"
+ },
+ {
+  "id": "p009",
+  "tipo": "pediatrica",
+  "categoria": "Pediátrico",
+  "prescricao": {
+   "farmaco": "Amoxicilina",
+   "dose": 50,
+   "unidadeDose": "mg/kg/dia",
+   "via": "VO",
+   "frequencia": "de 8 em 8 horas"
+  },
+  "disponivel": "suspensão de 250 mg/5 mL; criança de 12 kg",
+  "entrada": {
+   "kind": "pediatrica_dia",
+   "mgKgDia": 50,
+   "kg": 12,
+   "tomadas": 3,
+   "mgPorMl": 50
+  },
+  "resposta": 4,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Dose diária: 50 mg/kg × 12 kg = 600 mg.",
+   "Dose por tomada (3x): 600 ÷ 3 = 200 mg.",
+   "Volume (50 mg/mL): 200 ÷ 50 = 4 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p009.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_9"
+ },
+ {
+  "id": "p010",
+  "tipo": "reconstituicao",
+  "categoria": "Diluição",
+  "prescricao": {
+   "farmaco": "Oxacilina",
+   "dose": 500,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "de 4 em 4 horas"
+  },
+  "disponivel": "frasco de 1 g com diluente de 5 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 500,
+   "frasco": 1000,
+   "volumeMl": 5
+  },
+  "resposta": 2.5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 1000 mg em 5 mL = 200 mg/mL.",
+   "Dose prescrita: 500 mg.",
+   "Cálculo: 500 ÷ 200 = 2,5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p010.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_10"
+ },
+ {
+  "id": "p011",
+  "tipo": "gotejamento_macro",
+  "categoria": "Gotejamento",
+  "prescricao": {
+   "farmaco": "Paracetamol",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 15 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 100,
+   "minutos": 15
+  },
+  "resposta": 133,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Variáveis: 100 mL | 15 min | Fator 20 (macro).",
+   "Cálculo: (100 × 20) ÷ 15 = 133,33.",
+   "Resposta: 133 gotas/min."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p011.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_11"
+ },
+ {
+  "id": "p012",
+  "tipo": "bic",
+  "categoria": "Insulina",
+  "prescricao": {
+   "farmaco": "Insulina regular",
+   "dose": 0.1,
+   "unidadeDose": "UI/kg/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "100 UI em 100 mL (1 UI/mL); paciente de 70 kg",
+  "entrada": {
+   "kind": "bic_peso",
+   "dosePorKgH": 0.1,
+   "kg": 70,
+   "quantidade": 100,
+   "volumeMl": 100
+  },
+  "resposta": 7,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Dose necessária: 0,1 UI/kg/h × 70 kg = 7 UI/h.",
+   "Concentração: 1 UI/mL.",
+   "Vazão: 7 ÷ 1 = 7 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p012.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "prob_12"
+ },
+ {
+  "id": "p013",
+  "tipo": "gotejamento_micro",
+  "categoria": "Pediátrico",
+  "prescricao": {
+   "farmaco": "Hidratação de manutenção",
+   "dose": 1200,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 24 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 1200,
+   "horas": 24
+  },
+  "resposta": 50,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1200 mL | Tempo: 24h | Microgotas.",
+   "Fórmula: V / T",
+   "Cálculo: 1200 ÷ 24 = 50 microgotas/min."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p013.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_13"
+ },
+ {
+  "id": "p014",
+  "tipo": "gotejamento_macro",
+  "categoria": "Vancomicina",
+  "prescricao": {
+   "farmaco": "Vancomicina 1 g em SF",
+   "dose": 200,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 2 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 200,
+   "horas": 2
+  },
+  "resposta": 33,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 200 mL | Tempo: 2h | Macrogotas.",
+   "Cálculo: 200 ÷ (2 × 3) = 33,33.",
+   "Resposta: 33 gotas/min."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p014.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_14"
+ },
+ {
+  "id": "p015",
+  "tipo": "diluicao",
+  "categoria": "Opioide",
+  "prescricao": {
+   "farmaco": "Morfina",
+   "dose": 4,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 10 mg rediluída em 10 mL (1 mg/mL)",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 4,
+   "frasco": 10,
+   "volumeMl": 10
+  },
+  "resposta": 4,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração rediluída: 1 mg/mL.",
+   "Dose prescrita: 4 mg.",
+   "Cálculo: 4 ÷ 1 = 4 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p015.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "prob_15"
+ },
+ {
+  "id": "p016",
+  "tipo": "bic",
+  "categoria": "Opioide",
+  "prescricao": {
+   "farmaco": "Fentanil",
+   "dose": 50,
+   "unidadeDose": "mcg/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "2.500 mcg em 250 mL (10 mcg/mL)",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 50,
+   "quantidade": 2500,
+   "volumeMl": 250
+  },
+  "resposta": 5,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 10 mcg/mL.",
+   "Dose prescrita: 50 mcg/h.",
+   "Vazão: 50 ÷ 10 = 5 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p016.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "prob_16"
+ },
+ {
+  "id": "p017",
+  "tipo": "gotejamento_macro",
+  "categoria": "Volume",
+  "prescricao": {
+   "farmaco": "Ringer lactato",
+   "dose": 1500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1500,
+   "horas": 6
+  },
+  "resposta": 83,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1500 mL | Tempo: 6h.",
+   "Fórmula: 1500 ÷ (6 × 3) = 83,33.",
+   "Resposta: 83 gotas/min."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p017.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_17"
+ },
+ {
+  "id": "p018",
+  "tipo": "diluicao",
+  "categoria": "Broncodilatador",
+  "prescricao": {
+   "farmaco": "Aminofilina",
+   "dose": 120,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "em 30 minutos"
+  },
+  "disponivel": "ampola de 240 mg/10 mL (24 mg/mL)",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 120,
+   "frasco": 240,
+   "volumeMl": 10
+  },
+  "resposta": 5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 24 mg/mL.",
+   "Dose prescrita: 120 mg.",
+   "Cálculo: 120 ÷ 24 = 5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p018.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_18"
+ },
+ {
+  "id": "p019",
+  "tipo": "ampolas",
+  "categoria": "Anticonvulsivante",
+  "prescricao": {
+   "farmaco": "Fenitoína",
+   "dose": 1000,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose de ataque"
+  },
+  "disponivel": "ampola de 250 mg/5 mL",
+  "entrada": {
+   "kind": "ampolas",
+   "dose": 1000,
+   "mgPorAmpola": 250
+  },
+  "resposta": 4,
+  "unidade": "ampolas",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Dose por ampola: 250 mg.",
+   "Dose total: 1000 mg.",
+   "Cálculo: 1000 ÷ 250 = 4 ampolas."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p019.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "prob_19"
+ },
+ {
+  "id": "p020",
+  "tipo": "bic",
+  "categoria": "Bipiridinas & Inotrópicos",
+  "prescricao": {
+   "farmaco": "Milrinona",
+   "dose": 0.5,
+   "unidadeDose": "mcg/kg/min",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "200 mcg/mL; paciente de 60 kg",
+  "entrada": {
+   "kind": "bic_peso_min",
+   "mcgKgMin": 0.5,
+   "kg": 60,
+   "mcgPorMl": 200
+  },
+  "resposta": 9,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Dose por minuto: 0,5 × 60 = 30 mcg/min.",
+   "Dose por hora: 30 × 60 = 1800 mcg/h.",
+   "Vazão: 1800 ÷ 200 = 9 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p020.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "prob_20"
+ },
+ {
+  "id": "p021",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5% pediátrico",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 4 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 250,
+   "horas": 4
+  },
+  "resposta": 63,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 4 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 250 / 4 = 62.50",
+   "Resultado: 63 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p021.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:1"
+ },
+ {
+  "id": "p022",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Vancomicina",
+   "dose": 200,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 60 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 200,
+   "minutos": 60
+  },
+  "resposta": 67,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 200 mL | Tempo: 60 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (200 × 20) / 60 = 66.67",
+   "Resultado: 67 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p022.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:2"
+ },
+ {
+  "id": "p023",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "KCl 10%",
+   "dose": 10,
+   "unidadeDose": "mEq/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "40 mEq em 500 mL",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 10,
+   "quantidade": 40,
+   "volumeMl": 500
+  },
+  "resposta": 125,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 40 mEq em 500 mL = 0.08 mEq/mL.",
+   "Dose prescrita: 10 mEq/h.",
+   "Vazão: 10 / 0.08 = 125 mL/h.",
+   "Máx 10 mEq/h em veia periférica."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p023.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "semente:3"
+ },
+ {
+  "id": "p024",
+  "tipo": "reconstituicao",
+  "categoria": "Diluição",
+  "prescricao": {
+   "farmaco": "Penicilina cristalina",
+   "dose": 4000000,
+   "unidadeDose": "UI",
+   "via": "IV",
+   "frequencia": "no horário"
+  },
+  "disponivel": "frasco de 5.000.000 UI (o pó ocupa 2 mL), dilui em 8 mL de água destilada",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 4000000,
+   "frasco": 5000000,
+   "volumeMl": 10
+  },
+  "resposta": 8,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "O pó de 5M ocupa 2 mL. Com 8 mL de AD, o total é 10 mL.",
+   "Proporção: 5.000.000 --- 10 mL | 4000000 --- X",
+   "X = (4000000 × 10) / 5.000.000 = 8 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p024.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:4"
+ },
+ {
+  "id": "p025",
+  "tipo": "pediatrica",
+  "categoria": "Pediátrico / Rediluição",
+  "prescricao": {
+   "farmaco": "Ceftriaxona",
+   "dose": 750,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "frasco de 1000 mg em 10 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 750,
+   "frasco": 1000,
+   "volumeMl": 10
+  },
+  "resposta": 7.5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 1000 mg em 10 mL.",
+   "Cálculo: (750 × 10) / 1000 = 7.5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p025.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:5"
+ },
+ {
+  "id": "p026",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "RL",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 4 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 500,
+   "horas": 4
+  },
+  "resposta": 42,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 4 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 500 / (4 × 3) = 41.67",
+   "Resultado: 42 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p026.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:6"
+ },
+ {
+  "id": "p027",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5% pediátrico",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 2 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 100,
+   "horas": 2
+  },
+  "resposta": 50,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 2 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 100 / 2 = 50.00",
+   "Resultado: 50 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p027.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:7"
+ },
+ {
+  "id": "p028",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Metronidazol",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 60 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 100,
+   "minutos": 60
+  },
+  "resposta": 33,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 60 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (100 × 20) / 60 = 33.33",
+   "Resultado: 33 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p028.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:8"
+ },
+ {
+  "id": "p029",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Heparina",
+   "dose": 1500,
+   "unidadeDose": "UI/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "25000 UI em 250 mL",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 1500,
+   "quantidade": 25000,
+   "volumeMl": 250
+  },
+  "resposta": 15,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 25000 UI em 250 mL = 100 UI/mL.",
+   "Dose prescrita: 1500 UI/h.",
+   "Vazão: 1500 / 100 = 15 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p029.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "semente:9"
+ },
+ {
+  "id": "p030",
+  "tipo": "reconstituicao",
+  "categoria": "Diluição",
+  "prescricao": {
+   "farmaco": "Penicilina cristalina",
+   "dose": 2500000,
+   "unidadeDose": "UI",
+   "via": "IV",
+   "frequencia": "no horário"
+  },
+  "disponivel": "frasco de 5.000.000 UI (o pó ocupa 2 mL), dilui em 8 mL de água destilada",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 2500000,
+   "frasco": 5000000,
+   "volumeMl": 10
+  },
+  "resposta": 5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "O pó de 5M ocupa 2 mL. Com 8 mL de AD, o total é 10 mL.",
+   "Proporção: 5.000.000 --- 10 mL | 2500000 --- X",
+   "X = (2500000 × 10) / 5.000.000 = 5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p030.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:10"
+ },
+ {
+  "id": "p031",
+  "tipo": "pediatrica",
+  "categoria": "Pediátrico / Rediluição",
+  "prescricao": {
+   "farmaco": "Ceftriaxona",
+   "dose": 500,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "frasco de 1000 mg em 10 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 500,
+   "frasco": 1000,
+   "volumeMl": 10
+  },
+  "resposta": 5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 1000 mg em 10 mL.",
+   "Cálculo: (500 × 10) / 1000 = 5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p031.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:11"
+ },
+ {
+  "id": "p032",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "RL",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 4 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 250,
+   "horas": 4
+  },
+  "resposta": 21,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 4 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 250 / (4 × 3) = 20.83",
+   "Resultado: 21 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p032.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:12"
+ },
+ {
+  "id": "p033",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro pediátrico",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 250,
+   "horas": 6
+  },
+  "resposta": 42,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 6 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 250 / 6 = 41.67",
+   "Resultado: 42 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p033.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:13"
+ },
+ {
+  "id": "p034",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Paracetamol",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 15 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 100,
+   "minutos": 15
+  },
+  "resposta": 133,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 15 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (100 × 20) / 15 = 133.33",
+   "Resultado: 133 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p034.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:14"
+ },
+ {
+  "id": "p035",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Heparina",
+   "dose": 1000,
+   "unidadeDose": "UI/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "25000 UI em 250 mL",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 1000,
+   "quantidade": 25000,
+   "volumeMl": 250
+  },
+  "resposta": 10,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 25000 UI em 250 mL = 100 UI/mL.",
+   "Dose prescrita: 1000 UI/h.",
+   "Vazão: 1000 / 100 = 10 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p035.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "semente:15"
+ },
+ {
+  "id": "p036",
+  "tipo": "reconstituicao",
+  "categoria": "Diluição",
+  "prescricao": {
+   "farmaco": "Penicilina cristalina",
+   "dose": 3000000,
+   "unidadeDose": "UI",
+   "via": "IV",
+   "frequencia": "no horário"
+  },
+  "disponivel": "frasco de 5.000.000 UI (o pó ocupa 2 mL), dilui em 8 mL de água destilada",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 3000000,
+   "frasco": 5000000,
+   "volumeMl": 10
+  },
+  "resposta": 6,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "O pó de 5M ocupa 2 mL. Com 8 mL de AD, o total é 10 mL.",
+   "Proporção: 5.000.000 --- 10 mL | 3000000 --- X",
+   "X = (3000000 × 10) / 5.000.000 = 6 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p036.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:16"
+ },
+ {
+  "id": "p037",
+  "tipo": "pediatrica",
+  "categoria": "Pediátrico / Rediluição",
+  "prescricao": {
+   "farmaco": "Ceftriaxona",
+   "dose": 200,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "frasco de 1000 mg em 10 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 200,
+   "frasco": 1000,
+   "volumeMl": 10
+  },
+  "resposta": 2,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 1000 mg em 10 mL.",
+   "Cálculo: (200 × 10) / 1000 = 2 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p037.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:17"
+ },
+ {
+  "id": "p038",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "RL",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 250,
+   "horas": 6
+  },
+  "resposta": 14,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 6 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 250 / (6 × 3) = 13.89",
+   "Resultado: 14 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p038.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:18"
+ },
+ {
+  "id": "p039",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro pediátrico",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 2 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 100,
+   "horas": 2
+  },
+  "resposta": 50,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 2 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 100 / 2 = 50.00",
+   "Resultado: 50 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p039.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:19"
+ },
+ {
+  "id": "p040",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Nitroglicerina",
+   "dose": 10,
+   "unidadeDose": "mcg/min",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "50 mg em 250 mL",
+  "entrada": {
+   "kind": "bic_mcgmin",
+   "doseMcgMin": 10,
+   "quantidadeMg": 50,
+   "volumeMl": 250
+  },
+  "resposta": 3,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 50 mg em 250 mL = 200 mcg/mL.",
+   "Dose: 10 mcg/min × 60 = 600 mcg/h.",
+   "Vazão: 600 / 200 = 3 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p040.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:21"
+ },
+ {
+  "id": "p041",
+  "tipo": "pediatrica",
+  "categoria": "Pediátrico / Rediluição",
+  "prescricao": {
+   "farmaco": "Hidrocortisona",
+   "dose": 50,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "frasco de 500 mg em 5 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 50,
+   "frasco": 500,
+   "volumeMl": 5
+  },
+  "resposta": 0.5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 500 mg em 5 mL.",
+   "Cálculo: (50 × 5) / 500 = 0.5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p041.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:23"
+ },
+ {
+  "id": "p042",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5%",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 250,
+   "horas": 8
+  },
+  "resposta": 10,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 8 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 250 / (8 × 3) = 10.42",
+   "Resultado: 10 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p042.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:24"
+ },
+ {
+  "id": "p043",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5% pediátrico",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 12 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 250,
+   "horas": 12
+  },
+  "resposta": 21,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 12 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 250 / 12 = 20.83",
+   "Resultado: 21 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p043.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:25"
+ },
+ {
+  "id": "p044",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Paracetamol",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 30 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 100,
+   "minutos": 30
+  },
+  "resposta": 67,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 30 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (100 × 20) / 30 = 66.67",
+   "Resultado: 67 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p044.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:26"
+ },
+ {
+  "id": "p045",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Nitroglicerina",
+   "dose": 5,
+   "unidadeDose": "mcg/min",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "50 mg em 250 mL",
+  "entrada": {
+   "kind": "bic_mcgmin",
+   "doseMcgMin": 5,
+   "quantidadeMg": 50,
+   "volumeMl": 250
+  },
+  "resposta": 1.5,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 50 mg em 250 mL = 200 mcg/mL.",
+   "Dose: 5 mcg/min × 60 = 300 mcg/h.",
+   "Vazão: 300 / 200 = 1.5 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p045.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:27"
+ },
+ {
+  "id": "p046",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5%",
+   "dose": 1000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 24 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1000,
+   "horas": 24
+  },
+  "resposta": 14,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1000 mL | Tempo: 24 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 1000 / (24 × 3) = 13.89",
+   "Resultado: 14 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p046.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:30"
+ },
+ {
+  "id": "p047",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5% pediátrico",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 24 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 500,
+   "horas": 24
+  },
+  "resposta": 21,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 24 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 500 / 24 = 20.83",
+   "Resultado: 21 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p047.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:31"
+ },
+ {
+  "id": "p048",
+  "tipo": "pediatrica",
+  "categoria": "Pediátrico / Rediluição",
+  "prescricao": {
+   "farmaco": "Hidrocortisona",
+   "dose": 150,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "frasco de 500 mg em 5 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 150,
+   "frasco": 500,
+   "volumeMl": 5
+  },
+  "resposta": 1.5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 500 mg em 5 mL.",
+   "Cálculo: (150 × 5) / 500 = 1.5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p048.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:35"
+ },
+ {
+  "id": "p049",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro pediátrico",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 12 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 250,
+   "horas": 12
+  },
+  "resposta": 21,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 12 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 250 / 12 = 20.83",
+   "Resultado: 21 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p049.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:37"
+ },
+ {
+  "id": "p050",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Ceftriaxona",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 60 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 100,
+   "minutos": 60
+  },
+  "resposta": 33,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 60 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (100 × 20) / 60 = 33.33",
+   "Resultado: 33 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p050.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:38"
+ },
+ {
+  "id": "p051",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "Ringer simples",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 500,
+   "horas": 6
+  },
+  "resposta": 28,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 6 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 500 / (6 × 3) = 27.78",
+   "Resultado: 28 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p051.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:42"
+ },
+ {
+  "id": "p052",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5% pediátrico",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 500,
+   "horas": 8
+  },
+  "resposta": 63,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 8 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 500 / 8 = 62.50",
+   "Resultado: 63 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p052.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:43"
+ },
+ {
+  "id": "p053",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Vancomicina",
+   "dose": 200,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 120 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 200,
+   "minutos": 120
+  },
+  "resposta": 33,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 200 mL | Tempo: 120 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (200 × 20) / 120 = 33.33",
+   "Resultado: 33 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p053.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:44"
+ },
+ {
+  "id": "p054",
+  "tipo": "reconstituicao",
+  "categoria": "Diluição",
+  "prescricao": {
+   "farmaco": "Penicilina cristalina",
+   "dose": 1000000,
+   "unidadeDose": "UI",
+   "via": "IV",
+   "frequencia": "no horário"
+  },
+  "disponivel": "frasco de 5.000.000 UI (o pó ocupa 2 mL), dilui em 8 mL de água destilada",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 1000000,
+   "frasco": 5000000,
+   "volumeMl": 10
+  },
+  "resposta": 2,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "O pó de 5M ocupa 2 mL. Com 8 mL de AD, o total é 10 mL.",
+   "Proporção: 5.000.000 --- 10 mL | 1000000 --- X",
+   "X = (1000000 × 10) / 5.000.000 = 2 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p054.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:46"
+ },
+ {
+  "id": "p055",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5%",
+   "dose": 1000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 12 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1000,
+   "horas": 12
+  },
+  "resposta": 28,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1000 mL | Tempo: 12 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 1000 / (12 × 3) = 27.78",
+   "Resultado: 28 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p055.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:48"
+ },
+ {
+  "id": "p056",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5% pediátrico",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 250,
+   "horas": 8
+  },
+  "resposta": 31,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 8 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 250 / 8 = 31.25",
+   "Resultado: 31 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p056.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:49"
+ },
+ {
+  "id": "p057",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Heparina",
+   "dose": 800,
+   "unidadeDose": "UI/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "25000 UI em 250 mL",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 800,
+   "quantidade": 25000,
+   "volumeMl": 250
+  },
+  "resposta": 8,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 25000 UI em 250 mL = 100 UI/mL.",
+   "Dose prescrita: 800 UI/h.",
+   "Vazão: 800 / 100 = 8 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p057.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "semente:51"
+ },
+ {
+  "id": "p058",
+  "tipo": "reconstituicao",
+  "categoria": "Diluição",
+  "prescricao": {
+   "farmaco": "Penicilina cristalina",
+   "dose": 2000000,
+   "unidadeDose": "UI",
+   "via": "IV",
+   "frequencia": "no horário"
+  },
+  "disponivel": "frasco de 5.000.000 UI (o pó ocupa 2 mL), dilui em 8 mL de água destilada",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 2000000,
+   "frasco": 5000000,
+   "volumeMl": 10
+  },
+  "resposta": 4,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "O pó de 5M ocupa 2 mL. Com 8 mL de AD, o total é 10 mL.",
+   "Proporção: 5.000.000 --- 10 mL | 2000000 --- X",
+   "X = (2000000 × 10) / 5.000.000 = 4 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p058.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:52"
+ },
+ {
+  "id": "p059",
+  "tipo": "pediatrica",
+  "categoria": "Pediátrico / Rediluição",
+  "prescricao": {
+   "farmaco": "Hidrocortisona",
+   "dose": 200,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "frasco de 500 mg em 5 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 200,
+   "frasco": 500,
+   "volumeMl": 5
+  },
+  "resposta": 2,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 500 mg em 5 mL.",
+   "Cálculo: (200 × 5) / 500 = 2 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p059.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:53"
+ },
+ {
+  "id": "p060",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5%",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 250,
+   "horas": 6
+  },
+  "resposta": 14,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 6 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 250 / (6 × 3) = 13.89",
+   "Resultado: 14 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p060.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:54"
+ },
+ {
+  "id": "p061",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SF 0,9%",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 4 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 250,
+   "horas": 4
+  },
+  "resposta": 21,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 4 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 250 / (4 × 3) = 20.83",
+   "Resultado: 21 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p061.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:60"
+ },
+ {
+  "id": "p062",
+  "tipo": "pediatrica",
+  "categoria": "Pediátrico / Rediluição",
+  "prescricao": {
+   "farmaco": "Hidrocortisona",
+   "dose": 100,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "frasco de 500 mg em 5 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 100,
+   "frasco": 500,
+   "volumeMl": 5
+  },
+  "resposta": 1,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 500 mg em 5 mL.",
+   "Cálculo: (100 × 5) / 500 = 1 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p062.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:65"
+ },
+ {
+  "id": "p063",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SF 0,9%",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 1 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 100,
+   "horas": 1
+  },
+  "resposta": 33,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 1 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 100 / (1 × 3) = 33.33",
+   "Resultado: 33 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p063.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:66"
+ },
+ {
+  "id": "p064",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5% pediátrico",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 12 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 500,
+   "horas": 12
+  },
+  "resposta": 42,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 12 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 500 / 12 = 41.67",
+   "Resultado: 42 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p064.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:67"
+ },
+ {
+  "id": "p065",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Insulina regular",
+   "dose": 4,
+   "unidadeDose": "UI/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "100 UI em 100 mL",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 4,
+   "quantidade": 100,
+   "volumeMl": 100
+  },
+  "resposta": 4,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 100 UI em 100 mL = 1 UI/mL.",
+   "Dose prescrita: 4 UI/h.",
+   "Vazão: 4 / 1 = 4 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p065.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "semente:69"
+ },
+ {
+  "id": "p066",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5%",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 1 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 100,
+   "horas": 1
+  },
+  "resposta": 33,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 1 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 100 / (1 × 3) = 33.33",
+   "Resultado: 33 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p066.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:72"
+ },
+ {
+  "id": "p067",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5%",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 500,
+   "horas": 6
+  },
+  "resposta": 28,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 6 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 500 / (6 × 3) = 27.78",
+   "Resultado: 28 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p067.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:78"
+ },
+ {
+  "id": "p068",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5% pediátrico",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 100,
+   "horas": 6
+  },
+  "resposta": 17,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 6 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 100 / 6 = 16.67",
+   "Resultado: 17 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p068.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:79"
+ },
+ {
+  "id": "p069",
+  "tipo": "pediatrica",
+  "categoria": "Pediátrico / Rediluição",
+  "prescricao": {
+   "farmaco": "Ceftriaxona",
+   "dose": 250,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "frasco de 1000 mg em 10 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 250,
+   "frasco": 1000,
+   "volumeMl": 10
+  },
+  "resposta": 2.5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 1000 mg em 10 mL.",
+   "Cálculo: (250 × 10) / 1000 = 2.5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p069.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:83"
+ },
+ {
+  "id": "p070",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "Ringer simples",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 250,
+   "horas": 6
+  },
+  "resposta": 14,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 6 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 250 / (6 × 3) = 13.89",
+   "Resultado: 14 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p070.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:84"
+ },
+ {
+  "id": "p071",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5% pediátrico",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 250,
+   "horas": 6
+  },
+  "resposta": 42,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 6 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 250 / 6 = 41.67",
+   "Resultado: 42 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p071.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:85"
+ },
+ {
+  "id": "p072",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Metronidazol",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 30 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 100,
+   "minutos": 30
+  },
+  "resposta": 67,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 30 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (100 × 20) / 30 = 66.67",
+   "Resultado: 67 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p072.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:86"
+ },
+ {
+  "id": "p073",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Nitroglicerina",
+   "dose": 40,
+   "unidadeDose": "mcg/min",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "50 mg em 250 mL",
+  "entrada": {
+   "kind": "bic_mcgmin",
+   "doseMcgMin": 40,
+   "quantidadeMg": 50,
+   "volumeMl": 250
+  },
+  "resposta": 12,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 50 mg em 250 mL = 200 mcg/mL.",
+   "Dose: 40 mcg/min × 60 = 2400 mcg/h.",
+   "Vazão: 2400 / 200 = 12 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p073.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:99"
+ },
+ {
+  "id": "p074",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "Ringer simples",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 500,
+   "horas": 8
+  },
+  "resposta": 21,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 8 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 500 / (8 × 3) = 20.83",
+   "Resultado: 21 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p074.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:102"
+ },
+ {
+  "id": "p075",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro pediátrico",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 100,
+   "horas": 6
+  },
+  "resposta": 17,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 6 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 100 / 6 = 16.67",
+   "Resultado: 17 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p075.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:103"
+ },
+ {
+  "id": "p076",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Meropenem",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 30 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 100,
+   "minutos": 30
+  },
+  "resposta": 67,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 30 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (100 × 20) / 30 = 66.67",
+   "Resultado: 67 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p076.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:104"
+ },
+ {
+  "id": "p077",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Insulina regular",
+   "dose": 8,
+   "unidadeDose": "UI/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "100 UI em 100 mL",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 8,
+   "quantidade": 100,
+   "volumeMl": 100
+  },
+  "resposta": 8,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 100 UI em 100 mL = 1 UI/mL.",
+   "Dose prescrita: 8 UI/h.",
+   "Vazão: 8 / 1 = 8 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p077.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "semente:111"
+ },
+ {
+  "id": "p078",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Nitroglicerina",
+   "dose": 20,
+   "unidadeDose": "mcg/min",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "50 mg em 250 mL",
+  "entrada": {
+   "kind": "bic_mcgmin",
+   "doseMcgMin": 20,
+   "quantidadeMg": 50,
+   "volumeMl": 250
+  },
+  "resposta": 6,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 50 mg em 250 mL = 200 mcg/mL.",
+   "Dose: 20 mcg/min × 60 = 1200 mcg/h.",
+   "Vazão: 1200 / 200 = 6 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p078.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:117"
+ },
+ {
+  "id": "p079",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5%",
+   "dose": 1000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1000,
+   "horas": 6
+  },
+  "resposta": 56,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1000 mL | Tempo: 6 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 1000 / (6 × 3) = 55.56",
+   "Resultado: 56 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p079.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:120"
+ },
+ {
+  "id": "p080",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Insulina regular",
+   "dose": 2,
+   "unidadeDose": "UI/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "100 UI em 100 mL",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 2,
+   "quantidade": 100,
+   "volumeMl": 100
+  },
+  "resposta": 2,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 100 UI em 100 mL = 1 UI/mL.",
+   "Dose prescrita: 2 UI/h.",
+   "Vazão: 2 / 1 = 2 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p080.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "semente:123"
+ },
+ {
+  "id": "p081",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5%",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 12 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 500,
+   "horas": 12
+  },
+  "resposta": 14,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 12 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 500 / (12 × 3) = 13.89",
+   "Resultado: 14 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p081.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:126"
+ },
+ {
+  "id": "p082",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Ceftriaxona",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 30 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 100,
+   "minutos": 30
+  },
+  "resposta": 67,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 30 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (100 × 20) / 30 = 66.67",
+   "Resultado: 67 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p082.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:134"
+ },
+ {
+  "id": "p083",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Heparina",
+   "dose": 1200,
+   "unidadeDose": "UI/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "25000 UI em 250 mL",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 1200,
+   "quantidade": 25000,
+   "volumeMl": 250
+  },
+  "resposta": 12,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 25000 UI em 250 mL = 100 UI/mL.",
+   "Dose prescrita: 1200 UI/h.",
+   "Vazão: 1200 / 100 = 12 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p083.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "semente:135"
+ },
+ {
+  "id": "p084",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "Ringer simples",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 2 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 100,
+   "horas": 2
+  },
+  "resposta": 17,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 2 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 100 / (2 × 3) = 16.67",
+   "Resultado: 17 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p084.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:138"
+ },
+ {
+  "id": "p085",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Ciprofloxacino",
+   "dose": 200,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 60 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 200,
+   "minutos": 60
+  },
+  "resposta": 67,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 200 mL | Tempo: 60 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (200 × 20) / 60 = 66.67",
+   "Resultado: 67 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p085.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:140"
+ },
+ {
+  "id": "p086",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5%",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 2 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 100,
+   "horas": 2
+  },
+  "resposta": 17,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 2 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 100 / (2 × 3) = 16.67",
+   "Resultado: 17 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p086.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:144"
+ },
+ {
+  "id": "p087",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SF 0,9%",
+   "dose": 1000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 24 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1000,
+   "horas": 24
+  },
+  "resposta": 14,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1000 mL | Tempo: 24 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 1000 / (24 × 3) = 13.89",
+   "Resultado: 14 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p087.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:162"
+ },
+ {
+  "id": "p088",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "RL",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 2 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 100,
+   "horas": 2
+  },
+  "resposta": 17,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 2 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 100 / (2 × 3) = 16.67",
+   "Resultado: 17 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p088.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:168"
+ },
+ {
+  "id": "p089",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "RL",
+   "dose": 1000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 12 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1000,
+   "horas": 12
+  },
+  "resposta": 28,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1000 mL | Tempo: 12 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 1000 / (12 × 3) = 27.78",
+   "Resultado: 28 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p089.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:180"
+ },
+ {
+  "id": "p090",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "RL",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 1 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 100,
+   "horas": 1
+  },
+  "resposta": 33,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 1 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 100 / (1 × 3) = 33.33",
+   "Resultado: 33 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p090.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:192"
+ },
+ {
+  "id": "p091",
+  "tipo": "bic",
+  "categoria": "Bomba de Infusão (BIC)",
+  "prescricao": {
+   "farmaco": "Insulina regular",
+   "dose": 6,
+   "unidadeDose": "UI/h",
+   "via": "IV contínua",
+   "frequencia": "contínuo"
+  },
+  "disponivel": "100 UI em 100 mL",
+  "entrada": {
+   "kind": "bic_conc",
+   "doseHora": 6,
+   "quantidade": 100,
+   "volumeMl": 100
+  },
+  "resposta": 6,
+  "unidade": "mL/h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Concentração: 100 UI em 100 mL = 1 UI/mL.",
+   "Dose prescrita: 6 UI/h.",
+   "Vazão: 6 / 1 = 6 mL/h."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p091.enunciado",
+   "dica": "calc.dica.bic"
+  },
+  "altaVigilancia": true,
+  "origem": "semente:195"
+ },
+ {
+  "id": "p092",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SF 0,9%",
+   "dose": 1000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 12 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1000,
+   "horas": 12
+  },
+  "resposta": 28,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1000 mL | Tempo: 12 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 1000 / (12 × 3) = 27.78",
+   "Resultado: 28 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p092.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:198"
+ },
+ {
+  "id": "p093",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Ciprofloxacino",
+   "dose": 200,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 120 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 200,
+   "minutos": 120
+  },
+  "resposta": 33,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 200 mL | Tempo: 120 min.",
+   "Fórmula (minutos): (V × 20) / T",
+   "Cálculo: (200 × 20) / 120 = 33.33",
+   "Resultado: 33 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p093.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:200"
+ },
+ {
+  "id": "p094",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SF 0,9%",
+   "dose": 1000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1000,
+   "horas": 6
+  },
+  "resposta": 56,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1000 mL | Tempo: 6 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 1000 / (6 × 3) = 55.56",
+   "Resultado: 56 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p094.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:210"
+ },
+ {
+  "id": "p095",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro pediátrico",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 4 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 100,
+   "horas": 4
+  },
+  "resposta": 25,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 4 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 100 / 4 = 25.00",
+   "Resultado: 25 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p095.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:211"
+ },
+ {
+  "id": "p096",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "SG 5% pediátrico",
+   "dose": 100,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 4 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 100,
+   "horas": 4
+  },
+  "resposta": 25,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 100 mL | Tempo: 4 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 100 / 4 = 25.00",
+   "Resultado: 25 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p096.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:241"
+ },
+ {
+  "id": "p097",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "RL",
+   "dose": 1000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1000,
+   "horas": 8
+  },
+  "resposta": 42,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1000 mL | Tempo: 8 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 1000 / (8 × 3) = 41.67",
+   "Resultado: 42 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p097.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:258"
+ },
+ {
+  "id": "p098",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "SF 0,9%",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 500,
+   "horas": 8
+  },
+  "resposta": 21,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 8 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 500 / (8 × 3) = 20.83",
+   "Resultado: 21 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p098.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:264"
+ },
+ {
+  "id": "p099",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "Ringer simples",
+   "dose": 1000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 1000,
+   "horas": 8
+  },
+  "resposta": 42,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 1000 mL | Tempo: 8 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 1000 / (8 × 3) = 41.67",
+   "Resultado: 42 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p099.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:270"
+ },
+ {
+  "id": "p100",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "RL",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 500,
+   "horas": 8
+  },
+  "resposta": 21,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 8 h.",
+   "Fórmula Macrogotas: V / (T × 3)",
+   "Cálculo: 500 / (8 × 3) = 20.83",
+   "Resultado: 21 gotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p100.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:276"
+ },
+ {
+  "id": "p101",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro pediátrico",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 12 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 500,
+   "horas": 12
+  },
+  "resposta": 42,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 12 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 500 / 12 = 41.67",
+   "Resultado: 42 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p101.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:283"
+ },
+ {
+  "id": "p102",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro pediátrico",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 24 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 500,
+   "horas": 24
+  },
+  "resposta": 21,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 24 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 500 / 24 = 20.83",
+   "Resultado: 21 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p102.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:295"
+ },
+ {
+  "id": "p103",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro pediátrico",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 4 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 250,
+   "horas": 4
+  },
+  "resposta": 63,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 4 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 250 / 4 = 62.50",
+   "Resultado: 63 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p103.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:355"
+ },
+ {
+  "id": "p104",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro pediátrico",
+   "dose": 250,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 250,
+   "horas": 8
+  },
+  "resposta": 31,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 250 mL | Tempo: 8 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 250 / 8 = 31.25",
+   "Resultado: 31 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p104.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:391"
+ },
+ {
+  "id": "p105",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro pediátrico",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 8 horas"
+  },
+  "disponivel": "equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 500,
+   "horas": 8
+  },
+  "resposta": 63,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume: 500 mL | Tempo: 8 h.",
+   "Fórmula Microgotas: V / T",
+   "Cálculo: 500 / 8 = 62.50",
+   "Resultado: 63 microgotas/minuto."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p105.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "semente:463"
+ },
+ {
+  "id": "p106",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Heparina",
+   "dose": 50000,
+   "unidadeDose": "UI",
+   "via": "SC",
+   "frequencia": "de 12 em 12 horas"
+  },
+  "disponivel": "frasco de 5.000 UI/mL, 5 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Dose 10 vezes maior: a dose usual é 5.000 UI por aplicação.",
+   "Conduta: Heparina 5.000 UI SC. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "dose10x",
+   "correcao": "Heparina 5.000 UI SC",
+   "explicacao": "Dose 10 vezes maior: a dose usual é 5.000 UI por aplicação.",
+   "regra": {
+    "doseUsual": 5000,
+    "fator": 10
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p106.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "erro:dose10x"
+ },
+ {
+  "id": "p107",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Enoxaparina",
+   "dose": 400,
+   "unidadeDose": "mg",
+   "via": "SC",
+   "frequencia": "uma vez ao dia"
+  },
+  "disponivel": "seringa de 40 mg/0,4 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Dose 10 vezes maior: a dose profilática usual é 40 mg.",
+   "Conduta: Enoxaparina 40 mg SC. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "dose10x",
+   "correcao": "Enoxaparina 40 mg SC",
+   "explicacao": "Dose 10 vezes maior: a dose profilática usual é 40 mg.",
+   "regra": {
+    "doseUsual": 40,
+    "fator": 10
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p107.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:dose10x"
+ },
+ {
+  "id": "p108",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Insulina regular",
+   "dose": 100,
+   "unidadeDose": "UI",
+   "via": "SC",
+   "frequencia": "agora"
+  },
+  "disponivel": "frasco de 100 UI/mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Dose 10 vezes maior: seria 10 UI. Aplicar 100 UI é risco de hipoglicemia grave.",
+   "Conduta: Insulina regular 10 UI SC. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "dose10x",
+   "correcao": "Insulina regular 10 UI SC",
+   "explicacao": "Dose 10 vezes maior: seria 10 UI. Aplicar 100 UI é risco de hipoglicemia grave.",
+   "regra": {
+    "doseUsual": 10,
+    "fator": 10
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p108.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "erro:dose10x"
+ },
+ {
+  "id": "p109",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Dexametasona",
+   "dose": 40,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 4 mg/mL, 2,5 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Dose 10 vezes maior que a prescrição usual de 4 mg.",
+   "Conduta: Dexametasona 4 mg IV. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "dose10x",
+   "correcao": "Dexametasona 4 mg IV",
+   "explicacao": "Dose 10 vezes maior que a prescrição usual de 4 mg.",
+   "regra": {
+    "doseUsual": 4,
+    "fator": 10
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p109.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:dose10x"
+ },
+ {
+  "id": "p110",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Morfina",
+   "dose": 40,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 10 mg/mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Dose 10 vezes maior: a dose usual é 2 a 4 mg. Risco de depressão respiratória.",
+   "Conduta: Morfina 4 mg IV. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "dose10x",
+   "correcao": "Morfina 4 mg IV",
+   "explicacao": "Dose 10 vezes maior: a dose usual é 2 a 4 mg. Risco de depressão respiratória.",
+   "regra": {
+    "doseUsual": 4,
+    "fator": 10
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p110.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "erro:dose10x"
+ },
+ {
+  "id": "p111",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Furosemida",
+   "dose": 200,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 20 mg/2 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Dose 10 vezes maior que os 20 mg usuais.",
+   "Conduta: Furosemida 20 mg IV. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "dose10x",
+   "correcao": "Furosemida 20 mg IV",
+   "explicacao": "Dose 10 vezes maior que os 20 mg usuais.",
+   "regra": {
+    "doseUsual": 20,
+    "fator": 10
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p111.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:dose10x"
+ },
+ {
+  "id": "p112",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Ondansetrona",
+   "dose": 80,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 8 mg/4 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Dose 10 vezes maior que os 8 mg usuais.",
+   "Conduta: Ondansetrona 8 mg IV. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "dose10x",
+   "correcao": "Ondansetrona 8 mg IV",
+   "explicacao": "Dose 10 vezes maior que os 8 mg usuais.",
+   "regra": {
+    "doseUsual": 8,
+    "fator": 10
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p112.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:dose10x"
+ },
+ {
+  "id": "p113",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Cloreto de potássio 19,1%",
+   "dose": 10,
+   "unidadeDose": "mL",
+   "via": "EV direto (bólus)",
+   "frequencia": "agora"
+  },
+  "disponivel": "ampola de 10 mL (19,1%)",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "KCl concentrado nunca é feito em bólus: causa parada cardíaca. Precisa ser diluído e infundido devagar.",
+   "Conduta: KCl sempre diluído e em infusão lenta. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "via",
+   "correcao": "KCl sempre diluído e em infusão lenta",
+   "explicacao": "KCl concentrado nunca é feito em bólus: causa parada cardíaca. Precisa ser diluído e infundido devagar.",
+   "regra": {
+    "farmaco": "kcl",
+    "viaProibida": "bolus"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p113.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "erro:via"
+ },
+ {
+  "id": "p114",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Cloreto de potássio 10%",
+   "dose": 20,
+   "unidadeDose": "mL",
+   "via": "IM",
+   "frequencia": "agora"
+  },
+  "disponivel": "ampola de 10 mL (10%)",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "KCl não vai por via IM nem em bólus: é irritante e fatal em bólus.",
+   "Conduta: KCl sempre diluído e em infusão lenta. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "via",
+   "correcao": "KCl sempre diluído e em infusão lenta",
+   "explicacao": "KCl não vai por via IM nem em bólus: é irritante e fatal em bólus.",
+   "regra": {
+    "farmaco": "kcl",
+    "viaProibida": "im"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p114.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "erro:via"
+ },
+ {
+  "id": "p115",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Penicilina benzatina",
+   "dose": 1200000,
+   "unidadeDose": "UI",
+   "via": "EV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "frasco de 1.200.000 UI com diluente de 4 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Benzatina é apenas intramuscular. Na veia pode causar parada cardiorrespiratória.",
+   "Conduta: Penicilina benzatina só IM. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "via",
+   "correcao": "Penicilina benzatina só IM",
+   "explicacao": "Benzatina é apenas intramuscular. Na veia pode causar parada cardiorrespiratória.",
+   "regra": {
+    "farmaco": "benzatina",
+    "viaProibida": "ev"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p115.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:via"
+ },
+ {
+  "id": "p116",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Insulina NPH",
+   "dose": 10,
+   "unidadeDose": "UI",
+   "via": "EV",
+   "frequencia": "agora"
+  },
+  "disponivel": "frasco de 100 UI/mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "NPH é de ação intermediária e só vai por via subcutânea. Na veia, usa-se a regular.",
+   "Conduta: Insulina NPH só SC. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "via",
+   "correcao": "Insulina NPH só SC",
+   "explicacao": "NPH é de ação intermediária e só vai por via subcutânea. Na veia, usa-se a regular.",
+   "regra": {
+    "farmaco": "nph",
+    "viaProibida": "ev"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p116.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "erro:via"
+ },
+ {
+  "id": "p117",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Vancomicina",
+   "dose": 1000,
+   "unidadeDose": "mg",
+   "via": "IM",
+   "frequencia": "de 12 em 12 horas"
+  },
+  "disponivel": "frasco de 500 mg com diluente de 10 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Vancomicina IM causa necrose e dor intensa. A via é intravenosa, em infusão lenta.",
+   "Conduta: Vancomicina só IV, diluída e lenta. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "via",
+   "correcao": "Vancomicina só IV, diluída e lenta",
+   "explicacao": "Vancomicina IM causa necrose e dor intensa. A via é intravenosa, em infusão lenta.",
+   "regra": {
+    "farmaco": "vancomicina",
+    "viaProibida": "im"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p117.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:via"
+ },
+ {
+  "id": "p118",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Heparina",
+   "dose": 5000,
+   "unidadeDose": "UI",
+   "via": "IM",
+   "frequencia": "de 12 em 12 horas"
+  },
+  "disponivel": "frasco de 5.000 UI/mL, 5 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Heparina IM está contraindicada: forma hematoma. Vai por via subcutânea ou intravenosa.",
+   "Conduta: Heparina SC ou IV. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "via",
+   "correcao": "Heparina SC ou IV",
+   "explicacao": "Heparina IM está contraindicada: forma hematoma. Vai por via subcutânea ou intravenosa.",
+   "regra": {
+    "farmaco": "heparina",
+    "viaProibida": "im"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p118.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "erro:via"
+ },
+ {
+  "id": "p119",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Fenitoína",
+   "dose": 250,
+   "unidadeDose": "mg",
+   "via": "IM",
+   "frequencia": "dose de ataque"
+  },
+  "disponivel": "ampola de 250 mg/5 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Fenitoína IM cristaliza e é absorvida de forma errática. A via é intravenosa e lenta.",
+   "Conduta: Fenitoína só IV, lenta, em soro fisiológico. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "via",
+   "correcao": "Fenitoína só IV, lenta, em soro fisiológico",
+   "explicacao": "Fenitoína IM cristaliza e é absorvida de forma errática. A via é intravenosa e lenta.",
+   "regra": {
+    "farmaco": "fenitoina",
+    "viaProibida": "im"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p119.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:via"
+ },
+ {
+  "id": "p120",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Fentanil",
+   "dose": 100,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 50 mcg/mL, 2 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Unidade trocada: a dose é em microgramas (mcg), não miligramas. É uma diferença de mil vezes.",
+   "Conduta: Fentanil 100 mcg. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "unidade",
+   "correcao": "Fentanil 100 mcg",
+   "explicacao": "Unidade trocada: a dose é em microgramas (mcg), não miligramas. É uma diferença de mil vezes.",
+   "regra": {
+    "doseCerta": 100,
+    "unidadeCerta": "mcg",
+    "unidadeErrada": "mg"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p120.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "erro:unidade"
+ },
+ {
+  "id": "p121",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Digoxina",
+   "dose": 250,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 0,25 mg/mL, 2 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Unidade trocada: 250 mcg equivalem a 0,25 mg. Prescrever 250 mg é mil vezes maior.",
+   "Conduta: Digoxina 0,25 mg (250 mcg). Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "unidade",
+   "correcao": "Digoxina 0,25 mg (250 mcg)",
+   "explicacao": "Unidade trocada: 250 mcg equivalem a 0,25 mg. Prescrever 250 mg é mil vezes maior.",
+   "regra": {
+    "doseCerta": 250,
+    "unidadeCerta": "mcg",
+    "unidadeErrada": "mg"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p121.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "erro:unidade"
+ },
+ {
+  "id": "p122",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Levotiroxina",
+   "dose": 100,
+   "unidadeDose": "mg",
+   "via": "VO",
+   "frequencia": "uma vez ao dia"
+  },
+  "disponivel": "comprimido de 100 mcg",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Unidade trocada: a dose é 100 mcg, não 100 mg.",
+   "Conduta: Levotiroxina 100 mcg. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "unidade",
+   "correcao": "Levotiroxina 100 mcg",
+   "explicacao": "Unidade trocada: a dose é 100 mcg, não 100 mg.",
+   "regra": {
+    "doseCerta": 100,
+    "unidadeCerta": "mcg",
+    "unidadeErrada": "mg"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p122.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:unidade"
+ },
+ {
+  "id": "p123",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Morfina",
+   "dose": 5,
+   "unidadeDose": "mcg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 10 mg/mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Unidade trocada: a dose é em miligramas (mg). 5 mcg não tem efeito.",
+   "Conduta: Morfina 5 mg. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "unidade",
+   "correcao": "Morfina 5 mg",
+   "explicacao": "Unidade trocada: a dose é em miligramas (mg). 5 mcg não tem efeito.",
+   "regra": {
+    "doseCerta": 5,
+    "unidadeCerta": "mg",
+    "unidadeErrada": "mcg"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p123.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": true,
+  "origem": "erro:unidade"
+ },
+ {
+  "id": "p124",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Adrenalina",
+   "dose": 1,
+   "unidadeDose": "mcg",
+   "via": "IV",
+   "frequencia": "parada cardíaca"
+  },
+  "disponivel": "ampola de 1 mg/mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Unidade trocada: na parada a dose é 1 mg. Com 1 mcg, a dose é mil vezes menor.",
+   "Conduta: Adrenalina 1 mg. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "unidade",
+   "correcao": "Adrenalina 1 mg",
+   "explicacao": "Unidade trocada: na parada a dose é 1 mg. Com 1 mcg, a dose é mil vezes menor.",
+   "regra": {
+    "doseCerta": 1,
+    "unidadeCerta": "mg",
+    "unidadeErrada": "mcg"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p124.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:unidade"
+ },
+ {
+  "id": "p125",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Atropina",
+   "dose": 0.5,
+   "unidadeDose": "mcg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 0,25 mg/mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Unidade trocada: a dose é 0,5 mg. Em microgramas ficaria mil vezes menor.",
+   "Conduta: Atropina 0,5 mg. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "unidade",
+   "correcao": "Atropina 0,5 mg",
+   "explicacao": "Unidade trocada: a dose é 0,5 mg. Em microgramas ficaria mil vezes menor.",
+   "regra": {
+    "doseCerta": 0.5,
+    "unidadeCerta": "mg",
+    "unidadeErrada": "mcg"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p125.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:unidade"
+ },
+ {
+  "id": "p126",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Dexametasona",
+   "dose": 4,
+   "unidadeDose": "mcg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 4 mg/mL, 2,5 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Unidade trocada: a dose é 4 mg, não 4 mcg.",
+   "Conduta: Dexametasona 4 mg. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "unidade",
+   "correcao": "Dexametasona 4 mg",
+   "explicacao": "Unidade trocada: a dose é 4 mg, não 4 mcg.",
+   "regra": {
+    "doseCerta": 4,
+    "unidadeCerta": "mg",
+    "unidadeErrada": "mcg"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p126.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "erro:unidade"
+ },
+ {
+  "id": "p127",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Dipirona",
+   "dose": 1,
+   "unidadeDose": "g",
+   "via": "IV",
+   "frequencia": "de 6 em 6 horas"
+  },
+  "disponivel": "ampola de 500 mg/mL, 2 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "O paciente tem alergia registrada a dipirona.",
+   "Conduta: Dipirona suspensa; avisar o médico. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "alergia",
+   "correcao": "Dipirona suspensa; avisar o médico",
+   "explicacao": "O paciente tem alergia registrada a dipirona.",
+   "regra": {
+    "classe": "dipirona"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p127.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "paciente": {
+   "alergias": [
+    "dipirona"
+   ]
+  },
+  "origem": "erro:alergia"
+ },
+ {
+  "id": "p128",
+  "tipo": "reconstituicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Penicilina cristalina",
+   "dose": 2000000,
+   "unidadeDose": "UI",
+   "via": "IV",
+   "frequencia": "de 4 em 4 horas"
+  },
+  "disponivel": "frasco de 5.000.000 UI, dilui em 8 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "O paciente tem alergia registrada a penicilina.",
+   "Conduta: Penicilina suspensa; avisar o médico. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "alergia",
+   "correcao": "Penicilina suspensa; avisar o médico",
+   "explicacao": "O paciente tem alergia registrada a penicilina.",
+   "regra": {
+    "classe": "penicilina"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p128.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "paciente": {
+   "alergias": [
+    "penicilina"
+   ]
+  },
+  "origem": "erro:alergia"
+ },
+ {
+  "id": "p129",
+  "tipo": "pediatrica",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Amoxicilina",
+   "dose": 500,
+   "unidadeDose": "mg",
+   "via": "VO",
+   "frequencia": "de 8 em 8 horas"
+  },
+  "disponivel": "cápsula de 500 mg",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "Amoxicilina é uma penicilina, e o paciente tem alergia registrada a penicilinas.",
+   "Conduta: Amoxicilina suspensa; avisar o médico. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "alergia",
+   "correcao": "Amoxicilina suspensa; avisar o médico",
+   "explicacao": "Amoxicilina é uma penicilina, e o paciente tem alergia registrada a penicilinas.",
+   "regra": {
+    "classe": "penicilina"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p129.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "paciente": {
+   "alergias": [
+    "penicilinas"
+   ]
+  },
+  "origem": "erro:alergia"
+ },
+ {
+  "id": "p130",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Cefalexina",
+   "dose": 500,
+   "unidadeDose": "mg",
+   "via": "VO",
+   "frequencia": "de 6 em 6 horas"
+  },
+  "disponivel": "cápsula de 500 mg",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "O paciente tem alergia registrada a cefalosporinas.",
+   "Conduta: Cefalexina suspensa; avisar o médico. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "alergia",
+   "correcao": "Cefalexina suspensa; avisar o médico",
+   "explicacao": "O paciente tem alergia registrada a cefalosporinas.",
+   "regra": {
+    "classe": "cefalosporina"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p130.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "paciente": {
+   "alergias": [
+    "cefalosporinas"
+   ]
+  },
+  "origem": "erro:alergia"
+ },
+ {
+  "id": "p131",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "AAS",
+   "dose": 100,
+   "unidadeDose": "mg",
+   "via": "VO",
+   "frequencia": "uma vez ao dia"
+  },
+  "disponivel": "comprimido de 100 mg",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "O paciente tem alergia registrada a AAS.",
+   "Conduta: AAS suspenso; avisar o médico. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "alergia",
+   "correcao": "AAS suspenso; avisar o médico",
+   "explicacao": "O paciente tem alergia registrada a AAS.",
+   "regra": {
+    "classe": "aas"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p131.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "paciente": {
+   "alergias": [
+    "AAS"
+   ]
+  },
+  "origem": "erro:alergia"
+ },
+ {
+  "id": "p132",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Diclofenaco",
+   "dose": 75,
+   "unidadeDose": "mg",
+   "via": "IM",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 75 mg/3 mL",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "O paciente tem alergia registrada a anti-inflamatórios (AINEs).",
+   "Conduta: Diclofenaco suspenso; avisar o médico. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "alergia",
+   "correcao": "Diclofenaco suspenso; avisar o médico",
+   "explicacao": "O paciente tem alergia registrada a anti-inflamatórios (AINEs).",
+   "regra": {
+    "classe": "aine"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p132.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "paciente": {
+   "alergias": [
+    "anti-inflamatórios"
+   ]
+  },
+  "origem": "erro:alergia"
+ },
+ {
+  "id": "p133",
+  "tipo": "diluicao",
+  "categoria": "Prescrição com erro",
+  "prescricao": {
+   "farmaco": "Sulfametoxazol + trimetoprima",
+   "dose": 800,
+   "unidadeDose": "mg",
+   "via": "VO",
+   "frequencia": "de 12 em 12 horas"
+  },
+  "disponivel": "comprimido de 800/160 mg",
+  "entrada": null,
+  "resposta": null,
+  "unidade": null,
+  "casas": null,
+  "tolerancia": null,
+  "memoria": [
+   "O paciente tem alergia registrada a sulfas.",
+   "Conduta: Sulfa suspensa; avisar o médico. Não calcule: questione a prescrição."
+  ],
+  "erroProposital": {
+   "tipo": "alergia",
+   "correcao": "Sulfa suspensa; avisar o médico",
+   "explicacao": "O paciente tem alergia registrada a sulfas.",
+   "regra": {
+    "classe": "sulfa"
+   }
+  },
+  "falas": {
+   "enunciado": "calc.p133.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "paciente": {
+   "alergias": [
+    "sulfa"
+   ]
+  },
+  "origem": "erro:alergia"
+ }
+]
