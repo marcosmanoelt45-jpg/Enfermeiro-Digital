@@ -37,3 +37,18 @@ export async function transcrever(audioBlob, { duracaoSeg, onEtapa = () => {} } 
     onEtapa,
   });
 }
+
+// Token temporário da AssemblyAI para o streaming (consome 1 min da cota stt). O WebSocket e os parâmetros vêm do servidor.
+export function sttToken() {
+  return invocarFuncao(invoke, "stt-token", {}, { timeoutMs: 15000, tentativas: 2 });
+}
+
+// Voz ao vivo hospedada: devolve um Blob de áudio, ou null (204) quando não há voz hospedada.
+export async function gerarVoz({ texto, personagemId }) {
+  const { data, error } = await supabase.functions.invoke("voz", { body: { texto, personagemId } });
+  if (error) {
+    // Falha de voz nunca atrapalha a cena: o chamador cai na voz do navegador.
+    return null;
+  }
+  return data instanceof Blob && data.size > 0 ? data : null;
+}
