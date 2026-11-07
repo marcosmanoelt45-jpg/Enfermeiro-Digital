@@ -1,0 +1,8 @@
+{
+  "personagem": "marcus",
+  "perfilVoicebox": "Marcus",
+  "falas": [
+    { "id": "dev.abertura.1", "texto": "Bom dia, enfermeiro. Dormi mal essa noite." },
+    { "id": "dev.abertura.2", "texto": "Tô com uma dor aqui no peito, mas já passou um pouco." }
+  ]
+}
