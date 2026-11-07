@@ -1,0 +1,95 @@
+{
+  "versao": 1,
+  "falas": {
+    "consulta.abertura.colaborativo.1": {
+      "arquivo": "consulta.abertura.colaborativo.1.36af5378.mp3",
+      "hash": "36af537843cde7092081751f4dea3c727e7db07c",
+      "duracaoMs": 2475
+    },
+    "consulta.abertura.colaborativo.2": {
+      "arquivo": "consulta.abertura.colaborativo.2.f9f83dd6.mp3",
+      "hash": "f9f83dd64521e2afb1fbd5092c7d2b85c6908047",
+      "duracaoMs": 3000
+    },
+    "consulta.abertura.ansioso.1": {
+      "arquivo": "consulta.abertura.ansioso.1.b0e8d914.mp3",
+      "hash": "b0e8d91470227d11ebc5838cafada4fa43b6be46",
+      "duracaoMs": 2625
+    },
+    "consulta.abertura.ansioso.2": {
+      "arquivo": "consulta.abertura.ansioso.2.64b720f0.mp3",
+      "hash": "64b720f0fdc7beeae2dc301f337a624879dde1bc",
+      "duracaoMs": 3700
+    },
+    "consulta.abertura.desconfiado.1": {
+      "arquivo": "consulta.abertura.desconfiado.1.e52eec67.mp3",
+      "hash": "e52eec67e8e5ed69ab526a6bfa5918cfe14db6e1",
+      "duracaoMs": 700
+    },
+    "consulta.abertura.desconfiado.2": {
+      "arquivo": "consulta.abertura.desconfiado.2.22000b96.mp3",
+      "hash": "22000b96c9c677d7eaac043b5f72c6f8c1ff2c32",
+      "duracaoMs": 1925
+    },
+    "consulta.abertura.esquecido.1": {
+      "arquivo": "consulta.abertura.esquecido.1.a51ff194.mp3",
+      "hash": "a51ff194b802645b336d93de95def8abcd807c92",
+      "duracaoMs": 2775
+    },
+    "consulta.abertura.esquecido.2": {
+      "arquivo": "consulta.abertura.esquecido.2.19767ab5.mp3",
+      "hash": "19767ab53d2e734accd3bfb62e6bb31f52835b92",
+      "duracaoMs": 2400
+    },
+    "consulta.abertura.minimizador.1": {
+      "arquivo": "consulta.abertura.minimizador.1.d4f8f195.mp3",
+      "hash": "d4f8f1959d678c1148c51758799fae87ae3ad47e",
+      "duracaoMs": 3675
+    },
+    "consulta.abertura.minimizador.2": {
+      "arquivo": "consulta.abertura.minimizador.2.b15376c4.mp3",
+      "hash": "b15376c43bb1dbd7bdaa09ed5b40ea24d17eb60d",
+      "duracaoMs": 2425
+    },
+    "consulta.abertura.poliqueixoso.1": {
+      "arquivo": "consulta.abertura.poliqueixoso.1.c184ab31.mp3",
+      "hash": "c184ab319d44052db3a14fdd7b9adede87ece606",
+      "duracaoMs": 3150
+    },
+    "consulta.abertura.poliqueixoso.2": {
+      "arquivo": "consulta.abertura.poliqueixoso.2.bde72a24.mp3",
+      "hash": "bde72a242f6ef645b9e6265f1878c3cd15db4746",
+      "duracaoMs": 3525
+    },
+    "consulta.abertura.envergonhado.1": {
+      "arquivo": "consulta.abertura.envergonhado.1.bd34e26f.mp3",
+      "hash": "bd34e26f9d09cbe3cded43c89c1ca7c9474ced6b",
+      "duracaoMs": 2200
+    },
+    "consulta.abertura.envergonhado.2": {
+      "arquivo": "consulta.abertura.envergonhado.2.0291b97d.mp3",
+      "hash": "0291b97dbafb726bb3f3a9cf8b74c90849dddec2",
+      "duracaoMs": 2125
+    },
+    "consulta.abertura.surpresa.1": {
+      "arquivo": "consulta.abertura.surpresa.1.b6d714f2.mp3",
+      "hash": "b6d714f2f8ab4ef788aa8076a488467a1673c0b4",
+      "duracaoMs": 1725
+    },
+    "consulta.abertura.surpresa.2": {
+      "arquivo": "consulta.abertura.surpresa.2.2ff0df0b.mp3",
+      "hash": "2ff0df0b4db51315d67235a01c088f9c99aa91f4",
+      "duracaoMs": 2150
+    },
+    "dev.abertura.1": {
+      "arquivo": "dev.abertura.1.57cf59c4.mp3",
+      "hash": "57cf59c417f0936bb079f197aec763f020594d9d",
+      "duracaoMs": 2775
+    },
+    "dev.abertura.2": {
+      "arquivo": "dev.abertura.2.68fefa16.mp3",
+      "hash": "68fefa163066f6078db950e7c3b0f4cf37fe80eb",
+      "duracaoMs": 3275
+    }
+  }
+}
