@@ -38,7 +38,12 @@ export default function ControleFala({
   }, [rascunho, status]);
 
   // Mostra a fala parcial enquanto o aluno segura.
-  const valor = segurando && textoParcial ? textoParcial : texto;
+  // A transcrição não pode piscar: o parcial fica até a final chegar e, em revisão, o rascunho aparece no mesmo quadro.
+  const [editado, setEditado] = useState(false);
+  useEffect(() => {
+    setEditado(false);
+  }, [rascunho]);
+  const valor = textoParcial || (texto === "" && revisando && !editado ? rascunho : texto);
 
   useEffect(() => {
     const el = areaTexto.current;
@@ -106,7 +111,10 @@ export default function ControleFala({
           value={valor}
           readOnly={segurando}
           rows={1}
-          onChange={(e) => setTexto(e.target.value)}
+          onChange={(e) => {
+            setEditado(true);
+            setTexto(e.target.value);
+          }}
           onKeyDown={(e) => {
             if (e.key === "Enter" && !e.shiftKey) {
               e.preventDefault();
