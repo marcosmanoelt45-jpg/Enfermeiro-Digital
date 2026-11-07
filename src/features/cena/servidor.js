@@ -52,3 +52,11 @@ export async function gerarVoz({ texto, personagemId }) {
   }
   return data instanceof Blob && data.size > 0 ? data : null;
 }
+
+// Cliente das ações da cena-ia (Consulta ao Vivo). Cada função devolve os dados ou lança ErroServidor.
+// criar usa timeout de 30 s (a IA monta a ficha); o turno, 15 s; um turnoId repetido é idempotente no servidor.
+export const consulta = {
+  criar: (dados) => invocarFuncao(invoke, "cena-ia", { acao: "criar_consulta", ...dados }, { timeoutMs: 30000, tentativas: 1 }),
+  turno: ({ sessaoId, turnoId, texto, canal }) => invocarFuncao(invoke, "cena-ia", { acao: "turno_consulta", sessaoId, turnoId, texto, canal }, { timeoutMs: 15000, tentativas: 2 }),
+  retomar: (sessaoId) => invocarFuncao(invoke, "cena-ia", { acao: "retomar_consulta", sessaoId }, { timeoutMs: 15000, tentativas: 2 }),
+};

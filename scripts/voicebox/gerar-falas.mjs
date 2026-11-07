@@ -6,7 +6,7 @@ import { spawnSync } from "node:child_process";
 import { dirname, join } from "node:path";
 import { tmpdir } from "node:os";
 import { fileURLToPath } from "node:url";
-import { aplicarPronuncia, duracaoDoWav, planejar } from "./plano.mjs";
+import { agruparFalas, aplicarPronuncia, duracaoDoWav, planejar } from "./plano.mjs";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "..", "..");
 const VOICEBOX = process.env.VOICEBOX_BASE_URL || "http://127.0.0.1:17493";
@@ -18,10 +18,10 @@ const so = args.includes("--personagem") ? args[args.indexOf("--personagem") + 1
 
 function lerFalas() {
   const pasta = join(raiz, "src", "data", "falas");
-  return readdirSync(pasta)
-    .filter((n) => n.endsWith(".json") && n !== "pronuncia.json")
-    .map((n) => JSON.parse(readFileSync(join(pasta, n), "utf8")))
-    .filter((d) => d.personagem && Array.isArray(d.falas) && (!so || d.personagem === so));
+  const arquivos = readdirSync(pasta)
+    .filter((n) => n.endsWith(".json"))
+    .map((n) => JSON.parse(readFileSync(join(pasta, n), "utf8")));
+  return agruparFalas(arquivos).filter((g) => !so || g.personagem === so);
 }
 
 async function voiceboxNoAr() {

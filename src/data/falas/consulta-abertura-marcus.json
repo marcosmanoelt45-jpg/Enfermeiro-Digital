@@ -1,0 +1,70 @@
+{
+  "personagem": "marcus",
+  "perfilVoicebox": "Marcus",
+  "falas": [
+    {
+      "id": "consulta.abertura.colaborativo.1",
+      "texto": "Bom dia… é você que vai me atender?"
+    },
+    {
+      "id": "consulta.abertura.colaborativo.2",
+      "texto": "Oi, enfermeiro. Pode perguntar o que precisar."
+    },
+    {
+      "id": "consulta.abertura.ansioso.1",
+      "texto": "Ai, que bom que você veio! Será que é grave?"
+    },
+    {
+      "id": "consulta.abertura.ansioso.2",
+      "texto": "Bom dia… eu tô com um aperto no peito, tô muito preocupado."
+    },
+    {
+      "id": "consulta.abertura.desconfiado.1",
+      "texto": "…Oi."
+    },
+    {
+      "id": "consulta.abertura.desconfiado.2",
+      "texto": "Quem é você? Vai me atender?"
+    },
+    {
+      "id": "consulta.abertura.esquecido.1",
+      "texto": "Ah, bom dia… esqueci o seu nome, me desculpa."
+    },
+    {
+      "id": "consulta.abertura.esquecido.2",
+      "texto": "Hã? Ah, é você que vem falar comigo?"
+    },
+    {
+      "id": "consulta.abertura.minimizador.1",
+      "texto": "Bom dia. Foi minha família que insistiu em eu vir, não é nada."
+    },
+    {
+      "id": "consulta.abertura.minimizador.2",
+      "texto": "Ah, eu tô bem, só vim porque mandaram."
+    },
+    {
+      "id": "consulta.abertura.poliqueixoso.1",
+      "texto": "Ai, que bom que veio, tenho tanta coisa pra te contar…"
+    },
+    {
+      "id": "consulta.abertura.poliqueixoso.2",
+      "texto": "Bom dia! Olha, hoje é a barriga, é o joelho, é a cabeça…"
+    },
+    {
+      "id": "consulta.abertura.envergonhado.1",
+      "texto": "Bom dia… desculpa o incômodo."
+    },
+    {
+      "id": "consulta.abertura.envergonhado.2",
+      "texto": "Oi… posso falar baixinho?"
+    },
+    {
+      "id": "consulta.abertura.surpresa.1",
+      "texto": "Bom dia, enfermeiro."
+    },
+    {
+      "id": "consulta.abertura.surpresa.2",
+      "texto": "Oi… é você que vai me atender?"
+    }
+  ]
+}

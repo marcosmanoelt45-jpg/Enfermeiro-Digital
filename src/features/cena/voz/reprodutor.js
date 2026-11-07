@@ -191,3 +191,12 @@ export function criarReprodutor({
 
   return { desbloquear, tocar, parar };
 }
+
+// Um único reprodutor por página: o iOS só libera o <audio> que tocou num gesto, então quem destrava
+// (ex.: o botão "Começar consulta") e quem fala (useVozPersonagem) precisam usar o mesmo elemento.
+let compartilhado = null;
+export function obterReprodutor() {
+  if (!compartilhado) compartilhado = criarReprodutor();
+  return compartilhado;
+}
+export const desbloquearAudio = () => obterReprodutor().desbloquear();

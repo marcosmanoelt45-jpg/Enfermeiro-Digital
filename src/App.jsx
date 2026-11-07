@@ -39,6 +39,7 @@ const SbarHandoffLab = lazy(() => import('@/pages/SbarHandoffLab'));
 const ProcedimentosLab = lazy(() => import('@/pages/ProcedimentosLab'));
 const Videochamada = lazy(() => import('@/pages/Videochamada'));
 // Só em desenvolvimento: no build de produção o import é descartado.
+const ConsultaPage = lazy(() => import('@/features/consulta/ConsultaPage'));
 const DevCenaPage = import.meta.env.DEV ? lazy(() => import('@/features/cena/DevCenaPage')) : null;
 
 const PageLoader = () => (
@@ -179,6 +180,7 @@ const AuthenticatedApp = () => {
           <Route path="/turma/:id/nova-atividade" element={<Navigate to="/" replace />} />
           <Route path="/assignment/:id" element={<Navigate to="/" replace />} />
           {DevCenaPage && <Route path="/dev/cena" element={<DevCenaPage />} />}
+          <Route path="/consulta" element={<ConsultaPage />} />
           <Route path="/passagem-plantao" element={<SbarHandoffLab />} />
           <Route path="/passagem-plantao-sbar" element={<SbarHandoffLab />} />
           <Route path="/sbar" element={<SbarHandoffLab />} />
