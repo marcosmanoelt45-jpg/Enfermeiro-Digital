@@ -48,3 +48,6 @@ agent/
 supabase/.temp/
 .vercel
 backups/
+
+# Amostra de falas (gerada por scripts/voicebox/gerar-falas.mjs --amostra)
+public/vozes/_amostra.html
