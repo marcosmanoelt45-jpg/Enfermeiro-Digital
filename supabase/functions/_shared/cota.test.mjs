@@ -1,7 +1,10 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 import { ErroApp } from "./erros.ts";
-import { TIPOS_DE_COTA, consumirCota, limiteDe, mensagemDaCota } from "./cota.ts";
+import { TIPOS_DE_COTA, consumirCota as consumirCotaReal, cotasAtivas, limiteDe, mensagemDaCota } from "./cota.ts";
+
+// Nos testes de limite a cota está ligada; o padrão do servidor é desligada (app gratuito).
+const consumirCota = (c, tipo, limite, qtd = 1) => consumirCotaReal(c, tipo, limite, qtd, true);
 
 const semEnv = () => undefined;
 
@@ -69,4 +72,16 @@ test("a mensagem muda conforme o tipo", () => {
   assert.match(mensagemDaCota("stt", 20), /transcrição/);
   assert.match(mensagemDaCota("llm", 60), /IA/);
   assert.match(mensagemDaCota("voz", 200), /limite de hoje/);
+});
+
+test("sem COTAS_ATIVAS o app é gratuito: nada é cobrado e o banco nem é chamado", async () => {
+  assert.equal(cotasAtivas(() => undefined), false);
+  assert.equal(cotasAtivas(() => ""), false);
+  assert.equal(cotasAtivas(() => "0"), false);
+  assert.equal(cotasAtivas(() => "1"), true);
+  let chamadas = 0;
+  const c = { rpc: () => { chamadas++; return Promise.resolve({ data: false, error: null }); } };
+  await consumirCotaReal(c, "consulta", 5, 1, false);
+  await consumirCotaReal(c, "stt", 0, 99, false);
+  assert.equal(chamadas, 0);
 });

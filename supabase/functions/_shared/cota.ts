@@ -1,4 +1,5 @@
 // Cota diária por aluno e por tipo de uso, guardada no banco (RPC `consumir_cota`, migration 010).
+// DESLIGADA por enquanto: o app é gratuito e sem limites. Para ligar de novo, defina o secret COTAS_ATIVAS=1.
 import { ErroApp } from "./erros.ts";
 
 export type TipoCota = "llm" | "consulta" | "turno" | "stt" | "voz" | "avaliacao";
@@ -55,12 +56,18 @@ export interface ClienteRpc {
 }
 
 // Consome `qtd` da cota. Se passar do limite lança COTA_EXCEDIDA; se o banco falhar, IA_INDISPONIVEL.
+export function cotasAtivas(lerEnv: (nome: string) => string | undefined = lerEnvDoDeno): boolean {
+  return lerEnv("COTAS_ATIVAS")?.trim() === "1";
+}
+
 export async function consumirCota(
   supabaseUsuario: ClienteRpc,
   tipo: TipoCota,
   limite: number,
   qtd = 1,
+  ativas: boolean = cotasAtivas(),
 ): Promise<void> {
+  if (!ativas) return; // sem limites: nem chama o banco
   const { data, error } = await supabaseUsuario.rpc("consumir_cota", {
     p_tipo: tipo,
     p_limite: limite,
