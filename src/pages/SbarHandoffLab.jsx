@@ -44,7 +44,6 @@ import { AnimatedNumber } from "@/components/ui/animated-number";
 import { vibrate } from "@/lib/motion";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
 import { PRESET_HANDOFF_SCENARIOS } from "@/data/sbarHandoffScenarios";
-import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 export default function SbarHandoffLab() {
   const location = useLocation();
@@ -1847,7 +1846,6 @@ export default function SbarHandoffLab() {
       </main>
 
       <StudentFooter />
-      <MobileBottomDock />
     </div>
   );
 }
