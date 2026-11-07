@@ -5,7 +5,7 @@
 ## Fases
 | Fase | Status | PR | Data | Observações |
 |---|---|---|---|---|
-| F0 Base do repositório | em andamento | — | 06/11/2026 | 0.1 a 0.5 feitas; 0.6–0.7 pendentes. Branch `feat/cenas-f0-base`, a partir de `origin/main` @ 027f623 |
+| F0 Base do repositório | em andamento | — | 06/11/2026 | 0.1 a 0.6 feitas; 0.7 pendente. Branch `feat/cenas-f0-base`, a partir de `origin/main` @ 027f623 |
 | F1 Base do servidor | pendente | — | — | — |
 | F2 Motor Cena ao Vivo | pendente | — | — | — |
 | F3 Consulta: conversa | pendente | — | — | — |
@@ -26,6 +26,7 @@
 
 ## Divergências entre plano e código encontradas
 - **SBAR dividido em componentes (F7).** O plano foi escrito com `SbarHandoffLab.jsx` de 1.905 linhas. No branch `feat/redesign-estrutural` (commits `40349b6`, `f75cb56` e `39c4a74`, já no GitHub) ele caiu para cerca de 1.447 linhas, e as abas viraram componentes em `src/components/sbar/`: `SbarDebrief`, `SbarConfirm`, `SbarVoiceBoard`, `ElapsedClock` e `QuickSimCountdown`. **Esses commits ainda não estão na `main` e não têm PR.** Antes da F7, confirme se entraram na `main` e leia os componentes atuais, não o arquivo antigo: as contagens de linha do plano estão desatualizadas. A contagem real de 2 minutos da Simulação Rápida (PR #4) já está na `main`.
+- **`dosage-1` já estava corrigido (etapa 0.6).** `answerUnit` já existia nos 20 problemas e nos 6 geradores e a página já lia `problem.answerUnit` (PR #3). A 0.6 só tirou o "gotas/min" de reserva da tela, exportou os 6 geradores para testá-los um a um e criou `src/data/dosageProblems.test.mjs`. A F6 pode contar com `answerUnit` em todo problema.
 - **`TecladoCalculo` (F6).** O `TecladoCalculo.jsx` antigo, sem uso, foi apagado na auditoria (PR #3). A F6 cria o seu do zero; não há conflito de nome nem o que reaproveitar.
 - **`vercel.json` (etapa 0.7).** Já tem cabeçalhos de segurança, CSP em modo relatório (só avisa, não bloqueia) e cache: `/assets` imutável por 1 ano; `goti|pacientes|audio|previews` com `max-age=604800, stale-while-revalidate=86400`; `no-store` com regex negativa `assets/|goti/|pacientes/|audio/|previews/`. A 0.7 deve **estender** essas regras (`vozes/`, `personagens/`, `minijogos/` e ajuste dos valores), não recriá-las. A F1/F2 devem acrescentar ao `connect-src` da CSP o que usarem de novo (ex.: o websocket do streaming do AssemblyAI).
 - **Falas dos pacientes em MP3.** `public/pacientes/*` agora tem `.mp3` mono de 48 kbps no lugar dos `.wav` (PR #3). Vale para a produção de vozes (P2).

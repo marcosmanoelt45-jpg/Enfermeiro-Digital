@@ -331,9 +331,12 @@ export default function MedicationDosageLab() {
                     placeholder="0.00"
                     className="bg-transparent border-none text-white text-2xl font-black placeholder:text-slate-700 focus:outline-none w-full"
                   />
-                  <span className="text-sm font-bold text-slate-500 bg-[#131F2E] px-3 py-1 rounded-lg">
-                    {problem.answerUnit || "gotas/min"}
-                  </span>
+                  {/* A unidade vem do problema; sem unidade definida, não mostra nenhuma (nunca "gotas/min" por padrão). */}
+                  {problem.answerUnit && (
+                    <span className="text-sm font-bold text-slate-500 bg-[#131F2E] px-3 py-1 rounded-lg">
+                      {problem.answerUnit}
+                    </span>
+                  )}
                 </div>
 
                 <div className="grid grid-cols-2 gap-3">
@@ -429,7 +432,8 @@ export default function MedicationDosageLab() {
                       </ol>
                       <div className="pt-2 border-t border-slate-800">
                         <p className="text-lg font-black text-white">
-                          Resposta: <span className="text-emerald-400">{problem.correctResult}</span> <span className="text-slate-500 text-sm">{problem.answerUnit || "gotas/min"}</span>
+                          Resposta: <span className="text-emerald-400">{problem.correctResult}</span>{" "}
+                          {problem.answerUnit && <span className="text-slate-500 text-sm">{problem.answerUnit}</span>}
                         </p>
                       </div>
                     </div>
