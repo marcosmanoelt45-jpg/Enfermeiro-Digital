@@ -2,7 +2,7 @@
 // toca em sequência e expõe a palavra atual para o karaokê. Falha de voz nunca aparece como erro.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buscarPersonagem } from "./dados/personagens.js";
-import { resolverFala } from "./logica/falas.js";
+import { dividirEmFrases, resolverFala } from "./logica/falas.js";
 import { carregarManifesto } from "./voz/manifestos.js";
 import { obterReprodutor } from "./voz/reprodutor.js";
 import { gerarVoz } from "./servidor.js";
@@ -43,12 +43,26 @@ export default function useVozPersonagem(personagemId) {
           setFalaAtual(fala);
           setPalavraAtual(-1);
           const resolvida = resolverFala(fala, manifesto, `/vozes/${personagemId}`);
-          let fonte = { tipo: "navegador" };
-          if (resolvida.tipo === "mp3") fonte = resolvida;
-          else if (resolvida.tipo === "aovivo") {
-            const blob = await gerarVoz({ texto: fala.texto, personagemId });
-            if (blob) fonte = { tipo: "blob", blob };
+          if (resolvida.tipo === "aovivo") {
+            // Voz ao vivo frase a frase: pede todas ao mesmo tempo e toca a 1ª assim que chega
+            // (a resposta inteira de uma vez levava mais de 10 s para começar a tocar).
+            const frases = dividirEmFrases(fala.texto);
+            const pedidos = frases.map((frase) => gerarVoz({ texto: frase, personagemId }).catch(() => null));
+            let deslocamento = 0;
+            for (let i = 0; i < frases.length; i++) {
+              const blob = await pedidos[i];
+              if (gen !== geracaoRef.current) return false;
+              const base = deslocamento;
+              await player.tocar(blob ? { tipo: "blob", blob } : { tipo: "navegador" }, {
+                texto: frases[i],
+                personagem,
+                onPalavra: (p) => gen === geracaoRef.current && setPalavraAtual(base + p),
+              });
+              deslocamento += frases[i].split(/\s+/).filter(Boolean).length;
+            }
+            continue;
           }
+          const fonte = resolvida.tipo === "mp3" ? resolvida : { tipo: "navegador" };
           if (gen !== geracaoRef.current) return false;
           await player.tocar(fonte, { texto: fala.texto, personagem, onPalavra: (i) => gen === geracaoRef.current && setPalavraAtual(i) });
         }

@@ -11,6 +11,7 @@ import { consumirCota, limiteDe } from "../_shared/cota.ts";
 import { ErroApp, erroDeExcecao } from "../_shared/erros.ts";
 import { logEvento } from "../_shared/log.ts";
 import { z } from "../_shared/schemas.ts";
+import { falarComGemini, vozDoPersonagem } from "../_shared/vozGemini.ts";
 
 const MAX_CARACTERES = 400;
 const BUCKET = "vozes-cache";
@@ -34,7 +35,8 @@ function paraBase64Bytes(b64: string): Uint8Array {
 function respostaAudio(bytes: Uint8Array, cache: boolean): Response {
   return new Response(bytes as unknown as BodyInit, {
     status: 200,
-    headers: { ...corsHeaders, "Content-Type": "audio/wav", "X-Voz-Cache": cache ? "hit" : "miss" },
+    // octet-stream: o supabase-js só entrega Blob para esse tipo (audio/wav chegava como texto e se perdia).
+    headers: { ...corsHeaders, "Content-Type": "application/octet-stream", "X-Voz-Cache": cache ? "hit" : "miss" },
   });
 }
 
@@ -55,9 +57,11 @@ Deno.serve(async (req) => {
     if (req.method !== "POST") throw new ErroApp("ENTRADA_INVALIDA", "Use POST.");
     const usuario = await exigirUsuario(req);
 
-    // Sem voz hospedada configurada: 204, sem cobrar cota. O cliente cai na voz do navegador.
+    // Sem servidor próprio (VOZ_AO_VIVO_URL): usa o Gemini TTS, se houver chave. Sem nenhum dos dois: 204
+    // e o cliente cai na voz do navegador.
     const base = Deno.env.get("VOZ_AO_VIVO_URL");
-    if (!base) return new Response(null, { status: 204, headers: corsHeaders });
+    const chaveGemini = Deno.env.get("GEMINI_API_KEY");
+    if (!base && !chaveGemini) return new Response(null, { status: 204, headers: corsHeaders });
 
     let corpo: unknown = null;
     try {
@@ -71,6 +75,27 @@ Deno.serve(async (req) => {
     }
     const { texto, personagemId } = entrada.data;
 
+    if (!base && chaveGemini) {
+      const admin = usuario.supabaseAdmin;
+      const chaveCache = `g-${await sha1(`${vozDoPersonagem(personagemId).voz}|${texto}`)}.wav`;
+      try {
+        const { data } = await admin.storage.from(BUCKET).download(chaveCache);
+        if (data) return respostaAudio(new Uint8Array(await data.arrayBuffer()), true);
+      } catch {
+        // sem cache: segue
+      }
+      await consumirCota(usuario.supabaseUsuario, "voz", limiteDe("voz"));
+      const wav = await falarComGemini({ texto, personagemId, chave: chaveGemini });
+      if (!wav) return new Response(null, { status: 204, headers: corsHeaders });
+      try {
+        await admin.storage.from(BUCKET).upload(chaveCache, wav, { contentType: "audio/wav", upsert: true });
+      } catch {
+        // cache é otimização
+      }
+      return respostaAudio(wav, false);
+    }
+
+    if (!base) return new Response(null, { status: 204, headers: corsHeaders });
     const perfil = lerPerfis()[personagemId];
     if (!perfil) return new Response(null, { status: 204, headers: corsHeaders });
 

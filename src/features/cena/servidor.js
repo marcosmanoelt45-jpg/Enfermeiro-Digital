@@ -52,7 +52,8 @@ export async function gerarVoz({ texto, personagemId }) {
     // Falha de voz nunca atrapalha a cena: o chamador cai na voz do navegador.
     return null;
   }
-  return data instanceof Blob && data.size > 0 ? data : null;
+  // O servidor manda octet-stream (único tipo que o supabase-js entrega como Blob); aqui vira áudio WAV.
+  return data instanceof Blob && data.size > 44 ? new Blob([data], { type: "audio/wav" }) : null;
 }
 
 // Cliente das ações da cena-ia (Consulta ao Vivo). Cada função devolve os dados ou lança ErroServidor.
