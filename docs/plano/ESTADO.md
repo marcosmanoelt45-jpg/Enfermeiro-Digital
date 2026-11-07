@@ -6,7 +6,7 @@
 | Fase | Status | PR | Data | Observações |
 |---|---|---|---|---|
 | F0 Base do repositório | em andamento | — | 06/11/2026 | 0.1 a 0.7 feitas; falta conferir os cabeçalhos de cache no preview da Vercel. Branch `feat/cenas-f0-base`, a partir de `origin/main` @ 027f623 |
-| F1 Base do servidor | pendente | — | — | — |
+| F1 Base do servidor | feita no branch, aguardando PR/produção | — | 06/11/2026 | Branch `feat/cenas-f1-servidor`: `_shared` (1.1), migration 010 da cota (1.2), `clinical-ai-sanitize` sobre o `_shared` (1.3), Edge Function `transcrever` (1.4), cliente sem chave em `src/features/cena/` (1.5). Verificado com Deno + PGlite (`~/.claude/tools/servidor-checks/`), sem Supabase de teste |
 | F2 Motor Cena ao Vivo | pendente | — | — | — |
 | F3 Consulta: conversa | pendente | — | — | — |
 | F4 Consulta: fechamento | pendente | — | — | — |
@@ -36,7 +36,7 @@
 ## Produção (o que está em produção vs. só no branch)
 - Edge Functions em produção: `clinical-ai-sanitize` (v5, ativa; conferido em 06/11/2026)
 - Migrations em produção: 001–009 (conferido em 06/11/2026)
-- Aguardando autorização do dono para produção: (vazio)
+- Aguardando autorização do dono para produção, nesta ordem: (1) definir o secret `ASSEMBLYAI_API_KEY` no Supabase (só o dono tem a chave); (2) aplicar a migration `010_ai_cota.sql`; (3) deploy de `transcrever` e de `clinical-ai-sanitize`; (4) só então mesclar o PR da F1. Mesclar antes disso quebra a transcrição e deixa a IA sem cota no banco. Migrations futuras: testar com `servidor-checks/banco.mjs` (PGlite) antes de qualquer Supabase.
 
 ## Medições
 - Latência do turno da Consulta (mediana 4G): —
@@ -46,7 +46,10 @@
 
 ## Depois (fora do escopo, não esquecer)
 - Goti em produção revela o modelo (família Gemini/Flash) e resume o prompt, como mostra o print de 06/11. Reforçar a regra do prompt e filtrar a saída (`ia/referencias-paciente.md` §1)
-- Trocar o "Cenário B" (prompt livre) da `clinical-ai-sanitize` por uma lista de tarefas permitidas
+- Trocar o "Cenário B" (prompt livre) da `clinical-ai-sanitize` por uma lista de tarefas permitidas (hoje qualquer aluno logado manda prompt livre, limitado só pela cota `llm`)
+- Apagar o transcript na AssemblyAI depois de ler o texto (LGPD): a `transcrever` ainda não faz DELETE
+- CSP em modo relatório sem `report-to`: não coleta nada. Precisa de uma Edge Function receptora (depende de autorização)
+- O filtro de fala do Goti (F3) deve incluir nomes de provedores/modelos e "prompt"/"instruções"
 - Histórico e gamificação no Supabase em vez do localStorage (hoje se perde ao trocar de aparelho)
 - Voz ao vivo hospedada (D4)
 - Mais minijogos: descarte, higienização das mãos, paramentação, IM ventroglútea, LPP, flebite, purgar equipo, sondagem, luva estéril, 9 certos, glicosímetro
