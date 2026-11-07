@@ -13,7 +13,7 @@
 | F5 Minijogos + Técnicas | pronta no branch (sem sons) | #12 | 07/11/2026 | Motor, 5 tipos, 3 minijogos à mão + 29 gerados, `/tecnicas` com abas POPs/Vídeos embutidas (`VideotecaConteudo`), `procedures-1` corrigido (tempo e fim vêm das mensagens do YouTube). Falta só: sons da ausculta, que dependem de licença do dono |
 | F6 Cálculo com o Médico | pronta no branch (flag desligada) | a abrir | 07/11/2026 | Geradores com semente, banco de 133 itens (28 com erro) verificado por fórmulas independentes, `numerosFalados` (42 casos), página nova atrás da flag `calculoMedico` em `/laboratorio-calculos`. mp3 do Dr. Rui ainda não gerados (voz do navegador) |
 | F7 Plantão com a Enfermeira | pronta no branch (flag desligada) | a abrir | 07/11/2026 | Parser de vitais com 45 casos, dados dos 20 cenários, roteiro, ação `avaliar_plantao` (IA não rodou: sem Supabase de teste), prontuário, cena e relatório atrás da flag `plantaoVivo` em `/sbar`. mp3 da Ana não gerados |
-| F8 Navegação final | pendente | — | — | — |
+| F8 Navegação final | bloqueada, não iniciada | — | 07/11/2026 | Exige aprovação do dono das F3–F7 em preview e as 3 confirmações do início da fase (D2, SBAR antigo, Montar Caso). Ligar as flags expõe `cena-ia`, `transcrever` etc., que ainda não estão em produção; remover Videochamada e redirecionar rotas é irreversível para o aluno. Nada foi feito |
 | P1 Arte (Flow) | pendente | — | — | personagens prontos: marcus, teresinha (parcial) |
 | P2 Vozes (VoiceBox) | pendente | — | — | perfis prontos: Marcus, Teresinha, Goti |
 
