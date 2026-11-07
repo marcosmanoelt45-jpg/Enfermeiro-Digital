@@ -410,3 +410,16 @@ test("criar: IA lenta passa do prazo e a consulta sai na hora com o modelo pront
   assert.ok(Date.now() - inicio < 2000, `demorou ${Date.now() - inicio} ms`);
   assert.ok(r.sessaoId);
 });
+
+test("turno: fala em campo com outro nome, aninhada ou só como maior texto também é aceita", async () => {
+  const casos = [
+    [{ speech: "Em inglês.", emocao: "falando", delta_confianca: 1 }, "Em inglês."],
+    [{ resposta: { fala: "Aninhada.", emocao: "falando" }, delta_confianca: 0 }, "Aninhada."],
+    [{ x: "Campo estranho com a fala.", emocao: "dor" }, "Campo estranho com a fala."],
+  ];
+  for (const [bruto, esperado] of casos) {
+    const { repo, sessaoId } = await preparar();
+    const r = await turno(repo, sessaoId, llmFalso(bruto));
+    assert.equal(r.fala, esperado);
+  }
+});

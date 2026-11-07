@@ -43,7 +43,21 @@ export function lerResposta(bruto: unknown): RespostaIA | null {
   let r = bruto as any;
   if (Array.isArray(r)) r = r.find((x) => x && typeof x === "object") ?? null;
   if (!r || typeof r !== "object") return null;
-  const falaBruta = [r.fala, r.resposta, r.texto, r.mensagem].find((v) => typeof v === "string" && v.trim());
+  // Objeto aninhado ({ "resposta": { "fala": ... } }) também vale.
+  for (const v of Object.values(r)) {
+    if (v && typeof v === "object" && !Array.isArray(v) && typeof (v as { fala?: unknown }).fala === "string") {
+      r = { ...r, ...(v as object) };
+      break;
+    }
+  }
+  const NOMES_DE_FALA = /^(fala|resposta|texto|mensagem|dialogo|di[aá]logo|speech|reply|answer|content|text|patient_?speech|paciente|resposta_paciente)$/i;
+  const IGNORAR = /^(emocao|emoção|emotion|nota_memoria|exame_solicitado|revelados|temas_do_aluno)$/i;
+  const porNome = Object.entries(r).find(([k, v]) => NOMES_DE_FALA.test(k) && typeof v === "string" && v.trim());
+  // Sem nome conhecido: a maior string que não é emoção nem nota.
+  const maior = Object.entries(r)
+    .filter(([k, v]) => !IGNORAR.test(k) && typeof v === "string" && v.trim().length > 1)
+    .sort((a, b) => String(b[1]).length - String(a[1]).length)[0];
+  const falaBruta = porNome?.[1] ?? maior?.[1];
   if (!falaBruta) return null;
   let fala = String(falaBruta).trim();
   if (fala.length > 400) {
@@ -117,9 +131,13 @@ export async function turnoConsulta(userId: string, entrada: EntradaTurno, deps:
     texto = r.texto;
     tokens = (r.uso?.entrada ?? 0) + (r.uso?.saida ?? 0) || null;
     try {
-      resposta = lerResposta(extrairJson(r.texto));
-      // Só o formato (nunca o conteúdo): ajuda a ver por que a resposta foi recusada.
-      if (!resposta) logEvento("resposta_recusada", { tentativa: tentativa + 1, modelo: r.modelo, chars: r.texto.length, comeca: r.texto.trim().slice(0, 1) });
+      const json = extrairJson(r.texto);
+      resposta = lerResposta(json);
+      // Só os NOMES dos campos (nunca o conteúdo): ajuda a ver por que a resposta foi recusada.
+      if (!resposta) {
+        const chaves = json && typeof json === "object" ? Object.keys(json as object).slice(0, 8).map((k) => k.replace(/[^\w]/g, "")).join("+") : typeof json;
+        logEvento("resposta_recusada", { tentativa: tentativa + 1, modelo: r.modelo, chars: r.texto.length, chaves: chaves || "nenhuma" });
+      }
     } catch {
       logEvento("resposta_sem_json", { tentativa: tentativa + 1, modelo: r.modelo, chars: r.texto.length, comeca: r.texto.trim().slice(0, 1) });
       resposta = null;
