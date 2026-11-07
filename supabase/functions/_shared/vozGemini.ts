@@ -37,6 +37,49 @@ async function descobrirModelosTts(chave: string, fetchImpl: typeof fetch): Prom
   return modelosTts?.length ? modelosTts : ["gemini-2.5-flash-preview-tts"];
 }
 
+// O Gemini às vezes termina o áudio com uma rajada alta de ruído (o "chiado de TV") depois de um silêncio.
+// Corta esse trecho final quando ele é bem mais alto que a própria fala, e suaviza os últimos 30 ms.
+export function limparFinal(pcm: Uint8Array, taxa = 24000): Uint8Array {
+  const n = Math.floor(pcm.byteLength / 2);
+  if (n < taxa * 0.2) return pcm;
+  const amostras = new Int16Array(n);
+  const dv = new DataView(pcm.buffer, pcm.byteOffset, n * 2);
+  for (let i = 0; i < n; i++) amostras[i] = dv.getInt16(i * 2, true);
+
+  const W = Math.round(taxa * 0.02); // janelas de 20 ms
+  const janelas = Math.floor(n / W);
+  const rms = Array.from({ length: janelas }, (_, w) => {
+    let s = 0;
+    for (let i = w * W; i < (w + 1) * W; i++) s += amostras[i] * amostras[i];
+    return Math.sqrt(s / W);
+  });
+
+  let fim = n;
+  // último silêncio de 100 ms ou mais (rms < 120)
+  let w = janelas - 1;
+  while (w >= 0 && rms[w] >= 120) w--;
+  const fimSilencio = w;
+  let corrida = 0;
+  while (w >= 0 && rms[w] < 120) {
+    corrida++;
+    w--;
+  }
+  const depois = rms.slice(fimSilencio + 1);
+  if (corrida >= 5 && depois.length > 0 && depois.length <= 15) {
+    const picoFala = Math.max(1, ...rms.slice(0, Math.max(1, w + 1)));
+    const mediaDepois = depois.reduce((a, b) => a + b, 0) / depois.length;
+    if (mediaDepois > picoFala * 1.3) fim = Math.min(n, (w + 1 + Math.min(corrida, 3)) * W); // mantém 60 ms de silêncio
+  }
+
+  const saida = amostras.slice(0, fim);
+  const fade = Math.min(saida.length, Math.round(taxa * 0.03));
+  for (let i = 0; i < fade; i++) saida[saida.length - 1 - i] = Math.round(saida[saida.length - 1 - i] * (i / fade));
+  const bytes = new Uint8Array(saida.length * 2);
+  const out = new DataView(bytes.buffer);
+  for (let i = 0; i < saida.length; i++) out.setInt16(i * 2, saida[i], true);
+  return bytes;
+}
+
 // PCM 16 bits mono -> WAV (cabeçalho RIFF de 44 bytes).
 export function pcmParaWav(pcm: Uint8Array, taxa = 24000, canais = 1, bits = 16): Uint8Array {
   const cabecalho = new ArrayBuffer(44);
@@ -76,8 +119,10 @@ export async function falarComGemini(
   { texto, personagemId, chave, fetchImpl = fetch, timeoutMs = 12000 }: { texto: string; personagemId: string; chave: string; fetchImpl?: typeof fetch; timeoutMs?: number },
 ): Promise<Uint8Array | null> {
   const { voz } = vozDoPersonagem(personagemId);
-  const modelos = (await descobrirModelosTts(chave, fetchImpl)).slice(0, 2);
-  for (const modelo of modelos) {
+  // Sempre o MESMO modelo (o 1º da lista): trocar de modelo mudava o timbre no meio da conversa.
+  // Se falhar, tenta o mesmo de novo; se falhar outra vez, o cliente usa a voz do navegador nessa frase.
+  const primeiro = (await descobrirModelosTts(chave, fetchImpl))[0];
+  for (const modelo of [primeiro, primeiro]) {
     const inicio = Date.now();
     try {
       const r = await fetchImpl(`${BASE}/models/${modelo}:generateContent`, {
@@ -103,7 +148,7 @@ export async function falarComGemini(
       }
       const taxa = Number(String(parte.inlineData.mimeType ?? "").match(/rate=(\d+)/)?.[1] ?? 24000);
       logEvento("voz_gemini_ok", { modelo, voz, ms: Date.now() - inicio });
-      return pcmParaWav(base64ParaBytes(b64), taxa);
+      return pcmParaWav(limparFinal(base64ParaBytes(b64), taxa), taxa);
     } catch (e) {
       logEvento("voz_gemini_excecao", { modelo, tipo: e instanceof Error ? e.name : "Erro", ms: Date.now() - inicio });
     }

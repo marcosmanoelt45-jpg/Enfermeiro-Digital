@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { falarComGemini, ordenarModelosTts, pcmParaWav, vozDoPersonagem } from "./vozGemini.ts";
+import { falarComGemini, limparFinal, ordenarModelosTts, pcmParaWav, vozDoPersonagem } from "./vozGemini.ts";
 
 const logOriginal = console.log;
 test.before(() => { console.log = () => {}; });
@@ -50,4 +50,26 @@ test("falarComGemini devolve WAV a partir do PCM base64 e usa a voz do personage
 test("falarComGemini devolve null quando o Gemini falha (cliente usa a voz do navegador)", async () => {
   const fetchImpl = async (url) => (String(url).includes("/models?") ? { ok: false, status: 500, json: async () => ({}) } : { ok: false, status: 503, json: async () => ({}) });
   assert.equal(await falarComGemini({ texto: "Oi.", personagemId: "teresinha", chave: "k", fetchImpl }), null);
+});
+
+const pcm = (partes) => {
+  const total = partes.reduce((a, p) => a + p.n, 0);
+  const b = new Uint8Array(total * 2); const v = new DataView(b.buffer); let i = 0;
+  for (const p of partes) for (let k = 0; k < p.n; k++, i++) v.setInt16(i * 2, Math.round(p.amp * Math.sin(k / 3)), true);
+  return b;
+};
+
+test("limparFinal corta a rajada alta depois do silêncio final", () => {
+  const entrada = pcm([{ n: 24000, amp: 5000 }, { n: 4800, amp: 20 }, { n: 2880, amp: 24000 }]);
+  const saida = limparFinal(entrada, 24000);
+  const amostras = saida.byteLength / 2;
+  assert.ok(amostras < 24000 + 4800, `sobrou ${amostras}`);
+  assert.ok(amostras >= 24000, "cortou a fala");
+});
+
+test("limparFinal não corta fala normal (só suaviza o fim)", () => {
+  const entrada = pcm([{ n: 24000, amp: 5000 }, { n: 4800, amp: 20 }]);
+  assert.equal(limparFinal(entrada, 24000).byteLength, entrada.byteLength);
+  const comPalavraFinal = pcm([{ n: 24000, amp: 5000 }, { n: 3000, amp: 20 }, { n: 4000, amp: 4000 }]);
+  assert.equal(limparFinal(comPalavraFinal, 24000).byteLength, comPalavraFinal.byteLength);
 });

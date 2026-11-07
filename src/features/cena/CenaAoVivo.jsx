@@ -166,7 +166,7 @@ export default function CenaAoVivo({
       ) : (
         <>
           <LegendaFala texto={textoLegenda} palavraAtual={voz.palavraAtual} falando={voz.falando} onOuvir={ultimoPersonagem ? () => ouvirDeNovo(ultimoPersonagem) : undefined} />
-          <HistoricoFalas turnos={estado.turnos} className="max-h-48" onOuvir={ouvirDeNovo} />
+          <HistoricoFalas turnos={estado.turnos} className="max-h-[45vh] min-h-[8rem] rounded-2xl border border-[#1F3045] bg-[#0E1722] p-3" onOuvir={ouvirDeNovo} />
           {estado.status === "processando" && <p className="text-center text-sm font-bold text-[#9FB3C6]" role="status">Aguardando resposta…</p>}
           {estado.status === "erro_recuperavel" && (
             <div className="rounded-2xl border border-[#FF6B6B]/40 bg-[#131F2E] p-3 text-center space-y-2" role="alert">

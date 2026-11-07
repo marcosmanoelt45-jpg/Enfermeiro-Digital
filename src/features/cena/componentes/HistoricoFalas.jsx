@@ -25,7 +25,7 @@ export default function HistoricoFalas({ turnos, className = "", onOuvir }) {
         return (
           <div key={i} className={`flex items-end gap-1 ${aluno ? "justify-end" : "justify-start"}`}>
             <p
-              className={`max-w-[85%] rounded-2xl px-3 py-2 text-sm font-semibold leading-snug ${
+              className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[15px] font-semibold leading-relaxed ${
                 aluno ? "bg-[#20D5B5] text-[#0B131D] rounded-br-md" : "bg-[#16222E] text-[#EAF2F8] border border-[#27394B] rounded-bl-md"
               }`}
             >

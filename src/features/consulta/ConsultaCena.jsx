@@ -8,7 +8,6 @@ import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistory
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { abertura } from "./dados/aberturas.js";
 import { resumoParaHistorico } from "./logica/relatorioView.js";
-import Rapport from "./componentes/Rapport.jsx";
 import RegistroConsulta from "./componentes/RegistroConsulta.jsx";
 import RelatorioConsulta from "./componentes/RelatorioConsulta.jsx";
 
@@ -23,7 +22,6 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
   const { user } = useAuth();
   const personagem = buscarPersonagem(sessao.personagemId);
   const [fase, setFase] = useState("cena"); // cena | registro | relatorio
-  const [rapport, setRapport] = useState(retomada?.rapport ?? "baixo");
   const [restantes, setRestantes] = useState(retomada?.turnosRestantes ?? 40);
   const [enviando, setEnviando] = useState(false);
   const [erro, setErro] = useState(null);
@@ -39,7 +37,6 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
   const onEnviar = useCallback(
     async (texto, canal, turnoId) => {
       const r = await consulta.turno({ sessaoId: sessao.sessaoId, turnoId, texto, canal });
-      setRapport(r.rapport);
       setRestantes(r.turnosRestantes);
       return [{ texto: r.fala, emocao: r.emocao, origem: "aovivo" }];
     },
@@ -81,7 +78,6 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
 
   const slotTopo = (
     <div className="space-y-1">
-      <Rapport nivel={rapport} />
       {restantes <= AVISO_FIM && restantes > 0 && (
         <p className="text-center text-xs font-bold text-[#FFC247]" role="status">
           Faltam {restantes} falas: hora de ir fechando.

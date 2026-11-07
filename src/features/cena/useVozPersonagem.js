@@ -43,14 +43,22 @@ export default function useVozPersonagem(personagemId) {
           setFalaAtual(fala);
           setPalavraAtual(-1);
           const resolvida = resolverFala(fala, manifesto, `/vozes/${personagemId}`);
-          if (resolvida.tipo === "aovivo") {
+          // Falas fixas também usam a voz do Gemini (a mesma do resto da conversa; o servidor guarda em cache,
+          // então cada frase fixa é gerada uma vez só). O mp3 antigo vira reserva.
+          if (resolvida.tipo === "aovivo" || fala.origem === "fixa") {
             // Voz ao vivo frase a frase: pede todas ao mesmo tempo e toca a 1ª assim que chega
             // (a resposta inteira de uma vez levava mais de 10 s para começar a tocar).
             const frases = dividirEmFrases(fala.texto);
             const pedidos = frases.map((frase) => gerarVoz({ texto: frase, personagemId }).catch(() => null));
+            const primeira = await pedidos[0];
+            if (gen !== geracaoRef.current) return false;
+            if (!primeira && resolvida.tipo === "mp3") {
+              await player.tocar(resolvida, { texto: fala.texto, personagem, onPalavra: (i) => gen === geracaoRef.current && setPalavraAtual(i) });
+              continue;
+            }
             let deslocamento = 0;
             for (let i = 0; i < frases.length; i++) {
-              const blob = await pedidos[i];
+              const blob = i === 0 ? primeira : await pedidos[i];
               if (gen !== geracaoRef.current) return false;
               const base = deslocamento;
               await player.tocar(blob ? { tipo: "blob", blob } : { tipo: "navegador" }, {

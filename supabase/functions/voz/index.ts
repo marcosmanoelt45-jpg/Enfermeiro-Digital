@@ -77,7 +77,8 @@ Deno.serve(async (req) => {
 
     if (!base && chaveGemini) {
       const admin = usuario.supabaseAdmin;
-      const chaveCache = `g-${await sha1(`${vozDoPersonagem(personagemId).voz}|${texto}`)}.wav`;
+      // g2: áudios sem o chiado final (os g- antigos ficam sem uso).
+      const chaveCache = `g2-${await sha1(`${vozDoPersonagem(personagemId).voz}|${texto}`)}.wav`;
       try {
         const { data } = await admin.storage.from(BUCKET).download(chaveCache);
         if (data) return respostaAudio(new Uint8Array(await data.arrayBuffer()), true);
