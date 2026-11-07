@@ -121,3 +121,14 @@ test("as flags de hoje deixam o app igual ao de antes (tudo desligado)", () => {
   assert.equal(opcoesDaGavetaPratica().length, 7);
   assert.equal(modulosDaTrilha().length, 5);
 });
+
+test("com a flag tecnicas, o dock troca Vídeos por Técnicas na mesma posição", () => {
+  const sem = itensDoDock(nenhuma);
+  const com = itensDoDock((n) => n === "tecnicas");
+  assert.ok(sem.some((i) => i.rota === "/procedimentos"));
+  assert.ok(!sem.some((i) => i.rota === "/tecnicas"));
+  assert.ok(!com.some((i) => i.rota === "/procedimentos"));
+  const tec = com.find((i) => i.rota === "/tecnicas");
+  assert.equal(tec.ordem, sem.find((i) => i.rota === "/procedimentos").ordem);
+  assert.equal(com.length, sem.length);
+});

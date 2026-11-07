@@ -52,6 +52,20 @@ export default function EnfereClinicalPlayer({
   const iframeRef = useRef(null);
   const progressBarRef = useRef(null);
   const isDraggingRef = useRef(false);
+  const ytPronto = useRef(false);
+  const ytFila = useRef([]);
+  const ytConcluido = useRef(false);
+  const onCompleteRef = useRef(onComplete);
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
+
+  const enviarYT = useCallback((func, args) => {
+    iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ event: 'command', func, args }), YT_ORIGIN);
+  }, []);
+  // Comandos antes da primeira mensagem do player ficam na fila (o iframe ainda não escuta).
+  const sendYT = useCallback((func, args = '') => {
+    if (ytPronto.current) enviarYT(func, args);
+    else ytFila.current.push([func, args]);
+  }, [enviarYT]);
 
   // Detecta se é arquivo de vídeo nativo (MP4 direto da UFRGS ou CDN) ou YouTube
   const isNativeMp4 = Boolean(
@@ -70,16 +84,6 @@ export default function EnfereClinicalPlayer({
   };
 
   const youtubeId = !isNativeMp4 ? extractYoutubeId(videoUrl) : '';
-
-  // Parse de duração inicial se informada por texto (ex: "6 min" -> 360)
-  useEffect(() => {
-    if (duration && totalDuration === 0) {
-      const match = duration.match(/(\d+)\s*min/i);
-      if (match) {
-        setTotalDuration(parseInt(match[1], 10) * 60);
-      }
-    }
-  }, [duration, totalDuration]);
 
   // Formatação de segundos para mm:ss
   const formatTime = (secs) => {
@@ -106,18 +110,12 @@ export default function EnfereClinicalPlayer({
     if (!isPlaying) {
       setIsPlaying(true);
       if (iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: 'command', func: 'playVideo', args: '' }),
-          YT_ORIGIN
-        );
+        sendYT('playVideo', '');
       }
     } else {
       setIsPlaying(false);
       if (iframeRef.current?.contentWindow) {
-        iframeRef.current.contentWindow.postMessage(
-          JSON.stringify({ event: 'command', func: 'pauseVideo', args: '' }),
-          YT_ORIGIN
-        );
+        sendYT('pauseVideo', '');
       }
     }
   };
@@ -133,12 +131,7 @@ export default function EnfereClinicalPlayer({
       return;
     }
 
-    if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: 'command', func: newMuted ? 'mute' : 'unMute', args: '' }),
-        YT_ORIGIN
-      );
-    }
+    sendYT(newMuted ? 'mute' : 'unMute');
   };
 
   // Reiniciar vídeo do início
@@ -153,14 +146,8 @@ export default function EnfereClinicalPlayer({
 
     setIsPlaying(true);
     if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: 'command', func: 'seekTo', args: [0, true] }),
-        YT_ORIGIN
-      );
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: 'command', func: 'playVideo', args: '' }),
-        YT_ORIGIN
-      );
+      sendYT('seekTo', [0, true]);
+      sendYT('playVideo', '');
     }
   };
 
@@ -175,10 +162,7 @@ export default function EnfereClinicalPlayer({
     }
 
     if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: 'command', func: 'setPlaybackRate', args: [rate] }),
-        YT_ORIGIN
-      );
+      sendYT('setPlaybackRate', [rate]);
     }
   };
 
@@ -192,10 +176,7 @@ export default function EnfereClinicalPlayer({
     if (isNativeMp4 && videoRef.current) {
       videoRef.current.currentTime = targetSeconds;
     } else if (iframeRef.current?.contentWindow) {
-      iframeRef.current.contentWindow.postMessage(
-        JSON.stringify({ event: 'command', func: 'seekTo', args: [targetSeconds, true] }),
-        YT_ORIGIN
-      );
+      sendYT('seekTo', [targetSeconds, true]);
     }
   }, [totalDuration, isNativeMp4]);
 
@@ -251,24 +232,41 @@ export default function EnfereClinicalPlayer({
     onComplete?.();
   };
 
-  // Simulação / sincronização contínua de tempo para YouTube caso esteja reproduzindo
+  // YouTube: tempo, duração e fim vêm só das mensagens do próprio player (nada de relógio simulado).
+  const handleYtLoad = () => {
+    ytPronto.current = false;
+    iframeRef.current?.contentWindow?.postMessage(JSON.stringify({ event: 'listening', id: 1 }), YT_ORIGIN);
+  };
+
   useEffect(() => {
-    if (isNativeMp4 || !isPlaying) return;
-
-    const interval = setInterval(() => {
-      setCurrentTime((prev) => {
-        const next = prev + playbackRate;
-        if (totalDuration > 0 && next >= totalDuration) {
-          setIsPlaying(false);
-          onComplete?.();
-          return totalDuration;
+    if (isNativeMp4) return undefined;
+    const onMessage = (e) => {
+      if (e.origin !== YT_ORIGIN || e.source !== iframeRef.current?.contentWindow) return;
+      let data = e.data;
+      if (typeof data === 'string') {
+        try { data = JSON.parse(data); } catch { return; }
+      }
+      if (data?.event !== 'infoDelivery' || !data.info) return;
+      const { currentTime: t, duration: d, playerState: estado } = data.info;
+      if (!ytPronto.current) {
+        ytPronto.current = true;
+        ytFila.current.splice(0).forEach(([fn, args]) => enviarYT(fn, args));
+      }
+      if (typeof d === 'number' && d > 0) setTotalDuration(d);
+      if (typeof t === 'number' && !isDraggingRef.current) setCurrentTime(t);
+      if (estado === 1) setIsPlaying(true);
+      else if (estado === 2) setIsPlaying(false);
+      else if (estado === 0) {
+        setIsPlaying(false);
+        if (!ytConcluido.current) {
+          ytConcluido.current = true;
+          onCompleteRef.current?.();
         }
-        return next;
-      });
-    }, 1000);
-
-    return () => clearInterval(interval);
-  }, [isPlaying, isNativeMp4, playbackRate, totalDuration, onComplete]);
+      }
+    };
+    window.addEventListener('message', onMessage);
+    return () => window.removeEventListener('message', onMessage);
+  }, [isNativeMp4, enviarYT]);
 
   // Alternar Tela Cheia
   const toggleFullscreen = () => {
@@ -299,6 +297,9 @@ export default function EnfereClinicalPlayer({
     setIsPlaying(false);
     setCurrentTime(0);
     setPlaybackRate(1);
+    ytPronto.current = false;
+    ytFila.current = [];
+    ytConcluido.current = false;
     setLoadError(
       typeof window !== 'undefined' && window.location.protocol === 'https:' && /^http:///i.test(videoUrl || '')
     );
@@ -348,6 +349,7 @@ export default function EnfereClinicalPlayer({
             allowFullScreen
             referrerPolicy="strict-origin-when-cross-origin"
             loading="lazy"
+            onLoad={handleYtLoad}
           />
         ) : (
           <div className="text-center p-8 text-slate-400">

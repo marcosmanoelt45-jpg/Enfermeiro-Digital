@@ -10,7 +10,7 @@
 | F2 Motor Cena ao Vivo | feita no branch, aguardando teste em aparelho | — | 06/11/2026 | Branch `feat/cenas-f2-motor` (empilhado sobre a F1). 2.1–2.8 feitas e verificadas no desktop (`/dev/cena`: falas, eco, erro, bloqueio); falta o checklist 2.9 em iPhone/Android reais |
 | F3 Consulta: conversa | feita no branch, falta a bateria de IA | — | 06/11/2026 | Branch `feat/cenas-f3-consulta` (empilhado sobre a F2). 3.1–3.6 feitas e verificadas; a bateria 3.7 está escrita e testada, mas NÃO rodou (precisa de branch do Supabase, `CENA_IA_DEBUG=1` e usuário de teste). Flag `consulta` desligada |
 | F4 Consulta: fechamento | feita no branch (sem quiz D7) | — | 06/11/2026 | Branch `feat/cenas-f4-fechamento` (empilhado sobre a F3). Pontuação por código, ação `finalizar_consulta`, registro, relatório, histórico e XP. IA do avaliador não rodou (sem branch do Supabase) |
-| F5 Minijogos + Técnicas | pendente | — | — | — |
+| F5 Minijogos + Técnicas | pronta no branch (sem sons) | #12 | 07/11/2026 | Motor, 5 tipos, 3 minijogos à mão + 29 gerados, `/tecnicas` com abas POPs/Vídeos embutidas (`VideotecaConteudo`), `procedures-1` corrigido (tempo e fim vêm das mensagens do YouTube). Falta só: sons da ausculta, que dependem de licença do dono |
 | F6 Cálculo com o Médico | pendente | — | — | — |
 | F7 Plantão com a Enfermeira | pendente | — | — | — |
 | F8 Navegação final | pendente | — | — | — |
@@ -68,6 +68,12 @@
 - **Extra "sem relação"** (−10 cada) é o diagnóstico fora dos candidatos do caso; extras plausíveis não são punidos.
 - **Leitura do relatório e dos turnos** é direta nas tabelas (RLS: só do dono e só depois de encerrada), sem ação de servidor. `Rever conversa` depende de a migration 011 estar aplicada.
 - **Busca de diagnóstico** usa `searchNandaCatalog` direto (o `NandaSearchBar` depende do Base44).
+
+## Divergências da F5
+- Categoria extra `procedimentos` para POPs fora de curativos, semiotécnica e medicamentos.
+- Cada região de `tocar-regiao` pode ter `vista` própria (ausculta: 6 anteriores + 6 posteriores).
+- Fonte do POP de curativo marcada como "conferir fonte" na bandeja.
+- Minijogo gerado de semiologia usa id com hífen (`escolher-aspecto-secrecao`).
 
 ## Medições
 - Latência do turno da Consulta (mediana 4G): —
