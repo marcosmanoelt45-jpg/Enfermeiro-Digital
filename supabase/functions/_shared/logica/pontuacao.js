@@ -41,6 +41,9 @@ export function notaIaRaciocinio(criterios) {
 
 // Separa os diagnósticos escolhidos em certos, faltando e extras. "Extra sem relação" é o que nem
 // sequer está entre os candidatos do caso (os extras plausíveis não são punidos).
+/**
+ * @param {{ esperados: string[], escolhidos: string[], candidatos?: string[] }} p
+ */
 export function classificarDiagnosticos({ esperados, escolhidos, candidatos = [] }) {
   const esp = new Set(esperados);
   const esc = [...new Set(escolhidos)];
@@ -57,6 +60,9 @@ export function classificarDiagnosticos({ esperados, escolhidos, candidatos = []
 
 /** Raciocínio = round(70 × certos/esperados + 30 × notaIA/100) − 10 × extrasSemRelação, mínimo 0.
  *  Sem a IA, a parte de código vale 100%: round(100 × certos/esperados) − penalidade. */
+/**
+ * @param {{ certos: number, esperados: number, notaIA?: number | null, extrasSemRelacao?: number }} p
+ */
 export function notaRaciocinio({ certos, esperados, notaIA = null, extrasSemRelacao = 0 }) {
   const parteCodigo = esperados ? certos / esperados : 0;
   const bruto = notaIA === null ? Math.round(100 * parteCodigo) : Math.round(70 * parteCodigo + 30 * (notaIA / 100));
@@ -65,6 +71,9 @@ export function notaRaciocinio({ certos, esperados, notaIA = null, extrasSemRela
 
 /** Geral = round(0,35 anamnese + 0,25 comunicação + 0,2 segurança + 0,2 raciocínio).
  *  Sem comunicação (IA fora do ar), os outros três pesos são renormalizados. */
+/**
+ * @param {{ anamnese: number, comunicacao?: number | null, seguranca: number, raciocinio: number }} p
+ */
 export function notaGeral({ anamnese, comunicacao = null, seguranca, raciocinio }) {
   if (comunicacao === null) return Math.round((0.35 * anamnese + 0.2 * seguranca + 0.2 * raciocinio) / 0.75);
   return Math.round(0.35 * anamnese + 0.25 * comunicacao + 0.2 * seguranca + 0.2 * raciocinio);
