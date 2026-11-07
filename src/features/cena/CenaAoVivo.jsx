@@ -133,7 +133,12 @@ export default function CenaAoVivo({
 
   const emocao = reacao ?? (estado.status === "processando" ? "pensando" : estado.falaAtual?.emocao ?? "parado");
   const ultimoPersonagem = [...estado.turnos].reverse().find((t) => t.autor === "personagem");
-  const textoLegenda = estado.falaAtual?.texto ?? (estado.status === "aguardando_aluno" ? ultimoPersonagem?.texto : "");
+  // A última fala do personagem fica na tela o tempo todo (também enquanto o aluno fala ou espera a resposta).
+  const textoLegenda = estado.falaAtual?.texto ?? ultimoPersonagem?.texto ?? "";
+  const ouvirDeNovo = (turno) => {
+    if (!turno?.texto) return;
+    voz.falar([{ texto: turno.texto, id: turno.id, origem: turno.origem, emocao: turno.emocao }]);
+  };
 
   return (
     <PageShell semDock>
@@ -159,8 +164,8 @@ export default function CenaAoVivo({
         </Button>
       ) : (
         <>
-          <LegendaFala texto={textoLegenda} palavraAtual={voz.palavraAtual} falando={voz.falando} />
-          <HistoricoFalas turnos={estado.turnos} className="max-h-48" />
+          <LegendaFala texto={textoLegenda} palavraAtual={voz.palavraAtual} falando={voz.falando} onOuvir={ultimoPersonagem ? () => ouvirDeNovo(ultimoPersonagem) : undefined} />
+          <HistoricoFalas turnos={estado.turnos} className="max-h-48" onOuvir={ouvirDeNovo} />
           {estado.status === "processando" && <p className="text-center text-sm font-bold text-[#9FB3C6]" role="status">Aguardando resposta…</p>}
           {estado.status === "erro_recuperavel" && (
             <div className="rounded-2xl border border-[#FF6B6B]/40 bg-[#131F2E] p-3 text-center space-y-2" role="alert">

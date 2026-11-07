@@ -23,7 +23,8 @@ function comecarFalas(estado, falas) {
 }
 
 function registrarFalas(turnos, falas) {
-  return [...turnos, ...falas.map((f) => ({ autor: "personagem", texto: f.texto }))];
+  // Guarda id/origem/emoção da fala para "ouvir de novo" tocar com a mesma voz (mp3 fixo ou voz ao vivo).
+  return [...turnos, ...falas.map((f) => ({ autor: "personagem", texto: f.texto, ...(f.id ? { id: f.id } : {}), ...(f.origem ? { origem: f.origem } : {}), ...(f.emocao ? { emocao: f.emocao } : {}) }))];
 }
 
 export function cenaReducer(estado, acao) {

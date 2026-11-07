@@ -30,7 +30,8 @@ export interface RespostaLLM {
 
 export const MODELOS_PADRAO = ["google/gemini-2.5-flash", "openai/gpt-4o-mini", "deepseek/deepseek-chat"];
 // Modelos do Gemini direto (API compatível com OpenAI do Google AI Studio).
-export const MODELOS_GEMINI = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
+// Apelidos "-latest" primeiro (não são aposentados); os numerados ficam de reserva.
+export const MODELOS_GEMINI = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"];
 
 export type Provedor = "gemini" | "openrouter";
 
@@ -70,6 +71,44 @@ export function extrairJson(texto: string): unknown {
 // deno-lint-ignore no-explicit-any
 const lerEnv = (nome: string): string | undefined => (globalThis as any).Deno?.env?.get(nome);
 
+let modelosGeminiDescobertos: string[] | null = null;
+
+// Pergunta à conta quais modelos Gemini de texto existem e devolve os melhores, estáveis, do mais novo ao mais antigo.
+// Apelidos "-latest" vêm primeiro (nunca são aposentados); depois versões numeradas; "flash" antes de "flash-lite".
+export async function descobrirModelosGemini(apiKey: string, fetchImpl: typeof fetch = fetch): Promise<string[]> {
+  try {
+    const r = await fetchImpl("https://generativelanguage.googleapis.com/v1beta/models?pageSize=200", {
+      headers: { "x-goog-api-key": apiKey },
+      signal: AbortSignal.timeout(8000),
+    });
+    if (!r.ok) {
+      logEvento("llm_listar_modelos_falhou", { status: r.status });
+      return [];
+    }
+    const dados = await r.json();
+    return ordenarModelosGemini(dados?.models ?? []);
+  } catch (e) {
+    logEvento("llm_listar_modelos_excecao", { tipo: e instanceof Error ? e.name : "Erro" });
+    return [];
+  }
+}
+
+// deno-lint-ignore no-explicit-any
+export function ordenarModelosGemini(lista: any[]): string[] {
+  const ruins = /preview|exp|tts|image|live|audio|thinking|robotics|computer|embedding|aqa|vision|learnlm|gemma|customtools/i;
+  const candidatos = lista
+    .filter((m) => Array.isArray(m?.supportedGenerationMethods) && m.supportedGenerationMethods.includes("generateContent"))
+    .map((m) => String(m.name ?? "").replace(/^models\//, ""))
+    .filter((n) => /^gemini-.*flash/.test(n) && !ruins.test(n));
+  const pontos = (n: string) => {
+    const alias = /latest$/.test(n) ? 1000 : 0;
+    const versao = Number(n.match(/^gemini-(\d+(?:\.\d+)?)/)?.[1] ?? 0);
+    const lite = /lite/.test(n) ? -0.5 : 0;
+    return alias + versao * 10 + lite;
+  };
+  return [...new Set(candidatos)].sort((a, b) => pontos(b) - pontos(a));
+}
+
 export async function chamarLLM(opcoes: OpcoesLLM): Promise<RespostaLLM> {
   const {
     mensagens,
@@ -87,7 +126,9 @@ export async function chamarLLM(opcoes: OpcoesLLM): Promise<RespostaLLM> {
   const csv = lerEnv("LLM_MODELOS");
   const modelos = opcoes.modelos ?? (provedor === "gemini" ? (csv?.trim() ? modelosConfigurados(csv) : MODELOS_GEMINI) : modelosConfigurados(csv));
 
-  for (const modelo of modelos) {
+  let viu404 = false;
+  const tentar = async (lista: string[]): Promise<RespostaLLM | null> => {
+  for (const modelo of lista) {
     const inicio = Date.now();
     try {
       const corpo: Record<string, unknown> = {
@@ -97,23 +138,32 @@ export async function chamarLLM(opcoes: OpcoesLLM): Promise<RespostaLLM> {
         messages: mensagens,
       };
       if (json) corpo.response_format = { type: "json_object" };
-      // Gemini 2.5 "pensa" por padrão e isso gasta o limite de tokens (JSON cortado): desliga o raciocínio.
+      // Gemini "pensa" por padrão e isso gasta o limite de tokens (JSON cortado): reduz o raciocínio.
       if (provedor === "gemini" && /^gemini-2\.5-flash/.test(modelo)) corpo.reasoning_effort = "none";
+      else if (provedor === "gemini" && (/^gemini-3/.test(modelo) || /flash-latest$/.test(modelo))) corpo.reasoning_effort = "low";
 
-      const resposta = await fetchImpl(ENDPOINTS[provedor], {
-        method: "POST",
-        headers: {
-          "Authorization": `Bearer ${apiKey}`,
-          "Content-Type": "application/json",
-          ...(provedor === "openrouter" ? { "HTTP-Referer": "https://enfermeirodigital.com.br", "X-Title": "Enfere Digital Edge AI" } : {}),
-        },
-        body: JSON.stringify(corpo),
-        signal: AbortSignal.timeout(timeoutMs),
-      });
+      const enviar = (c: Record<string, unknown>) =>
+        fetchImpl(ENDPOINTS[provedor], {
+          method: "POST",
+          headers: {
+            "Authorization": `Bearer ${apiKey}`,
+            "Content-Type": "application/json",
+            ...(provedor === "openrouter" ? { "HTTP-Referer": "https://enfermeirodigital.com.br", "X-Title": "Enfere Digital Edge AI" } : {}),
+          },
+          body: JSON.stringify(c),
+          signal: AbortSignal.timeout(timeoutMs),
+        });
+      let resposta = await enviar(corpo);
+      // Se o modelo recusa o parâmetro de raciocínio (400), repete sem ele.
+      if (resposta.status === 400 && corpo.reasoning_effort) {
+        const { reasoning_effort: _r, ...semRaciocinio } = corpo;
+        resposta = await enviar(semRaciocinio);
+      }
 
       if (!resposta.ok) {
         // Só o status: o corpo do erro pode repetir parte do que foi enviado.
         logEvento("llm_falha", { modelo, status: resposta.status, ms: Date.now() - inicio });
+        if (resposta.status === 404) viu404 = true;
         continue;
       }
 
@@ -138,6 +188,23 @@ export async function chamarLLM(opcoes: OpcoesLLM): Promise<RespostaLLM> {
     } catch (e) {
       const nome = e instanceof Error ? e.name : "Erro";
       logEvento("llm_excecao", { modelo, tipo: nome, ms: Date.now() - inicio });
+    }
+  }
+  return null;
+  };
+
+  // Modelos já descobertos nesta instância (ver abaixo) vêm na frente.
+  const primeira = await tentar(provedor === "gemini" && !opcoes.modelos && modelosGeminiDescobertos ? modelosGeminiDescobertos : modelos);
+  if (primeira) return primeira;
+
+  // Gemini com 404 em todos os modelos: o nome pode ter sido aposentado. Pergunta à própria conta o que existe.
+  if (provedor === "gemini" && !opcoes.modelos && viu404) {
+    const descobertos = (await descobrirModelosGemini(apiKey, fetchImpl)).filter((m) => !modelos.includes(m)).slice(0, 3);
+    if (descobertos.length) {
+      logEvento("llm_modelos_descobertos", { modelos: descobertos.join(",") });
+      modelosGeminiDescobertos = descobertos;
+      const segunda = await tentar(descobertos);
+      if (segunda) return segunda;
     }
   }
 
