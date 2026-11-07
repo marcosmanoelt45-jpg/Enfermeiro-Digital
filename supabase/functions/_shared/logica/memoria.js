@@ -10,6 +10,9 @@ export function acrescentarNota(notas, nota) {
 }
 
 // Bloco "MEMÓRIA" do prompt: fatos já revelados (texto verdadeiro, pois o paciente já os disse) e notas.
+/**
+ * @param {{ ficha: any, reveladosIds?: string[], notas?: string[] }} p
+ */
 export function blocoMemoria({ ficha, reveladosIds = [], notas = [] }) {
   const linhas = [];
   for (const id of reveladosIds) {

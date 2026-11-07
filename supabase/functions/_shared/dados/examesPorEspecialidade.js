@@ -1,5 +1,6 @@
 // Exames (ids de minijogo, com hífen) que fazem sentido por especialidade, e o setor de cada uma.
 // Os minijogos nascem na F5; até lá a lista é a intenção e o servidor só repassa ids dela.
+/** @type {Record<string, string[]>} */
 export const EXAMES_POR_ESPECIALIDADE = {
   cardiovascular: ["ausculta-pulmonar", "contar-pulso"],
   respiratorio: ["ausculta-pulmonar", "contar-fr"],
@@ -12,6 +13,7 @@ export const EXAMES_POR_ESPECIALIDADE = {
   trauma: ["contar-pulso", "medir-pa"],
 };
 
+/** @type {Record<string, string>} */
 export const EXAMES_ROTULOS = {
   "ausculta-pulmonar": "Ausculta pulmonar",
   "contar-fr": "Contar a respiração",
@@ -23,6 +25,7 @@ export const EXAMES_ROTULOS = {
   "palpacao-abdominal": "Palpação do abdome",
 };
 
+/** @type {Record<string, string>} */
 export const SETOR_POR_ESPECIALIDADE = {
   cardiovascular: "Clínica Médica",
   respiratorio: "Clínica Médica",

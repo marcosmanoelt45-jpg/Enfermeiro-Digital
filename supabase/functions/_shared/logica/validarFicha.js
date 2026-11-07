@@ -18,7 +18,14 @@ const conta = (fatos, r) => fatos.filter((f) => f.revelacao === r).length;
 // Regras de distribuição por dificuldade (tabela de ia/paciente.md e ficha.md) e por personalidade.
 // A dificuldade manda: o máximo de "confianca" de colaborativo/ansioso não vale no difícil, e o mínimo de
 // "esquecido" da personalidade esquecido não vale no fácil (que proíbe esse tipo).
+/**
+ * @param {any[]} fatos
+ * @param {string} dificuldade
+ * @param {string} personalidadeId
+ * @returns {string[]}
+ */
 export function errosDeDistribuicao(fatos, dificuldade, personalidadeId) {
+  /** @type {string[]} */
   const erros = [];
   const n = fatos.length;
   const livre = conta(fatos, "livre");
@@ -53,7 +60,13 @@ export function errosDeDistribuicao(fatos, dificuldade, personalidadeId) {
 }
 
 // opcoes: { arquetipo (vitals, para comparar ±10%), dificuldade, personalidadeId, codigosNanda (Set) }
-export function validarFicha(ficha, { arquetipo = null, dificuldade, personalidadeId, codigosNanda = null } = {}) {
+/**
+ * @param {any} ficha
+ * @param {any} [opcoes]
+ * @returns {{ ok: boolean, erros: string[] }}
+ */
+export function validarFicha(ficha, opcoes = {}) {
+  const { arquetipo = null, dificuldade, personalidadeId, codigosNanda = null } = opcoes;
   const erros = [];
   const fatos = Array.isArray(ficha?.fatos) ? ficha.fatos : [];
 

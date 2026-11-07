@@ -35,6 +35,9 @@ export function estadoDosFatos(ficha, { confianca, contagemTemas = {} }) {
 }
 
 // Texto do bloco ESTADO DO TURNO. Fato bloqueado entra só com tema e instrução (versão falsa ou "não lembra").
+/**
+ * @param {{ ficha: any, confianca: number, contagemTemas: Record<string, number>, reveladosIds?: string[], notas?: string[], turnosRestantes?: number }} p
+ */
 export function montarEstadoDoTurno({ ficha, confianca, contagemTemas, reveladosIds = [], notas = [], turnosRestantes = 99 }) {
   const fatos = estadoDosFatos(ficha, { confianca, contagemTemas });
   const linhasFatos = fatos.map((f) =>
@@ -57,6 +60,10 @@ export function montarEstadoDoTurno({ ficha, confianca, contagemTemas, revelados
 }
 
 // Aplica a resposta da IA ao estado da sessão, sem confiar nela: descarta o que não estava liberado.
+/**
+ * @param {{ ficha: any, confianca: number, contagemTemas?: Record<string, number>, notas?: string[], liberadosIds: string[] }} estado
+ * @param {any} resposta
+ */
 export function aplicarResposta({ ficha, confianca, contagemTemas = {}, notas = [], liberadosIds }, resposta) {
   const liberados = new Set(liberadosIds);
   const idsValidos = new Set(ficha.fatos.map((f) => f.id));

@@ -27,7 +27,12 @@ function ate(texto, maxPalavras) {
 }
 
 // opcoes: { idade, sexo, personalidadeId, dificuldade, leito, sorteio1, sorteio2 }
-export function fichaDeTemplate(arq, { idade, sexo, personalidadeId, dificuldade = "normal", leito = 7, sorteio1, sorteio2 } = {}) {
+/**
+ * @param {any} arq
+ * @param {any} [opcoes]
+ */
+export function fichaDeTemplate(arq, opcoes = {}) {
+  const { idade, sexo, personalidadeId, dificuldade = "normal", leito = 7, sorteio1, sorteio2 } = opcoes;
   const sexoFinal = sexo ?? arq.preferredGender ?? "M";
   const idadeFinal = idade ?? Math.round((arq.ageRange[0] + arq.ageRange[1]) / 2);
   const dxCodigos = arq.nandaCandidatos.slice(0, 3).map((c) => c.codigo);
