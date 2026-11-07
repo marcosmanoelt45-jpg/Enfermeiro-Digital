@@ -1,7 +1,6 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Chip, Panel, Tile } from "@/components/ui/surface";
+import { Chip, Tile } from "@/components/ui/surface";
 import PageShell from "@/components/layout/PageShell";
 import { useAuth } from "@/lib/AuthContext";
 import { MASTER_PROCEDURES } from "@/services/procedureService";
@@ -10,6 +9,7 @@ import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistory
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { montarCatalogo, ROTULOS_CATEGORIA, ROTULOS_TIPO } from "@/features/minijogos/dados/index.js";
 import { notaDoResultado } from "@/features/minijogos/logica/avaliar.js";
+import VideotecaConteudo from "@/features/tecnicas/VideotecaConteudo.jsx";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
 
 const ABAS = [
@@ -27,7 +27,6 @@ function estimarTempo(m) {
 
 // Aba Técnicas: minijogos (gerados dos POPs e da semiologia, mais os criados à mão), POPs e vídeos.
 export default function TecnicasPage() {
-  const navigate = useNavigate();
   const { user } = useAuth();
   const userId = user?.id ?? null;
   const [aba, setAba] = useState("minijogos");
@@ -108,19 +107,9 @@ export default function TecnicasPage() {
         </>
       )}
 
-      {aba === "pops" && (
-        <Panel className="space-y-3">
-          <p className="text-sm font-semibold text-[#9FB3C6]">Checklists e passo a passo de {MASTER_PROCEDURES.length} procedimentos.</p>
-          <Button variant="primary" onClick={() => navigate("/procedimentos")}>Abrir POPs e checklists</Button>
-        </Panel>
-      )}
+      {aba === "pops" && <VideotecaConteudo titulo="POPs e checklists" />}
 
-      {aba === "videos" && (
-        <Panel className="space-y-3">
-          <p className="text-sm font-semibold text-[#9FB3C6]">Videoteca com os vídeos do acervo LabEnf da UFSM.</p>
-          <Button variant="primary" onClick={() => navigate("/procedimentos")}>Abrir a videoteca</Button>
-        </Panel>
-      )}
+      {aba === "videos" && <VideotecaConteudo titulo="Videoteca de procedimentos" />}
     </PageShell>
   );
 }
