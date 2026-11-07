@@ -17,7 +17,6 @@ import EnfereClinicalPlayer from '@/components/procedures/EnfereClinicalPlayer';
 import ProcedureChecklist from '@/components/procedures/ProcedureChecklist';
 import ProcedureSafetyAlerts from '@/components/procedures/ProcedureSafetyAlerts';
 import ProcedureAIChat from '@/components/procedures/ProcedureAIChat';
-import MobileBottomDock from '@/components/mobile/MobileBottomDock';
 import CaseHistoryModal from '@/components/history/CaseHistoryModal';
 import { MODULE_TYPES } from '@/services/clinicalHistoryService';
 import { History } from 'lucide-react';
@@ -362,7 +361,6 @@ export default function ProcedimentosLab() {
       </main>
 
       <StudentFooter />
-      <MobileBottomDock />
 
       {/* Modal de Histórico de Treinamentos */}
       <CaseHistoryModal

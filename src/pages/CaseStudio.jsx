@@ -58,7 +58,6 @@ import CaseHistoryModal from "@/components/history/CaseHistoryModal";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { useDragScroll } from "@/hooks/useDragScroll";
-import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 const WIZARD_STEPS = [
   { key: "profile", label: "1. Perfil & Anamnese", icon: UserRound },
@@ -2423,7 +2422,6 @@ export default function CaseStudio() {
       </main>
 
       <StudentFooter />
-      <MobileBottomDock />
     </div>
   );
 }

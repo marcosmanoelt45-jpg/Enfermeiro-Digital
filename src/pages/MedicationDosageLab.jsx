@@ -22,7 +22,6 @@ import { clinicalGamificationService } from "@/services/clinicalGamificationServ
 import { useAuth } from "@/lib/AuthContext";
 import { celebrate } from "@/lib/celebrate";
 import { spring, vibrate } from "@/lib/motion";
-import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { validateCalculoAnswer } from "@/services/simuladorFormulaService";
@@ -490,7 +489,6 @@ export default function MedicationDosageLab() {
       </main>
 
       <StudentFooter />
-      <MobileBottomDock />
     </div>
   );
 }

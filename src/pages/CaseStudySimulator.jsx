@@ -51,7 +51,6 @@ import {
 } from "@/lib/nandaCatalog";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import GotiEvaluationModal from "@/components/mascot/GotiEvaluationModal";
-import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 
 export default function CaseStudySimulator() {
   const { user } = useAuth();
@@ -1553,7 +1552,6 @@ export default function CaseStudySimulator() {
       </main>
 
       <StudentFooter />
-      <MobileBottomDock />
     </div>
   );
 }
