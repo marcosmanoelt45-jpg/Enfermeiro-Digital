@@ -1,23 +1,13 @@
 import React, { useEffect, useState } from 'react';
 import { AnimatePresence, m as motion, useDragControls } from 'framer-motion';
 import {
-  Home,
-  ClipboardList,
-  Calculator,
-  Video,
-  User,
-  Activity,
-  GraduationCap,
-  FileText,
-  ArrowRightLeft,
-  Stethoscope,
-  History,
   ChevronRight,
-  X,
-  Mic
+  X
 } from 'lucide-react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { scrimVariants, sheetVariants, spring, vibrate } from '@/lib/motion';
+import { itensDoDock, opcoesDaGavetaPratica } from '@/features/navegacao/modulos';
+import { icone } from '@/features/navegacao/icones';
 
 export default function MobileBottomDock() {
   const location = useLocation();
@@ -29,59 +19,24 @@ export default function MobileBottomDock() {
   const sheetDrag = useDragControls();
 
   // 5 Itens Oficiais da Bottom Navigation Bar (Páginas 2, 3, 4, 15, 19, 21 do PDF)
-  const navItems = [
-    {
-      id: 'home',
-      label: 'Início',
-      icon: Home,
-      path: '/',
-      exact: true,
-      onClick: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/');
-      }
-    },
-    {
-      id: 'cases',
-      label: 'Casos',
-      icon: ClipboardList,
-      path: '/simulador-casos',
-      onClick: () => setIsCasesDrawerOpen(true)
-    },
-    {
-      id: 'calc',
-      label: 'Doses',
-      icon: Calculator,
-      path: '/laboratorio-calculos',
-      onClick: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/laboratorio-calculos');
-      }
-    },
-    {
-      id: 'procedures',
-      label: 'Vídeos',
-      icon: Video,
-      path: '/procedimentos',
-      onClick: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/procedimentos');
-      }
-    },
-    {
-      id: 'profile',
-      label: 'Perfil',
-      icon: User,
-      path: '/conta',
-      onClick: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/conta');
-      }
-    }
-  ];
+  // As abas vêm do registro único de módulos. A aba marcada como gaveta abre a folha em vez de navegar.
+  const navItems = itensDoDock().map((m) => ({
+    id: m.id,
+    label: m.rotulo,
+    icon: icone(m.icone),
+    path: m.rota,
+    exact: m.exato,
+    gaveta: m.gaveta,
+    onClick: m.gaveta
+      ? () => setIsCasesDrawerOpen(true)
+      : () => {
+          setIsCasesDrawerOpen(false);
+          navigate(m.rota);
+        }
+  }));
 
   const isCurrentActive = (item) => {
-    if (item.id === 'cases' && isCasesDrawerOpen) return true;
+    if (item.gaveta && isCasesDrawerOpen) return true;
     if (item.exact) {
       return location.pathname === item.path && !isCasesDrawerOpen;
     }
@@ -99,79 +54,17 @@ export default function MobileBottomDock() {
   }, [isCasesDrawerOpen]);
 
   // Opções do Drawer da aba "Casos" (Conforme 01-casos.png e Especificação Oficial)
-  const caseDrawerOptions = [
-    {
-      id: 'atendimento_voz',
-      title: 'Atendimento por voz',
-      badge: 'NOVO',
-      subtitle: 'Paciente simulado fala com você · 5 questões',
-      icon: Mic,
-      action: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/videochamada');
-      }
-    },
-    {
-      id: 'continue',
-      title: 'Continuar de onde parou',
-      subtitle: 'Simulador · Idoso com Insuficiência Cardíaca Descompensada',
-      icon: Activity,
-      action: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/simulador-casos');
-      }
-    },
-    {
-      id: 'pe_simulator',
-      title: 'Simulador de Casos Clínicos',
-      subtitle: 'Processo de Enfermagem · 5 etapas',
-      icon: GraduationCap,
-      action: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/simulador-casos');
-      }
-    },
-    {
-      id: 'case_studio',
-      title: 'Montar Caso',
-      subtitle: '8 etapas · escores e voz',
-      icon: FileText,
-      action: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/montar-caso');
-      }
-    },
-    {
-      id: 'sbar_handoff',
-      title: 'Passagem de Plantão SBAR',
-      subtitle: 'Meta 2 da OMS · 3 modos',
-      icon: ArrowRightLeft,
-      action: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/passagem-plantao');
-      }
-    },
-    {
-      id: 'semiology',
-      title: 'Semiologia por Sistemas',
-      subtitle: 'Neuro, Resp, Cardio e Pele',
-      icon: Stethoscope,
-      action: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/simulador-casos?mode=semiology');
-      }
-    },
-    {
-      id: 'history',
-      title: 'Histórico e rascunhos',
-      subtitle: 'Casos, SBAR e cálculos',
-      icon: History,
-      action: () => {
-        setIsCasesDrawerOpen(false);
-        navigate('/simulador-casos?action=history');
-      }
+  const caseDrawerOptions = opcoesDaGavetaPratica().map((o) => ({
+    id: o.id,
+    title: o.titulo,
+    badge: o.selo,
+    subtitle: o.subtitulo,
+    icon: icone(o.icone),
+    action: () => {
+      setIsCasesDrawerOpen(false);
+      navigate(o.rota);
     }
-  ];
+  }));
 
   return (
     <>

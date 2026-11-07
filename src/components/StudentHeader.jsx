@@ -1,15 +1,8 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import {
-  BookOpen,
-  Calculator,
   UserCircle,
   LogOut,
-  PlusCircle,
-  LayoutGrid,
-  ArrowRightLeft,
-  Video,
-  PhoneCall,
   Coins
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -21,6 +14,8 @@ import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import gotiLogoOficial from "@/assets/goti-icone-oficial.png";
+import { modulosDoHeader } from "@/features/navegacao/modulos";
+import { icone } from "@/features/navegacao/icones";
 
 export default function StudentHeader({ activeTab = "hub", desktopOnly = false }) {
   const navigate = useNavigate();
@@ -49,20 +44,25 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
     };
   }, []);
 
-  const navLinks = [
-    { id: "hub", label: "Início", path: "/", icon: LayoutGrid, hasBriefing: false },
-    { id: "videochamada", label: "Videochamada", path: "/videochamada", icon: PhoneCall, hasBriefing: false, isNew: true },
-    { id: "procedimentos", label: "Procedimentos", path: "/procedimentos", icon: Video, hasBriefing: false },
-    { id: "montar", label: "Montar Caso", path: "/montar-caso", icon: PlusCircle, hasBriefing: true },
-    { id: "casos", label: "Casos Clínicos", path: "/simulador-casos", icon: BookOpen, hasBriefing: true },
-    { id: "sbar", label: "Plantão SBAR", path: "/passagem-plantao", icon: ArrowRightLeft, hasBriefing: true },
-    { id: "calculos", label: "Cálculo de Doses", path: "/laboratorio-calculos", icon: Calculator, hasBriefing: true },
-  ];
+  // Os itens vêm do registro único de módulos: módulo com a flag desligada não aparece.
+  const navLinks = useMemo(
+    () =>
+      modulosDoHeader().map((m) => ({
+        id: m.id,
+        label: m.rotulo,
+        path: m.rota,
+        icon: icone(m.icone),
+        briefingId: m.briefingId,
+        hasBriefing: Boolean(m.briefingId),
+        isNew: m.novo,
+      })),
+    []
+  );
 
   function handleNavClick(link) {
     triggerHaptic(12);
     if (link.hasBriefing) {
-      setBriefingModuleId(link.id);
+      setBriefingModuleId(link.briefingId);
       setIsBriefingOpen(true);
     } else {
       navigate(link.path);
