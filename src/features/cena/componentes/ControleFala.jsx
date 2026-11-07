@@ -30,7 +30,8 @@ export default function ControleFala({
   const podeFalar = suportaVoz && !desabilitado && status !== "processando";
   const revisando = status === "revisando_texto";
   // Só envia quando a cena está esperando o aluno; fora disso o texto fica na caixa (a transição seria ignorada).
-  const podeEnviar = !desabilitado && (status === "aguardando_aluno" || status === "revisando_texto");
+  // Pode enviar também enquanto o personagem fala (a fala é interrompida); só não durante o processamento.
+  const podeEnviar = !desabilitado && (status === "aguardando_aluno" || status === "revisando_texto" || status === "personagem_falando");
 
   // O rascunho da transcrição (ou o texto preservado após um erro) entra na caixa para editar.
   useEffect(() => {

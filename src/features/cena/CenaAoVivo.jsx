@@ -97,6 +97,7 @@ export default function CenaAoVivo({
 
   const enviarTexto = useCallback(
     (texto) => {
+      voz.parar(); // enviar no meio da fala do personagem interrompe a fala
       voz.desbloquear(); // dentro do toque de enviar: a resposta chega depois da rede e já encontra o áudio livre
       const turnoId = novoId();
       canalRef.current = textoDaVozRef.current && textoDaVozRef.current === texto ? "voz" : "texto";
@@ -177,7 +178,7 @@ export default function CenaAoVivo({
             <EstadoBloqueado tipo={bloqueado.tipo} mensagem={bloqueado.mensagem} acao={bloqueado.acao} />
           ) : (
             <>
-            {slotControle?.({ enviar: enviarTexto, podeEnviar: estado.status === "aguardando_aluno" || estado.status === "revisando_texto", status: estado.status })}
+            {slotControle?.({ enviar: enviarTexto, podeEnviar: ["aguardando_aluno", "revisando_texto", "personagem_falando"].includes(estado.status), status: estado.status })}
             <ControleFala
               placeholder={placeholderFala}
               status={estado.status}

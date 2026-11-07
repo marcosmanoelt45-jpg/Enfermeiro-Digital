@@ -65,6 +65,7 @@ export default function ConsultaPage() {
   const [retomada, setRetomada] = useState(null);
   const [emCena, setEmCena] = useState(false);
   const [retomando, setRetomando] = useState(true);
+  const [retomadaPendente, setRetomadaPendente] = useState(false);
 
   const demo = isLocalDemoSession();
 
@@ -82,7 +83,8 @@ export default function ConsultaPage() {
         if (!vivo) return;
         setSessao({ sessaoId: r.sessaoId, personagemId: r.personagemId, personalidadePublica: "surpresa", briefing: r.briefing ?? { nome: "Paciente", setor: "" } });
         setRetomada({ turnos: r.turnos, rapport: r.rapport, turnosRestantes: r.turnosRestantes });
-        setEmCena(true);
+        // Não entra direto: o aluno escolhe continuar ou começar outra (e o toque libera o áudio).
+        setRetomadaPendente(true);
       })
       .catch(() => gravarRascunho(userId, null))
       .finally(() => vivo && setRetomando(false));
@@ -124,6 +126,7 @@ export default function ConsultaPage() {
     gravarRascunho(userId, null);
     setSessao(null);
     setRetomada(null);
+    setRetomadaPendente(false);
     setEmCena(false);
     setErro(null);
     setPasso(1);
@@ -144,6 +147,34 @@ export default function ConsultaPage() {
 
   if (emCena && sessao) {
     return <ConsultaCena sessao={sessao} retomada={retomada} onSair={sair} onNova={novaConsulta} onFinalizada={() => gravarRascunho(userId, null)} />;
+  }
+
+  if (retomadaPendente && sessao) {
+    return (
+      <PageShell>
+        <div className="space-y-4 rounded-3xl border border-[#1F3045] bg-[#131F2E] p-5 text-center">
+          <h1 className="text-lg font-extrabold">Você tem uma consulta em andamento</h1>
+          <p className="text-sm font-semibold text-[#9FB3C6]">
+            {sessao.briefing?.nome ? `Com ${sessao.briefing.nome}` : "Com o mesmo paciente"}
+            {retomada?.turnos?.length ? ` · ${retomada.turnos.filter((t) => t.autor === "aluno").length} falas suas` : ""}
+          </p>
+          <div className="flex flex-col gap-2 sm:flex-row">
+            <Button variant="outline" className="flex-1" onClick={novaConsulta}>Começar outra</Button>
+            <Button
+              variant="primary"
+              className="flex-1"
+              onClick={() => {
+                desbloquearAudio();
+                setRetomadaPendente(false);
+                setEmCena(true);
+              }}
+            >
+              Continuar conversa
+            </Button>
+          </div>
+        </div>
+      </PageShell>
+    );
   }
 
   if (retomando) {
