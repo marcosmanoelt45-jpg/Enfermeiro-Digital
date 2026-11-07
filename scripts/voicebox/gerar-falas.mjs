@@ -47,11 +47,14 @@ async function esperar(id, limiteMs = 180000) {
   throw new Error("tempo esgotado aguardando o VoiceBox");
 }
 
-async function gerarWav(perfilId, texto) {
+async function gerarWav(perfil, texto) {
+  const perfilId = perfil.id;
+  // Perfis de voz pronta (kokoro) usam o motor deles; perfis clonados usam o qwen.
+  const motor = perfil.voice_type === "preset" && perfil.default_engine ? { engine: perfil.default_engine } : { engine: "qwen", model_size: "1.7B" };
   const r = await fetch(`${VOICEBOX}/generate`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
-    body: JSON.stringify({ profile_id: perfilId, text: texto, language: "pt", engine: "qwen", model_size: "1.7B", normalize: true }),
+    body: JSON.stringify({ profile_id: perfilId, text: texto, language: "pt", ...motor, normalize: true }),
   });
   if (!r.ok) throw new Error(`VoiceBox respondeu ${r.status}: ${await r.text()}`);
   const g = await r.json();
@@ -110,7 +113,9 @@ for (const grupo of grupos) {
     continue;
   }
 
-  const perfil = perfis.find((p) => p.name?.toLowerCase() === grupo.perfilVoicebox.toLowerCase());
+  // Nome exato ("Rui") ou com sufixo ("Marcus Male", "Teresinha Female").
+  const alvo = grupo.perfilVoicebox.toLowerCase();
+  const perfil = perfis.find((p) => p.name?.toLowerCase() === alvo) ?? perfis.find((p) => p.name?.toLowerCase().startsWith(`${alvo} `));
   if (!perfil) {
     console.error(`  Perfil "${grupo.perfilVoicebox}" não existe no VoiceBox. Perfis: ${perfis.map((p) => p.name).join(", ")}`);
     resumo.falhas += plano.gerar.length;
@@ -120,7 +125,7 @@ for (const grupo of grupos) {
   for (const g of plano.gerar) {
     try {
       process.stdout.write(`  ${g.id} ... `);
-      const wav = await gerarWav(perfil.id, aplicarPronuncia(g.texto));
+      const wav = await gerarWav(perfil, aplicarPronuncia(g.texto));
       paraMp3(wav, join(pasta, g.arquivo));
       const antigo = manifesto.falas[g.id]?.arquivo;
       if (antigo && antigo !== g.arquivo) rmSync(join(pasta, antigo), { force: true });

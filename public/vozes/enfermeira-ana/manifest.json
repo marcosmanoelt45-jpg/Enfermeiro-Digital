@@ -1,0 +1,985 @@
+{
+  "versao": 1,
+  "falas": {
+    "plt.abertura.1": {
+      "arquivo": "plt.abertura.1.3d3a0e8e.mp3",
+      "hash": "3d3a0e8e456082366ce2a984295037a3e0308ec1",
+      "duracaoMs": 3050
+    },
+    "plt.abertura.2": {
+      "arquivo": "plt.abertura.2.d8664cf8.mp3",
+      "hash": "d8664cf8de2527740276ea99a150209608f573d7",
+      "duracaoMs": 3200
+    },
+    "plt.abertura.3": {
+      "arquivo": "plt.abertura.3.a87d8cb9.mp3",
+      "hash": "a87d8cb92604b449dc4a14b836937c8a2edb3327",
+      "duracaoMs": 4450
+    },
+    "plt.r.ok.1": {
+      "arquivo": "plt.r.ok.1.03f0ca08.mp3",
+      "hash": "03f0ca08433ddd4aaab6448d0e9c88c20c22b181",
+      "duracaoMs": 875
+    },
+    "plt.r.ok.2": {
+      "arquivo": "plt.r.ok.2.4af0ba92.mp3",
+      "hash": "4af0ba9246f47723bf2268f299be0f77d49aee86",
+      "duracaoMs": 1125
+    },
+    "plt.r.ok.3": {
+      "arquivo": "plt.r.ok.3.7a53ec25.mp3",
+      "hash": "7a53ec2569c62b1c3d0a074cc528193a82524f50",
+      "duracaoMs": 1100
+    },
+    "plt.r.ok.4": {
+      "arquivo": "plt.r.ok.4.dfcabad3.mp3",
+      "hash": "dfcabad35b8cb11139e768c6c83fcd5661bdb968",
+      "duracaoMs": 1675
+    },
+    "plt.r.ok.5": {
+      "arquivo": "plt.r.ok.5.2db44506.mp3",
+      "hash": "2db44506957f172c6bcbd1d34a8da892d1b9bab6",
+      "duracaoMs": 1550
+    },
+    "plt.r.ok.6": {
+      "arquivo": "plt.r.ok.6.a8ca87cb.mp3",
+      "hash": "a8ca87cbfadb4a9fbe098da3dd303b95e95a0844",
+      "duracaoMs": 1150
+    },
+    "plt.r.faltou_numero.1": {
+      "arquivo": "plt.r.faltou_numero.1.f94af6b7.mp3",
+      "hash": "f94af6b77ee0f436ed8ff331a40828d82d8eafdf",
+      "duracaoMs": 2075
+    },
+    "plt.r.faltou_numero.2": {
+      "arquivo": "plt.r.faltou_numero.2.e5f8e94c.mp3",
+      "hash": "e5f8e94c942aaa434ff21d6e8a6aebe751323068",
+      "duracaoMs": 2025
+    },
+    "plt.r.faltou_numero.3": {
+      "arquivo": "plt.r.faltou_numero.3.fa5c9547.mp3",
+      "hash": "fa5c95471f25580a2c7e6e302adc41e2d1e39a0b",
+      "duracaoMs": 2800
+    },
+    "plt.r.nao_avaliou.1": {
+      "arquivo": "plt.r.nao_avaliou.1.ffff06b3.mp3",
+      "hash": "ffff06b342aaa9fa2759fec027894207a202d1c0",
+      "duracaoMs": 3450
+    },
+    "plt.r.nao_avaliou.2": {
+      "arquivo": "plt.r.nao_avaliou.2.9fff572a.mp3",
+      "hash": "9fff572afe4545565896d5f1596e44a69b5a3c23",
+      "duracaoMs": 4150
+    },
+    "plt.r.nao_avaliou.3": {
+      "arquivo": "plt.r.nao_avaliou.3.5b442fe4.mp3",
+      "hash": "5b442fe4202e299acab4037d2ce6f74a9e70a56a",
+      "duracaoMs": 4400
+    },
+    "plt.r.encerrar.1": {
+      "arquivo": "plt.r.encerrar.1.5bf06b68.mp3",
+      "hash": "5bf06b68ce3a6bd5a22e7ed21f6bef92c38d7b6a",
+      "duracaoMs": 2575
+    },
+    "plt.r.encerrar.2": {
+      "arquivo": "plt.r.encerrar.2.ebd1c511.mp3",
+      "hash": "ebd1c511954a03c00c7231deec32a06345500eb1",
+      "duracaoMs": 3325
+    },
+    "plt.pos_op.s1": {
+      "arquivo": "plt.pos_op.s1.35fd234b.mp3",
+      "hash": "35fd234ba71415e4aae18191e5eec49dd8bf3414",
+      "duracaoMs": 2850
+    },
+    "plt.pos_op.s2": {
+      "arquivo": "plt.pos_op.s2.772c0dc8.mp3",
+      "hash": "772c0dc8583c011b8661739e8251104ec3a570b4",
+      "duracaoMs": 3175
+    },
+    "plt.pos_op.b1": {
+      "arquivo": "plt.pos_op.b1.1c7020d4.mp3",
+      "hash": "1c7020d40e9f66bf4e192b417e584626ceed23cf",
+      "duracaoMs": 3975
+    },
+    "plt.pos_op.a1": {
+      "arquivo": "plt.pos_op.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.pos_op.a2": {
+      "arquivo": "plt.pos_op.a2.ffff9d2b.mp3",
+      "hash": "ffff9d2bb6be3687dba16dbb9ae9909978b3017a",
+      "duracaoMs": 2225
+    },
+    "plt.pos_op.a3": {
+      "arquivo": "plt.pos_op.a3.51258fd9.mp3",
+      "hash": "51258fd9ce733e365eeaf377317c542703c7e567",
+      "duracaoMs": 2275
+    },
+    "plt.pos_op.r1": {
+      "arquivo": "plt.pos_op.r1.27298a57.mp3",
+      "hash": "27298a577e5872e27f0ec6815b6fbdc157156a4e",
+      "duracaoMs": 2525
+    },
+    "plt.pos_op.r2": {
+      "arquivo": "plt.pos_op.r2.2ac04640.mp3",
+      "hash": "2ac046407b71bb1391c9c3de80ccbf08446f4cb3",
+      "duracaoMs": 3050
+    },
+    "plt.icc.s1": {
+      "arquivo": "plt.icc.s1.ba4e7de1.mp3",
+      "hash": "ba4e7de1dae744c56a70ac5212f49f71552f8559",
+      "duracaoMs": 2750
+    },
+    "plt.icc.b1": {
+      "arquivo": "plt.icc.b1.4c767409.mp3",
+      "hash": "4c7674098048a7601bcb20e4596241467e6a0e9f",
+      "duracaoMs": 2950
+    },
+    "plt.icc.b2": {
+      "arquivo": "plt.icc.b2.32f9ac31.mp3",
+      "hash": "32f9ac31a228c8da68c9cc66228e67e032c24fce",
+      "duracaoMs": 2475
+    },
+    "plt.icc.a1": {
+      "arquivo": "plt.icc.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.icc.a2": {
+      "arquivo": "plt.icc.a2.c165cfb8.mp3",
+      "hash": "c165cfb8a683b336a37c4227184ed7193eda2fca",
+      "duracaoMs": 2225
+    },
+    "plt.icc.a3": {
+      "arquivo": "plt.icc.a3.325f1ee6.mp3",
+      "hash": "325f1ee64cbc46eebd2ea648c508c5ed323e341e",
+      "duracaoMs": 1800
+    },
+    "plt.icc.a4": {
+      "arquivo": "plt.icc.a4.0657473c.mp3",
+      "hash": "0657473cf4e8f003bcee00fff2e084f0d002cc38",
+      "duracaoMs": 2450
+    },
+    "plt.icc.r1": {
+      "arquivo": "plt.icc.r1.b57e33b4.mp3",
+      "hash": "b57e33b44e32f4417e8066892fcb44f708a441c6",
+      "duracaoMs": 2550
+    },
+    "plt.icc.r2": {
+      "arquivo": "plt.icc.r2.9d3a118b.mp3",
+      "hash": "9d3a118b336ac568e3f3405f8c1cc73d0383fa1e",
+      "duracaoMs": 1975
+    },
+    "plt.delirium.s1": {
+      "arquivo": "plt.delirium.s1.49109e8e.mp3",
+      "hash": "49109e8e766ba9b9a4de0af05d82ae38f8788d82",
+      "duracaoMs": 2925
+    },
+    "plt.delirium.s2": {
+      "arquivo": "plt.delirium.s2.6cca47af.mp3",
+      "hash": "6cca47af6f7679c5a39e0408d70ef8d428cde930",
+      "duracaoMs": 3050
+    },
+    "plt.delirium.b1": {
+      "arquivo": "plt.delirium.b1.a74aa4d1.mp3",
+      "hash": "a74aa4d17a80b27d07b7540ed6c10829d379c84e",
+      "duracaoMs": 3575
+    },
+    "plt.delirium.b2": {
+      "arquivo": "plt.delirium.b2.93f3cb49.mp3",
+      "hash": "93f3cb49ea70010d2670906a3ecf71c48a4e50c0",
+      "duracaoMs": 1750
+    },
+    "plt.delirium.a1": {
+      "arquivo": "plt.delirium.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.delirium.a2": {
+      "arquivo": "plt.delirium.a2.3b692819.mp3",
+      "hash": "3b692819229cdf595eb63849cbf91cdcb4d1defb",
+      "duracaoMs": 2650
+    },
+    "plt.delirium.a3": {
+      "arquivo": "plt.delirium.a3.6bf8ee62.mp3",
+      "hash": "6bf8ee626a78934fe67ec19574cb685439106ca4",
+      "duracaoMs": 2175
+    },
+    "plt.delirium.a4": {
+      "arquivo": "plt.delirium.a4.68f7de04.mp3",
+      "hash": "68f7de048389e0cd4c33d4f00117fbf265e33633",
+      "duracaoMs": 2175
+    },
+    "plt.delirium.r1": {
+      "arquivo": "plt.delirium.r1.0db9251b.mp3",
+      "hash": "0db9251b14fdb2457b3d839ce078cc48a3272d93",
+      "duracaoMs": 3375
+    },
+    "plt.dpoc.s1": {
+      "arquivo": "plt.dpoc.s1.35fd234b.mp3",
+      "hash": "35fd234ba71415e4aae18191e5eec49dd8bf3414",
+      "duracaoMs": 2850
+    },
+    "plt.dpoc.s2": {
+      "arquivo": "plt.dpoc.s2.074261cc.mp3",
+      "hash": "074261cc062f27a9900ee8bbc0fa1159b49a967d",
+      "duracaoMs": 2625
+    },
+    "plt.dpoc.b1": {
+      "arquivo": "plt.dpoc.b1.59486200.mp3",
+      "hash": "59486200c4b41f59c5579115a3c2f59bda0ac39e",
+      "duracaoMs": 2525
+    },
+    "plt.dpoc.b2": {
+      "arquivo": "plt.dpoc.b2.7505be64.mp3",
+      "hash": "7505be64ac36ab9706cfbb154c35675a1623f2df",
+      "duracaoMs": 2875
+    },
+    "plt.dpoc.a1": {
+      "arquivo": "plt.dpoc.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.dpoc.a2": {
+      "arquivo": "plt.dpoc.a2.c165cfb8.mp3",
+      "hash": "c165cfb8a683b336a37c4227184ed7193eda2fca",
+      "duracaoMs": 2225
+    },
+    "plt.dpoc.a3": {
+      "arquivo": "plt.dpoc.a3.70ef83de.mp3",
+      "hash": "70ef83de47079eb5b9c94d4c086c428e34b85f31",
+      "duracaoMs": 2525
+    },
+    "plt.dpoc.a4": {
+      "arquivo": "plt.dpoc.a4.83702bbe.mp3",
+      "hash": "83702bbea1453d3863ce5683a533922189741d4a",
+      "duracaoMs": 3125
+    },
+    "plt.dpoc.r1": {
+      "arquivo": "plt.dpoc.r1.1c4c7a47.mp3",
+      "hash": "1c4c7a47fbf39a3f2fb3f3a42d706af3de22d873",
+      "duracaoMs": 3150
+    },
+    "plt.sepse_urinaria.s1": {
+      "arquivo": "plt.sepse_urinaria.s1.3a03bc2e.mp3",
+      "hash": "3a03bc2e76ae6eeb0cd593a17e9e93e7402288ba",
+      "duracaoMs": 3000
+    },
+    "plt.sepse_urinaria.s2": {
+      "arquivo": "plt.sepse_urinaria.s2.c46338e7.mp3",
+      "hash": "c46338e757c2a776820436e9aca09b32a2f1a0fc",
+      "duracaoMs": 2525
+    },
+    "plt.sepse_urinaria.b1": {
+      "arquivo": "plt.sepse_urinaria.b1.12f1f128.mp3",
+      "hash": "12f1f1284a49af3b7fec9ce0bcd6993677d1564c",
+      "duracaoMs": 2875
+    },
+    "plt.sepse_urinaria.a1": {
+      "arquivo": "plt.sepse_urinaria.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.sepse_urinaria.a2": {
+      "arquivo": "plt.sepse_urinaria.a2.224aaf6a.mp3",
+      "hash": "224aaf6a855c86a49a9afc9798b913bef9d2d568",
+      "duracaoMs": 3050
+    },
+    "plt.sepse_urinaria.a3": {
+      "arquivo": "plt.sepse_urinaria.a3.d450fac4.mp3",
+      "hash": "d450fac4af22e4d5fa7127582c22911d1f4eec13",
+      "duracaoMs": 1675
+    },
+    "plt.sepse_urinaria.a4": {
+      "arquivo": "plt.sepse_urinaria.a4.8e127de7.mp3",
+      "hash": "8e127de73e24aac0add13915fffe22af174eba17",
+      "duracaoMs": 2150
+    },
+    "plt.sepse_urinaria.r1": {
+      "arquivo": "plt.sepse_urinaria.r1.ebd4e622.mp3",
+      "hash": "ebd4e622a1a7b54999bf53c9a90c7b27240b1398",
+      "duracaoMs": 3500
+    },
+    "plt.sepse_urinaria.r2": {
+      "arquivo": "plt.sepse_urinaria.r2.dc32bcf6.mp3",
+      "hash": "dc32bcf6a0cad2b2cd19eac5f5b99fb33545405b",
+      "duracaoMs": 3125
+    },
+    "plt.avc_isquemico.s1": {
+      "arquivo": "plt.avc_isquemico.s1.ba4e7de1.mp3",
+      "hash": "ba4e7de1dae744c56a70ac5212f49f71552f8559",
+      "duracaoMs": 2750
+    },
+    "plt.avc_isquemico.s2": {
+      "arquivo": "plt.avc_isquemico.s2.9889c8f8.mp3",
+      "hash": "9889c8f8a4aa2eb49bbae12884d7244bddf584f0",
+      "duracaoMs": 2650
+    },
+    "plt.avc_isquemico.b1": {
+      "arquivo": "plt.avc_isquemico.b1.78164f32.mp3",
+      "hash": "78164f32000aa27e606ce8d2b9772c570adb29ed",
+      "duracaoMs": 2975
+    },
+    "plt.avc_isquemico.a1": {
+      "arquivo": "plt.avc_isquemico.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.avc_isquemico.a2": {
+      "arquivo": "plt.avc_isquemico.a2.24fa2f78.mp3",
+      "hash": "24fa2f7805c5f3eeb9e9a9480d744fdcb357ad3d",
+      "duracaoMs": 2375
+    },
+    "plt.avc_isquemico.a3": {
+      "arquivo": "plt.avc_isquemico.a3.56cbcbeb.mp3",
+      "hash": "56cbcbebf6747723f2cc780db6f0a876a3f1044b",
+      "duracaoMs": 2150
+    },
+    "plt.avc_isquemico.a4": {
+      "arquivo": "plt.avc_isquemico.a4.236a0629.mp3",
+      "hash": "236a06295163adcd1f9b18939f1c7bdd9b72a65d",
+      "duracaoMs": 2575
+    },
+    "plt.avc_isquemico.r1": {
+      "arquivo": "plt.avc_isquemico.r1.1ae787d3.mp3",
+      "hash": "1ae787d3838fb36d5642fe3b7afd1efee893989a",
+      "duracaoMs": 3575
+    },
+    "plt.avc_isquemico.r2": {
+      "arquivo": "plt.avc_isquemico.r2.574e4372.mp3",
+      "hash": "574e43722009de4535ccd38d3211fd519ef42c6c",
+      "duracaoMs": 3125
+    },
+    "plt.iam_st.s1": {
+      "arquivo": "plt.iam_st.s1.f6d9a286.mp3",
+      "hash": "f6d9a286be2b69bf6bd048884a1fff1a0ec26981",
+      "duracaoMs": 2250
+    },
+    "plt.iam_st.s2": {
+      "arquivo": "plt.iam_st.s2.5180eb7f.mp3",
+      "hash": "5180eb7f8945bc2bfca61ea8c0f26ff84ea8dd54",
+      "duracaoMs": 3350
+    },
+    "plt.iam_st.b1": {
+      "arquivo": "plt.iam_st.b1.dedaaa95.mp3",
+      "hash": "dedaaa95d8c044dbbce156869486cfd5599fdfdb",
+      "duracaoMs": 2575
+    },
+    "plt.iam_st.a1": {
+      "arquivo": "plt.iam_st.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.iam_st.a2": {
+      "arquivo": "plt.iam_st.a2.c107576a.mp3",
+      "hash": "c107576a93a41845f3929d18fb9ffb9c38917e55",
+      "duracaoMs": 2825
+    },
+    "plt.iam_st.a3": {
+      "arquivo": "plt.iam_st.a3.d8d0ee4a.mp3",
+      "hash": "d8d0ee4af6e87b8082d1991b9e9c6b77825bc02e",
+      "duracaoMs": 2575
+    },
+    "plt.iam_st.a4": {
+      "arquivo": "plt.iam_st.a4.ad43a364.mp3",
+      "hash": "ad43a36445f41d895209505ca8316c3f5404be4c",
+      "duracaoMs": 2650
+    },
+    "plt.iam_st.r1": {
+      "arquivo": "plt.iam_st.r1.c3b49452.mp3",
+      "hash": "c3b494520ea94e8315be71f94e434f47eff92c3a",
+      "duracaoMs": 3375
+    },
+    "plt.iam_st.r2": {
+      "arquivo": "plt.iam_st.r2.df681036.mp3",
+      "hash": "df681036e88464c210557262c6fedb738d614331",
+      "duracaoMs": 3700
+    },
+    "plt.trauma_cranio.s1": {
+      "arquivo": "plt.trauma_cranio.s1.54b127e5.mp3",
+      "hash": "54b127e54de0bea3692ffa12628446c665de526b",
+      "duracaoMs": 2350
+    },
+    "plt.trauma_cranio.s2": {
+      "arquivo": "plt.trauma_cranio.s2.bffa80fa.mp3",
+      "hash": "bffa80fac432523ee75d7623d00bd9b4f2b97ad7",
+      "duracaoMs": 2625
+    },
+    "plt.trauma_cranio.b1": {
+      "arquivo": "plt.trauma_cranio.b1.782098f5.mp3",
+      "hash": "782098f5c5ca736f7061e81c3f610c3e42cde65c",
+      "duracaoMs": 3550
+    },
+    "plt.trauma_cranio.a1": {
+      "arquivo": "plt.trauma_cranio.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.trauma_cranio.a2": {
+      "arquivo": "plt.trauma_cranio.a2.06e47a12.mp3",
+      "hash": "06e47a1249061b98cadd594e65d4b0c233b2dc1a",
+      "duracaoMs": 1925
+    },
+    "plt.trauma_cranio.a3": {
+      "arquivo": "plt.trauma_cranio.a3.b97576f2.mp3",
+      "hash": "b97576f2f952f3c805142f1de21d767e1833c451",
+      "duracaoMs": 1675
+    },
+    "plt.trauma_cranio.a4": {
+      "arquivo": "plt.trauma_cranio.a4.e63be57c.mp3",
+      "hash": "e63be57cced181aa45c15dc7c4e522c550911450",
+      "duracaoMs": 2450
+    },
+    "plt.trauma_cranio.r1": {
+      "arquivo": "plt.trauma_cranio.r1.e9fd8696.mp3",
+      "hash": "e9fd8696f103e2dd9dc21c2c12cd2561ff437533",
+      "duracaoMs": 3650
+    },
+    "plt.trauma_cranio.r2": {
+      "arquivo": "plt.trauma_cranio.r2.41f214ea.mp3",
+      "hash": "41f214ea94f4b52d4845de8a5e7f0fde7ae1fc6c",
+      "duracaoMs": 2500
+    },
+    "plt.cetoacidose_pediatrica.s1": {
+      "arquivo": "plt.cetoacidose_pediatrica.s1.ec689da1.mp3",
+      "hash": "ec689da1c1470a2e887e9f38bce19728eb18538e",
+      "duracaoMs": 2725
+    },
+    "plt.cetoacidose_pediatrica.s2": {
+      "arquivo": "plt.cetoacidose_pediatrica.s2.8665d8d7.mp3",
+      "hash": "8665d8d79f0c5793404212ff16b7db7abf0789f5",
+      "duracaoMs": 3100
+    },
+    "plt.cetoacidose_pediatrica.b1": {
+      "arquivo": "plt.cetoacidose_pediatrica.b1.6935e204.mp3",
+      "hash": "6935e204d66f72678471f962540aa49d662a0c03",
+      "duracaoMs": 2550
+    },
+    "plt.cetoacidose_pediatrica.a1": {
+      "arquivo": "plt.cetoacidose_pediatrica.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.cetoacidose_pediatrica.a2": {
+      "arquivo": "plt.cetoacidose_pediatrica.a2.d68561fe.mp3",
+      "hash": "d68561fe1ac7027900cf021c1b8781bb2db0f3cd",
+      "duracaoMs": 3350
+    },
+    "plt.cetoacidose_pediatrica.a3": {
+      "arquivo": "plt.cetoacidose_pediatrica.a3.1b015f12.mp3",
+      "hash": "1b015f1207ec72757665aaf85e0280070f7429be",
+      "duracaoMs": 1975
+    },
+    "plt.cetoacidose_pediatrica.a4": {
+      "arquivo": "plt.cetoacidose_pediatrica.a4.ac665c66.mp3",
+      "hash": "ac665c6684d3dcdb07ccd324cd878a86200cae08",
+      "duracaoMs": 1825
+    },
+    "plt.cetoacidose_pediatrica.r1": {
+      "arquivo": "plt.cetoacidose_pediatrica.r1.de0f24f9.mp3",
+      "hash": "de0f24f9dcd5d2e456442910a976a45affe9ce8d",
+      "duracaoMs": 2275
+    },
+    "plt.cetoacidose_pediatrica.r2": {
+      "arquivo": "plt.cetoacidose_pediatrica.r2.f80fb406.mp3",
+      "hash": "f80fb4064f719c518dd03b24889bb1bb96fb2712",
+      "duracaoMs": 3000
+    },
+    "plt.pre_eclampsia_grave.s1": {
+      "arquivo": "plt.pre_eclampsia_grave.s1.075c45d1.mp3",
+      "hash": "075c45d1bc65d6a0fd6460c5a82bc5ba86311266",
+      "duracaoMs": 2550
+    },
+    "plt.pre_eclampsia_grave.s2": {
+      "arquivo": "plt.pre_eclampsia_grave.s2.95eaeb30.mp3",
+      "hash": "95eaeb30e7d6ccaed48cd715664b9ccdd9b0596d",
+      "duracaoMs": 3225
+    },
+    "plt.pre_eclampsia_grave.b1": {
+      "arquivo": "plt.pre_eclampsia_grave.b1.de97ecde.mp3",
+      "hash": "de97ecdec5e81f07e2195f50dcc8755b7d6aeb19",
+      "duracaoMs": 2850
+    },
+    "plt.pre_eclampsia_grave.a1": {
+      "arquivo": "plt.pre_eclampsia_grave.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.pre_eclampsia_grave.a2": {
+      "arquivo": "plt.pre_eclampsia_grave.a2.38c981a1.mp3",
+      "hash": "38c981a1b7313f6e09c5faf1fa3c0cbcb4c9de90",
+      "duracaoMs": 1975
+    },
+    "plt.pre_eclampsia_grave.a3": {
+      "arquivo": "plt.pre_eclampsia_grave.a3.d450fac4.mp3",
+      "hash": "d450fac4af22e4d5fa7127582c22911d1f4eec13",
+      "duracaoMs": 1675
+    },
+    "plt.pre_eclampsia_grave.a4": {
+      "arquivo": "plt.pre_eclampsia_grave.a4.97c7e88d.mp3",
+      "hash": "97c7e88d61daf5604d4301b7ddbb6a3de01ebdcd",
+      "duracaoMs": 2375
+    },
+    "plt.pre_eclampsia_grave.r1": {
+      "arquivo": "plt.pre_eclampsia_grave.r1.65dbdc9e.mp3",
+      "hash": "65dbdc9e88bd8a568657848580c156935a0df082",
+      "duracaoMs": 2725
+    },
+    "plt.pre_eclampsia_grave.r2": {
+      "arquivo": "plt.pre_eclampsia_grave.r2.26c97102.mp3",
+      "hash": "26c97102cb3803a3c3d5ea931fafd2aa2c10d761",
+      "duracaoMs": 2900
+    },
+    "plt.pancreatite_aguda.s1": {
+      "arquivo": "plt.pancreatite_aguda.s1.ba4e7de1.mp3",
+      "hash": "ba4e7de1dae744c56a70ac5212f49f71552f8559",
+      "duracaoMs": 2750
+    },
+    "plt.pancreatite_aguda.s2": {
+      "arquivo": "plt.pancreatite_aguda.s2.ec9bab11.mp3",
+      "hash": "ec9bab1139279ea364bc1bff72ce4e8f9ea04809",
+      "duracaoMs": 3075
+    },
+    "plt.pancreatite_aguda.b1": {
+      "arquivo": "plt.pancreatite_aguda.b1.12641f29.mp3",
+      "hash": "12641f29c180799351661b1eabbeb5efde25f8af",
+      "duracaoMs": 3050
+    },
+    "plt.pancreatite_aguda.a1": {
+      "arquivo": "plt.pancreatite_aguda.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.pancreatite_aguda.a2": {
+      "arquivo": "plt.pancreatite_aguda.a2.9e24a3db.mp3",
+      "hash": "9e24a3dbbb5ccf23875082e16edc3eb39d08dc65",
+      "duracaoMs": 2025
+    },
+    "plt.pancreatite_aguda.a3": {
+      "arquivo": "plt.pancreatite_aguda.a3.fdd17b78.mp3",
+      "hash": "fdd17b78da1829a6632d476e85e80f0b495959d1",
+      "duracaoMs": 2625
+    },
+    "plt.pancreatite_aguda.a4": {
+      "arquivo": "plt.pancreatite_aguda.a4.0201e478.mp3",
+      "hash": "0201e478cf07b1d4dc33ba474ba171fc242d8b59",
+      "duracaoMs": 2400
+    },
+    "plt.pancreatite_aguda.r1": {
+      "arquivo": "plt.pancreatite_aguda.r1.80cfbacc.mp3",
+      "hash": "80cfbacc23370ad13672280d5d7aef6c3656675b",
+      "duracaoMs": 2475
+    },
+    "plt.pancreatite_aguda.r2": {
+      "arquivo": "plt.pancreatite_aguda.r2.1a0e5131.mp3",
+      "hash": "1a0e513171a429905839ff9cd2cfa026822062c3",
+      "duracaoMs": 2475
+    },
+    "plt.choque_anafilatico.s1": {
+      "arquivo": "plt.choque_anafilatico.s1.462eb392.mp3",
+      "hash": "462eb392212547ee9e68bcc364e89a781d6368b5",
+      "duracaoMs": 2725
+    },
+    "plt.choque_anafilatico.s2": {
+      "arquivo": "plt.choque_anafilatico.s2.d95c467c.mp3",
+      "hash": "d95c467c74c21fa3425aaa3eb61928409d00eaec",
+      "duracaoMs": 2775
+    },
+    "plt.choque_anafilatico.b1": {
+      "arquivo": "plt.choque_anafilatico.b1.df1e08bd.mp3",
+      "hash": "df1e08bdac51cbe90fa39e4f6983a51930746d22",
+      "duracaoMs": 2375
+    },
+    "plt.choque_anafilatico.a1": {
+      "arquivo": "plt.choque_anafilatico.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.choque_anafilatico.a2": {
+      "arquivo": "plt.choque_anafilatico.a2.7e6e824e.mp3",
+      "hash": "7e6e824eaddcd1803604ebeefd11d3c6655fb838",
+      "duracaoMs": 2725
+    },
+    "plt.choque_anafilatico.a3": {
+      "arquivo": "plt.choque_anafilatico.a3.aecb11d0.mp3",
+      "hash": "aecb11d00bcb0c2c80e0e1c801cfab825c126572",
+      "duracaoMs": 2150
+    },
+    "plt.choque_anafilatico.a4": {
+      "arquivo": "plt.choque_anafilatico.a4.307cb297.mp3",
+      "hash": "307cb297ac7266c7914f2a4799e5851fac7f2d6e",
+      "duracaoMs": 2900
+    },
+    "plt.choque_anafilatico.r1": {
+      "arquivo": "plt.choque_anafilatico.r1.4e80e3c4.mp3",
+      "hash": "4e80e3c4a459eb0cb33885b72a96051ba11fbf86",
+      "duracaoMs": 3075
+    },
+    "plt.choque_anafilatico.r2": {
+      "arquivo": "plt.choque_anafilatico.r2.0a191722.mp3",
+      "hash": "0a191722c15d04dbc966324e936af7fe41055e23",
+      "duracaoMs": 3900
+    },
+    "plt.queimado_agudo.s1": {
+      "arquivo": "plt.queimado_agudo.s1.54b127e5.mp3",
+      "hash": "54b127e54de0bea3692ffa12628446c665de526b",
+      "duracaoMs": 2350
+    },
+    "plt.queimado_agudo.s2": {
+      "arquivo": "plt.queimado_agudo.s2.7cb67eda.mp3",
+      "hash": "7cb67eda9aca4df81b1a1e455cc0a2b5aed2a8b3",
+      "duracaoMs": 2725
+    },
+    "plt.queimado_agudo.b1": {
+      "arquivo": "plt.queimado_agudo.b1.b5ee3c1b.mp3",
+      "hash": "b5ee3c1bbac9a43205b93dc850b16d5161ac8ed8",
+      "duracaoMs": 3100
+    },
+    "plt.queimado_agudo.a1": {
+      "arquivo": "plt.queimado_agudo.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.queimado_agudo.a2": {
+      "arquivo": "plt.queimado_agudo.a2.dd25d726.mp3",
+      "hash": "dd25d726b0ab2d02ae4fd3b9434ba498610145bd",
+      "duracaoMs": 2025
+    },
+    "plt.queimado_agudo.a3": {
+      "arquivo": "plt.queimado_agudo.a3.dd4c0f8e.mp3",
+      "hash": "dd4c0f8e4ae6ab902835ce475af5c0a053061537",
+      "duracaoMs": 2025
+    },
+    "plt.queimado_agudo.a4": {
+      "arquivo": "plt.queimado_agudo.a4.d15521b0.mp3",
+      "hash": "d15521b098e2cbec61edb9018d7961e3f10d7cc6",
+      "duracaoMs": 2475
+    },
+    "plt.queimado_agudo.r1": {
+      "arquivo": "plt.queimado_agudo.r1.2709d852.mp3",
+      "hash": "2709d852afc32f917365768e290113edd4706a8d",
+      "duracaoMs": 3300
+    },
+    "plt.queimado_agudo.r2": {
+      "arquivo": "plt.queimado_agudo.r2.614a677f.mp3",
+      "hash": "614a677f0fe8354c8e301ebe8199ea93965a997c",
+      "duracaoMs": 2275
+    },
+    "plt.politrauma_bacia.s1": {
+      "arquivo": "plt.politrauma_bacia.s1.c327cd62.mp3",
+      "hash": "c327cd62c7dae0e52184dff2e90f9acf42181f05",
+      "duracaoMs": 2100
+    },
+    "plt.politrauma_bacia.s2": {
+      "arquivo": "plt.politrauma_bacia.s2.b1d65642.mp3",
+      "hash": "b1d656425d11b954364deb6e3423ec08e111de93",
+      "duracaoMs": 2550
+    },
+    "plt.politrauma_bacia.b1": {
+      "arquivo": "plt.politrauma_bacia.b1.dedaaa95.mp3",
+      "hash": "dedaaa95d8c044dbbce156869486cfd5599fdfdb",
+      "duracaoMs": 2575
+    },
+    "plt.politrauma_bacia.a1": {
+      "arquivo": "plt.politrauma_bacia.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.politrauma_bacia.a2": {
+      "arquivo": "plt.politrauma_bacia.a2.1120e674.mp3",
+      "hash": "1120e674d6fa9778cbd4e2ac4e4d9217a62a52c4",
+      "duracaoMs": 2175
+    },
+    "plt.politrauma_bacia.a3": {
+      "arquivo": "plt.politrauma_bacia.a3.cf9e4edb.mp3",
+      "hash": "cf9e4edb240b80cffcca30150e76d4b07661b9ae",
+      "duracaoMs": 2375
+    },
+    "plt.politrauma_bacia.a4": {
+      "arquivo": "plt.politrauma_bacia.a4.c2dc661d.mp3",
+      "hash": "c2dc661df53a5a3552055d15f7fefe82ee0b631b",
+      "duracaoMs": 2025
+    },
+    "plt.politrauma_bacia.r1": {
+      "arquivo": "plt.politrauma_bacia.r1.30a83fba.mp3",
+      "hash": "30a83fba53103dd1b2da5224c275e2c8c94b0308",
+      "duracaoMs": 2400
+    },
+    "plt.politrauma_bacia.r2": {
+      "arquivo": "plt.politrauma_bacia.r2.ca79ace4.mp3",
+      "hash": "ca79ace44295b72a7e568b5b1f8b793695355bce",
+      "duracaoMs": 2775
+    },
+    "plt.hemorragia_digestiva.s1": {
+      "arquivo": "plt.hemorragia_digestiva.s1.3b98c46b.mp3",
+      "hash": "3b98c46b046f71da774705d9d29971d8c6f04d04",
+      "duracaoMs": 2550
+    },
+    "plt.hemorragia_digestiva.s2": {
+      "arquivo": "plt.hemorragia_digestiva.s2.b1d65642.mp3",
+      "hash": "b1d656425d11b954364deb6e3423ec08e111de93",
+      "duracaoMs": 2550
+    },
+    "plt.hemorragia_digestiva.b1": {
+      "arquivo": "plt.hemorragia_digestiva.b1.dedaaa95.mp3",
+      "hash": "dedaaa95d8c044dbbce156869486cfd5599fdfdb",
+      "duracaoMs": 2575
+    },
+    "plt.hemorragia_digestiva.a1": {
+      "arquivo": "plt.hemorragia_digestiva.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.hemorragia_digestiva.a2": {
+      "arquivo": "plt.hemorragia_digestiva.a2.0c39e900.mp3",
+      "hash": "0c39e90094eff841f9a9ba5d44e1768c631a240f",
+      "duracaoMs": 2775
+    },
+    "plt.hemorragia_digestiva.a3": {
+      "arquivo": "plt.hemorragia_digestiva.a3.e7ab5292.mp3",
+      "hash": "e7ab529230ee28f13d6ef34a4070be4fc0930490",
+      "duracaoMs": 2000
+    },
+    "plt.hemorragia_digestiva.a4": {
+      "arquivo": "plt.hemorragia_digestiva.a4.40f44022.mp3",
+      "hash": "40f440220ff14ee8e0b8700bd0ffa6ac1ad5e93b",
+      "duracaoMs": 2350
+    },
+    "plt.hemorragia_digestiva.r1": {
+      "arquivo": "plt.hemorragia_digestiva.r1.4cdbbb9e.mp3",
+      "hash": "4cdbbb9ef594e2eff8f7f4bb214f4a8a19f6721a",
+      "duracaoMs": 2625
+    },
+    "plt.hemorragia_digestiva.r2": {
+      "arquivo": "plt.hemorragia_digestiva.r2.930eda98.mp3",
+      "hash": "930eda98bcce37c98e4e65890908084b3dc7c2a0",
+      "duracaoMs": 1850
+    },
+    "plt.tep_pos_op.s1": {
+      "arquivo": "plt.tep_pos_op.s1.ba4e7de1.mp3",
+      "hash": "ba4e7de1dae744c56a70ac5212f49f71552f8559",
+      "duracaoMs": 2750
+    },
+    "plt.tep_pos_op.s2": {
+      "arquivo": "plt.tep_pos_op.s2.b1d65642.mp3",
+      "hash": "b1d656425d11b954364deb6e3423ec08e111de93",
+      "duracaoMs": 2550
+    },
+    "plt.tep_pos_op.b1": {
+      "arquivo": "plt.tep_pos_op.b1.7d6c17de.mp3",
+      "hash": "7d6c17deda3a795c6871c9684a21df3e994e5cc8",
+      "duracaoMs": 2575
+    },
+    "plt.tep_pos_op.a1": {
+      "arquivo": "plt.tep_pos_op.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.tep_pos_op.a2": {
+      "arquivo": "plt.tep_pos_op.a2.c710c429.mp3",
+      "hash": "c710c4295e1bd2143770b92cdfbb0a2c4556b976",
+      "duracaoMs": 1975
+    },
+    "plt.tep_pos_op.a3": {
+      "arquivo": "plt.tep_pos_op.a3.aab68b52.mp3",
+      "hash": "aab68b52aa26abfd28aa45ab9af70045eb55bc97",
+      "duracaoMs": 1975
+    },
+    "plt.tep_pos_op.a4": {
+      "arquivo": "plt.tep_pos_op.a4.6ff387d4.mp3",
+      "hash": "6ff387d45b6eb9993e62db7ef25164b6501a39c1",
+      "duracaoMs": 2025
+    },
+    "plt.tep_pos_op.r1": {
+      "arquivo": "plt.tep_pos_op.r1.6212dc76.mp3",
+      "hash": "6212dc7652a560bd7425cd5c0f363f07be7c4277",
+      "duracaoMs": 2725
+    },
+    "plt.tep_pos_op.r2": {
+      "arquivo": "plt.tep_pos_op.r2.fd8efcc8.mp3",
+      "hash": "fd8efcc8f9efa9d45fa708a821134e939b444a91",
+      "duracaoMs": 2025
+    },
+    "plt.falciforme_toracica.s1": {
+      "arquivo": "plt.falciforme_toracica.s1.775064f2.mp3",
+      "hash": "775064f212d92e52638c71d2c5dd0839fc96f7b9",
+      "duracaoMs": 2575
+    },
+    "plt.falciforme_toracica.s2": {
+      "arquivo": "plt.falciforme_toracica.s2.37947fde.mp3",
+      "hash": "37947fde881a26aceae551b401a5b6b7dbf6179d",
+      "duracaoMs": 2450
+    },
+    "plt.falciforme_toracica.b1": {
+      "arquivo": "plt.falciforme_toracica.b1.3cf57eb3.mp3",
+      "hash": "3cf57eb3dcad61f2bed23203c3acc65737aa96dc",
+      "duracaoMs": 2800
+    },
+    "plt.falciforme_toracica.a1": {
+      "arquivo": "plt.falciforme_toracica.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.falciforme_toracica.a2": {
+      "arquivo": "plt.falciforme_toracica.a2.c710c429.mp3",
+      "hash": "c710c4295e1bd2143770b92cdfbb0a2c4556b976",
+      "duracaoMs": 1975
+    },
+    "plt.falciforme_toracica.a3": {
+      "arquivo": "plt.falciforme_toracica.a3.555ffc27.mp3",
+      "hash": "555ffc27232651dc8bcff40d79e97a8700e7e5f2",
+      "duracaoMs": 1600
+    },
+    "plt.falciforme_toracica.a4": {
+      "arquivo": "plt.falciforme_toracica.a4.22c427c1.mp3",
+      "hash": "22c427c130df58529fc9a232019af966388b42c5",
+      "duracaoMs": 2275
+    },
+    "plt.falciforme_toracica.r1": {
+      "arquivo": "plt.falciforme_toracica.r1.ec36402b.mp3",
+      "hash": "ec36402bd233eb6c399d8f849ef465aabe53173c",
+      "duracaoMs": 2150
+    },
+    "plt.falciforme_toracica.r2": {
+      "arquivo": "plt.falciforme_toracica.r2.c466d4b4.mp3",
+      "hash": "c466d4b4335bd1579c7fbfd11566ce5919d65c9d",
+      "duracaoMs": 3200
+    },
+    "plt.bronquiolite_lactente.s1": {
+      "arquivo": "plt.bronquiolite_lactente.s1.f695b235.mp3",
+      "hash": "f695b23503bffead8b5f5f974ceb0d2be0c3c987",
+      "duracaoMs": 2675
+    },
+    "plt.bronquiolite_lactente.s2": {
+      "arquivo": "plt.bronquiolite_lactente.s2.074261cc.mp3",
+      "hash": "074261cc062f27a9900ee8bbc0fa1159b49a967d",
+      "duracaoMs": 2625
+    },
+    "plt.bronquiolite_lactente.b1": {
+      "arquivo": "plt.bronquiolite_lactente.b1.3914cc4c.mp3",
+      "hash": "3914cc4cf25f31c544b3116cb423405ed8b4097a",
+      "duracaoMs": 3775
+    },
+    "plt.bronquiolite_lactente.a1": {
+      "arquivo": "plt.bronquiolite_lactente.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.bronquiolite_lactente.a2": {
+      "arquivo": "plt.bronquiolite_lactente.a2.70ef83de.mp3",
+      "hash": "70ef83de47079eb5b9c94d4c086c428e34b85f31",
+      "duracaoMs": 2525
+    },
+    "plt.bronquiolite_lactente.a3": {
+      "arquivo": "plt.bronquiolite_lactente.a3.6daf7007.mp3",
+      "hash": "6daf7007fbc1a044b093d701b9f77b3db9e71422",
+      "duracaoMs": 2200
+    },
+    "plt.bronquiolite_lactente.a4": {
+      "arquivo": "plt.bronquiolite_lactente.a4.1b0e9648.mp3",
+      "hash": "1b0e964830f1b49fa029308ac2aca9e8bd7c888d",
+      "duracaoMs": 2250
+    },
+    "plt.bronquiolite_lactente.r1": {
+      "arquivo": "plt.bronquiolite_lactente.r1.bcf3e709.mp3",
+      "hash": "bcf3e7098231a427aea8a8a592ce5a8f0d4d1fc2",
+      "duracaoMs": 2050
+    },
+    "plt.bronquiolite_lactente.r2": {
+      "arquivo": "plt.bronquiolite_lactente.r2.a2c3c5ed.mp3",
+      "hash": "a2c3c5ed51b6d974a39bcb17fcde2dc207e30cc1",
+      "duracaoMs": 2075
+    },
+    "plt.paliativos_terminal.s1": {
+      "arquivo": "plt.paliativos_terminal.s1.6f1a794a.mp3",
+      "hash": "6f1a794a67b91220d660c851f496986f591beae9",
+      "duracaoMs": 2700
+    },
+    "plt.paliativos_terminal.s2": {
+      "arquivo": "plt.paliativos_terminal.s2.000e949c.mp3",
+      "hash": "000e949ce5ced39458e40affd9a2220f0ae053ff",
+      "duracaoMs": 2300
+    },
+    "plt.paliativos_terminal.b1": {
+      "arquivo": "plt.paliativos_terminal.b1.9ad56e96.mp3",
+      "hash": "9ad56e96cdb59cc42c514f0b7694524e3165c0b1",
+      "duracaoMs": 2925
+    },
+    "plt.paliativos_terminal.a1": {
+      "arquivo": "plt.paliativos_terminal.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.paliativos_terminal.a2": {
+      "arquivo": "plt.paliativos_terminal.a2.5cc39efc.mp3",
+      "hash": "5cc39efcae8b422a1428030f910311711e1660e8",
+      "duracaoMs": 2725
+    },
+    "plt.paliativos_terminal.a3": {
+      "arquivo": "plt.paliativos_terminal.a3.72e2350d.mp3",
+      "hash": "72e2350d8f36c9b36cb2a45f771664d74b0dfd81",
+      "duracaoMs": 2475
+    },
+    "plt.paliativos_terminal.a4": {
+      "arquivo": "plt.paliativos_terminal.a4.024d62d8.mp3",
+      "hash": "024d62d86dc1412a1bb43fcdc31cdc7056237637",
+      "duracaoMs": 2025
+    },
+    "plt.paliativos_terminal.r1": {
+      "arquivo": "plt.paliativos_terminal.r1.27932223.mp3",
+      "hash": "279322234fba3b5b9b36dbf168b4a57e3142b9a2",
+      "duracaoMs": 2275
+    },
+    "plt.paliativos_terminal.r2": {
+      "arquivo": "plt.paliativos_terminal.r2.a43422e5.mp3",
+      "hash": "a43422e52180680dc615f6aa9cb8964bb3aa2609",
+      "duracaoMs": 2775
+    },
+    "plt.crise_tireotoxica.s1": {
+      "arquivo": "plt.crise_tireotoxica.s1.ec689da1.mp3",
+      "hash": "ec689da1c1470a2e887e9f38bce19728eb18538e",
+      "duracaoMs": 2725
+    },
+    "plt.crise_tireotoxica.s2": {
+      "arquivo": "plt.crise_tireotoxica.s2.c295cded.mp3",
+      "hash": "c295cdedaf5ba533b86ba304e97aa69fb696341c",
+      "duracaoMs": 3250
+    },
+    "plt.crise_tireotoxica.b1": {
+      "arquivo": "plt.crise_tireotoxica.b1.2274cf54.mp3",
+      "hash": "2274cf54306974fc1bfd603fe3b52e27537efbb1",
+      "duracaoMs": 2450
+    },
+    "plt.crise_tireotoxica.a1": {
+      "arquivo": "plt.crise_tireotoxica.a1.ae762174.mp3",
+      "hash": "ae762174b244b08a0122e22860bdea012f5d0f3a",
+      "duracaoMs": 2050
+    },
+    "plt.crise_tireotoxica.a2": {
+      "arquivo": "plt.crise_tireotoxica.a2.8ee611a0.mp3",
+      "hash": "8ee611a0ffe686dcca5865d8b12b4c873b09b476",
+      "duracaoMs": 2225
+    },
+    "plt.crise_tireotoxica.a3": {
+      "arquivo": "plt.crise_tireotoxica.a3.80cce12d.mp3",
+      "hash": "80cce12d848d660be9778f48c91a3f4bd96ac95b",
+      "duracaoMs": 2300
+    },
+    "plt.crise_tireotoxica.a4": {
+      "arquivo": "plt.crise_tireotoxica.a4.5e4feba6.mp3",
+      "hash": "5e4feba6948b6f06cc77e231fa1c0e29475bddae",
+      "duracaoMs": 2425
+    },
+    "plt.crise_tireotoxica.r1": {
+      "arquivo": "plt.crise_tireotoxica.r1.a43132ba.mp3",
+      "hash": "a43132bab55dea86b0972fea4f222c6349b20280",
+      "duracaoMs": 2475
+    },
+    "plt.crise_tireotoxica.r2": {
+      "arquivo": "plt.crise_tireotoxica.r2.d10617a4.mp3",
+      "hash": "d10617a4ef2c7d4aef264425458589b46b7ff0ee",
+      "duracaoMs": 2750
+    }
+  }
+}

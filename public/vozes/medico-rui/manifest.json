@@ -1,0 +1,835 @@
+{
+  "versao": 1,
+  "falas": {
+    "calc.p001.enunciado": {
+      "arquivo": "calc.p001.enunciado.400ddfa2.mp3",
+      "hash": "400ddfa2284e5c6f8964845ef9a05a875be87ef0",
+      "duracaoMs": 7700
+    },
+    "calc.p002.enunciado": {
+      "arquivo": "calc.p002.enunciado.810421b6.mp3",
+      "hash": "810421b6a377f652bcc6052890429e4a41a27614",
+      "duracaoMs": 6900
+    },
+    "calc.p003.enunciado": {
+      "arquivo": "calc.p003.enunciado.55f47969.mp3",
+      "hash": "55f4796900e9f4cfc2a4affbb89511ea59f5e332",
+      "duracaoMs": 8075
+    },
+    "calc.p004.enunciado": {
+      "arquivo": "calc.p004.enunciado.cccf7ee0.mp3",
+      "hash": "cccf7ee0d07ee37840631a5bcc685262256bf7a0",
+      "duracaoMs": 11975
+    },
+    "calc.p005.enunciado": {
+      "arquivo": "calc.p005.enunciado.cabbe8fd.mp3",
+      "hash": "cabbe8fd08764d2e9d0ff05d2f1edec56aff2af3",
+      "duracaoMs": 10850
+    },
+    "calc.p006.enunciado": {
+      "arquivo": "calc.p006.enunciado.3dcd53fd.mp3",
+      "hash": "3dcd53fd823d83a51c4be8fe631a07454372a877",
+      "duracaoMs": 9975
+    },
+    "calc.p007.enunciado": {
+      "arquivo": "calc.p007.enunciado.ea3cc942.mp3",
+      "hash": "ea3cc942a3237dfb112091fc571ee03b99b3e298",
+      "duracaoMs": 9675
+    },
+    "calc.p008.enunciado": {
+      "arquivo": "calc.p008.enunciado.e6ab623d.mp3",
+      "hash": "e6ab623d471035ea9b90665251fa91834e050450",
+      "duracaoMs": 8550
+    },
+    "calc.p009.enunciado": {
+      "arquivo": "calc.p009.enunciado.bb6a5858.mp3",
+      "hash": "bb6a5858da619533ea4d3e62f99acb8ae1c1bcd0",
+      "duracaoMs": 12125
+    },
+    "calc.p010.enunciado": {
+      "arquivo": "calc.p010.enunciado.9a6b1371.mp3",
+      "hash": "9a6b1371beb2a92eebd57fc77cd620f586926f07",
+      "duracaoMs": 9125
+    },
+    "calc.p011.enunciado": {
+      "arquivo": "calc.p011.enunciado.720c1866.mp3",
+      "hash": "720c186614791c6245ceb5e95a4e7d911c2e66fb",
+      "duracaoMs": 6825
+    },
+    "calc.p012.enunciado": {
+      "arquivo": "calc.p012.enunciado.484e10dd.mp3",
+      "hash": "484e10dd892c76e643a595e7f5db954720f05118",
+      "duracaoMs": 9650
+    },
+    "calc.p013.enunciado": {
+      "arquivo": "calc.p013.enunciado.19cf4668.mp3",
+      "hash": "19cf4668ce3d2a613cdc907f1ad648818d14a289",
+      "duracaoMs": 6650
+    },
+    "calc.p014.enunciado": {
+      "arquivo": "calc.p014.enunciado.e0931c0f.mp3",
+      "hash": "e0931c0fdabf6b94a73ad36000458f8783b056ab",
+      "duracaoMs": 7275
+    },
+    "calc.p015.enunciado": {
+      "arquivo": "calc.p015.enunciado.b76b8fb6.mp3",
+      "hash": "b76b8fb621c50c5d029be85f2f66159fc3c175bf",
+      "duracaoMs": 9350
+    },
+    "calc.p016.enunciado": {
+      "arquivo": "calc.p016.enunciado.5c98232e.mp3",
+      "hash": "5c98232e2ec305c178ff4a36fa432493882c2d50",
+      "duracaoMs": 9075
+    },
+    "calc.p017.enunciado": {
+      "arquivo": "calc.p017.enunciado.6f3884d3.mp3",
+      "hash": "6f3884d388614d7a5c20d89c068de0f14f8f0e34",
+      "duracaoMs": 5575
+    },
+    "calc.p018.enunciado": {
+      "arquivo": "calc.p018.enunciado.888f498d.mp3",
+      "hash": "888f498df048be8ec58645142f21624bfcfa3928",
+      "duracaoMs": 8350
+    },
+    "calc.p019.enunciado": {
+      "arquivo": "calc.p019.enunciado.ae829ac2.mp3",
+      "hash": "ae829ac2f214194378cbb57420095557fbee91a7",
+      "duracaoMs": 9100
+    },
+    "calc.p020.enunciado": {
+      "arquivo": "calc.p020.enunciado.89f644f6.mp3",
+      "hash": "89f644f68145b1c6517ad187150b578bb562012d",
+      "duracaoMs": 9850
+    },
+    "calc.p021.enunciado": {
+      "arquivo": "calc.p021.enunciado.75dbc0af.mp3",
+      "hash": "75dbc0af3a061f6f510917d36d138db0a04b2259",
+      "duracaoMs": 9175
+    },
+    "calc.p022.enunciado": {
+      "arquivo": "calc.p022.enunciado.46b51a02.mp3",
+      "hash": "46b51a02f086997a79f81bf61b449467f33d817a",
+      "duracaoMs": 6025
+    },
+    "calc.p023.enunciado": {
+      "arquivo": "calc.p023.enunciado.422352b0.mp3",
+      "hash": "422352b084c2ae0340759974f43e9db83cbd3eb5",
+      "duracaoMs": 10900
+    },
+    "calc.p024.enunciado": {
+      "arquivo": "calc.p024.enunciado.6793059e.mp3",
+      "hash": "6793059e1798629f86a2c27f16d7dcd7b11b94b1",
+      "duracaoMs": 14150
+    },
+    "calc.p025.enunciado": {
+      "arquivo": "calc.p025.enunciado.3949b1a1.mp3",
+      "hash": "3949b1a1030e78a746661af177735cdf87c50dcc",
+      "duracaoMs": 8600
+    },
+    "calc.p026.enunciado": {
+      "arquivo": "calc.p026.enunciado.37b5a31a.mp3",
+      "hash": "37b5a31a62131a05a0119899c5535f712cf6d41d",
+      "duracaoMs": 7475
+    },
+    "calc.p027.enunciado": {
+      "arquivo": "calc.p027.enunciado.53f6322d.mp3",
+      "hash": "53f6322da9c8d974510edeb42abaaa274623d154",
+      "duracaoMs": 8175
+    },
+    "calc.p028.enunciado": {
+      "arquivo": "calc.p028.enunciado.f4c5a45d.mp3",
+      "hash": "f4c5a45d775f5a133f227d599f2163a7f37a262a",
+      "duracaoMs": 5725
+    },
+    "calc.p029.enunciado": {
+      "arquivo": "calc.p029.enunciado.e646257c.mp3",
+      "hash": "e646257c5be01ec1d65d95f0d3362a1c13e98e94",
+      "duracaoMs": 10750
+    },
+    "calc.p030.enunciado": {
+      "arquivo": "calc.p030.enunciado.1f042e37.mp3",
+      "hash": "1f042e37bfca05cf1c9b2497c1b3dcbcebcd1c82",
+      "duracaoMs": 14500
+    },
+    "calc.p031.enunciado": {
+      "arquivo": "calc.p031.enunciado.4381e7c2.mp3",
+      "hash": "4381e7c223c4cbaff358cad2951fe1a3690c99cb",
+      "duracaoMs": 8000
+    },
+    "calc.p032.enunciado": {
+      "arquivo": "calc.p032.enunciado.ea557129.mp3",
+      "hash": "ea557129efc0a47bf3f1c8e1cde9c1dcb5c91511",
+      "duracaoMs": 8075
+    },
+    "calc.p033.enunciado": {
+      "arquivo": "calc.p033.enunciado.64accbec.mp3",
+      "hash": "64accbec066aeabb70fbb8f8721235a9a3e13586",
+      "duracaoMs": 7575
+    },
+    "calc.p034.enunciado": {
+      "arquivo": "calc.p034.enunciado.d187fd5f.mp3",
+      "hash": "d187fd5f57578a19929cb222da3dc4813f96400d",
+      "duracaoMs": 5575
+    },
+    "calc.p035.enunciado": {
+      "arquivo": "calc.p035.enunciado.07ee7b94.mp3",
+      "hash": "07ee7b941518420e4edd8ef604e61521317b9abd",
+      "duracaoMs": 10475
+    },
+    "calc.p036.enunciado": {
+      "arquivo": "calc.p036.enunciado.98cf6850.mp3",
+      "hash": "98cf68503d5d2a919b61d4e760ddb3a92252893a",
+      "duracaoMs": 14075
+    },
+    "calc.p037.enunciado": {
+      "arquivo": "calc.p037.enunciado.575eecc0.mp3",
+      "hash": "575eecc0e2789b955099db5d0e096ca3fef1f1c4",
+      "duracaoMs": 7925
+    },
+    "calc.p038.enunciado": {
+      "arquivo": "calc.p038.enunciado.9684718d.mp3",
+      "hash": "9684718d6a4de3a223f43cf70311aaa113a5a976",
+      "duracaoMs": 8050
+    },
+    "calc.p039.enunciado": {
+      "arquivo": "calc.p039.enunciado.a8097822.mp3",
+      "hash": "a80978228d25c49f8c5b69e08ba0945c74add332",
+      "duracaoMs": 6600
+    },
+    "calc.p040.enunciado": {
+      "arquivo": "calc.p040.enunciado.cf773f61.mp3",
+      "hash": "cf773f61e3eb67d3ed981566b4fd201c91617e63",
+      "duracaoMs": 9300
+    },
+    "calc.p041.enunciado": {
+      "arquivo": "calc.p041.enunciado.d664c524.mp3",
+      "hash": "d664c524de3ce27e26a98ddc224c1c91b192875c",
+      "duracaoMs": 9450
+    },
+    "calc.p042.enunciado": {
+      "arquivo": "calc.p042.enunciado.6a49659f.mp3",
+      "hash": "6a49659feb02f1873deb7adf58956ca21dab2d98",
+      "duracaoMs": 8125
+    },
+    "calc.p043.enunciado": {
+      "arquivo": "calc.p043.enunciado.6f16fea7.mp3",
+      "hash": "6f16fea7dc52ccd915ae842454c6ccf2247b1000",
+      "duracaoMs": 8225
+    },
+    "calc.p044.enunciado": {
+      "arquivo": "calc.p044.enunciado.daefa061.mp3",
+      "hash": "daefa061ec79407f2cd2bdfe24526fdb7ce48138",
+      "duracaoMs": 7175
+    },
+    "calc.p045.enunciado": {
+      "arquivo": "calc.p045.enunciado.28f7cd21.mp3",
+      "hash": "28f7cd21db023b9f3eeb01792812cc2dd4995809",
+      "duracaoMs": 10650
+    },
+    "calc.p046.enunciado": {
+      "arquivo": "calc.p046.enunciado.68ba3efe.mp3",
+      "hash": "68ba3efef00ab7afe22dd42cf8470ad71fc42dda",
+      "duracaoMs": 6800
+    },
+    "calc.p047.enunciado": {
+      "arquivo": "calc.p047.enunciado.81e73be8.mp3",
+      "hash": "81e73be8794950b1fd56cf502173db86e8dbdd20",
+      "duracaoMs": 9725
+    },
+    "calc.p048.enunciado": {
+      "arquivo": "calc.p048.enunciado.e11f3973.mp3",
+      "hash": "e11f3973f73ca2e1c17597ec2917c0e4ff2dab2f",
+      "duracaoMs": 9175
+    },
+    "calc.p049.enunciado": {
+      "arquivo": "calc.p049.enunciado.92a46a81.mp3",
+      "hash": "92a46a81ef8696a19973bee2d3ad20d46f100441",
+      "duracaoMs": 6600
+    },
+    "calc.p050.enunciado": {
+      "arquivo": "calc.p050.enunciado.ae40ab3b.mp3",
+      "hash": "ae40ab3b2ee21ec2a6d7f4f9e234a682582f422d",
+      "duracaoMs": 7300
+    },
+    "calc.p051.enunciado": {
+      "arquivo": "calc.p051.enunciado.ec3ca9d8.mp3",
+      "hash": "ec3ca9d882811b9fc948004e1841f7722a3e300a",
+      "duracaoMs": 6525
+    },
+    "calc.p052.enunciado": {
+      "arquivo": "calc.p052.enunciado.9d73c389.mp3",
+      "hash": "9d73c389b6e3afd01021e24ac5d117c4e7740e7b",
+      "duracaoMs": 7525
+    },
+    "calc.p053.enunciado": {
+      "arquivo": "calc.p053.enunciado.d814c7d9.mp3",
+      "hash": "d814c7d9d8b82b87663297ad55ef2567aa75f6b1",
+      "duracaoMs": 7950
+    },
+    "calc.p054.enunciado": {
+      "arquivo": "calc.p054.enunciado.e2b9b7f7.mp3",
+      "hash": "e2b9b7f753cabbbbf4f8272fd6bbed41b728fb34",
+      "duracaoMs": 13750
+    },
+    "calc.p055.enunciado": {
+      "arquivo": "calc.p055.enunciado.adc3aa77.mp3",
+      "hash": "adc3aa77b3be11ebc80d768b916e25b735dec532",
+      "duracaoMs": 6550
+    },
+    "calc.p056.enunciado": {
+      "arquivo": "calc.p056.enunciado.642d8b4c.mp3",
+      "hash": "642d8b4cb7dd7dbae40e0d2e444e6e84f88a1f94",
+      "duracaoMs": 9900
+    },
+    "calc.p057.enunciado": {
+      "arquivo": "calc.p057.enunciado.4da009fe.mp3",
+      "hash": "4da009fe00c5cb7454612242d3326fbf6f2c2e8d",
+      "duracaoMs": 11000
+    },
+    "calc.p058.enunciado": {
+      "arquivo": "calc.p058.enunciado.3c9fe54e.mp3",
+      "hash": "3c9fe54e3df54a3db499021c7ba67ebb67b71f11",
+      "duracaoMs": 13875
+    },
+    "calc.p059.enunciado": {
+      "arquivo": "calc.p059.enunciado.661a03d4.mp3",
+      "hash": "661a03d40761ec515cbefcdd952dc8517da84d18",
+      "duracaoMs": 9500
+    },
+    "calc.p060.enunciado": {
+      "arquivo": "calc.p060.enunciado.b0a53599.mp3",
+      "hash": "b0a53599ad7c98417ef296f5952e091e7f41a395",
+      "duracaoMs": 8175
+    },
+    "calc.p061.enunciado": {
+      "arquivo": "calc.p061.enunciado.c0b4d38d.mp3",
+      "hash": "c0b4d38d6490de11bb74a7a36ee0ef50539b3c1b",
+      "duracaoMs": 7925
+    },
+    "calc.p062.enunciado": {
+      "arquivo": "calc.p062.enunciado.7a21b1e6.mp3",
+      "hash": "7a21b1e6b228ead1ab3b28e7e07b2c4539588a5f",
+      "duracaoMs": 9250
+    },
+    "calc.p063.enunciado": {
+      "arquivo": "calc.p063.enunciado.aea8b987.mp3",
+      "hash": "aea8b98702c704c93cf4251003c71c97f939aea4",
+      "duracaoMs": 7400
+    },
+    "calc.p064.enunciado": {
+      "arquivo": "calc.p064.enunciado.3c098660.mp3",
+      "hash": "3c0986604766ecf8375cd3cf24762e54c5d2bfe0",
+      "duracaoMs": 7625
+    },
+    "calc.p065.enunciado": {
+      "arquivo": "calc.p065.enunciado.419d01d5.mp3",
+      "hash": "419d01d56d165af5706aff32494863ad56e85966",
+      "duracaoMs": 9000
+    },
+    "calc.p066.enunciado": {
+      "arquivo": "calc.p066.enunciado.3055f302.mp3",
+      "hash": "3055f302eb1b3c0c091d6fa81b10756ef1ad3696",
+      "duracaoMs": 7050
+    },
+    "calc.p067.enunciado": {
+      "arquivo": "calc.p067.enunciado.3f2c0da1.mp3",
+      "hash": "3f2c0da1290ad1a7a71e8180830eb22a5f436c03",
+      "duracaoMs": 6900
+    },
+    "calc.p068.enunciado": {
+      "arquivo": "calc.p068.enunciado.a72470a7.mp3",
+      "hash": "a72470a7b322461e412e6e0ba416ec487f1830f2",
+      "duracaoMs": 9200
+    },
+    "calc.p069.enunciado": {
+      "arquivo": "calc.p069.enunciado.2a9ecb0c.mp3",
+      "hash": "2a9ecb0c0c03fcf90cb07d9de095185b2f3cedf4",
+      "duracaoMs": 8900
+    },
+    "calc.p070.enunciado": {
+      "arquivo": "calc.p070.enunciado.e65670b8.mp3",
+      "hash": "e65670b89bc5d034dfab9c8376c19badd49cedf0",
+      "duracaoMs": 6575
+    },
+    "calc.p071.enunciado": {
+      "arquivo": "calc.p071.enunciado.9411c8e8.mp3",
+      "hash": "9411c8e821158db64e550ae471812a6cc31d6136",
+      "duracaoMs": 9925
+    },
+    "calc.p072.enunciado": {
+      "arquivo": "calc.p072.enunciado.972e7549.mp3",
+      "hash": "972e75492e9e309757a1c81944a85d419638c4c4",
+      "duracaoMs": 6475
+    },
+    "calc.p073.enunciado": {
+      "arquivo": "calc.p073.enunciado.69252ee8.mp3",
+      "hash": "69252ee8b67c6e2b8235e368f4250e134a82da09",
+      "duracaoMs": 9475
+    },
+    "calc.p074.enunciado": {
+      "arquivo": "calc.p074.enunciado.694ce838.mp3",
+      "hash": "694ce8388b1684ab7421910825cef04259113f20",
+      "duracaoMs": 7375
+    },
+    "calc.p075.enunciado": {
+      "arquivo": "calc.p075.enunciado.7794d512.mp3",
+      "hash": "7794d512a3f79a6f09b74f4a48be30e9f562ede5",
+      "duracaoMs": 6650
+    },
+    "calc.p076.enunciado": {
+      "arquivo": "calc.p076.enunciado.72b907ef.mp3",
+      "hash": "72b907eff491c22989c5cafc5333b04c1c5598cf",
+      "duracaoMs": 5375
+    },
+    "calc.p077.enunciado": {
+      "arquivo": "calc.p077.enunciado.61757fd4.mp3",
+      "hash": "61757fd44c1cfdd54f1f95ef8aa112430ec6730e",
+      "duracaoMs": 8900
+    },
+    "calc.p078.enunciado": {
+      "arquivo": "calc.p078.enunciado.1b8c97e7.mp3",
+      "hash": "1b8c97e75da023f0fc75bf10c13db3f6e2dd1970",
+      "duracaoMs": 10650
+    },
+    "calc.p079.enunciado": {
+      "arquivo": "calc.p079.enunciado.c3e50c22.mp3",
+      "hash": "c3e50c223e9a6c5dbef4109b1dd89b10403e98c7",
+      "duracaoMs": 6575
+    },
+    "calc.p080.enunciado": {
+      "arquivo": "calc.p080.enunciado.1af73288.mp3",
+      "hash": "1af73288f58c3594cf4570fc6ffd0864787df75b",
+      "duracaoMs": 8950
+    },
+    "calc.p081.enunciado": {
+      "arquivo": "calc.p081.enunciado.3b9a577e.mp3",
+      "hash": "3b9a577e5f0bba772d2753be02495a97bd9bb867",
+      "duracaoMs": 7625
+    },
+    "calc.p082.enunciado": {
+      "arquivo": "calc.p082.enunciado.17ef32c5.mp3",
+      "hash": "17ef32c5b8dc068f4bb45e2c4b7e8c49726ff606",
+      "duracaoMs": 5575
+    },
+    "calc.p083.enunciado": {
+      "arquivo": "calc.p083.enunciado.b1dddffa.mp3",
+      "hash": "b1dddffa56915b9a8ff96f7fb4b58d600e4f14b8",
+      "duracaoMs": 10775
+    },
+    "calc.p084.enunciado": {
+      "arquivo": "calc.p084.enunciado.eb0b2dd4.mp3",
+      "hash": "eb0b2dd4f1cbef66afd09fc65bbe87b758cb6649",
+      "duracaoMs": 6100
+    },
+    "calc.p085.enunciado": {
+      "arquivo": "calc.p085.enunciado.d7839b1e.mp3",
+      "hash": "d7839b1eb80fecaa5156263a32c18aae2736d435",
+      "duracaoMs": 6350
+    },
+    "calc.p086.enunciado": {
+      "arquivo": "calc.p086.enunciado.bb78dcc8.mp3",
+      "hash": "bb78dcc8368c5f24678fce34f621bfbcd9c793f1",
+      "duracaoMs": 8075
+    },
+    "calc.p087.enunciado": {
+      "arquivo": "calc.p087.enunciado.04257d68.mp3",
+      "hash": "04257d685617296ec4dd4d6e18ef4e53754e6f60",
+      "duracaoMs": 7925
+    },
+    "calc.p088.enunciado": {
+      "arquivo": "calc.p088.enunciado.2446e417.mp3",
+      "hash": "2446e417a7b6bf2c3b8e1d20915d4c875222fa6f",
+      "duracaoMs": 5600
+    },
+    "calc.p089.enunciado": {
+      "arquivo": "calc.p089.enunciado.fd8827b5.mp3",
+      "hash": "fd8827b56488df1214c144fd497e57bd70979af3",
+      "duracaoMs": 7025
+    },
+    "calc.p090.enunciado": {
+      "arquivo": "calc.p090.enunciado.9d90641b.mp3",
+      "hash": "9d90641b2948a1e152f8e8215f03df14ab1bbb5f",
+      "duracaoMs": 5975
+    },
+    "calc.p091.enunciado": {
+      "arquivo": "calc.p091.enunciado.9cbaf619.mp3",
+      "hash": "9cbaf619c70a2483071b89bee00f99ddec7a2750",
+      "duracaoMs": 7850
+    },
+    "calc.p092.enunciado": {
+      "arquivo": "calc.p092.enunciado.0c7b7837.mp3",
+      "hash": "0c7b7837c37094aca382b5a3b77b5f6d2e3f3dee",
+      "duracaoMs": 8350
+    },
+    "calc.p093.enunciado": {
+      "arquivo": "calc.p093.enunciado.884ba873.mp3",
+      "hash": "884ba873153c8542eee2cac335f063e1510352da",
+      "duracaoMs": 7250
+    },
+    "calc.p094.enunciado": {
+      "arquivo": "calc.p094.enunciado.b8089981.mp3",
+      "hash": "b808998194a1594805d1d29a5ce2c9c5bb20a585",
+      "duracaoMs": 6975
+    },
+    "calc.p095.enunciado": {
+      "arquivo": "calc.p095.enunciado.ca948c46.mp3",
+      "hash": "ca948c4688b9ef1c23eb18a43c7f90c0789dc41e",
+      "duracaoMs": 7475
+    },
+    "calc.p096.enunciado": {
+      "arquivo": "calc.p096.enunciado.2fbb488f.mp3",
+      "hash": "2fbb488fae9d903a1801920cac601cabeb0368a2",
+      "duracaoMs": 8225
+    },
+    "calc.p097.enunciado": {
+      "arquivo": "calc.p097.enunciado.11c418d6.mp3",
+      "hash": "11c418d6fc17f51f96145c62ea085e3282d0ac79",
+      "duracaoMs": 5550
+    },
+    "calc.p098.enunciado": {
+      "arquivo": "calc.p098.enunciado.f2e19a32.mp3",
+      "hash": "f2e19a322726a763966e329753e3ec41b2a6fff0",
+      "duracaoMs": 8675
+    },
+    "calc.p099.enunciado": {
+      "arquivo": "calc.p099.enunciado.e2277ce3.mp3",
+      "hash": "e2277ce3463d35335b645510dfc2940f40e994c8",
+      "duracaoMs": 6075
+    },
+    "calc.p100.enunciado": {
+      "arquivo": "calc.p100.enunciado.1f45bdde.mp3",
+      "hash": "1f45bdde0a2d5d5cbcdc9e75a75ae2deb41831d0",
+      "duracaoMs": 5925
+    },
+    "calc.p101.enunciado": {
+      "arquivo": "calc.p101.enunciado.9ed709d2.mp3",
+      "hash": "9ed709d2752d6ead45f3ab1319c52880c4f6d02b",
+      "duracaoMs": 7800
+    },
+    "calc.p102.enunciado": {
+      "arquivo": "calc.p102.enunciado.97d66e08.mp3",
+      "hash": "97d66e0807e81c1e858d934b3dbcb2ccfc0af4e4",
+      "duracaoMs": 7375
+    },
+    "calc.p103.enunciado": {
+      "arquivo": "calc.p103.enunciado.129e9411.mp3",
+      "hash": "129e9411a2ca0c03006bd7e4397bd2635019c55f",
+      "duracaoMs": 6650
+    },
+    "calc.p104.enunciado": {
+      "arquivo": "calc.p104.enunciado.031aa980.mp3",
+      "hash": "031aa980b54786ab37f81309f389f0d3bb1449b9",
+      "duracaoMs": 8400
+    },
+    "calc.p105.enunciado": {
+      "arquivo": "calc.p105.enunciado.d7274b58.mp3",
+      "hash": "d7274b589fd585a94f0d0f7c80f195fa915bcc0f",
+      "duracaoMs": 6925
+    },
+    "calc.p106.enunciado": {
+      "arquivo": "calc.p106.enunciado.dd167add.mp3",
+      "hash": "dd167addb4000324d9d8a2cb799e18e68c490bbb",
+      "duracaoMs": 9025
+    },
+    "calc.p107.enunciado": {
+      "arquivo": "calc.p107.enunciado.fe6db59a.mp3",
+      "hash": "fe6db59a318335f02ee87459024ef4938a1824c8",
+      "duracaoMs": 7950
+    },
+    "calc.p108.enunciado": {
+      "arquivo": "calc.p108.enunciado.fa6b609e.mp3",
+      "hash": "fa6b609ea8e68535842e306e20fa112087872879",
+      "duracaoMs": 7400
+    },
+    "calc.p109.enunciado": {
+      "arquivo": "calc.p109.enunciado.228bd87c.mp3",
+      "hash": "228bd87cebf775e8e2ef1b4742cafa9eb4278c99",
+      "duracaoMs": 7875
+    },
+    "calc.p110.enunciado": {
+      "arquivo": "calc.p110.enunciado.ca80db5d.mp3",
+      "hash": "ca80db5dc15edea9a32d31789a5669e1ae904f0e",
+      "duracaoMs": 6750
+    },
+    "calc.p111.enunciado": {
+      "arquivo": "calc.p111.enunciado.db24f88d.mp3",
+      "hash": "db24f88dfe78633fcf5a33bc330fb89c7d8d0ec5",
+      "duracaoMs": 7400
+    },
+    "calc.p112.enunciado": {
+      "arquivo": "calc.p112.enunciado.665cbc63.mp3",
+      "hash": "665cbc63959739f68e4b533d35de76cb3b08ac76",
+      "duracaoMs": 7475
+    },
+    "calc.p113.enunciado": {
+      "arquivo": "calc.p113.enunciado.c6c9da09.mp3",
+      "hash": "c6c9da09a61cfd3149d933c4240ff93023b3fc53",
+      "duracaoMs": 8000
+    },
+    "calc.p114.enunciado": {
+      "arquivo": "calc.p114.enunciado.65f63d73.mp3",
+      "hash": "65f63d73b69065b8870298823ff40dc862de6259",
+      "duracaoMs": 6750
+    },
+    "calc.p115.enunciado": {
+      "arquivo": "calc.p115.enunciado.96796035.mp3",
+      "hash": "967960350535e7bec1d70a9d8f76d029ed10bf7f",
+      "duracaoMs": 9125
+    },
+    "calc.p116.enunciado": {
+      "arquivo": "calc.p116.enunciado.72e22ab8.mp3",
+      "hash": "72e22ab86cee3c890b500c0d9922684087543038",
+      "duracaoMs": 7375
+    },
+    "calc.p117.enunciado": {
+      "arquivo": "calc.p117.enunciado.9665781a.mp3",
+      "hash": "9665781a2249d56ed5dd924284d4b15ca45b4ff1",
+      "duracaoMs": 6975
+    },
+    "calc.p118.enunciado": {
+      "arquivo": "calc.p118.enunciado.ee0eadd1.mp3",
+      "hash": "ee0eadd18dd02c7e18089e3555c3d6873c671fa1",
+      "duracaoMs": 8600
+    },
+    "calc.p119.enunciado": {
+      "arquivo": "calc.p119.enunciado.fb8a9ef9.mp3",
+      "hash": "fb8a9ef9f92958adbd3460a22e1aeca042ae0414",
+      "duracaoMs": 9500
+    },
+    "calc.p120.enunciado": {
+      "arquivo": "calc.p120.enunciado.e3de41a5.mp3",
+      "hash": "e3de41a597590a7ff2c69cf82b5351944e7cee6e",
+      "duracaoMs": 7600
+    },
+    "calc.p121.enunciado": {
+      "arquivo": "calc.p121.enunciado.7fdfefa2.mp3",
+      "hash": "7fdfefa2e343544571e26edc88085c39df9b25f3",
+      "duracaoMs": 8300
+    },
+    "calc.p122.enunciado": {
+      "arquivo": "calc.p122.enunciado.0e669655.mp3",
+      "hash": "0e6696554cfefbf87c3743e10966ffcc9bc57149",
+      "duracaoMs": 7175
+    },
+    "calc.p123.enunciado": {
+      "arquivo": "calc.p123.enunciado.c0dc5abb.mp3",
+      "hash": "c0dc5abbf8754cfa0b7d76616d7fcd6199fe198f",
+      "duracaoMs": 7475
+    },
+    "calc.p124.enunciado": {
+      "arquivo": "calc.p124.enunciado.6d005dc2.mp3",
+      "hash": "6d005dc2a1bb956f07ef345ee51b23007f94511d",
+      "duracaoMs": 6950
+    },
+    "calc.p125.enunciado": {
+      "arquivo": "calc.p125.enunciado.bc60c950.mp3",
+      "hash": "bc60c950d67f85d0f7eb60a903241b32f0f450c5",
+      "duracaoMs": 7700
+    },
+    "calc.p126.enunciado": {
+      "arquivo": "calc.p126.enunciado.5214bdaa.mp3",
+      "hash": "5214bdaaef6f432122c959545fdec7528c2a3304",
+      "duracaoMs": 7150
+    },
+    "calc.p127.enunciado": {
+      "arquivo": "calc.p127.enunciado.6c6d95d7.mp3",
+      "hash": "6c6d95d7f5d48481a39354e659d72fe3ce1d18a7",
+      "duracaoMs": 7725
+    },
+    "calc.p128.enunciado": {
+      "arquivo": "calc.p128.enunciado.18504833.mp3",
+      "hash": "18504833883cb79784852487ebe54454c1ab233d",
+      "duracaoMs": 10400
+    },
+    "calc.p129.enunciado": {
+      "arquivo": "calc.p129.enunciado.2dd03c67.mp3",
+      "hash": "2dd03c675c03243cb12857ad79b622dffd6e9536",
+      "duracaoMs": 7025
+    },
+    "calc.p130.enunciado": {
+      "arquivo": "calc.p130.enunciado.5428b669.mp3",
+      "hash": "5428b669a3f266fe9947abfdaa2247db0b2e72e5",
+      "duracaoMs": 6975
+    },
+    "calc.p131.enunciado": {
+      "arquivo": "calc.p131.enunciado.0ebef6a4.mp3",
+      "hash": "0ebef6a43098f75b47f8e18a7d2323fa8d17fded",
+      "duracaoMs": 5950
+    },
+    "calc.p132.enunciado": {
+      "arquivo": "calc.p132.enunciado.a0fb1adf.mp3",
+      "hash": "a0fb1adf07e105278d0024d8dd5f8a05f301b476",
+      "duracaoMs": 9375
+    },
+    "calc.p133.enunciado": {
+      "arquivo": "calc.p133.enunciado.a8b11f4d.mp3",
+      "hash": "a8b11f4d690ed402f2b0e73815e2e0c2f077e4b5",
+      "duracaoMs": 7650
+    },
+    "calc.dica.gotejamento_macro": {
+      "arquivo": "calc.dica.gotejamento_macro.e7ff113e.mp3",
+      "hash": "e7ff113e40fa93f1caedd647cb1fcafb7330105e",
+      "duracaoMs": 7450
+    },
+    "calc.dica.gotejamento_micro": {
+      "arquivo": "calc.dica.gotejamento_micro.48bd9994.mp3",
+      "hash": "48bd9994d63b91fdf8fa36ee4deb5c4efce8daf9",
+      "duracaoMs": 3075
+    },
+    "calc.dica.bic": {
+      "arquivo": "calc.dica.bic.fbe6b375.mp3",
+      "hash": "fbe6b375c7c0ef7f36701dd5850eba8fd5a4a962",
+      "duracaoMs": 7950
+    },
+    "calc.dica.regra3": {
+      "arquivo": "calc.dica.regra3.10c682d4.mp3",
+      "hash": "10c682d4a4630e18a8d59088b3a6adcd606d67b7",
+      "duracaoMs": 6750
+    },
+    "calc.r.acerto.1": {
+      "arquivo": "calc.r.acerto.1.a96a02aa.mp3",
+      "hash": "a96a02aa226a50d940d23239a4615ecfe2d33e00",
+      "duracaoMs": 1625
+    },
+    "calc.r.acerto.2": {
+      "arquivo": "calc.r.acerto.2.a1de4d10.mp3",
+      "hash": "a1de4d10650c7760324c1b4302d236a74073d19b",
+      "duracaoMs": 1625
+    },
+    "calc.r.acerto.3": {
+      "arquivo": "calc.r.acerto.3.6c6e410e.mp3",
+      "hash": "6c6e410e49a7cdc278edf240c26956d706d1bf2c",
+      "duracaoMs": 2125
+    },
+    "calc.r.acerto.4": {
+      "arquivo": "calc.r.acerto.4.2af129c6.mp3",
+      "hash": "2af129c6db229f05a4cc75ad880c3558955920f6",
+      "duracaoMs": 1675
+    },
+    "calc.r.acerto.5": {
+      "arquivo": "calc.r.acerto.5.b8253e4b.mp3",
+      "hash": "b8253e4b1550caa0f839a73051bd10e8ad8b95bc",
+      "duracaoMs": 1725
+    },
+    "calc.r.acerto.6": {
+      "arquivo": "calc.r.acerto.6.b68cb7b1.mp3",
+      "hash": "b68cb7b100e967736b30b92d9709f525dacb82f7",
+      "duracaoMs": 1150
+    },
+    "calc.r.erro1.1": {
+      "arquivo": "calc.r.erro1.1.3538f6a5.mp3",
+      "hash": "3538f6a5236dc7d351e9e0a9772e4f67b07b3487",
+      "duracaoMs": 3075
+    },
+    "calc.r.erro1.2": {
+      "arquivo": "calc.r.erro1.2.e69aec50.mp3",
+      "hash": "e69aec50d08e89cfa934eec2083e645d12de9266",
+      "duracaoMs": 2750
+    },
+    "calc.r.erro1.3": {
+      "arquivo": "calc.r.erro1.3.ccfd5d27.mp3",
+      "hash": "ccfd5d278878c360af247829a358ed331c8ca73b",
+      "duracaoMs": 2975
+    },
+    "calc.r.erro1.4": {
+      "arquivo": "calc.r.erro1.4.222d3a5d.mp3",
+      "hash": "222d3a5d54e35bcd7a5e2d4d0a0ffaf1ca526767",
+      "duracaoMs": 2900
+    },
+    "calc.r.erro2.1": {
+      "arquivo": "calc.r.erro2.1.53a41cd4.mp3",
+      "hash": "53a41cd415b51ddb7025d450c1c03f3bd4c17030",
+      "duracaoMs": 3400
+    },
+    "calc.r.erro2.2": {
+      "arquivo": "calc.r.erro2.2.cbcfb6c2.mp3",
+      "hash": "cbcfb6c20d2e87612b38adb5229346486a083da8",
+      "duracaoMs": 3050
+    },
+    "calc.r.erro2.3": {
+      "arquivo": "calc.r.erro2.3.c67205cf.mp3",
+      "hash": "c67205cf1e518710680e7be106cc3567ff2adef6",
+      "duracaoMs": 3250
+    },
+    "calc.r.questionou_certo.1": {
+      "arquivo": "calc.r.questionou_certo.1.ce93bf7f.mp3",
+      "hash": "ce93bf7f21ed0ec79f1a832be4de63ef3a045773",
+      "duracaoMs": 4100
+    },
+    "calc.r.questionou_certo.2": {
+      "arquivo": "calc.r.questionou_certo.2.3c852733.mp3",
+      "hash": "3c852733529ee357616cf6d1feb396e8b4fed868",
+      "duracaoMs": 4300
+    },
+    "calc.r.questionou_certo.3": {
+      "arquivo": "calc.r.questionou_certo.3.d006bb87.mp3",
+      "hash": "d006bb87d25dc51a73f9c9dc0743e339891095fe",
+      "duracaoMs": 3600
+    },
+    "calc.r.questionou_certo.4": {
+      "arquivo": "calc.r.questionou_certo.4.3ba9a4b9.mp3",
+      "hash": "3ba9a4b97510b162d45fc74f15f3a875fe90a062",
+      "duracaoMs": 3300
+    },
+    "calc.r.questionou_sem_motivo.1": {
+      "arquivo": "calc.r.questionou_sem_motivo.1.8ec4dbc9.mp3",
+      "hash": "8ec4dbc9c64c687cba0ad45f5c9664d78104bfb7",
+      "duracaoMs": 2750
+    },
+    "calc.r.questionou_sem_motivo.2": {
+      "arquivo": "calc.r.questionou_sem_motivo.2.e4b7400d.mp3",
+      "hash": "e4b7400dd5e56b7432410d1a6254818aec0fc425",
+      "duracaoMs": 3550
+    },
+    "calc.r.questionou_sem_motivo.3": {
+      "arquivo": "calc.r.questionou_sem_motivo.3.a26e5537.mp3",
+      "hash": "a26e55372180ed6aeb5a1a9e770bef201483482d",
+      "duracaoMs": 2825
+    },
+    "calc.r.pressa.1": {
+      "arquivo": "calc.r.pressa.1.9f238f2d.mp3",
+      "hash": "9f238f2d3abcf10215e46c453c2c286207118c2e",
+      "duracaoMs": 2200
+    },
+    "calc.r.pressa.2": {
+      "arquivo": "calc.r.pressa.2.4a4c82ce.mp3",
+      "hash": "4a4c82ced34149e474d93ae439911fcb42bc4425",
+      "duracaoMs": 2325
+    },
+    "calc.r.pressa.3": {
+      "arquivo": "calc.r.pressa.3.56f75563.mp3",
+      "hash": "56f755636366a9a5055b68ef7101a967cabec35c",
+      "duracaoMs": 1500
+    },
+    "calc.r.erro_grave.1": {
+      "arquivo": "calc.r.erro_grave.1.616b97bc.mp3",
+      "hash": "616b97bc7473a34db680163883007e0e7c0a9f2e",
+      "duracaoMs": 4175
+    },
+    "calc.r.erro_grave.2": {
+      "arquivo": "calc.r.erro_grave.2.42c0ff3e.mp3",
+      "hash": "42c0ff3e3b6a87477d98aadf257d114fdf7c1fcd",
+      "duracaoMs": 3300
+    },
+    "calc.r.erro_grave.3": {
+      "arquivo": "calc.r.erro_grave.3.58ddcb8c.mp3",
+      "hash": "58ddcb8cd75d277c61b3b1d78baffad552d88553",
+      "duracaoMs": 4225
+    },
+    "calc.r.abertura.1": {
+      "arquivo": "calc.r.abertura.1.cf9248af.mp3",
+      "hash": "cf9248af47ea747cb991ba10e0d8168d6652efec",
+      "duracaoMs": 3800
+    },
+    "calc.r.abertura.2": {
+      "arquivo": "calc.r.abertura.2.f5770603.mp3",
+      "hash": "f5770603bf7b93e788c7430974405f73ac2bed54",
+      "duracaoMs": 3525
+    },
+    "calc.r.abertura.3": {
+      "arquivo": "calc.r.abertura.3.781967fc.mp3",
+      "hash": "781967fc97c96ad1cf50c779b8709c5abc42c201",
+      "duracaoMs": 3500
+    }
+  }
+}
