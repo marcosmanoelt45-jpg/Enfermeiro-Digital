@@ -12,7 +12,7 @@
 | F4 Consulta: fechamento | feita no branch (sem quiz D7) | — | 06/11/2026 | Branch `feat/cenas-f4-fechamento` (empilhado sobre a F3). Pontuação por código, ação `finalizar_consulta`, registro, relatório, histórico e XP. IA do avaliador não rodou (sem branch do Supabase) |
 | F5 Minijogos + Técnicas | pronta no branch (sem sons) | #12 | 07/11/2026 | Motor, 5 tipos, 3 minijogos à mão + 29 gerados, `/tecnicas` com abas POPs/Vídeos embutidas (`VideotecaConteudo`), `procedures-1` corrigido (tempo e fim vêm das mensagens do YouTube). Falta só: sons da ausculta, que dependem de licença do dono |
 | F6 Cálculo com o Médico | pronta no branch (flag desligada) | a abrir | 07/11/2026 | Geradores com semente, banco de 133 itens (28 com erro) verificado por fórmulas independentes, `numerosFalados` (42 casos), página nova atrás da flag `calculoMedico` em `/laboratorio-calculos`. mp3 do Dr. Rui ainda não gerados (voz do navegador) |
-| F7 Plantão com a Enfermeira | pendente | — | — | — |
+| F7 Plantão com a Enfermeira | pronta no branch (flag desligada) | a abrir | 07/11/2026 | Parser de vitais com 45 casos, dados dos 20 cenários, roteiro, ação `avaliar_plantao` (IA não rodou: sem Supabase de teste), prontuário, cena e relatório atrás da flag `plantaoVivo` em `/sbar`. mp3 da Ana não gerados |
 | F8 Navegação final | pendente | — | — | — |
 | P1 Arte (Flow) | pendente | — | — | personagens prontos: marcus, teresinha (parcial) |
 | P2 Vozes (VoiceBox) | pendente | — | — | perfis prontos: Marcus, Teresinha, Goti |
@@ -83,6 +83,18 @@
 - **Pressa do modo corrido só aparece na tela** (aos 60 s, em texto). O médico não fala sozinho fora de turno: a cena só toca falas devolvidas por `onEnviar`. Se o dono quiser a pressa falada, a cena precisa de uma ação para falas fora de turno.
 - **Gênero neutro nas falas.** O Dr. Rui não diz "enfermeira" nem "certa de questionar": o aluno pode ser de qualquer gênero.
 - **Não testado:** voz do aluno com o microfone (só desktop com teclado), mp3 do Dr. Rui (rodar `node scripts/voicebox/gerar-falas.mjs` com o perfil "Rui" no VoiceBox) e aparelho real.
+
+## Divergências da F7
+- **Dados em arquivo à parte.** `lacunas`, `perguntas` e `elementosChave` ficam em `src/data/sbarPlantaoDados.js` (`PLANTAO_CENARIOS`, `cenarioDoPlantao`), não dentro de `sbarHandoffScenarios.js`: a página antiga não foi tocada e os campos só foram acrescentados (teste confere).
+- **Lacunas sem radar.** O `ClinicalGapRadar` e a semiologia têm resultado fixo e genérico (incoerente com cada cenário). Cada lacuna tem então `exame` (múltipla escolha de 4 opções, a correta é o `valorEsperado`) que vira um minijogo `escolher`. `minijogo` só em `icc` (ausculta) e `cetoacidose_pediatrica` (contar-fr, 28 irpm). `gapKey` fica null.
+- **Prontuário sem a narrativa da avaliação**, que entregaria os achados das lacunas. Mostra situação, antecedentes, vitais, lacunas e pendências. Alguns elementos-chave de A só podem ser sabidos examinando.
+- **Prontuário é sempre folha inferior** (sem 3ª coluna em telas largas).
+- **Conferência numérica vem do cliente** e o servidor só valida o formato; só afeta a nota do próprio aluno.
+- **Sem tabela nova:** `avaliar_plantao` não grava sessão; o relatório volta direto e o histórico é do cliente.
+- **Parser de vitais:** agora lê números por extenso (`src/lib/numerosPorExtenso.js`, também usado no Cálculo) e "12x8". Assinatura pública igual.
+- **Revisar (achados fora do golden):** o subagente criou lacunas com achados que o goldenSbar não cita: delirium (bandagem, cama baixa), dpoc (frases curtas), trauma_cranio (componentes do Glasgow), paliativos_terminal, tep_pos_op, queimado_agudo, hemorragia_digestiva, sepse_urinaria. Revisão clínica do dono é recomendada. No `avc_isquemico`, o clinicalSummary diz déficit em MSE e o golden, hemiparesia direita; segui o golden.
+- **Bug da F4 achado e corrigido:** o regex dos códigos NANDA em `cena-ia/index.ts` perdeu a barra e recusava todo diagnóstico (commit `fix(servidor)`). Está também no branch da F4.
+- **Não testado:** voz com microfone, mp3 da enfermeira Ana (`node scripts/plantao/gerar-falas.mjs` e depois `scripts/voicebox/gerar-falas.mjs`, perfil "Ana"), relatório com IA real.
 
 ## Medições
 - Latência do turno da Consulta (mediana 4G): —

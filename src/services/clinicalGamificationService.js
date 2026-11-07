@@ -668,6 +668,9 @@ export const clinicalGamificationService = {
     } else if (type === 'tecnica') {
       earnedXp = customXp || 30;
       state.solvedCases = (state.solvedCases || 0) + 1;
+    } else if (type === 'plantao_vivo') {
+      earnedXp = customXp || 35;
+      state.solvedCases = (state.solvedCases || 0) + 1;
     } else if (type === 'calculo_medico') {
       earnedXp = customXp || 30;
       state.solvedCases = (state.solvedCases || 0) + 1;

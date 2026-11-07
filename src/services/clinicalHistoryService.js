@@ -47,6 +47,7 @@ export const MODULE_TYPES = {
   CONSULTA: 'consulta',
   TECNICA: 'tecnica',
   CALCULO_MEDICO: 'calculo_medico',
+  PLANTAO_VIVO: 'plantao_vivo',
 };
 
 export const MODULE_LABELS = {
@@ -60,6 +61,7 @@ export const MODULE_LABELS = {
   consulta: 'Consulta ao Vivo',
   tecnica: 'Técnicas (Minijogos)',
   calculo_medico: 'Cálculo com o Médico',
+  plantao_vivo: 'Plantão com a Enfermeira',
 };
 
 function getStorage(userId) {

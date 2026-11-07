@@ -38,6 +38,7 @@ const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const SbarHandoffLab = lazy(() => import('@/pages/SbarHandoffLab'));
+const PlantaoPage = lazy(() => import('@/features/plantao/PlantaoPage'));
 const ProcedimentosLab = lazy(() => import('@/pages/ProcedimentosLab'));
 const Videochamada = lazy(() => import('@/pages/Videochamada'));
 // Só em desenvolvimento: no build de produção o import é descartado.
@@ -187,10 +188,10 @@ const AuthenticatedApp = () => {
           <Route path="/tecnicas" element={<TecnicasPage />} />
           <Route path="/consulta" element={<ConsultaPage />} />
           <Route path="/consulta/relatorio/:sessaoId" element={<RelatorioPage />} />
-          <Route path="/passagem-plantao" element={<SbarHandoffLab />} />
-          <Route path="/passagem-plantao-sbar" element={<SbarHandoffLab />} />
-          <Route path="/sbar" element={<SbarHandoffLab />} />
-          <Route path="/sbar-lab" element={<SbarHandoffLab />} />
+          <Route path="/passagem-plantao" element={flagAtiva('plantaoVivo') ? <PlantaoPage /> : <SbarHandoffLab />} />
+          <Route path="/passagem-plantao-sbar" element={flagAtiva('plantaoVivo') ? <PlantaoPage /> : <SbarHandoffLab />} />
+          <Route path="/sbar" element={flagAtiva('plantaoVivo') ? <PlantaoPage /> : <SbarHandoffLab />} />
+          <Route path="/sbar-lab" element={flagAtiva('plantaoVivo') ? <PlantaoPage /> : <SbarHandoffLab />} />
           <Route path="/procedimentos" element={<ProcedimentosLab />} />
           <Route path="/procedimentos-lab" element={<ProcedimentosLab />} />
           <Route path="/skills-lab" element={<ProcedimentosLab />} />

@@ -36,11 +36,12 @@ export async function avaliarPlantao(
   deps: { llm: ChamarLLM; cota?: () => Promise<void> },
 ) {
   const inicio = Date.now();
-  const cenario = buscarCenarioPlantao(entrada.cenarioId);
+  // deno-lint-ignore no-explicit-any
+  const cenario: any = buscarCenarioPlantao(entrada.cenarioId);
   if (!cenario) throw new ErroApp("ENTRADA_INVALIDA", "Cenário de plantão não encontrado.");
 
   // Confere a entrada com o cenário: perguntas e letras que existem, campos de conferência pedidos, lacunas conhecidas.
-  const porId = new Map<string, { id: string; letra: string; texto: string; espera: { tipo: string; campos?: string[] } }>(cenario.perguntas.map((p: { id: string }) => [p.id, p]));
+  const porId = new Map<string, { id: string; letra: string; texto: string; espera: { tipo: string; campos?: string[] } }>(cenario.perguntas.map((p: { id: string }) => [p.id, p] as const));
   const vistas = new Set<string>();
   const respostas: RespostaPlantao[] = [];
   for (const r of entrada.respostas) {
@@ -82,7 +83,8 @@ export async function avaliarPlantao(
     }
   }
 
-  const calculo = calcularNotas({ cenario, respostas, lacunas, avaliacaoIA: avaliacao });
+  // deno-lint-ignore no-explicit-any
+  const calculo: any = calcularNotas({ cenario, respostas, lacunas, avaliacaoIA: avaliacao });
   if (calculo.citacoesInvalidas > 0) logEvento("avaliacao_plantao_citacoes_ruins", { cenario: cenario.id, invalidas: calculo.citacoesInvalidas });
 
   const pontos: Record<string, string> = { S: "situation", B: "background", A: "assessment", R: "recommendation" };
