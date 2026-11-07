@@ -24,6 +24,7 @@ export default [
     files: [
       "src/components/**/*.{js,mjs,cjs,jsx}",
       "src/pages/**/*.{js,mjs,cjs,jsx}",
+      "src/features/**/*.{js,mjs,cjs,jsx}",
       "src/App.jsx",
     ],
     ...pluginJs.configs.recommended,
@@ -71,6 +72,25 @@ export default [
         { ignore: ["cmdk-input-wrapper", "toast-close"] },
       ],
       "react-hooks/rules-of-hooks": "error",
+    },
+  },
+  {
+    // Testes (node:test) e o executor de testes rodam no Node, não no navegador.
+    files: ["**/*.test.mjs", "scripts/run-tests.mjs"],
+    ...pluginJs.configs.recommended,
+    languageOptions: {
+      globals: globals.node,
+      parserOptions: { ecmaVersion: 2022, sourceType: "module" },
+    },
+    plugins: { "unused-imports": pluginUnusedImports },
+    rules: {
+      "no-undef": "error",
+      "no-unused-vars": "off",
+      "unused-imports/no-unused-imports": "error",
+      "unused-imports/no-unused-vars": [
+        "warn",
+        { vars: "all", varsIgnorePattern: "^_", args: "after-used", argsIgnorePattern: "^_" },
+      ],
     },
   },
 ];

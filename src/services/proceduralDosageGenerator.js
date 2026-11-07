@@ -38,7 +38,7 @@ function ensureUniqueDistractors(correct, distractors, fallback) {
 /**
  * 1. Gerador de Macrogotas em Horas
  */
-function generateMacrogotasHoras() {
+export function generateMacrogotasHoras() {
   const cases = [
     { vol: 250, times: [4, 6] },
     { vol: 500, times: [6, 8, 12] },
@@ -85,7 +85,7 @@ function generateMacrogotasHoras() {
 /**
  * 2. Gerador de Microgotas em Horas
  */
-function generateMicrogotasHoras() {
+export function generateMicrogotasHoras() {
   const cases = [
     { vol: 100, times: [4, 6] },
     { vol: 250, times: [6, 8, 12] },
@@ -131,7 +131,7 @@ function generateMicrogotasHoras() {
 /**
  * 3. Gerador de Macrogotas em Minutos
  */
-function generateMacrogotasMinutos() {
+export function generateMacrogotasMinutos() {
   const cases = [
     { drug: "Metronidazol", vol: 100, min: 30 },
     { drug: "Ciprofloxacino", vol: 200, min: 60 },
@@ -176,7 +176,7 @@ function generateMacrogotasMinutos() {
 /**
  * 4. Gerador de BIC
  */
-function generateBicInfusion() {
+export function generateBicInfusion() {
   const cases = [
     { drug: "Heparina", dose: 25000, unit: "UI", vol: 250, rates: [800, 1000, 1200] },
     { drug: "Nitroglicerina", dose: 50, unit: "mg", vol: 250, rates: [5, 10, 20], mode: "mcg/min" },
@@ -234,7 +234,7 @@ function generateBicInfusion() {
 /**
  * 5. Gerador de Penicilina
  */
-function generatePenicilinaCristalina() {
+export function generatePenicilinaCristalina() {
   const totalUI = 5000000;
   const solute = 2; // mL do pó
   const water = 8; // mL AD
@@ -270,7 +270,7 @@ function generatePenicilinaCristalina() {
 /**
  * 6. Gerador Pediátrico / Rediluição
  */
-function generatePediatricRedilution() {
+export function generatePediatricRedilution() {
   const cases = [
     { drug: "Hidrocortisona", vial: 500, dil: 5, doses: [50, 100, 150] },
     { drug: "Ceftriaxona", vial: 1000, dil: 10, doses: [200, 250, 500] }

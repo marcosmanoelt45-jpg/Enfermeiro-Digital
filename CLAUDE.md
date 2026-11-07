@@ -77,3 +77,15 @@ O **Enfermeiro Digital** (plataforma **Enfere**) é uma aplicação educacional 
 ## Blindagem Visual do Mascote Goti
 1. **Logotipo Oficial (`src/assets/goti-icone-oficial.png`)**: É o ícone aproximado do rosto do Goti (com chapéu de enfermeiro e cruz verde, fundo verde-água arredondado, 100% transparente sem bordas brancas). Usado no header (`StudentHeader.jsx`) e chat (`GotiChatDrawer.jsx`).
 2. **Animações do Goti (`GotiAnimated.jsx` e `EnfereSplash.tsx`)**: Utiliza o motor `<video>` + `<canvas>` com os vídeos sólidos (`public/goti/goti-*.webm`), poster em PNG enquanto o vídeo carrega (`goti-pose-*.png`) e fallbacks em WebP animado (`public/goti/goti-*.webp`).
+
+---
+
+## Plano Cenas ao Vivo (em andamento)
+- Leia `docs/plano/README.md`; uma fase por sessão; `docs/plano/ESTADO.md` registra o progresso.
+- Código novo em `src/features/`.
+- Não edite `Videochamada.jsx`, `CaseStudio.jsx` nem `SbarHandoffLab.jsx` antes da F8, exceto onde a fase mandar.
+
+## Teste no iPhone (WebKit, no Windows)
+- O Simulador do iOS só existe em Mac com Xcode. Aqui o teste é o WebKit (motor do Safari) com perfil de iPhone: `node C:/Users/mxmin/.claude/tools/ios-webkit/ios.mjs shot <rota> --out arquivo.png`, de dentro do projeto. Ele sobe o Vite sozinho, entra pela sessão demo e lista erros de console e de rede.
+- Para fluxos com toque e digitação, importe `abrir` de `file:///C:/Users/mxmin/.claude/tools/ios-webkit/ios.mjs`. Não cobre microfone, `MediaRecorder`, reconhecimento de fala nem a barra do Safari: isso só num iPhone de verdade.
+- Em toda mudança de interface: implemente, abra no perfil de iPhone, olhe o screenshot, toque nos elementos afetados, corrija e confira que não surgiram erros novos.

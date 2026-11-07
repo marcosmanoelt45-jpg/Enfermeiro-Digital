@@ -4,11 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Flame,
   Zap,
-  Calculator,
-  ArrowRightLeft,
-  Video,
   PlusCircle,
-  Mic,
   ChevronRight,
   BookOpen
 } from "lucide-react";
@@ -20,6 +16,8 @@ import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { fadeUp, listStagger } from "@/lib/motion";
+import { modulosDaTrilha } from "@/features/navegacao/modulos";
+import { icone } from "@/features/navegacao/icones";
 
 export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }) {
   const navigate = useNavigate();
@@ -50,68 +48,22 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
   const hasInProgressCase = Boolean(latestActivity);
 
   // Módulos sugeridos de hoje (incluindo Videochamada em destaque)
-  const suggestions = useMemo(() => [
-    {
-      id: "videochamada",
-      title: "Atendimento por Voz (Videochamada)",
-      subtitle: "5 min · Paciente com Fala e Voz Neural",
-      badge: "NOVO",
-      highlight: true,
-      icon: Mic,
-      action: () => {
-        triggerHaptic(15);
-        navigate("/videochamada");
-      }
-    },
-    {
-      id: "doses",
-      title: "Laboratório de Cálculo de Doses",
-      subtitle: "5 min · 4 Modos de Cálculos Clínicos",
-      badge: "4 Modos",
-      highlight: false,
-      icon: Calculator,
-      action: () => {
-        triggerHaptic(15);
-        navigate("/laboratorio-calculos");
-      }
-    },
-    {
-      id: "sbar",
-      title: "Passagem de Plantão SBAR",
-      subtitle: "8 min · Preceptoria IA Socrática",
-      badge: "Preceptoria IA",
-      highlight: false,
-      icon: ArrowRightLeft,
-      action: () => {
-        triggerHaptic(15);
-        navigate("/passagem-plantao");
-      }
-    },
-    {
-      id: "pops",
-      title: "Videoteca de Procedimentos & POPs",
-      subtitle: "8 min · Vídeos + Checklists Operacionais",
-      badge: "Checklists",
-      highlight: false,
-      icon: Video,
-      action: () => {
-        triggerHaptic(15);
-        navigate("/procedimentos");
-      }
-    },
-    {
-      id: "case_maker",
-      title: "Montador de Casos Clínicos",
-      subtitle: "Construção com Escores Braden e Áudio",
-      badge: "Escores + Voz",
-      highlight: false,
-      icon: PlusCircle,
-      action: () => {
-        triggerHaptic(15);
-        navigate("/montar-caso");
-      }
-    }
-  ], [navigate, triggerHaptic]);
+  const suggestions = useMemo(
+    () =>
+      modulosDaTrilha().map((m) => ({
+        id: m.id,
+        title: m.titulo,
+        subtitle: m.subtitulo,
+        badge: m.selo,
+        highlight: m.destaque,
+        icon: icone(m.icone),
+        action: () => {
+          triggerHaptic(15);
+          navigate(m.rota);
+        }
+      })),
+    [navigate, triggerHaptic]
+  );
 
   return (
     <div className="w-full max-w-md mx-auto space-y-4 px-1 py-1 pb-10 select-none">
