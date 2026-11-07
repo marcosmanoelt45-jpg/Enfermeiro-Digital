@@ -107,7 +107,7 @@ export default function ConsultaPage() {
         dificuldade,
       });
       gravarRascunho(userId, r.sessaoId);
-      setSessao({ sessaoId: r.sessaoId, personagemId: r.personagemId, personalidadePublica: personalidadeId, briefing: r.briefing });
+      setSessao({ sessaoId: r.sessaoId, personagemId: r.personagemId, personalidadePublica: personalidadeId, tema: TEMAS.find((x) => x.id === tema)?.rotulo ?? null, briefing: r.briefing });
     } catch (e) {
       setErro(e instanceof ErroServidor ? e : new ErroServidor("ERRO_INTERNO"));
     } finally {
@@ -119,6 +119,15 @@ export default function ConsultaPage() {
     gravarRascunho(userId, null);
     navigate("/");
   }, [navigate, userId]);
+
+  const novaConsulta = useCallback(() => {
+    gravarRascunho(userId, null);
+    setSessao(null);
+    setRetomada(null);
+    setEmCena(false);
+    setErro(null);
+    setPasso(1);
+  }, [userId]);
 
   const comecar = () => {
     desbloquearAudio(); // dentro do toque: libera o áudio no iOS
@@ -133,7 +142,9 @@ export default function ConsultaPage() {
     );
   }
 
-  if (emCena && sessao) return <ConsultaCena sessao={sessao} retomada={retomada} onSair={sair} />;
+  if (emCena && sessao) {
+    return <ConsultaCena sessao={sessao} retomada={retomada} onSair={sair} onNova={novaConsulta} onFinalizada={() => gravarRascunho(userId, null)} />;
+  }
 
   if (retomando) {
     return (

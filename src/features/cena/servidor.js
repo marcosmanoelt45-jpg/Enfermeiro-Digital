@@ -3,6 +3,8 @@ import { supabase, isSupabaseConfigured, isLocalDemoSession } from "@/services/s
 import { invocarFuncao } from "./logica/chamada.js";
 import { aguardarTranscricao, estimarDuracaoSeg } from "./logica/transcricao.js";
 
+import { ErroServidor } from "./logica/erroServidor.js";
+
 export { ErroServidor, erroDeCorpo } from "./logica/erroServidor.js";
 
 const invoke = (nome, corpo) => supabase.functions.invoke(nome, { body: corpo });
@@ -58,5 +60,16 @@ export async function gerarVoz({ texto, personagemId }) {
 export const consulta = {
   criar: (dados) => invocarFuncao(invoke, "cena-ia", { acao: "criar_consulta", ...dados }, { timeoutMs: 30000, tentativas: 1 }),
   turno: ({ sessaoId, turnoId, texto, canal }) => invocarFuncao(invoke, "cena-ia", { acao: "turno_consulta", sessaoId, turnoId, texto, canal }, { timeoutMs: 15000, tentativas: 2 }),
+  finalizar: ({ sessaoId, registro }) => invocarFuncao(invoke, "cena-ia", { acao: "finalizar_consulta", sessaoId, registro }, { timeoutMs: 30000, tentativas: 1 }),
   retomar: (sessaoId) => invocarFuncao(invoke, "cena-ia", { acao: "retomar_consulta", sessaoId }, { timeoutMs: 15000, tentativas: 2 }),
 };
+
+// Relatório e conversa de uma consulta ENCERRADA, lidos direto das tabelas (a RLS só entrega o que é do aluno e,
+// no caso dos turnos, só depois de encerrada; a ficha nunca é legível).
+export async function obterRelatorioDaConsulta(sessaoId) {
+  const { data: sessao, error } = await supabase.from("consulta_sessoes").select("id, status, personagem_id, personalidade_publica, relatorio, criado_em, encerrado_em").eq("id", sessaoId).maybeSingle();
+  if (error || !sessao) throw new ErroServidor("ENTRADA_INVALIDA", "Consulta não encontrada.");
+  if (sessao.status !== "encerrada" || !sessao.relatorio) throw new ErroServidor("ENTRADA_INVALIDA", "Esta consulta ainda não foi encerrada.");
+  const { data: turnos } = await supabase.from("consulta_turnos").select("ordem, autor, texto").eq("sessao_id", sessaoId).order("ordem", { ascending: true });
+  return { sessao, turnos: turnos ?? [] };
+}

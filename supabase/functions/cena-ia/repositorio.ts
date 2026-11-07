@@ -64,6 +64,19 @@ export function criarRepositorio(admin: SupabaseClient): Repositorio {
       return { fala: paciente.texto as string, emocao: (paciente.emocao as string) ?? "falando", confianca: (paciente.confianca_depois as number) ?? 0, turnosAluno: sessao.turnos_aluno as number };
     },
 
+    async finalizarSessao(sessaoId, userId, relatorio) {
+      // Só encerra uma sessão ATIVA do próprio usuário: o filtro torna a operação atômica.
+      const { data, error } = await admin
+        .from("consulta_sessoes")
+        .update({ status: "encerrada", relatorio, encerrado_em: new Date().toISOString() })
+        .eq("id", sessaoId)
+        .eq("user_id", userId)
+        .eq("status", "ativa")
+        .select("id");
+      if (error) falhou(error, "finalizarSessao");
+      return (data?.length ?? 0) === 1;
+    },
+
     async registrarTurno(r) {
       const { data, error } = await admin.rpc("consulta_registrar_turno", {
         p_sessao: r.sessaoId,

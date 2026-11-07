@@ -12,6 +12,7 @@ import { z } from "../_shared/schemas.ts";
 import { criarConsulta } from "./acoes/criarConsulta.ts";
 import { turnoConsulta } from "./acoes/turnoConsulta.ts";
 import { retomarConsulta } from "./acoes/retomarConsulta.ts";
+import { finalizarConsulta } from "./acoes/finalizarConsulta.ts";
 import { montarResposta } from "./acoes/resposta.ts";
 import { criarRepositorio } from "./repositorio.ts";
 
@@ -36,6 +37,16 @@ const Entrada = z.discriminatedUnion("acao", [
     canal: z.enum(["voz", "texto"]),
   }),
   z.object({ acao: z.literal("retomar_consulta"), sessaoId: z.string().uuid() }),
+  z.object({
+    acao: z.literal("finalizar_consulta"),
+    sessaoId: z.string().uuid(),
+    registro: z.object({
+      achados: z.string().max(1500),
+      diagnosticos: z.array(z.string().regex(/^\d{5}$/)).max(6),
+      intervencoes: z.array(z.string().trim().min(1).max(160)).max(8),
+      examesFeitos: z.array(z.object({ minijogoId: z.string().max(60), resultado: z.unknown().optional() })).max(6).optional(),
+    }),
+  }),
 ]);
 
 Deno.serve(async (req) => {
@@ -71,6 +82,10 @@ Deno.serve(async (req) => {
       }
       case "retomar_consulta":
         return ok(await retomarConsulta(usuario.userId, dados, deps));
+      case "finalizar_consulta": {
+        const cota = () => consumirCota(usuario.supabaseUsuario, "avaliacao", limiteDe("avaliacao"));
+        return ok(await finalizarConsulta(usuario.userId, dados, { ...deps, cota }));
+      }
     }
   } catch (e) {
     return erroDeExcecao(e);

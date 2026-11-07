@@ -52,6 +52,8 @@ export interface Repositorio {
   respostaSalva(turnoId: string, sessaoId: string): Promise<{ fala: string; emocao: string; confianca: number; turnosAluno: number } | null>;
   // false = o turno já existia (nada foi gravado).
   registrarTurno(r: RegistroTurno): Promise<boolean>;
+  // Encerra a sessão com o relatório. false = já estava encerrada (ou não é do usuário).
+  finalizarSessao(sessaoId: string, userId: string, relatorio: unknown): Promise<boolean>;
 }
 
 export type ChamarLLM = (o: OpcoesLLM) => Promise<RespostaLLM>;
