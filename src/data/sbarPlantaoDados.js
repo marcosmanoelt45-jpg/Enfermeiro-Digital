@@ -382,12 +382,12 @@ export const PLANTAO_EXTRAS = {
     lacunas: [
       lacuna({
         campo: "perfusao", rotulo: "Perfusão periférica",
-        valorEsperado: "pele quente e ruborizada, enchimento capilar de 4 segundos",
+        valorEsperado: "pele fria e pegajosa, enchimento capilar de 4 segundos",
         pergunta: "Você avalia a pele e o enchimento capilar da paciente. O que encontra?",
-        feedbackCerto: "Isso. Pele quente e enchimento capilar lento, de 4 segundos, mostram a perfusão alterada da sepse.",
+        feedbackCerto: "Isso. Pele fria e pegajosa com enchimento capilar lento, de 4 segundos, combina com a hipotensão e a má perfusão da sepse.",
         erradas: [
-          ["pele fria e pálida, enchimento capilar de 1 segundo", "Aqui a pele está quente e o enchimento está lento."],
-          ["pele seca, com enchimento capilar de 2 segundos", "O enchimento é de 4 segundos, e a pele, ruborizada."],
+          ["pele quente e ruborizada, enchimento capilar de 1 segundo", "Com hipotensão e taquicardia, a perfusão está ruim: o enchimento está lento."],
+          ["pele seca, com enchimento capilar de 2 segundos", "O enchimento é de 4 segundos, e a pele está fria e pegajosa."],
           ["cianose de extremidades, com enchimento imediato", "Não há cianose, e o enchimento está lento."],
         ],
       }),

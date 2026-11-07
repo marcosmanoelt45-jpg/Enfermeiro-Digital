@@ -618,7 +618,7 @@ export const CENARIOS_PLANTAO = [
    {
     "campo": "perfusao",
     "rotulo": "Perfusão periférica",
-    "valorEsperado": "pele quente e ruborizada, enchimento capilar de 4 segundos"
+    "valorEsperado": "pele fria e pegajosa, enchimento capilar de 4 segundos"
    },
    {
     "campo": "diurese",
