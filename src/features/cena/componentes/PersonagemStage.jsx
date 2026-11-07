@@ -43,6 +43,16 @@ export default function PersonagemStage({ personagemId, emocao = "parado", falan
         vid.pause();
         continue;
       }
+      // Sem clipe de repouso o palco cai no "falando": fora da fala, congela no primeiro quadro (nada de loop eterno).
+      if (nome === "falando" && !falando) {
+        vid.pause();
+        try {
+          vid.currentTime = 0;
+        } catch {
+          // sem metadados ainda
+        }
+        continue;
+      }
       vid.loop = !UMA_VEZ.has(nome);
       if (UMA_VEZ.has(nome)) {
         try {
@@ -53,7 +63,7 @@ export default function PersonagemStage({ personagemId, emocao = "parado", falan
       }
       vid.play().catch(() => {});
     }
-  }, [ativa, montados]);
+  }, [ativa, montados, falando]);
 
   // Se o clipe de reação não carregar, o palco não fica preso nele.
   useEffect(() => {

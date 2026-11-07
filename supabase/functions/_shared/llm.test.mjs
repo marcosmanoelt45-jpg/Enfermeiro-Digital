@@ -1,7 +1,7 @@
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import { ErroApp } from "./erros.ts";
-import { MODELOS_GEMINI, MODELOS_PADRAO, chamarLLM, escolherProvedor, extrairJson, modelosConfigurados } from "./llm.ts";
+import { MODELOS_GEMINI, MODELOS_PADRAO, chamarLLM, escolherProvedor, extrairJson, modelosConfigurados, ordenarModelosGemini } from "./llm.ts";
 
 // O módulo registra eventos com console.log; silencia durante os testes.
 const logOriginal = console.log;
@@ -122,7 +122,7 @@ test("Gemini direto: endpoint do Google, modelo sem prefixo, raciocínio desliga
     pedidos.push({ url, headers: init.headers, corpo: JSON.parse(init.body) });
     return completa("oi");
   };
-  const r = await chamarLLM({ mensagens: [{ role: "user", content: "x" }], apiKey: "g-key", provedor: "gemini", modelos: MODELOS_GEMINI, json: true, fetchImpl });
+  const r = await chamarLLM({ mensagens: [{ role: "user", content: "x" }], apiKey: "g-key", provedor: "gemini", modelos: ["gemini-2.5-flash"], json: true, fetchImpl });
   assert.equal(r.texto, "oi");
   assert.equal(pedidos[0].url, "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions");
   assert.equal(pedidos[0].headers.Authorization, "Bearer g-key");
@@ -147,4 +147,43 @@ test("com apiKey injetada e sem provedor, continua OpenRouter (comportamento ant
   let url = "";
   await chamarLLM({ mensagens: [{ role: "user", content: "x" }], apiKey: "k", modelos: ["a/b"], fetchImpl: async (u) => { url = u; return completa("ok"); } });
   assert.equal(url, "https://openrouter.ai/api/v1/chat/completions");
+});
+
+test("ordenarModelosGemini: só texto estável, apelidos primeiro, mais novo antes, flash antes de lite", () => {
+  const m = (name, metodos = ["generateContent"]) => ({ name: `models/${name}`, supportedGenerationMethods: metodos });
+  const lista = [
+    m("gemini-2.5-flash"), m("gemini-2.5-flash-lite"), m("gemini-3-flash"), m("gemini-flash-latest"), m("gemini-3-flash-preview"),
+    m("gemini-2.5-flash-image"), m("gemini-2.5-flash-preview-tts"), m("gemini-2.5-pro"), m("embedding-001", ["embedContent"]), m("gemini-2.0-flash-exp"), m("gemma-3-27b-it"),
+  ];
+  assert.deepEqual(ordenarModelosGemini(lista), ["gemini-flash-latest", "gemini-3-flash", "gemini-2.5-flash", "gemini-2.5-flash-lite"]);
+  assert.deepEqual(ordenarModelosGemini([]), []);
+});
+
+test("Gemini com 404 em tudo: lista os modelos da conta e usa um que existe", async () => {
+  const urls = [];
+  const fetchImpl = async (url, init) => {
+    urls.push(String(url));
+    if (String(url).includes("/models?")) return resposta({ models: [{ name: "models/gemini-9-flash", supportedGenerationMethods: ["generateContent"] }] });
+    const corpo = JSON.parse(init.body);
+    return corpo.model === "gemini-9-flash" ? completa("achou") : resposta({}, 404);
+  };
+  const prev = process.env.GEMINI_API_KEY;
+  const r = await chamarLLM({ mensagens: [{ role: "user", content: "x" }], provedor: "gemini", apiKey: "k", fetchImpl });
+  assert.equal(r.texto, "achou");
+  assert.equal(r.modelo, "gemini-9-flash");
+  assert.ok(urls.some((u) => u.includes("/models?")));
+  void prev;
+});
+
+test("Gemini: se o modelo recusa reasoning_effort (400), repete sem ele", async () => {
+  const corpos = [];
+  const fetchImpl = async (_u, init) => {
+    const c = JSON.parse(init.body);
+    corpos.push(c);
+    return c.reasoning_effort ? resposta({}, 400) : completa("ok");
+  };
+  const r = await chamarLLM({ mensagens: [{ role: "user", content: "x" }], provedor: "gemini", apiKey: "k", modelos: ["gemini-3-flash"], fetchImpl });
+  assert.equal(r.texto, "ok");
+  assert.equal(corpos.length, 2);
+  assert.equal(corpos[1].reasoning_effort, undefined);
 });

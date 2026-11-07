@@ -4,7 +4,6 @@ import { Mic, Send, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
-const TOQUE_CURTO_MS = 300;
 
 /**
  * Entrada do aluno: segurar para falar (ou Espaço no computador) + caixa de texto que cresce.
@@ -27,8 +26,6 @@ export default function ControleFala({
   placeholder,
 }) {
   const [texto, setTexto] = useState("");
-  const [dica, setDica] = useState(false);
-  const inicioToque = useRef(0);
   const areaTexto = useRef(null);
   const podeFalar = suportaVoz && !desabilitado && status !== "processando";
   const revisando = status === "revisando_texto";
@@ -53,39 +50,31 @@ export default function ControleFala({
   const comecar = useCallback(async () => {
     if (!podeFalar || segurando) return;
     if (permissao === "desconhecido") await onPedirPermissao?.();
-    inicioToque.current = Date.now();
     onSegurar?.();
   }, [podeFalar, segurando, permissao, onPedirPermissao, onSegurar]);
 
   const terminar = useCallback(() => {
     if (!segurando) return;
-    if (Date.now() - inicioToque.current < TOQUE_CURTO_MS) {
-      setDica(true);
-      setTimeout(() => setDica(false), 2000);
-    }
     onSoltar?.();
   }, [segurando, onSoltar]);
 
-  // Espaço no computador, fora da caixa de texto.
+  // Um clique começa a gravar e o próximo clique para e envia a fala para revisão.
+  const alternar = useCallback(() => {
+    if (segurando) terminar();
+    else comecar();
+  }, [segurando, terminar, comecar]);
+
+  // Espaço no computador (fora da caixa de texto) também alterna.
   useEffect(() => {
     const noTeclado = (e) => e.target?.tagName === "TEXTAREA" || e.target?.tagName === "INPUT";
     const baixo = (e) => {
       if (e.code !== "Space" || e.repeat || noTeclado(e)) return;
       e.preventDefault();
-      comecar();
-    };
-    const cima = (e) => {
-      if (e.code !== "Space" || noTeclado(e)) return;
-      e.preventDefault();
-      terminar();
+      alternar();
     };
     window.addEventListener("keydown", baixo);
-    window.addEventListener("keyup", cima);
-    return () => {
-      window.removeEventListener("keydown", baixo);
-      window.removeEventListener("keyup", cima);
-    };
-  }, [comecar, terminar]);
+    return () => window.removeEventListener("keydown", baixo);
+  }, [alternar]);
 
   const enviar = () => {
     const t = texto.trim();
@@ -101,9 +90,9 @@ export default function ControleFala({
 
   return (
     <div className="space-y-2">
-      {dica && (
-        <p className="text-center text-xs font-bold text-[#FFC247]" role="status">
-          Segure o botão enquanto fala.
+      {segurando && (
+        <p className="text-center text-xs font-bold text-[#20D5B5]" role="status">
+          Ouvindo… clique no microfone de novo para enviar.
         </p>
       )}
       {permissao === "negado" && (
@@ -133,16 +122,10 @@ export default function ControleFala({
           <button
             type="button"
             disabled={!podeFalar}
-            onPointerDown={(e) => {
-              e.currentTarget.setPointerCapture?.(e.pointerId);
-              comecar();
-            }}
-            onPointerUp={terminar}
-            onPointerCancel={terminar}
-            onContextMenu={(e) => e.preventDefault()}
-            aria-label={segurando ? "Solte para enviar" : "Segure para falar"}
+            onClick={alternar}
+            aria-label={segurando ? "Parar e enviar" : "Clique para falar"}
             aria-pressed={segurando}
-            className="btn-3d-teal relative shrink-0 w-12 h-12 rounded-full flex items-center justify-center touch-none select-none disabled:opacity-50"
+            className="btn-3d-teal relative shrink-0 w-12 h-12 rounded-full flex items-center justify-center select-none disabled:opacity-50"
             style={segurando ? { transform: `scale(${1 + nivel * 0.18})`, transition: "transform 80ms linear" } : undefined}
           >
             <Mic size={22} aria-hidden="true" />
