@@ -8,6 +8,8 @@ import { caminhoDoClipe, resolverClipe } from "../logica/clipes.js";
 const SEMPRE = ["parado", "falando", "pensando"];
 const UMA_VEZ = new Set(["acerto", "erro"]);
 const TEMPO_LIMITE_MS = 6000;
+// Troque quando os vídeos mudarem: o navegador guarda os clipes por 1 dia (vercel.json) e mostraria o antigo.
+const VERSAO_CLIPES = "2";
 
 /**
  * Palco do personagem: vídeos webm+mp4 empilhados com crossfade por opacidade, camada anti-PiP e
@@ -126,8 +128,8 @@ export default function PersonagemStage({ personagemId, emocao = "parado", falan
                 visivel ? "opacity-100 z-10" : "opacity-0 z-0"
               }`}
             >
-              <source src={`${base}.webm`} type="video/webm" />
-              <source src={`${base}.mp4`} type="video/mp4" />
+              <source src={`${base}.webm?v=${VERSAO_CLIPES}`} type="video/webm" />
+              <source src={`${base}.mp4?v=${VERSAO_CLIPES}`} type="video/mp4" />
             </video>
           );
         })}

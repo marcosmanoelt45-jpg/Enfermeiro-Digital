@@ -54,12 +54,15 @@ export function cenaReducer(estado, acao) {
     }
 
     case "ENVIOU_TEXTO": {
-      if (status !== "aguardando_aluno" && status !== "revisando_texto") return estado;
+      // Também durante a fala do personagem: o aluno não precisa esperar terminar (a fala é interrompida).
+      if (status !== "aguardando_aluno" && status !== "revisando_texto" && status !== "personagem_falando") return estado;
       const texto = String(acao.texto ?? "").trim();
       if (!texto) return estado;
       return {
         ...estado,
         status: "processando",
+        falaAtual: null,
+        filaFalas: [],
         rascunhoAluno: texto,
         turnos: [...estado.turnos, { autor: "aluno", texto, canal: acao.canal ?? "texto" }],
         turnoPendenteId: acao.turnoId ?? null,

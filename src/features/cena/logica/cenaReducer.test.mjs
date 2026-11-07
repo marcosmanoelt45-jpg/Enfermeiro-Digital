@@ -60,6 +60,14 @@ test("ENVIOU_TEXTO a partir de aguardando_aluno e de revisando_texto registra o 
   }
 });
 
+test("ENVIOU_TEXTO durante a fala do personagem interrompe a fala e a fila", () => {
+  const e = cenaReducer(emStatus("personagem_falando", { falaAtual: { texto: "a" }, filaFalas: [{ texto: "b" }] }), { tipo: "ENVIOU_TEXTO", texto: "Pode falar", turnoId: "t2" });
+  assert.equal(e.status, "processando");
+  assert.equal(e.falaAtual, null);
+  assert.deepEqual(e.filaFalas, []);
+  assert.equal(e.turnoPendenteId, "t2");
+});
+
 test("ENVIOU_TEXTO com texto vazio é ignorado; canal padrão é texto", () => {
   const base = emStatus("aguardando_aluno");
   assert.equal(cenaReducer(base, { tipo: "ENVIOU_TEXTO", texto: "  " }), base);
@@ -129,7 +137,6 @@ test("transições inválidas devolvem o mesmo estado (RESPOSTA fora de processa
     ["aguardando_aluno", "RESPOSTA"],
     ["aguardando_aluno", "SOLTOU"],
     ["aguardando_aluno", "FALA_TERMINOU"],
-    ["personagem_falando", "ENVIOU_TEXTO"],
     ["personagem_falando", "REENVIAR"],
     ["aluno_falando", "ENVIOU_TEXTO"],
     ["aluno_falando", "RESPOSTA"],

@@ -36,16 +36,27 @@ interface RespostaIA {
 }
 
 // Valida o formato da resposta da IA. Devolve null se não servir (dispara a tentativa de reparo).
-function lerResposta(bruto: unknown): RespostaIA | null {
+// Tolerante: modelos menores às vezes mandam o objeto dentro de uma lista, usam outro nome para a fala,
+// omitem o delta ou passam do tamanho. Só a fala é obrigatória; o resto tem valor padrão seguro.
+export function lerResposta(bruto: unknown): RespostaIA | null {
   // deno-lint-ignore no-explicit-any
-  const r = bruto as any;
+  let r = bruto as any;
+  if (Array.isArray(r)) r = r.find((x) => x && typeof x === "object") ?? null;
   if (!r || typeof r !== "object") return null;
-  if (typeof r.fala !== "string" || r.fala.trim().length < 1 || r.fala.length > 400) return null;
-  const delta = Number(r.delta_confianca);
-  if (!Number.isFinite(delta) || delta < -10 || delta > 10) return null;
+  const falaBruta = [r.fala, r.resposta, r.texto, r.mensagem].find((v) => typeof v === "string" && v.trim());
+  if (!falaBruta) return null;
+  let fala = String(falaBruta).trim();
+  if (fala.length > 400) {
+    // corta na última frase completa antes de 400 caracteres
+    const corte = fala.slice(0, 400);
+    const fim = Math.max(corte.lastIndexOf(". "), corte.lastIndexOf("? "), corte.lastIndexOf("! "));
+    fala = fim > 80 ? corte.slice(0, fim + 1) : `${corte.slice(0, 397)}...`;
+  }
+  const deltaNum = Number(r.delta_confianca);
+  const delta = Number.isFinite(deltaNum) ? Math.max(-10, Math.min(10, Math.round(deltaNum))) : 0;
   const lista = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === "string") : []);
   return {
-    fala: r.fala,
+    fala,
     emocao: typeof r.emocao === "string" ? r.emocao : "falando",
     revelados: lista(r.revelados),
     temas_do_aluno: lista(r.temas_do_aluno),
@@ -107,7 +118,10 @@ export async function turnoConsulta(userId: string, entrada: EntradaTurno, deps:
     tokens = (r.uso?.entrada ?? 0) + (r.uso?.saida ?? 0) || null;
     try {
       resposta = lerResposta(extrairJson(r.texto));
+      // Só o formato (nunca o conteúdo): ajuda a ver por que a resposta foi recusada.
+      if (!resposta) logEvento("resposta_recusada", { tentativa: tentativa + 1, modelo: r.modelo, chars: r.texto.length, comeca: r.texto.trim().slice(0, 1) });
     } catch {
+      logEvento("resposta_sem_json", { tentativa: tentativa + 1, modelo: r.modelo, chars: r.texto.length, comeca: r.texto.trim().slice(0, 1) });
       resposta = null;
     }
   }

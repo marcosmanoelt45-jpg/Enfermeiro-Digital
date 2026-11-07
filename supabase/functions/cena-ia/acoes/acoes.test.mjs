@@ -313,14 +313,34 @@ test("turno: JSON inválido -> uma tentativa de reparo; inválido de novo -> IA_
   assert.equal(repo.db.turnos.length, 2);
 });
 
-test("turno: formato fora do contrato (fala vazia ou longa, delta fora de -10..10) conta como inválido", async () => {
-  for (const ruim of [{ ...respostaIA(), fala: "" }, { ...respostaIA(), fala: "x".repeat(401) }, { ...respostaIA(), delta_confianca: 15 }, { ...respostaIA(), delta_confianca: "abc" }]) {
+test("turno: fala vazia ou ausente conta como inválida e dispara o reparo", async () => {
+  for (const ruim of [{ ...respostaIA(), fala: "" }, { ...respostaIA(), fala: undefined }, "texto solto sem json"]) {
     const { repo, sessaoId } = await preparar();
     const llm = llmFalso(ruim, respostaIA({ fala: "Tudo bem." }));
     const r = await turno(repo, sessaoId, llm);
     assert.equal(llm.chamadas.length, 2);
     assert.equal(r.fala, "Tudo bem.");
   }
+});
+
+test("turno: leitura tolerante (modelo menor): delta ausente ou fora da faixa, objeto em lista, fala longa ou com outro nome", async () => {
+  const casos = [
+    [{ ...respostaIA({ fala: "Estou bem." }), delta_confianca: 15 }, "Estou bem."],
+    [{ ...respostaIA({ fala: "Estou bem." }), delta_confianca: "abc" }, "Estou bem."],
+    [[respostaIA({ fala: "Na lista." })], "Na lista."],
+    [{ ...respostaIA(), fala: undefined, resposta: "Com outro nome." }, "Com outro nome."],
+  ];
+  for (const [bruto, esperado] of casos) {
+    const { repo, sessaoId } = await preparar();
+    const llm = llmFalso(bruto);
+    const r = await turno(repo, sessaoId, llm);
+    assert.equal(llm.chamadas.length, 1, JSON.stringify(bruto).slice(0, 60));
+    assert.equal(r.fala, esperado);
+  }
+  const { repo, sessaoId } = await preparar();
+  const longa = "Eu sinto uma dor forte. ".repeat(30);
+  const r = await turno(repo, sessaoId, llmFalso({ ...respostaIA(), fala: longa }));
+  assert.ok(r.fala.length <= 400 && r.fala.length > 0);
 });
 
 test("turno: fala que quebra o personagem vira a fala de reserva, sem revelar nada e com emoção confusa", async () => {

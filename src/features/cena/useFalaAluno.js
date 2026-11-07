@@ -56,11 +56,22 @@ export default function useFalaAluno({ ativo = true } = {}) {
   }, [pararNivel]);
 
   // Pré-busca o token quando a cena passa a esperar o aluno (cada token custa 1 min de cota).
+  // Um pedido de token por vez (antes saíam dois ao mesmo tempo a cada clique).
+  const pedidoTokenRef = useRef(null);
   const garantirCredencial = useCallback(async () => {
     const c = credencialRef.current;
     if (c && c.expiraEm - Date.now() > MARGEM_TOKEN_MS) return c;
-    credencialRef.current = await sttToken();
-    return credencialRef.current;
+    if (!pedidoTokenRef.current) {
+      pedidoTokenRef.current = sttToken()
+        .then((t) => {
+          credencialRef.current = t;
+          return t;
+        })
+        .finally(() => {
+          pedidoTokenRef.current = null;
+        });
+    }
+    return pedidoTokenRef.current;
   }, []);
 
   useEffect(() => {
@@ -114,6 +125,8 @@ export default function useFalaAluno({ ativo = true } = {}) {
     if (temSessaoDoServidor() && !semCotaRef.current) {
       try {
         const credencial = await garantirCredencial();
+        // O token temporário do streaming vale para UMA conexão: reaproveitar fazia a 2ª gravação falhar.
+        credencialRef.current = null;
         if (sessao !== sessaoRef.current) return false;
         const stream = abrirStream({ credencial, onTexto: ({ texto }) => sessao === sessaoRef.current && setTextoParcial(texto) });
         streamRef.current = stream;
@@ -184,8 +197,14 @@ export default function useFalaAluno({ ativo = true } = {}) {
       texto = "";
     }
     if (sessao === sessaoRef.current) setTextoParcial("");
+    // Já deixa o próximo token pronto: o próximo clique no microfone começa na hora.
+    if (modoUsado === "servidor" && temSessaoDoServidor() && !semCotaRef.current) {
+      garantirCredencial().catch(() => {
+        credencialRef.current = null;
+      });
+    }
     return String(texto ?? "").trim();
-  }, [segurando, pararNivel, aguardarBlob]);
+  }, [segurando, pararNivel, aguardarBlob, garantirCredencial]);
 
   const cancelar = useCallback(() => {
     if (modoAtualRef.current === "gravacao") gravadorRef.current.reset();
