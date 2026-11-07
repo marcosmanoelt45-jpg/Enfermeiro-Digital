@@ -12,6 +12,7 @@ import { z } from "../_shared/schemas.ts";
 import { criarConsulta } from "./acoes/criarConsulta.ts";
 import { turnoConsulta } from "./acoes/turnoConsulta.ts";
 import { retomarConsulta } from "./acoes/retomarConsulta.ts";
+import { montarResposta } from "./acoes/resposta.ts";
 import { criarRepositorio } from "./repositorio.ts";
 
 const PERSONALIDADES = ["colaborativo", "ansioso", "desconfiado", "esquecido", "minimizador", "poliqueixoso", "envergonhado", "surpresa"] as const;
@@ -65,7 +66,8 @@ Deno.serve(async (req) => {
       }
       case "turno_consulta": {
         const cota = () => consumirCota(usuario.supabaseUsuario, "turno", limiteDe("turno"));
-        return ok(await turnoConsulta(usuario.userId, dados, { ...deps, cota }));
+        const resposta = await turnoConsulta(usuario.userId, dados, { ...deps, cota });
+        return ok(montarResposta({ CENA_IA_DEBUG: Deno.env.get("CENA_IA_DEBUG") }, resposta));
       }
       case "retomar_consulta":
         return ok(await retomarConsulta(usuario.userId, dados, deps));

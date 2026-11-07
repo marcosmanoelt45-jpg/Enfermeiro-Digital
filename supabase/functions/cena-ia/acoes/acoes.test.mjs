@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import { criarConsulta, variarSinais } from "./criarConsulta.ts";
 import { turnoConsulta } from "./turnoConsulta.ts";
 import { retomarConsulta } from "./retomarConsulta.ts";
+import { montarResposta } from "./resposta.ts";
 import { REGRAS_FIXAS } from "../../_shared/prompts/paciente.ts";
 import { ErroApp } from "../../_shared/erros.ts";
 import { ARQUETIPOS } from "../../_shared/dados/arquetipos.js";
@@ -166,7 +167,7 @@ test("criar: idade e sexo são os pedidos (não os da IA); tema sorteia caso do 
 // ================= turno_consulta =================
 test("turno: resposta válida é gravada e a resposta tem só fala, emoção, rapport e turnos restantes", async () => {
   const { repo, sessaoId } = await preparar();
-  const r = await turno(repo, sessaoId, llmFalso(respostaIA()));
+  const r = montarResposta({}, await turno(repo, sessaoId, llmFalso(respostaIA())));
   assert.deepEqual(Object.keys(r).sort(), ["emocao", "exame", "fala", "rapport", "turnosRestantes"]);
   assert.equal(r.fala, "Tô com falta de ar, enfermeiro.");
   assert.equal(r.emocao, "dor");
@@ -179,7 +180,7 @@ test("turno: resposta válida é gravada e a resposta tem só fala, emoção, ra
 
 test("turno: a ficha, os fatos e a confiança numérica não aparecem na resposta", async () => {
   const { repo, sessaoId } = await preparar();
-  const r = await turno(repo, sessaoId, llmFalso(respostaIA()));
+  const r = montarResposta({}, await turno(repo, sessaoId, llmFalso(respostaIA())));
   const texto = JSON.stringify(r);
   for (const proibido of ["fatos", "diagnosticosEsperados", "intervencoesEsperadas", "perguntaQueRevela", "confianca", "revelados"]) assert.ok(!texto.includes(proibido), proibido);
   const ficha = repo.db.fichas.get(sessaoId);

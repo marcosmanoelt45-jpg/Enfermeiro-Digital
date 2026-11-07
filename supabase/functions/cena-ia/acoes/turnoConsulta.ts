@@ -148,7 +148,16 @@ export async function turnoConsulta(userId: string, entrada: EntradaTurno, deps:
   }
 
   logEvento("turno", { sessao: entrada.sessaoId, ordem: sessao.turnos_aluno + 1, modelo, ms: Date.now() - inicio, tokens });
-  return { fala, emocao, rapport: rapportDe(novo.confianca), turnosRestantes, exame: novo.exame };
+  // _debug é interno: o index só o devolve com CENA_IA_DEBUG=1 (ver resposta.ts). Sem textos de fatos.
+  const _debug = {
+    revelados,
+    confianca: novo.confianca,
+    delta: novo.confianca - sessao.confianca,
+    liberados: liberadosIds,
+    exames: ficha.examesDisponiveis ?? [],
+    fatos: ficha.fatos.map((f: { id: string; tema: string; revelacao: string; peso: number; versaoFalsa?: string }) => ({ id: f.id, tema: f.tema, regra: f.revelacao, peso: f.peso, versaoFalsa: f.versaoFalsa ?? null })),
+  };
+  return { fala, emocao, rapport: rapportDe(novo.confianca), turnosRestantes, exame: novo.exame, _debug };
 }
 
 function respostaDeSalva(s: { fala: string; emocao: string; confianca: number; turnosAluno: number }) {
