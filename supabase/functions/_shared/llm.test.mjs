@@ -1,7 +1,7 @@
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import { ErroApp } from "./erros.ts";
-import { MODELOS_PADRAO, chamarLLM, extrairJson, modelosConfigurados } from "./llm.ts";
+import { MODELOS_GEMINI, MODELOS_PADRAO, chamarLLM, escolherProvedor, extrairJson, modelosConfigurados } from "./llm.ts";
 
 // O módulo registra eventos com console.log; silencia durante os testes.
 const logOriginal = console.log;
@@ -106,4 +106,45 @@ test("sem chave da IA no servidor, lança IA_INDISPONIVEL sem tentar a rede", as
     (e) => e instanceof ErroApp && e.codigo === "IA_INDISPONIVEL"
   );
   assert.equal(chamou, false);
+});
+
+test("escolherProvedor: Gemini se há chave, OpenRouter senão, e LLM_PROVIDER força", () => {
+  assert.equal(escolherProvedor(undefined, true), "gemini");
+  assert.equal(escolherProvedor(undefined, false), "openrouter");
+  assert.equal(escolherProvedor("openrouter", true), "openrouter");
+  assert.equal(escolherProvedor(" GEMINI ", false), "gemini");
+  assert.equal(escolherProvedor("outro", true), "gemini");
+});
+
+test("Gemini direto: endpoint do Google, modelo sem prefixo, raciocínio desligado e sem cabeçalhos do OpenRouter", async () => {
+  const pedidos = [];
+  const fetchImpl = async (url, init) => {
+    pedidos.push({ url, headers: init.headers, corpo: JSON.parse(init.body) });
+    return completa("oi");
+  };
+  const r = await chamarLLM({ mensagens: [{ role: "user", content: "x" }], apiKey: "g-key", provedor: "gemini", modelos: MODELOS_GEMINI, json: true, fetchImpl });
+  assert.equal(r.texto, "oi");
+  assert.equal(pedidos[0].url, "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions");
+  assert.equal(pedidos[0].headers.Authorization, "Bearer g-key");
+  assert.equal(pedidos[0].headers["HTTP-Referer"], undefined);
+  assert.equal(pedidos[0].corpo.model, "gemini-2.5-flash");
+  assert.equal(pedidos[0].corpo.reasoning_effort, "none");
+  assert.deepEqual(pedidos[0].corpo.response_format, { type: "json_object" });
+});
+
+test("Gemini: se o primeiro modelo falha, tenta o seguinte; modelo que não é 2.5-flash não leva reasoning_effort", async () => {
+  const corpos = [];
+  const fetchImpl = async (_u, init) => {
+    corpos.push(JSON.parse(init.body));
+    return corpos.length === 1 ? resposta({}, 500) : completa("ok");
+  };
+  const r = await chamarLLM({ mensagens: [{ role: "user", content: "x" }], apiKey: "k", provedor: "gemini", modelos: ["gemini-2.5-flash", "gemini-1.5-pro"], fetchImpl });
+  assert.equal(r.modelo, "gemini-1.5-pro");
+  assert.equal(corpos[1].reasoning_effort, undefined);
+});
+
+test("com apiKey injetada e sem provedor, continua OpenRouter (comportamento antigo)", async () => {
+  let url = "";
+  await chamarLLM({ mensagens: [{ role: "user", content: "x" }], apiKey: "k", modelos: ["a/b"], fetchImpl: async (u) => { url = u; return completa("ok"); } });
+  assert.equal(url, "https://openrouter.ai/api/v1/chat/completions");
 });

@@ -1,4 +1,5 @@
-// Chamada resiliente ao OpenRouter, com a chave só no servidor (secret OPENROUTER_API_KEY).
+// Chamada resiliente à IA, com a chave só no servidor: Gemini direto (secret GEMINI_API_KEY) ou OpenRouter
+// (secret OPENROUTER_API_KEY). O provedor vem de LLM_PROVIDER, ou do que tiver chave (Gemini primeiro).
 import { ErroApp } from "./erros.ts";
 import { logEvento } from "./log.ts";
 
@@ -16,6 +17,7 @@ export interface OpcoesLLM {
   // Os três abaixo existem para testar sem rede e sem segredos.
   apiKey?: string;
   modelos?: string[];
+  provedor?: Provedor;
   fetchImpl?: typeof fetch;
 }
 
@@ -27,6 +29,22 @@ export interface RespostaLLM {
 }
 
 export const MODELOS_PADRAO = ["google/gemini-2.5-flash", "openai/gpt-4o-mini", "deepseek/deepseek-chat"];
+// Modelos do Gemini direto (API compatível com OpenAI do Google AI Studio).
+export const MODELOS_GEMINI = ["gemini-2.5-flash", "gemini-2.5-flash-lite"];
+
+export type Provedor = "gemini" | "openrouter";
+
+// Gemini se há GEMINI_API_KEY (ou LLM_PROVIDER=gemini); senão OpenRouter. LLM_PROVIDER força um dos dois.
+export function escolherProvedor(forcado: string | undefined, temChaveGemini: boolean): Provedor {
+  const f = (forcado ?? "").trim().toLowerCase();
+  if (f === "gemini" || f === "openrouter") return f;
+  return temChaveGemini ? "gemini" : "openrouter";
+}
+
+const ENDPOINTS: Record<Provedor, string> = {
+  gemini: "https://generativelanguage.googleapis.com/v1beta/openai/chat/completions",
+  openrouter: "https://openrouter.ai/api/v1/chat/completions",
+};
 
 // A ordem dos modelos pode ser trocada pelo env LLM_MODELOS (lista separada por vírgula).
 export function modelosConfigurados(csv: string | undefined): string[] {
@@ -62,9 +80,12 @@ export async function chamarLLM(opcoes: OpcoesLLM): Promise<RespostaLLM> {
     fetchImpl = fetch,
   } = opcoes;
 
-  const apiKey = opcoes.apiKey ?? lerEnv("OPENROUTER_API_KEY");
+  // Com `apiKey` injetada (testes) o padrão continua OpenRouter, a menos que `provedor` diga outro.
+  const provedor: Provedor = opcoes.provedor ?? (opcoes.apiKey ? "openrouter" : escolherProvedor(lerEnv("LLM_PROVIDER"), Boolean(lerEnv("GEMINI_API_KEY"))));
+  const apiKey = opcoes.apiKey ?? lerEnv(provedor === "gemini" ? "GEMINI_API_KEY" : "OPENROUTER_API_KEY");
   if (!apiKey) throw new ErroApp("IA_INDISPONIVEL", "Chave da IA não configurada no servidor.");
-  const modelos = opcoes.modelos ?? modelosConfigurados(lerEnv("LLM_MODELOS"));
+  const csv = lerEnv("LLM_MODELOS");
+  const modelos = opcoes.modelos ?? (provedor === "gemini" ? (csv?.trim() ? modelosConfigurados(csv) : MODELOS_GEMINI) : modelosConfigurados(csv));
 
   for (const modelo of modelos) {
     const inicio = Date.now();
@@ -76,14 +97,15 @@ export async function chamarLLM(opcoes: OpcoesLLM): Promise<RespostaLLM> {
         messages: mensagens,
       };
       if (json) corpo.response_format = { type: "json_object" };
+      // Gemini 2.5 "pensa" por padrão e isso gasta o limite de tokens (JSON cortado): desliga o raciocínio.
+      if (provedor === "gemini" && /^gemini-2\.5-flash/.test(modelo)) corpo.reasoning_effort = "none";
 
-      const resposta = await fetchImpl("https://openrouter.ai/api/v1/chat/completions", {
+      const resposta = await fetchImpl(ENDPOINTS[provedor], {
         method: "POST",
         headers: {
           "Authorization": `Bearer ${apiKey}`,
           "Content-Type": "application/json",
-          "HTTP-Referer": "https://enfermeirodigital.com.br",
-          "X-Title": "Enfere Digital Edge AI",
+          ...(provedor === "openrouter" ? { "HTTP-Referer": "https://enfermeirodigital.com.br", "X-Title": "Enfere Digital Edge AI" } : {}),
         },
         body: JSON.stringify(corpo),
         signal: AbortSignal.timeout(timeoutMs),
