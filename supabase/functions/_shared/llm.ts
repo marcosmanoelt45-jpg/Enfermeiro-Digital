@@ -31,7 +31,8 @@ export interface RespostaLLM {
 export const MODELOS_PADRAO = ["google/gemini-2.5-flash", "openai/gpt-4o-mini", "deepseek/deepseek-chat"];
 // Modelos do Gemini direto (API compatível com OpenAI do Google AI Studio).
 // Apelidos "-latest" primeiro (não são aposentados); os numerados ficam de reserva.
-export const MODELOS_GEMINI = ["gemini-flash-latest", "gemini-2.5-flash", "gemini-flash-lite-latest"];
+// O lite responde em cerca de 1 s; o flash "pensa" e levou de 10 a 25 s (timeouts). Os gemini-2.5 foram aposentados (404).
+export const MODELOS_GEMINI = ["gemini-flash-lite-latest", "gemini-flash-latest"];
 
 export type Provedor = "gemini" | "openrouter";
 
