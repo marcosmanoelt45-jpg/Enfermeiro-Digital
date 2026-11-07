@@ -48,7 +48,10 @@ export default function useVozPersonagem(personagemId) {
           if (resolvida.tipo === "aovivo" || fala.origem === "fixa") {
             // Voz ao vivo frase a frase: pede todas ao mesmo tempo e toca a 1ª assim que chega
             // (a resposta inteira de uma vez levava mais de 10 s para começar a tocar).
-            const frases = dividirEmFrases(fala.texto);
+            // No máximo 2 pedidos por fala: a 1ª frase sozinha (começa rápido) e o resto junto. Uma por frase
+            // estourava o limite de pedidos por minuto do Gemini (429) e a frase caía na voz do navegador.
+            const todas = dividirEmFrases(fala.texto);
+            const frases = todas.length > 1 ? [todas[0], todas.slice(1).join(" ")] : todas;
             const pedidos = frases.map((frase) => gerarVoz({ texto: frase, personagemId }).catch(() => null));
             const primeira = await pedidos[0];
             if (gen !== geracaoRef.current) return false;

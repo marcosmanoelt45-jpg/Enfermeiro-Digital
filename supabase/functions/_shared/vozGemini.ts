@@ -14,6 +14,11 @@ export const VOZES_GEMINI: Record<string, { voz: string; jeito: string }> = {
 const PADRAO = { voz: "Kore", jeito: "uma pessoa adulta, de forma natural" };
 
 let modelosTts: string[] | null = null;
+let bloqueadoAte = 0;
+// Para os testes.
+export function _zerarBloqueio() {
+  bloqueadoAte = 0;
+}
 
 // deno-lint-ignore no-explicit-any
 export function ordenarModelosTts(lista: any[]): string[] {
@@ -116,8 +121,11 @@ export function vozDoPersonagem(personagemId: string) {
 
 /** Gera a fala em WAV. Devolve null se não der (o cliente cai na voz do navegador). */
 export async function falarComGemini(
-  { texto, personagemId, chave, fetchImpl = fetch, timeoutMs = 12000 }: { texto: string; personagemId: string; chave: string; fetchImpl?: typeof fetch; timeoutMs?: number },
+  { texto, personagemId, chave, fetchImpl = fetch, timeoutMs = 12000, maxEsperaMs }: { texto: string; personagemId: string; chave: string; fetchImpl?: typeof fetch; timeoutMs?: number; maxEsperaMs?: number },
 ): Promise<Uint8Array | null> {
+  const opcoesEspera = { maxMs: maxEsperaMs };
+  // Cota do dia esgotada: nem tenta até ela voltar (cada tentativa perdida custava ~5 s de espera por frase).
+  if (Date.now() < bloqueadoAte) return null;
   const { voz } = vozDoPersonagem(personagemId);
   // Sempre o MESMO modelo (o 1º da lista): trocar de modelo mudava o timbre no meio da conversa.
   // Se falhar, tenta o mesmo de novo; se falhar outra vez, o cliente usa a voz do navegador nessa frase.
@@ -136,7 +144,29 @@ export async function falarComGemini(
         signal: AbortSignal.timeout(timeoutMs),
       });
       if (!r.ok) {
-        logEvento("voz_gemini_falhou", { modelo, status: r.status, ms: Date.now() - inicio });
+        // 429 = limite de uso. Registra QUAL limite (id da cota e valor) e espera o tempo pedido, se for curto.
+        let espera = 0;
+        let cota = "";
+        let limite: number | null = null;
+        if (r.status === 429) {
+          try {
+            const erro = (await r.json())?.error;
+            for (const d of erro?.details ?? []) {
+              const v = d?.violations?.[0];
+              if (v?.quotaId) cota = String(v.quotaId).slice(0, 64);
+              if (v?.quotaValue) limite = Number(v.quotaValue);
+              if (d?.retryDelay) espera = Math.ceil(parseFloat(String(d.retryDelay)) * 1000);
+            }
+          } catch {
+            // corpo ilegível
+          }
+        }
+        logEvento("voz_gemini_falhou", { modelo, status: r.status, ms: Date.now() - inicio, cota: cota || null, limite, esperaMs: espera });
+        if (r.status === 429 && /PerDay/i.test(cota)) {
+          bloqueadoAte = Date.now() + Math.max(espera, 60_000);
+          return null;
+        }
+        if (r.status === 429 && espera > 0 && espera <= (opcoesEspera.maxMs ?? 6000)) await new Promise((res) => setTimeout(res, espera));
         continue;
       }
       const dados = await r.json();

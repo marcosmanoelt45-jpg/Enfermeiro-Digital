@@ -73,3 +73,32 @@ test("limparFinal não corta fala normal (só suaviza o fim)", () => {
   const comPalavraFinal = pcm([{ n: 24000, amp: 5000 }, { n: 3000, amp: 20 }, { n: 4000, amp: 4000 }]);
   assert.equal(limparFinal(comPalavraFinal, 24000).byteLength, comPalavraFinal.byteLength);
 });
+
+test("falarComGemini no 429 espera o tempo pedido e tenta de novo o mesmo modelo", async () => {
+  let n = 0;
+  const fetchImpl = async (url) => {
+    if (String(url).includes("/models?")) return { ok: true, status: 200, json: async () => ({ models: [{ name: "models/gemini-9-flash-tts", supportedGenerationMethods: ["generateContent"] }] }) };
+    n++;
+    if (n === 1) return { ok: false, status: 429, json: async () => ({ error: { details: [{ violations: [{ quotaId: "PorMinuto-FreeTier", quotaValue: "3" }] }, { retryDelay: "0.01s" }] } }) };
+    return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ inlineData: { mimeType: "audio/L16;rate=24000", data: btoa("\u0001\u0002") } }] } }] }) };
+  };
+  const wav = await falarComGemini({ texto: "Oi.", personagemId: "medico-rui", chave: "k", fetchImpl });
+  assert.ok(wav);
+  assert.equal(n, 2);
+});
+
+test("cota do dia esgotada: para de tentar até ela voltar (resposta imediata, sem chamar o Gemini)", async () => {
+  const { _zerarBloqueio } = await import("./vozGemini.ts");
+  _zerarBloqueio();
+  let chamadas = 0;
+  const fetchImpl = async (url) => {
+    if (String(url).includes("/models?")) return { ok: true, status: 200, json: async () => ({ models: [{ name: "models/gemini-9-flash-tts", supportedGenerationMethods: ["generateContent"] }] }) };
+    chamadas++;
+    return { ok: false, status: 429, json: async () => ({ error: { details: [{ violations: [{ quotaId: "GenerateRequestsPerDayPerProjectPerModel-FreeTier", quotaValue: "10" }] }, { retryDelay: "3600s" }] } }) };
+  };
+  assert.equal(await falarComGemini({ texto: "Um.", personagemId: "marcus", chave: "k", fetchImpl }), null);
+  assert.equal(chamadas, 1);
+  assert.equal(await falarComGemini({ texto: "Dois.", personagemId: "marcus", chave: "k", fetchImpl }), null);
+  assert.equal(chamadas, 1, "não devia chamar de novo");
+  _zerarBloqueio();
+});
