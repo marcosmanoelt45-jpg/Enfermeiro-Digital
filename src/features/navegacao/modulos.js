@@ -11,6 +11,7 @@ export const ROTAS_CONHECIDAS = [
   "/montar-caso",
   "/simulador-casos",
   "/passagem-plantao",
+  "/consulta",
   "/laboratorio-calculos",
   "/conta",
 ];
@@ -105,6 +106,20 @@ export const MODULOS = [
       selo: "4 Modos",
       icone: "Calculator",
       ordem: 20,
+    },
+  },
+  {
+    id: "consulta",
+    rota: "/consulta",
+    grupo: "pratica",
+    flag: "consulta",
+    header: { rotulo: "Consulta", icone: "Stethoscope", ordem: 55, novo: true },
+    trilha: {
+      titulo: "Consulta ao Vivo",
+      subtitulo: "10 min · Converse com um paciente por voz ou texto",
+      selo: "NOVO",
+      icone: "Stethoscope",
+      ordem: 15,
     },
   },
   {

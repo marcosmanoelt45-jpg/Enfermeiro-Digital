@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { buscarPersonagem } from "./dados/personagens.js";
 import { resolverFala } from "./logica/falas.js";
 import { carregarManifesto } from "./voz/manifestos.js";
-import { criarReprodutor } from "./voz/reprodutor.js";
+import { obterReprodutor } from "./voz/reprodutor.js";
 import { gerarVoz } from "./servidor.js";
 
 export default function useVozPersonagem(personagemId) {
@@ -15,7 +15,7 @@ export default function useVozPersonagem(personagemId) {
   const [palavraAtual, setPalavraAtual] = useState(-1);
 
   const reprodutor = useCallback(() => {
-    if (!reprodutorRef.current) reprodutorRef.current = criarReprodutor();
+    if (!reprodutorRef.current) reprodutorRef.current = obterReprodutor();
     return reprodutorRef.current;
   }, []);
 

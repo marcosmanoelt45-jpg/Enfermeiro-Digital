@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { planejar, hashDaFala, nomeDoArquivo, semMp3, duracaoDoWav, aplicarPronuncia } from "./plano.mjs";
+import { planejar, hashDaFala, nomeDoArquivo, semMp3, duracaoDoWav, aplicarPronuncia, agruparFalas } from "./plano.mjs";
 
 const falar = (t) => aplicarPronuncia(t);
 const falas = [{ id: "a.b.1", texto: "Faça 500 mL EV." }, { id: "a.b.2", texto: "Bom dia." }];
@@ -80,4 +80,15 @@ test("id repetido é erro; semMp3 lista as falas sem arquivo", () => {
 test("duracaoDoWav lê a duração do cabeçalho", () => {
   assert.equal(duracaoDoWav(wav(1500)), 1500);
   assert.throws(() => duracaoDoWav(Buffer.from("nada")), /inválido/);
+});
+
+test("agruparFalas junta arquivos do mesmo personagem e recusa perfis diferentes", () => {
+  const g = agruparFalas([
+    { personagem: "marcus", perfilVoicebox: "Marcus", falas: [{ id: "a", texto: "1" }] },
+    { personagem: "rui", perfilVoicebox: "Rui", falas: [{ id: "b", texto: "2" }] },
+    { personagem: "marcus", perfilVoicebox: "Marcus", falas: [{ id: "c", texto: "3" }] },
+    { sem: "personagem" },
+  ]);
+  assert.deepEqual(g.map((x) => [x.personagem, x.falas.map((f) => f.id)]), [["marcus", ["a", "c"]], ["rui", ["b"]]]);
+  assert.throws(() => agruparFalas([{ personagem: "m", perfilVoicebox: "A", falas: [] }, { personagem: "m", perfilVoicebox: "B", falas: [] }]), /Perfis diferentes/);
 });

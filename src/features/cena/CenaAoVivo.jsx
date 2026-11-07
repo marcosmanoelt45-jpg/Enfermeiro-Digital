@@ -30,8 +30,10 @@ export default function CenaAoVivo({
   onEncerrar,
   bloqueio = null,
   permitirVoz = true,
+  turnosIniciais = null,
+  autoIniciar = false,
 }) {
-  const [estado, dispatch] = useReducer(cenaReducer, undefined, () => criarEstado());
+  const [estado, dispatch] = useReducer(cenaReducer, undefined, () => (turnosIniciais ? criarEstado({ status: "aguardando_aluno", turnos: turnosIniciais }) : criarEstado()));
   const voz = useVozPersonagem(personagemId);
   const aluno = useFalaAluno({ ativo: permitirVoz && estado.status === "aguardando_aluno" });
   const [reacao, setReacao] = useState(null);
@@ -50,6 +52,13 @@ export default function CenaAoVivo({
     await voz.desbloquear();
     dispatch({ tipo: "INICIAR", falas: falasIniciais });
   }, [voz, falasIniciais]);
+
+  // Com o áudio já destravado por um toque anterior (ex.: "Começar consulta"), a cena começa sozinha.
+  useEffect(() => {
+    if (autoIniciar && estado.status === "ocioso") dispatch({ tipo: "INICIAR", falas: falasIniciais });
+    // só na montagem
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Cada fala do personagem toca e, ao terminar, a fila avança.
   useEffect(() => {
@@ -85,13 +94,14 @@ export default function CenaAoVivo({
 
   const enviarTexto = useCallback(
     (texto) => {
+      voz.desbloquear(); // dentro do toque de enviar: a resposta chega depois da rede e já encontra o áudio livre
       const turnoId = novoId();
       canalRef.current = textoDaVozRef.current && textoDaVozRef.current === texto ? "voz" : "texto";
       textoDaVozRef.current = "";
       dispatch({ tipo: "ENVIOU_TEXTO", texto, canal: canalRef.current, turnoId });
       enviarAoServidor(texto, turnoId);
     },
-    [enviarAoServidor]
+    [enviarAoServidor, voz]
   );
 
   const tentarDeNovo = useCallback(() => {
@@ -138,7 +148,7 @@ export default function CenaAoVivo({
         </div>
       )}
 
-      {estado.status === "ocioso" ? (
+      {estado.status === "ocioso" && autoIniciar ? null : estado.status === "ocioso" ? (
         <Button variant="primary" size="lg" className="w-full" onClick={comecar}>
           Começar
         </Button>
@@ -189,4 +199,6 @@ CenaAoVivo.propTypes = {
   onEncerrar: PropTypes.func,
   bloqueio: PropTypes.shape({ tipo: PropTypes.string, mensagem: PropTypes.string, acao: PropTypes.object }),
   permitirVoz: PropTypes.bool,
+  turnosIniciais: PropTypes.array,
+  autoIniciar: PropTypes.bool,
 };

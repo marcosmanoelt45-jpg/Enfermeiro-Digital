@@ -13,32 +13,11 @@ import { consumirCota, limiteDe } from "../_shared/cota.ts";
 import { ErroApp } from "../_shared/erros.ts";
 import { chamarLLM, extrairJson } from "../_shared/llm.ts";
 import { logEvento } from "../_shared/log.ts";
+import { sanitizeClinicalText } from "../_shared/dlp.ts";
 
 // ------------------------------------------------------------------------------
-// 1. Sanitização e DLP Server-Side (LGPD)
+// 1. Sanitização e DLP Server-Side (LGPD): sanitizeClinicalText fica em ../_shared/dlp.ts
 // ------------------------------------------------------------------------------
-function sanitizeClinicalText(text: unknown): string {
-  if (!text) return "";
-  let clean = String(text);
-
-  // CPF (11 dígitos, pontuados ou contínuos)
-  clean = clean.replace(/\b\d{3}\.?\d{3}\.?\d{3}-?\d{2}\b/g, "[CPF_MASCARADO]");
-
-  // CNS - Cartão Nacional de Saúde (15 dígitos)
-  clean = clean.replace(/\b[1278]\d{14}\b/g, "[CNS_MASCARADO]");
-
-  // RG
-  clean = clean.replace(/\b\d{1,2}\.?\d{3}\.?\d{3}-?[\dX]\b/gi, "[RG_MASCARADO]");
-
-  // Leitos, quartos, enfermarias, boxes
-  clean = clean.replace(/\b(leito|quarto|enfermaria|box|apto|apartamento)\s*([0-9]+[a-zA-Z]?)\b/gi, "[LEITO_MASCARADO]");
-
-  // Telefones
-  clean = clean.replace(/\b(\(?\d{2}\)?\s*)?(9?\d{4}[-.\s]?\d{4})\b/g, "[TEL_MASCARADO]");
-
-  return clean;
-}
-
 // ------------------------------------------------------------------------------
 // 2. System Prompt Padrão para Plano NANDA-I / NIC / NOC
 // ------------------------------------------------------------------------------

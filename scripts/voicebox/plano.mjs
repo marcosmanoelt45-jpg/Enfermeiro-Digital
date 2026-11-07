@@ -53,3 +53,17 @@ export function duracaoDoWav(buf) {
   }
   throw new Error("WAV sem trecho de dados.");
 }
+
+// Vários JSON podem falar pelo mesmo personagem (ex.: dev.json e consulta-abertura-marcus.json).
+// Junta por personagem, exige o mesmo perfil do VoiceBox e recusa ids repetidos entre arquivos.
+export function agruparFalas(arquivos) {
+  const grupos = new Map();
+  for (const d of arquivos) {
+    if (!d?.personagem || !Array.isArray(d.falas)) continue;
+    const g = grupos.get(d.personagem) ?? { personagem: d.personagem, perfilVoicebox: d.perfilVoicebox, falas: [] };
+    if (g.perfilVoicebox !== d.perfilVoicebox) throw new Error(`Perfis diferentes para "${d.personagem}": ${g.perfilVoicebox} e ${d.perfilVoicebox}`);
+    g.falas.push(...d.falas);
+    grupos.set(d.personagem, g);
+  }
+  return [...grupos.values()];
+}

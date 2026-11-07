@@ -51,3 +51,6 @@ backups/
 
 # Amostra de falas (gerada por scripts/voicebox/gerar-falas.mjs --amostra)
 public/vozes/_amostra.html
+
+# Credenciais da bateria de comportamento (branch do Supabase)
+.env.bateria.local

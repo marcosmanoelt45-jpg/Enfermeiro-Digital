@@ -8,7 +8,7 @@
 | F0 Base do repositório | em andamento | — | 06/11/2026 | 0.1 a 0.7 feitas; falta conferir os cabeçalhos de cache no preview da Vercel. Branch `feat/cenas-f0-base`, a partir de `origin/main` @ 027f623 |
 | F1 Base do servidor | feita no branch, aguardando PR/produção | — | 06/11/2026 | Branch `feat/cenas-f1-servidor`: `_shared` (1.1), migration 010 da cota (1.2), `clinical-ai-sanitize` sobre o `_shared` (1.3), Edge Function `transcrever` (1.4), cliente sem chave em `src/features/cena/` (1.5). Verificado com Deno + PGlite (`~/.claude/tools/servidor-checks/`), sem Supabase de teste |
 | F2 Motor Cena ao Vivo | feita no branch, aguardando teste em aparelho | — | 06/11/2026 | Branch `feat/cenas-f2-motor` (empilhado sobre a F1). 2.1–2.8 feitas e verificadas no desktop (`/dev/cena`: falas, eco, erro, bloqueio); falta o checklist 2.9 em iPhone/Android reais |
-| F3 Consulta: conversa | pendente | — | — | — |
+| F3 Consulta: conversa | feita no branch, falta a bateria de IA | — | 06/11/2026 | Branch `feat/cenas-f3-consulta` (empilhado sobre a F2). 3.1–3.6 feitas e verificadas; a bateria 3.7 está escrita e testada, mas NÃO rodou (precisa de branch do Supabase, `CENA_IA_DEBUG=1` e usuário de teste). Flag `consulta` desligada |
 | F4 Consulta: fechamento | pendente | — | — | — |
 | F5 Minijogos + Técnicas | pendente | — | — | — |
 | F6 Cálculo com o Médico | pendente | — | — | — |
@@ -36,7 +36,7 @@
 ## Produção (o que está em produção vs. só no branch)
 - Edge Functions em produção: `clinical-ai-sanitize` (v5, ativa; conferido em 06/11/2026)
 - Migrations em produção: 001–009 (conferido em 06/11/2026)
-- Aguardando autorização do dono para produção, nesta ordem: (1) definir o secret `ASSEMBLYAI_API_KEY` no Supabase (só o dono tem a chave); (2) aplicar a migration `010_ai_cota.sql`; (3) deploy de `transcrever` e de `clinical-ai-sanitize`; (4) só então mesclar o PR da F1. Para a F2, depois: secret `STT_MODEL` (opcional, padrão universal-3-6-pro), bucket privado `vozes-cache`, e deploy de `stt-token` e `voz` (sem `VOZ_AO_VIVO_URL` a `voz` responde 204 e tudo cai na voz do navegador). Mesclar antes disso quebra a transcrição e deixa a IA sem cota no banco. Migrations futuras: testar com `servidor-checks/banco.mjs` (PGlite) antes de qualquer Supabase.
+- Aguardando autorização do dono para produção, nesta ordem: (1) definir o secret `ASSEMBLYAI_API_KEY` no Supabase (só o dono tem a chave); (2) aplicar a migration `010_ai_cota.sql`; (3) deploy de `transcrever` e de `clinical-ai-sanitize`; (4) só então mesclar o PR da F1. Para a F2, depois: secret `STT_MODEL` (opcional, padrão universal-3-6-pro), bucket privado `vozes-cache`, e deploy de `stt-token` e `voz` (sem `VOZ_AO_VIVO_URL` a `voz` responde 204 e tudo cai na voz do navegador). Para a F3: migration `011_consultas.sql`, deploy de `cena-ia` (usa `OPENROUTER_API_KEY`), ligar a flag `consulta` só depois da bateria. `CENA_IA_DEBUG=1` só no branch de teste, nunca em produção. Mesclar antes disso quebra a transcrição e deixa a IA sem cota no banco. Migrations futuras: testar com `servidor-checks/banco.mjs` (PGlite) antes de qualquer Supabase.
 
 ## Divergências da F2
 - **Silêncio do iOS em código.** O desbloqueio usa um WAV mudo montado em `reprodutor.js` (`montarWavSilencioso`), não um `public/vozes/_silencio.mp3`: dispensa arquivo e ffmpeg.
@@ -45,6 +45,19 @@
 - **Clipes dos pacientes.** `marcus` e `teresinha` só têm `falando`, `acerto` e `erro` (`fala` vira `falando`); sem `parado`/`pensando` o palco mostra o poster. `medico-rui`, `enfermeira-ana` e `goti` são placeholders sem clipe.
 - **Scripts do Goti mantidos.** `scripts/gerar-voz-goti.js` e `scripts/gerar-vozes-simulador.py` ficam até existir `src/data/falas/goti.json`.
 - **Não verificável aqui:** microfone, AudioWorklet em Safari, WebSocket real da AssemblyAI, voz do navegador e vibração. Só no aparelho (checklist do PR).
+
+## Divergências da F3
+- **15 arquétipos, não 20.** `randomClinicalScenarios.js` tem 15; o plano dizia 20. O exportador (`scripts/consulta/exportar-arquetipos.mjs`) gera `arquetipos.js`, `temas.js` e `nanda-codigos.js` e o teste confere com a fonte.
+- **Candidatos NANDA por sobreposição de palavras**, não por `getNandaContextualSuggestions` (ele devolve um diagnóstico só). Mínimo de 4 candidatos por arquétipo, completados com diagnósticos gerais (00132, 00030, 00155, 00201). Vale revisar a qualidade clínica dessas listas.
+- **Dificuldade manda sobre a personalidade.** O teto de `confianca` de colaborativo/ansioso não vale no difícil, e o mínimo de `esquecido` da personalidade esquecido não vale no fácil. O difícil usa 8 a 12 fatos (com 14, 40% de confianca/esquecido não fecha).
+- **Fato `esquecido`** é liberado quando o tema já foi perguntado 2 vezes (`contagemTemas ≥ 2`), ou seja, vale a partir do turno seguinte à 2ª pergunta.
+- **`_debug` da bateria** traz também `delta`, `exames` e `fatos` (id, tema, regra, peso, versaoFalsa, sem o texto verdadeiro). Só sai com `CENA_IA_DEBUG=1`.
+- **Leitura do cliente por coluna.** A migration 011 esconde `confianca`, `contagem_temas` e `notas_memoria` com GRANT por coluna (a ficha não tem nem GRANT). A conversa de sessão ativa vem de `retomar_consulta`.
+- **Mp3 das aberturas não gerados.** `consulta-abertura-<personagem>.json` (16 falas cada) espera o dono rodar `node scripts/voicebox/gerar-falas.mjs`; até lá a voz é a do navegador.
+- **Chip "Examinar" não aparece** (os minijogos nascem na F5). O servidor já devolve `exame`.
+- **Só 2 personagens de paciente (idosos).** Faixa etária e sexo da montagem se reduzem à escolha do paciente; a idade é sorteada entre 62 e 80.
+- **Falha de login no meio da consulta** mostra a mensagem do servidor com "Tentar de novo", sem redirecionar para o login com `returnTo`.
+- **Formato da resposta da IA** é validado à mão (sem zod) em `turnoConsulta.ts`; o corpo do pedido usa zod no `index.ts`.
 
 ## Medições
 - Latência do turno da Consulta (mediana 4G): —
