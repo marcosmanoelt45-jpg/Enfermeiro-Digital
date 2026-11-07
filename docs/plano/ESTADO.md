@@ -9,7 +9,7 @@
 | F1 Base do servidor | feita no branch, aguardando PR/produção | — | 06/11/2026 | Branch `feat/cenas-f1-servidor`: `_shared` (1.1), migration 010 da cota (1.2), `clinical-ai-sanitize` sobre o `_shared` (1.3), Edge Function `transcrever` (1.4), cliente sem chave em `src/features/cena/` (1.5). Verificado com Deno + PGlite (`~/.claude/tools/servidor-checks/`), sem Supabase de teste |
 | F2 Motor Cena ao Vivo | feita no branch, aguardando teste em aparelho | — | 06/11/2026 | Branch `feat/cenas-f2-motor` (empilhado sobre a F1). 2.1–2.8 feitas e verificadas no desktop (`/dev/cena`: falas, eco, erro, bloqueio); falta o checklist 2.9 em iPhone/Android reais |
 | F3 Consulta: conversa | feita no branch, falta a bateria de IA | — | 06/11/2026 | Branch `feat/cenas-f3-consulta` (empilhado sobre a F2). 3.1–3.6 feitas e verificadas; a bateria 3.7 está escrita e testada, mas NÃO rodou (precisa de branch do Supabase, `CENA_IA_DEBUG=1` e usuário de teste). Flag `consulta` desligada |
-| F4 Consulta: fechamento | pendente | — | — | — |
+| F4 Consulta: fechamento | feita no branch (sem quiz D7) | — | 06/11/2026 | Branch `feat/cenas-f4-fechamento` (empilhado sobre a F3). Pontuação por código, ação `finalizar_consulta`, registro, relatório, histórico e XP. IA do avaliador não rodou (sem branch do Supabase) |
 | F5 Minijogos + Técnicas | pendente | — | — | — |
 | F6 Cálculo com o Médico | pendente | — | — | — |
 | F7 Plantão com a Enfermeira | pendente | — | — | — |
@@ -58,6 +58,16 @@
 - **Só 2 personagens de paciente (idosos).** Faixa etária e sexo da montagem se reduzem à escolha do paciente; a idade é sorteada entre 62 e 80.
 - **Falha de login no meio da consulta** mostra a mensagem do servidor com "Tentar de novo", sem redirecionar para o login com `returnTo`.
 - **Formato da resposta da IA** é validado à mão (sem zod) em `turnoConsulta.ts`; o corpo do pedido usa zod no `index.ts`.
+
+## Divergências da F4
+- **Quiz D7 (4.6) não feito.** Depende de decisão do dono (D7) e do card de questões; fica para depois.
+- **Registro sem microfone.** O campo "O que você encontrou" é texto puro; o ditado por voz (reuso do `ControleFala`) ficou de fora.
+- **"Examinar" fora do registro** (os minijogos nascem na F5).
+- **Citações numeradas por turno do aluno** (T1 = 1ª fala do aluno e a resposta dela), não pela `ordem` da mensagem no banco; o validador usa a mesma numeração.
+- **Relatório sem IA** renormaliza a nota geral (anamnese 0,35 / segurança 0,2 / raciocínio 0,2, divididos por 0,75) e o raciocínio vale 100% por código.
+- **Extra "sem relação"** (−10 cada) é o diagnóstico fora dos candidatos do caso; extras plausíveis não são punidos.
+- **Leitura do relatório e dos turnos** é direta nas tabelas (RLS: só do dono e só depois de encerrada), sem ação de servidor. `Rever conversa` depende de a migration 011 estar aplicada.
+- **Busca de diagnóstico** usa `searchNandaCatalog` direto (o `NandaSearchBar` depende do Base44).
 
 ## Medições
 - Latência do turno da Consulta (mediana 4G): —

@@ -99,6 +99,8 @@ export default function HistoricoAtividadesTab({ userId = null }) {
       navigate("/simulador");
     } else if (item.moduleType === MODULE_TYPES.PROCEDURES) {
       navigate("/procedimentos");
+    } else if (item.moduleType === MODULE_TYPES.CONSULTA) {
+      navigate(`/consulta/relatorio/${item.id}`);
     } else {
       navigate("/casos");
     }
@@ -348,6 +350,12 @@ export default function HistoricoAtividadesTab({ userId = null }) {
                       <span>Detalhes da Sessão: {questoes.length} questões registradas</span>
                       <span className="text-[#20D5B5]">Modo Somente Leitura</span>
                     </div>
+
+                    {item.moduleType === MODULE_TYPES.CONSULTA && (
+                      <Button type="button" variant="primary" size="sm" onClick={(e) => handleResumeActivity(item, e)} className="h-8 text-xs">
+                        Abrir relatório da consulta
+                      </Button>
+                    )}
 
                     {questoes.length > 0 ? (
                       <div className="space-y-2">

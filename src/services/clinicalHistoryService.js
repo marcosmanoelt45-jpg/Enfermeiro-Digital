@@ -44,6 +44,7 @@ export const MODULE_TYPES = {
   DOSAGE: 'dosage',
   PROCEDURES: 'procedures',
   SYSTEMS_ASSESSMENT: 'systems_assessment',
+  CONSULTA: 'consulta',
 };
 
 export const MODULE_LABELS = {
@@ -54,6 +55,7 @@ export const MODULE_LABELS = {
   dosage: 'Cálculo de Medicamentos & Doses',
   procedures: 'Videoteca de Procedimentos',
   systems_assessment: 'Avaliação Clínica',
+  consulta: 'Consulta ao Vivo',
 };
 
 function getStorage(userId) {
