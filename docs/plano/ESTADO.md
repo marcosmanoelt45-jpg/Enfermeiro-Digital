@@ -119,5 +119,6 @@
 - ~~Filtro de fala com provedores/modelos e prompt~~ já estava no `filtroFala` (paciente) e agora no Goti
 - Histórico e gamificação no Supabase em vez do localStorage (hoje se perde ao trocar de aparelho)
 - Voz ao vivo hospedada (D4)
-- Mais minijogos: descarte, higienização das mãos, paramentação, IM ventroglútea, LPP, flebite, purgar equipo, sondagem, luva estéril, 9 certos, glicosímetro
-- Bot diário das vozes Gemini: falta aplicar `supabase/migrations/012_bot_vozes_gemini.sql` (pg_cron); o classificador barrou, o dono aplica
+- Minijogos: feitos em 08/11 descarte, higienização das mãos, paramentação, desparamentação, 9 certos, glicemia capilar, flebite e LPP (luva estéril e sondagem já vêm dos POPs). Faltam IM ventroglútea (precisa de imagem do Flow para o tocar-região) e purgar equipo
+- ~~Bot diário das vozes Gemini~~ migration 012 aplicada em 08/11 (pg_cron às 08:15 UTC)
+- ~~RLS de profiles com recursão e usuários sem perfil~~ migrations 013 e 014 aplicadas em 08/11

@@ -149,7 +149,8 @@ test("os minijogos estáticos são válidos e o catálogo não repete ids", () =
   const cat = montarCatalogo({ procedimentos: [proc("p1", 5), proc("p2", 8), proc("p3", 2)], semiologia: SEMIOLOGY_KNOWLEDGE_BASE });
   const ids = cat.todos.map((m) => m.id);
   assert.equal(new Set(ids).size, ids.length);
-  assert.equal(cat.todos.length, 3 + 2 + 10);
+  assert.equal(cat.todos.length, MINIJOGOS_ESTATICOS.length + 2 + 10);
+  assert.ok(MINIJOGOS_ESTATICOS.length >= 11);
   assert.deepEqual(cat.pulados, ["p3"]);
   assert.equal(cat.porId["contar-fr"].tipo, "medir");
 });
