@@ -219,7 +219,7 @@ export const authService = {
         .from('profiles')
         .select('*')
         .eq('id', userId)
-        .single();
+        .maybeSingle(); // sem perfil ainda: devolve null sem erro 406
       if (error && error.code !== 'PGRST116') {
         console.warn('Erro ao carregar perfil:', error);
       }
