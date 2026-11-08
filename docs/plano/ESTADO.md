@@ -103,11 +103,12 @@
 - Tamanho de `dist/assets` (antes → depois): —
 
 ## Depois (fora do escopo, não esquecer)
-- Goti em produção revela o modelo (família Gemini/Flash) e resume o prompt, como mostra o print de 06/11. Reforçar a regra do prompt e filtrar a saída (`ia/referencias-paciente.md` §1)
+- ~~Goti revela o modelo e resume o prompt~~ feito em 07/11: regra no prompt e filtro de saída (`src/services/gotiFiltro.js`)
 - Trocar o "Cenário B" (prompt livre) da `clinical-ai-sanitize` por uma lista de tarefas permitidas (hoje qualquer aluno logado manda prompt livre, limitado só pela cota `llm`)
-- Apagar o transcript na AssemblyAI depois de ler o texto (LGPD): a `transcrever` ainda não faz DELETE
+- ~~Apagar o transcript na AssemblyAI~~ feito em 07/11: a `transcrever` faz DELETE ao ler o texto ou o erro
 - CSP em modo relatório sem `report-to`: não coleta nada. Precisa de uma Edge Function receptora (depende de autorização)
-- O filtro de fala do Goti (F3) deve incluir nomes de provedores/modelos e "prompt"/"instruções"
+- ~~Filtro de fala com provedores/modelos e prompt~~ já estava no `filtroFala` (paciente) e agora no Goti
 - Histórico e gamificação no Supabase em vez do localStorage (hoje se perde ao trocar de aparelho)
 - Voz ao vivo hospedada (D4)
 - Mais minijogos: descarte, higienização das mãos, paramentação, IM ventroglútea, LPP, flebite, purgar equipo, sondagem, luva estéril, 9 certos, glicosímetro
+- Bot diário das vozes Gemini: falta aplicar `supabase/migrations/012_bot_vozes_gemini.sql` (pg_cron); o classificador barrou, o dono aplica

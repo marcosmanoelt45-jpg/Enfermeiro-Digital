@@ -43,6 +43,18 @@ async function chamarAssembly(url: string, chave: string, init: RequestInit): Pr
   }
 }
 
+// LGPD: depois de ler o texto, apaga a transcrição (e o áudio enviado) na AssemblyAI. Em segundo plano,
+// para não atrasar a resposta; se falhar, só registra (a AssemblyAI apaga sozinha depois do prazo dela).
+function apagarNaAssembly(id: string, chave: string) {
+  const tarefa = chamarAssembly(`${API}/transcript/${id}`, chave, { method: "DELETE" })
+    .then((r) => {
+      if (!r.ok) logEvento("transcrever_apagar_falhou", { status: r.status });
+    })
+    .catch(() => logEvento("transcrever_apagar_falhou", { status: 0 }));
+  // deno-lint-ignore no-explicit-any
+  (globalThis as any).EdgeRuntime?.waitUntil?.(tarefa);
+}
+
 async function iniciar(req: Request, chave: string, usuario: Usuario): Promise<Response> {
   let form: FormData;
   try {
@@ -109,9 +121,14 @@ async function consultar(req: Request, chave: string): Promise<Response> {
   if (!resposta.ok) throw new ErroApp("IA_INDISPONIVEL", "Não foi possível consultar a transcrição.");
 
   const dados = await resposta.json();
-  if (dados.status === "completed") return ok({ status: "pronto", texto: String(dados.text ?? "").trim() });
+  if (dados.status === "completed") {
+    const texto = String(dados.text ?? "").trim();
+    apagarNaAssembly(entrada.data.id, chave);
+    return ok({ status: "pronto", texto });
+  }
   if (dados.status === "error") {
     logEvento("transcrever_erro_do_servico", {});
+    apagarNaAssembly(entrada.data.id, chave);
     return ok({ status: "erro" });
   }
   return ok({ status: "processando" });
