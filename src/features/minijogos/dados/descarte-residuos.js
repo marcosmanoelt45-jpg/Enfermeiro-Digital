@@ -6,7 +6,7 @@ export default {
   titulo: "Descarte certo dos resíduos",
   instrucao: "Arraste cada resíduo para o recipiente certo.",
   categoria: "biosseguranca",
-  fonte: { titulo: "RDC ANVISA nº 222/2018 (gerenciamento de resíduos de serviços de saúde)" },
+  fonte: { titulo: "RDC ANVISA nº 222/2018: grupos A4, D e E (Anexo I); o PGRSS do HCPA não é público", url: "https://bvsms.saude.gov.br/bvs/saudelegis/anvisa/2018/rdc0222_28_03_2018.pdf" },
   arrastar: {
     fundo: null,
     alvos: [
@@ -20,7 +20,7 @@ export default {
       { id: "lanceta", label: "Lanceta da glicemia", imagem: "/minijogos/lanceta.webp", alvoCorreto: "perfuro", explicacao: "Lanceta perfura: caixa de perfurocortante." },
       { id: "ampola", label: "Ampola de vidro quebrada", imagem: "/minijogos/ampola.webp", alvoCorreto: "perfuro", explicacao: "Vidro quebrado corta: também é perfurocortante." },
       { id: "gaze-sangue", label: "Gaze com sangue", imagem: "/minijogos/gaze-sangue.webp", alvoCorreto: "infectante", explicacao: "Material com sangue ou secreção é infectante: saco branco leitoso." },
-      { id: "luva-usada", label: "Luva usada no curativo", imagem: "/minijogos/luva-usada.webp", alvoCorreto: "infectante", explicacao: "Teve contato com a ferida: infectante." },
+      { id: "luva-usada", label: "Luva usada no curativo", imagem: "/minijogos/luva-usada.webp", alvoCorreto: "infectante", explicacao: "Teve contato com secreção da ferida: saco branco leitoso (grupo A4). Luva sem contato com sangue ou secreção iria no lixo comum." },
       { id: "papel-toalha", label: "Papel-toalha da higiene das mãos", imagem: "/minijogos/papel-toalha.webp", alvoCorreto: "comum", explicacao: "Sem contato com material biológico: lixo comum." },
       { id: "copo-cafe", label: "Copo de café", imagem: "/minijogos/copo-cafe.webp", alvoCorreto: "comum", explicacao: "Resíduo comum, como o de casa." },
       { id: "embalagem-seringa", label: "Embalagem de papel da seringa (limpa)", imagem: "/minijogos/embalagem-seringa.webp", alvoCorreto: "reciclavel", explicacao: "Embalagem limpa, sem contato com o paciente, pode ser reciclada." },

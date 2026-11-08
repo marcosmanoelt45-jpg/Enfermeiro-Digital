@@ -6,7 +6,7 @@ export default {
   titulo: "Ordene: higienização das mãos com água e sabonete",
   instrucao: "Coloque as etapas na ordem da técnica da OMS.",
   categoria: "biosseguranca",
-  fonte: { titulo: "OMS e ANVISA: Segurança do Paciente, Higienização das Mãos" },
+  fonte: { titulo: "ANVISA: Segurança do Paciente em Serviços de Saúde: Higienização das Mãos, técnica de higiene simples (o POP do HCPA não é público)", url: "https://bvsms.saude.gov.br/bvs/publicacoes/seguranca_paciente_servicos_saude_higienizacao_maos.pdf" },
   ordenar: {
     passos: [
       { id: "molhar", texto: "Retirar adornos e molhar as mãos" },

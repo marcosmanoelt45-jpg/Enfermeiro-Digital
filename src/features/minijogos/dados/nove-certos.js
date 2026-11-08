@@ -7,7 +7,7 @@ export default {
   titulo: "Os 9 certos da medicação",
   instrucao: "Arraste para o quadro só o que faz parte dos 9 certos. O resto fica de fora.",
   categoria: "medicacao",
-  fonte: { titulo: "Protocolo de Segurança na Prescrição, Uso e Administração de Medicamentos (MS/ANVISA, 2013)" },
+  fonte: { titulo: "MS/ANVISA/Fiocruz: Protocolo de Segurança na Prescrição, Uso e Administração de Medicamentos (2013); o protocolo do HCPA não é público", url: "https://portaldeboaspraticas.iff.fiocruz.br/biblioteca/protocolo-de-seguranca-na-prescricao-uso-e-administracao-de-medicamentos/" },
   arrastar: {
     fundo: null,
     alvos: [{ id: "certos", label: "Os 9 certos", imagem: null, area: { x: 4, y: 4, w: 92, h: 92 } }],
