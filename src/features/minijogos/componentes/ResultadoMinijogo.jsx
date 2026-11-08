@@ -31,7 +31,14 @@ export default function ResultadoMinijogo({ definicao, resultado, avaliacao, onT
           {porques.map((p) => <li key={p.id}>{p.rotulo ? <b className="text-[#EAF2F8]">{p.rotulo}: </b> : null}{p.texto}</li>)}
         </ul>
       )}
-      <p className="text-xs font-semibold text-[#9FB3C6]">Fonte: {definicao.fonte.titulo}</p>
+      <p className="text-xs font-semibold text-[#9FB3C6]">
+        Fonte:{" "}
+        {definicao.fonte.url ? (
+          <a href={definicao.fonte.url} target="_blank" rel="noopener noreferrer" className="underline decoration-[#27394B] underline-offset-2 hover:text-white">{definicao.fonte.titulo}</a>
+        ) : (
+          definicao.fonte.titulo
+        )}
+      </p>
       <div className="flex gap-2">
         <Button variant="outline" className="flex-1" onClick={onTentarDeNovo}>Tentar de novo</Button>
         <Button variant="primary" className="flex-1" onClick={onContinuar}>Continuar</Button>

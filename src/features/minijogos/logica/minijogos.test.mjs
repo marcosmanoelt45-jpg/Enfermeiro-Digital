@@ -171,11 +171,14 @@ test("validarDefinicao acusa os erros mais comuns", () => {
   assert.match(validarDefinicao(null).join(), /vazia/);
 });
 
-test("bandeja: 6 itens certos e 5 distratores, todos com explicação", () => {
-  assert.equal(bandeja.arrastar.itens.filter((i) => i.alvoCorreto).length, 6);
+test("bandeja: 9 itens certos (POP do HCPA), banco de 10 distratores com 5 sorteados, todos com explicação", () => {
+  assert.equal(bandeja.arrastar.itens.filter((i) => i.alvoCorreto).length, 9);
   const distratores = bandeja.arrastar.itens.filter((i) => !i.alvoCorreto);
-  assert.equal(distratores.length, 5);
+  assert.equal(distratores.length, 10);
+  assert.equal(bandeja.arrastar.sorteio.distratores, 5);
   for (const d of distratores) assert.ok(d.explicacao.length > 10);
+  assert.ok(bandeja.fonte.url.startsWith("https://"));
+  for (const i of bandeja.arrastar.itens) assert.ok(i.imagemTopo, `${i.id} sem imagem vista de cima`);
 });
 
 test("ausculta: 6 focos anteriores e 6 posteriores, todos com achado e sem áudio sem licença", () => {

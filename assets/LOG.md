@@ -75,3 +75,4 @@ Prompts em `assets/pedidos/mesa-bandeja.json`; 1 imagem por item (sem opções a
 |---|---|---|---|---|---|
 | 2026-11-08 | 11 materiais (topo-*), bandeja, mão aberta e fechada | estilo + "strict top-down view… lying flat… green background" + descrição do objeto | Nano Banana 2.1 (t2i) | 0 | `public/minijogos/topo-*.webp`, `cursor-mao-*.png` |
 | 2026-11-08 | mesa | madeira clara vista de cima, sem objetos | Nano Banana 2.1 (t2i, 16:9) | 0 | `public/minijogos/mesa.webp` |
+| 2026-11-08 | soro em bolsa, gaze não aderente, agulha 40x12, álcool 70%, algodão + 5 distratores (termômetro, cateter venoso, equipo, coletor de urina, ampola) | `assets/pedidos/mesa-bandeja.json` (soro descrito a partir da referência enviada pelo dono: bolsa de soro com líquido azul, alça em cima e dois tubos embaixo) | Nano Banana 2.1 (t2i) | 0 | `public/minijogos/topo-*.webp` |

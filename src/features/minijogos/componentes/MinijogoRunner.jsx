@@ -1,4 +1,4 @@
-import React, { useCallback, useRef, useState } from "react";
+import React, { useCallback, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { m as motion } from "framer-motion";
 import { X } from "lucide-react";
@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import PageShell from "@/components/layout/PageShell";
 import { shake, sheetVariants, scrimVariants, vibrate } from "@/lib/motion";
 import { AVALIADORES } from "../logica/avaliar.js";
+import { sortearItens } from "../logica/sorteio.js";
 import Arrastar from "./tipos/Arrastar.jsx";
 import TocarRegiao from "./tipos/TocarRegiao.jsx";
 import Ordenar from "./tipos/Ordenar.jsx";
@@ -19,8 +20,11 @@ const TIPOS = { arrastar: Arrastar, "tocar-regiao": TocarRegiao, ordenar: Ordena
  * Motor de minijogos movido a dados (C11). `modo`: "livre" ocupa a tela; "plantao" e "consulta" abrem numa
  * folha inferior. `onConcluir` recebe o resultado do C11 (inclui `achado` para preencher lacunas do Plantão).
  */
-export default function MinijogoRunner({ definicao, onConcluir, modo = "livre", onFechar }) {
+export default function MinijogoRunner({ definicao: original, onConcluir, modo = "livre", onFechar }) {
   const [rodada, setRodada] = useState(0);
+  // Cada rodada sorteia os distratores (quando a definição pede): o jogo e a nota usam a mesma definição.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  const definicao = useMemo(() => sortearItens(original), [original, rodada]);
   const [feedback, setFeedback] = useState(null);
   const [resultado, setResultado] = useState(null);
   const [tremer, setTremer] = useState(0);

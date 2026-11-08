@@ -4,26 +4,36 @@ import { Button } from "@/components/ui/button";
 import { dentroDaBandeja, emRepouso, layoutDaMesa, PARAMS, passo, vagaNaBandeja, vagasIniciais } from "../../logica/mesaFisica.js";
 
 // Cena "mesa": a mesa vista de cima, a bandeja no centro e os objetos de verdade em volta. Arrastar pega o objeto
-// (a mão fecha), ele balança na mão, cai com gravidade ao soltar e empurra quem estiver embaixo. Só transform e
-// opacity são animados. Teclado e leitor de tela: cada objeto é um botão; Enter/Espaço põe ou tira da bandeja.
-const PARAMS_REDUZIDO = { ...PARAMS, seguir: 1, balanco: 0, gravidade: 1, quique: 0 };
+// (a mão fecha), ele balança na mão, cai com gravidade ao soltar e empurra quem estiver no caminho. A bandeja tem
+// parede: o que cai dentro fica inteiro no fundo, o que está fora não fica em cima da borda. O nome do objeto
+// flutua acima dele (como um apelido) ao passar o mouse ou enquanto está na mão. Só transform e opacity são
+// animados. Teclado e leitor de tela: cada objeto é um botão; Enter/Espaço põe ou tira da bandeja.
+const PARAMS_REDUZIDO = { ...PARAMS, seguir: 1, balanco: 0, gravidade: 1, quique: 0, parede: 1 };
 
 export default function MesaBandeja({ definicao, conferir, feedback }) {
   const { alvos, itens, cena } = definicao.arrastar;
   const alvo = alvos[0];
   const mesaRef = useRef(null);
+  const etiquetaRef = useRef(null);
   const [largura, setLargura] = useState(0);
   const layout = useMemo(() => layoutDaMesa(largura || 800), [largura]);
   const paisagem = layout.paisagem;
+  // Arrumação diferente a cada rodada (o componente remonta a cada "Tentar de novo").
+  const [semente] = useState(() => Math.floor(Math.random() * 1e9));
 
   const objs = useRef([]);
   const els = useRef({}); // id -> { obj, sombra }
   const alvoPonteiro = useRef(null);
   const quadro = useRef(0);
   const [pegando, setPegando] = useState(null);
+  const [sobre, setSobre] = useState(null); // objeto com o mouse por cima
+  const ativoRef = useRef(null); // objeto cujo nome aparece
   const [ordem, setOrdem] = useState(() => itens.map((i) => i.id));
   const reduzido = useRef(false);
   const layoutDaMesaAnterior = useRef(null);
+  const porId = useMemo(() => new Map(itens.map((i) => [i.id, i])), [itens]);
+  const ativo = pegando ?? sobre;
+  ativoRef.current = ativo;
 
   useEffect(() => {
     try {
@@ -62,11 +72,37 @@ export default function MesaBandeja({ definicao, conferir, feedback }) {
         ref.sombra.style.opacity = String(Math.max(0.12, 0.38 - o.h * 0.18));
       }
     }
+    // O nome acompanha o objeto ativo, sempre em pé e acima dele (some ao subir demais, vira para baixo).
+    const et = etiquetaRef.current;
+    const o = objs.current.find((x) => x.id === ativoRef.current);
+    if (et && o) {
+      const cx = o.x * W;
+      const topo = o.y * H - (lado / 2) * (1 + o.h * 0.14);
+      const embaixo = topo < 34;
+      const ty = embaixo ? o.y * H + (lado / 2) * (1 + o.h * 0.14) + 6 : topo - 6;
+      et.style.transform = `translate3d(${cx.toFixed(1)}px, ${ty.toFixed(1)}px, 0) translate(-50%, ${embaixo ? "0" : "-100%"})`;
+    }
   }, [layout]);
+
+  // Laço de animação: roda enquanto algo se mexe ou ainda está encostado, e dorme quando tudo se resolve.
+  const animar = useCallback(() => {
+    if (quadro.current) return;
+    const opcoes = { proporcao: layout.proporcao, bandeja: layout.bandeja };
+    const tick = () => {
+      passo(objs.current, { ...opcoes, alvo: alvoPonteiro.current, params: reduzido.current ? PARAMS_REDUZIDO : PARAMS });
+      desenhar();
+      quadro.current = emRepouso(objs.current, opcoes) ? 0 : requestAnimationFrame(tick);
+    };
+    quadro.current = requestAnimationFrame(tick);
+  }, [desenhar, layout]);
+  const animarRef = useRef(animar);
+  useEffect(() => {
+    animarRef.current = animar;
+  }, [animar]);
 
   // Arrumação inicial (e rearrumação quando muda de paisagem para retrato).
   useEffect(() => {
-    const vagas = vagasIniciais(itens.length, layout, 11);
+    const vagas = vagasIniciais(itens.length, layout, semente);
     const anteriores = new Map(objs.current.map((o) => [o.id, o]));
     const bandejaAntes = layoutDaMesaAnterior.current?.bandeja ?? layout.bandeja;
     const novos = [];
@@ -82,28 +118,17 @@ export default function MesaBandeja({ definicao, conferir, feedback }) {
     });
     objs.current = novos;
     layoutDaMesaAnterior.current = layout;
+    cancelAnimationFrame(quadro.current);
+    quadro.current = 0;
     desenhar();
-    // Se algo ficou encostado, a física afasta.
+    // Se algo ficou encostado, a física resolve.
     requestAnimationFrame(() => animarRef.current?.());
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [paisagem, itens]);
 
   useEffect(() => {
     desenhar();
-  }, [largura, desenhar]);
-
-  // Laço de animação: roda enquanto algo se mexe e dorme quando tudo está parado.
-  const animar = useCallback(() => {
-    if (quadro.current) return;
-    const tick = () => {
-      passo(objs.current, { proporcao: layout.proporcao, alvo: alvoPonteiro.current, params: reduzido.current ? PARAMS_REDUZIDO : PARAMS });
-      desenhar();
-      quadro.current = emRepouso(objs.current) ? 0 : requestAnimationFrame(tick);
-    };
-    quadro.current = requestAnimationFrame(tick);
-  }, [desenhar, layout.proporcao]);
-  const animarRef = useRef(animar);
-  animarRef.current = animar;
+  }, [largura, desenhar, ativo]);
 
   useEffect(() => () => cancelAnimationFrame(quadro.current), []);
 
@@ -148,7 +173,7 @@ export default function MesaBandeja({ definicao, conferir, feedback }) {
     if (feedback) return;
     const o = objs.current.find((x) => x.id === id);
     if (!o) return;
-    const destino = dentroDaBandeja(o, layout.bandeja) ? o.origem ?? vagasIniciais(itens.length, layout, 11)[itens.findIndex((i) => i.id === id)] : vagaNaBandeja(objs.current.filter((x) => x !== o), layout.bandeja, o.raio, layout.proporcao);
+    const destino = dentroDaBandeja(o, layout.bandeja) ? o.origem : vagaNaBandeja(objs.current.filter((x) => x !== o), layout.bandeja, o.raio, layout.proporcao);
     o.x = destino.x;
     o.y = destino.y;
     o.h = 0.6;
@@ -164,7 +189,7 @@ export default function MesaBandeja({ definicao, conferir, feedback }) {
 
   const estado = (id) => feedback?.detalhes?.find((d) => d.id === id)?.estado;
   const b = layout.bandeja;
-  const porId = new Map(itens.map((i) => [i.id, i]));
+  const nomeAtivo = ativo ? porId.get(ativo)?.label : null;
 
   return (
     <div className="space-y-4">
@@ -184,7 +209,7 @@ export default function MesaBandeja({ definicao, conferir, feedback }) {
           alt=""
           draggable={false}
           className="pointer-events-none absolute"
-          style={{ left: `${(b.x - b.w / 2) * 100}%`, top: `${(b.y - b.h / 2) * 100}%`, width: `${b.w * 100}%`, height: `${b.h * 100}%`, objectFit: "contain", filter: "drop-shadow(0 10px 12px rgba(0,0,0,.28))" }}
+          style={{ left: `${(b.x - b.w / 2) * 100}%`, top: `${(b.y - b.h / 2) * 100}%`, width: `${b.w * 100}%`, height: `${b.h * 100}%`, objectFit: "fill", filter: "drop-shadow(0 10px 12px rgba(0,0,0,.28))" }}
         />
 
         {/* Sombras (debaixo de todos os objetos) */}
@@ -208,6 +233,10 @@ export default function MesaBandeja({ definicao, conferir, feedback }) {
               type="button"
               ref={(el) => { els.current[id] = { ...els.current[id], obj: el }; }}
               onPointerDown={(e) => pegar(id, e)}
+              onPointerEnter={(e) => e.pointerType === "mouse" && setSobre(id)}
+              onPointerLeave={(e) => e.pointerType === "mouse" && setSobre((s) => (s === id ? null : s))}
+              onFocus={() => setSobre(id)}
+              onBlur={() => setSobre((s) => (s === id ? null : s))}
               onKeyDown={(e) => {
                 if (e.key === "Enter" || e.key === " ") {
                   e.preventDefault();
@@ -215,17 +244,24 @@ export default function MesaBandeja({ definicao, conferir, feedback }) {
                 }
               }}
               aria-label={`${item.label}. Enter para colocar ou tirar da bandeja.`}
-              className="mesa-objeto group absolute left-0 top-0 rounded-2xl outline-none focus-visible:ring-4 focus-visible:ring-[#20D5B5]"
+              className="mesa-objeto absolute left-0 top-0 rounded-2xl outline-none focus-visible:ring-4 focus-visible:ring-[#20D5B5]"
               style={{ width: `${layout.lado * 100}%`, aspectRatio: "1", willChange: "transform", touchAction: "none" }}
             >
               <img src={item.imagemTopo ?? item.imagem} alt="" draggable={false} className="pointer-events-none h-full w-full object-contain" />
               {st && <span aria-hidden="true" className={`pointer-events-none absolute inset-[-6%] rounded-full border-4 ${st === "certo" ? "border-[#3DD68C]" : "border-[#FF6B6B]"}`} />}
-              <span className={`pointer-events-none absolute left-1/2 top-full mt-1 -translate-x-1/2 whitespace-nowrap rounded-lg bg-[#0B131D]/85 px-2 py-0.5 text-[11px] font-bold text-white transition-opacity duration-150 ${pegando === id || st ? "opacity-100" : "opacity-0 group-hover:opacity-100 group-focus-visible:opacity-100"}`}>
-                {item.label}
-              </span>
             </button>
           );
         })}
+
+        {/* Nome flutuante do objeto ativo (o "apelido" de quem está na mão ou sob o mouse) */}
+        <div ref={etiquetaRef} aria-hidden="true" className="pointer-events-none absolute left-0 top-0 z-50" style={{ willChange: "transform" }}>
+          <span
+            key={ativo ?? "nenhum"}
+            className={`mesa-etiqueta block whitespace-nowrap rounded-full border-2 border-white/90 bg-[#0B131D]/90 px-3 py-1 text-[12px] font-extrabold text-white shadow-lg ${nomeAtivo ? "mesa-etiqueta-on" : "opacity-0"}`}
+          >
+            {nomeAtivo ?? ""}
+          </span>
+        </div>
       </div>
 
       <Button variant="primary" className="w-full" onClick={enviar} disabled={Boolean(pegando)}>Conferir</Button>

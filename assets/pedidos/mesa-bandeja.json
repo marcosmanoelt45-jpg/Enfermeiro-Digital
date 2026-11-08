@@ -91,6 +91,66 @@
       "descricao": "mesa de madeira vista de cima",
       "aspecto": "16:9",
       "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view of a plain warm light-brown wooden table surface filling the entire frame edge to edge, with soft subtle wood grain stripes, evenly lit, nothing on the table. No objects, no text, no green."
+    },
+    {
+      "id": "topo-sf-bolsa",
+      "descricao": "a soft transparent IV saline infusion bag, rectangular with rounded corners, filled about two thirds with light blue liquid, a small hanging hole tab at the top, and two short tubes at the bottom with a small white clamp, like a classic IV bag icon",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a soft transparent IV saline infusion bag, rectangular with rounded corners, filled about two thirds with light blue liquid, a small hanging hole tab at the top, and two short tubes at the bottom with a small white clamp, like a classic IV bag icon."
+    },
+    {
+      "id": "topo-gaze-nao-aderente",
+      "descricao": "a sealed sterile paper pouch partly open showing a flat square non-adherent pale yellow rayon mesh dressing sheet",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a sealed sterile paper pouch partly open showing a flat square non-adherent pale yellow rayon mesh dressing sheet."
+    },
+    {
+      "id": "topo-agulha-40x12",
+      "descricao": "a single hypodermic needle with a pink plastic hub and a clear protective cap next to it",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a single hypodermic needle with a pink plastic hub and a clear protective cap next to it."
+    },
+    {
+      "id": "topo-alcool-70",
+      "descricao": "a translucent white plastic squeeze bottle with a pointed nozzle cap, filled with clear liquid, blank label",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a translucent white plastic squeeze bottle with a pointed nozzle cap, filled with clear liquid, blank label."
+    },
+    {
+      "id": "topo-algodao",
+      "descricao": "three small fluffy white cotton balls",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: three small fluffy white cotton balls."
+    },
+    {
+      "id": "topo-termometro",
+      "descricao": "a white digital clinical thermometer with a small grey display without numbers",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a white digital clinical thermometer with a small grey display without numbers."
+    },
+    {
+      "id": "topo-cateter-venoso",
+      "descricao": "a peripheral intravenous catheter with a green plastic hub and a clear needle cover",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a peripheral intravenous catheter with a green plastic hub and a clear needle cover."
+    },
+    {
+      "id": "topo-equipo",
+      "descricao": "a coiled transparent IV administration set tube with a drip chamber and a blue roller clamp",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a coiled transparent IV administration set tube with a drip chamber and a blue roller clamp."
+    },
+    {
+      "id": "topo-coletor-urina",
+      "descricao": "a clear plastic sterile urine collection cup with a yellow screw lid",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a clear plastic sterile urine collection cup with a yellow screw lid."
+    },
+    {
+      "id": "topo-ampola",
+      "descricao": "a small closed glass medicine ampoule with amber liquid",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a small closed glass medicine ampoule with amber liquid."
     }
   ]
 }
