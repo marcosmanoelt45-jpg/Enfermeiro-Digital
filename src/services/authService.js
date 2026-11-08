@@ -2,6 +2,8 @@ import { supabase, supabaseUrl, supabaseAnonKey, isSupabaseConfigured, markSupab
 import { passwordPolicyError } from '@/lib/passwordPolicy';
 
 const LOCAL_STORAGE_USER_KEY = 'enfermeiro_digital_local_user';
+export const EMAIL_JA_CADASTRADO =
+  'Este e-mail já tem conta no Enfere. Entre pela tela de login ou use "Esqueceu a senha?" para criar uma nova.';
 const LOCAL_REGISTERED_ACCOUNTS_KEY = 'enfermeiro_digital_registered_accounts';
 
 // Contas locais (criadas sem e-mail confirmado) não existem mais: apaga o que versões antigas guardaram,
@@ -372,7 +374,12 @@ export const authService = {
 
       // Quando o e-mail já existe no Supabase e mailer_autoconfirm=false, GoTrue retorna identities=[]
       if (Array.isArray(data.user.identities) && data.user.identities.length === 0) {
-        const loginAttempt = await this.login(cleanEmail, password, { user_type });
+        let loginAttempt;
+        try {
+          loginAttempt = await this.login(cleanEmail, password, { user_type });
+        } catch {
+          throw new Error(EMAIL_JA_CADASTRADO);
+        }
         return { ...loginAttempt, autoLoggedIn: true };
       }
 
@@ -397,13 +404,14 @@ export const authService = {
       // Sem sessão: o Supabase enviou o e-mail de confirmação. O acesso só começa depois do link.
       return { ...data, needsConfirmation: true };
     } catch (err) {
+      if (err?.message === EMAIL_JA_CADASTRADO) throw err;
       const msg = (err?.message || '').toLowerCase();
       if (msg.includes('already registered') || msg.includes('user already exists') || msg.includes('já cadastrado')) {
         try {
           const loginAttempt = await this.login(cleanEmail, password, { user_type });
           return { ...loginAttempt, autoLoggedIn: true };
         } catch {
-          throw new Error('Este e-mail já possui cadastro. Acesse a tela de Login com sua senha.');
+          throw new Error(EMAIL_JA_CADASTRADO);
         }
       }
       if (

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useNavigate } from "react-router-dom";
-import { authService } from "@/services/authService";
+import { authService, EMAIL_JA_CADASTRADO } from "@/services/authService";
 import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -129,6 +129,11 @@ export default function Register() {
       {error && (
         <div className="mb-4 p-3 rounded-xl bg-destructive/10 text-destructive text-sm leading-relaxed border border-destructive/20 font-medium">
           {error}
+          {error === EMAIL_JA_CADASTRADO && (
+            <Link to={`/login?email=${encodeURIComponent(email.trim().toLowerCase())}`} className="block mt-2 font-bold text-[#20D5B5] underline">
+              Ir para o login
+            </Link>
+          )}
         </div>
       )}
 
