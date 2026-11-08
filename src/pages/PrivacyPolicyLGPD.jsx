@@ -185,6 +185,19 @@ export default function PrivacyPolicyLGPD() {
                   O projeto está estruturado com conformidade jurídica para integração e incubação em ecossistemas de inovação em saúde, garantindo aderência às normas éticas do Conselho Federal de Enfermagem (COFEN nº 564/2017) e do Hospital de Clínicas de Porto Alegre.
                 </p>
               </section>
+
+              <section className="bg-[#131F2E] rounded-2xl p-6 border border-[#1F3045] shadow-sm space-y-2">
+                <div className="flex items-center gap-2 text-slate-100 font-bold text-sm">
+                  <ShieldCheck className="h-4 w-4 text-teal-400" />
+                  <h3>4. Serviços que processam o que você fala e escreve</h3>
+                </div>
+                <ul className="text-xs text-slate-300 leading-relaxed list-disc pl-4 space-y-1">
+                  <li><strong>Supabase</strong>: conta, banco de dados e funções do servidor.</li>
+                  <li><strong>Google (Gemini API)</strong>: respostas dos pacientes, do Goti e das avaliações, e a voz dos personagens. No plano gratuito, o Google pode usar o conteúdo enviado para melhorar os produtos dele. Por isso, não escreva nem fale dados reais de pacientes ou seus.</li>
+                  <li><strong>AssemblyAI</strong>: transcrição da sua voz. O áudio vai direto para a transcrição e não fica guardado no Enfere; a transcrição é apagada na AssemblyAI logo depois de lida.</li>
+                  <li><strong>OpenRouter</strong>: reserva da IA quando o Gemini está indisponível.</li>
+                </ul>
+              </section>
             </div>
           </div>
         )}

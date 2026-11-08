@@ -83,27 +83,19 @@ export default function HistoricoAtividadesTab({ userId = null }) {
 
   // Iniciar sessão com questões erradas
   const handlePraticarErradas = () => {
-    navigate("/videochamada?tela=intro&modo=revisao");
+    navigate("/revisao");
   };
 
-  // Navegar para retomar rascunho
+  // Navegar para retomar a atividade (o atendimento por voz antigo abre a revisão das questões)
   const handleResumeActivity = (item, e) => {
     e.stopPropagation();
-    if (item.moduleType === MODULE_TYPES.VIDEOCHAMADA) {
-      navigate("/videochamada");
-    } else if (item.moduleType === MODULE_TYPES.DOSAGE) {
-      navigate("/calculo-medicamentos");
-    } else if (item.moduleType === MODULE_TYPES.SBAR) {
-      navigate("/sbar");
-    } else if (item.moduleType === MODULE_TYPES.CASE_SIMULATOR) {
-      navigate("/simulador");
-    } else if (item.moduleType === MODULE_TYPES.PROCEDURES) {
-      navigate("/procedimentos");
-    } else if (item.moduleType === MODULE_TYPES.CONSULTA) {
-      navigate(`/consulta/relatorio/${item.id}`);
-    } else {
-      navigate("/casos");
-    }
+    const t = item.moduleType;
+    if (t === MODULE_TYPES.CONSULTA) navigate(`/consulta/relatorio/${item.id}`);
+    else if (t === MODULE_TYPES.VIDEOCHAMADA) navigate("/revisao");
+    else if (t === MODULE_TYPES.DOSAGE || t === MODULE_TYPES.CALCULO_MEDICO) navigate("/laboratorio-calculos");
+    else if (t === MODULE_TYPES.SBAR || t === MODULE_TYPES.PLANTAO_VIVO) navigate("/passagem-plantao");
+    else if (t === MODULE_TYPES.PROCEDURES || t === MODULE_TYPES.TECNICA) navigate("/tecnicas");
+    else navigate("/simulador-casos");
   };
 
   return (

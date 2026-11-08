@@ -13,7 +13,7 @@
 | F5 Minijogos + Técnicas | pronta no branch (sem sons) | #12 | 07/11/2026 | Motor, 5 tipos, 3 minijogos à mão + 29 gerados, `/tecnicas` com abas POPs/Vídeos embutidas (`VideotecaConteudo`), `procedures-1` corrigido (tempo e fim vêm das mensagens do YouTube). Falta só: sons da ausculta, que dependem de licença do dono |
 | F6 Cálculo com o Médico | pronta no branch (flag desligada) | a abrir | 07/11/2026 | Geradores com semente, banco de 133 itens (28 com erro) verificado por fórmulas independentes, `numerosFalados` (42 casos), página nova atrás da flag `calculoMedico` em `/laboratorio-calculos`. mp3 do Dr. Rui ainda não gerados (voz do navegador) |
 | F7 Plantão com a Enfermeira | pronta no branch (flag desligada) | a abrir | 07/11/2026 | Parser de vitais com 45 casos, dados dos 20 cenários, roteiro, ação `avaliar_plantao` (IA não rodou: sem Supabase de teste), prontuário, cena e relatório atrás da flag `plantaoVivo` em `/sbar`. mp3 da Ana não gerados |
-| F8 Navegação final | bloqueada, não iniciada | — | 07/11/2026 | Exige aprovação do dono das F3–F7 em preview e as 3 confirmações do início da fase (D2, SBAR antigo, Montar Caso). Ligar as flags expõe `cena-ia`, `transcrever` etc., que ainda não estão em produção; remover Videochamada e redirecionar rotas é irreversível para o aluno. Nada foi feito |
+| F8 Navegação final | feita no local (branch feat/cenas-f8-final) | — | 07/11/2026 | Dono confirmou D2, manter o SBAR antigo como modo gravação e tirar o Montar Caso. Falta publicar |
 | P1 Arte (Flow) | pendente | — | — | personagens prontos: marcus, teresinha (parcial) |
 | P2 Vozes (VoiceBox) | pendente | — | — | perfis prontos: Marcus, Teresinha, Goti |
 
@@ -95,6 +95,15 @@
 - **Achados fora do golden, revisados (07/11/2026):** trauma_cranio, paliativos_terminal, queimado_agudo, hemorragia_digestiva, tep_pos_op e dpoc batem com o golden ou só detalham de forma coerente. Em `delirium` tirei "cama baixa" (não consta). Decidi os dois pontos: `sepse_urinaria` passou a "pele fria e pegajosa, enchimento capilar de 4 s" (coerente com hipotensão e má perfusão) e `queimado_agudo` manteve "edema de face discreto" ("edema de face discreto" não consta no golden, mas é plausível). No `avc_isquemico`, o clinicalSummary diz déficit em MSE e o golden, hemiparesia direita; segui o golden.
 - **Bug da F4 achado e corrigido:** o regex dos códigos NANDA em `cena-ia/index.ts` perdeu a barra e recusava todo diagnóstico (commit `fix(servidor)`). Está também no branch da F4.
 - **Não testado:** voz com microfone, mp3 da enfermeira Ana (`node scripts/plantao/gerar-falas.mjs` e depois `scripts/voicebox/gerar-falas.mjs`, perfil "Ana"), relatório com IA real.
+
+## Divergências da F8
+- **Página antiga do Cálculo removida** (`MedicationDosageLab`): as rotas antigas levam ao Cálculo com o Dr. Rui. O `medicationCatalog` fica (usado por `DrugPicker` e `References`).
+- **`CaseStudio.jsx` removido** (sem rota); componentes de prontuário mantidos.
+- **Não movi `public/pacientes` para `public/personagens`**: só renomearia arquivos e invalidaria o cache dos vídeos. Os `passo_*.mp3` e `fala.mp3` sem uso foram apagados (1,9 MB).
+- **`/revisao`** nova e simples (questões pendentes do atendimento por voz antigo, com o `PlurallQuestionCard`).
+- **README e DESIGN.md não foram reescritos** nesta fase.
+- **Achado fora do escopo:** RLS de `profiles` com recursão infinita (erro 500 ao ler o perfil, também em produção). Correção em `supabase/migrations/013_profiles_sem_recursao.sql`, aguardando o dono aplicar.
+- **DPA e política de privacidade** agora listam Supabase, Google (Gemini), AssemblyAI e OpenRouter, e dizem que o plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google (o DPA dizia "retenção zero", o que não vale nesse plano).
 
 ## Medições
 - Latência do turno da Consulta (mediana 4G): —

@@ -51,7 +51,7 @@ export const MODULE_TYPES = {
 };
 
 export const MODULE_LABELS = {
-  videochamada: 'Atendimento por Voz (Videochamada)',
+  videochamada: 'Atendimento por voz (antigo)',
   sbar: 'Passagem de Plantão SBAR',
   case_builder: 'Montador de Casos Clínicos',
   case_simulator: 'Simulador de Casos Clínicos (PE)',

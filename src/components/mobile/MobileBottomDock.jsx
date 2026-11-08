@@ -13,7 +13,7 @@ export default function MobileBottomDock() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  // Controle do Drawer/Bottom Sheet da aba "Casos" (Página 3 do PDF)
+  // Controle do Drawer/Bottom Sheet da aba "Prática" (Página 3 do PDF)
   const [isCasesDrawerOpen, setIsCasesDrawerOpen] = useState(false);
   // Arraste só pelo puxador, para não brigar com a rolagem da lista
   const sheetDrag = useDragControls();
@@ -53,7 +53,7 @@ export default function MobileBottomDock() {
     return () => window.removeEventListener('keydown', onKey);
   }, [isCasesDrawerOpen]);
 
-  // Opções do Drawer da aba "Casos" (Conforme 01-casos.png e Especificação Oficial)
+  // Opções do Drawer da aba "Prática" (Conforme 01-casos.png e Especificação Oficial)
   const caseDrawerOptions = opcoesDaGavetaPratica().map((o) => ({
     id: o.id,
     title: o.titulo,
@@ -112,7 +112,7 @@ export default function MobileBottomDock() {
         </div>
       </nav>
 
-      {/* Drawer / Bottom Sheet da aba "Casos" (Página 3 do PDF) */}
+      {/* Drawer / Bottom Sheet da aba "Prática" (Página 3 do PDF) */}
       <AnimatePresence>
       {isCasesDrawerOpen && (
         <div className="fixed inset-0 z-50 md:hidden flex flex-col justify-end">
@@ -130,7 +130,7 @@ export default function MobileBottomDock() {
           <motion.div
             role="dialog"
             aria-modal="true"
-            aria-label="Casos"
+            aria-label="Prática"
             variants={sheetVariants}
             initial="hidden"
             animate="show"
@@ -156,7 +156,7 @@ export default function MobileBottomDock() {
             {/* Cabeçalho do Drawer */}
             <div className="flex items-center justify-between pb-3">
               <h2 className="text-xl font-black text-[#EAF2F8] tracking-tight">
-                Casos
+                Prática
               </h2>
               <button
                 type="button"

@@ -36,10 +36,13 @@ O Enfermeiro Digital implementa uma arquitetura técnica orientada por *Privacy 
 * Contatos telefônicos e endereços residenciais.  
 4.3. O modelo de Inteligência Artificial processa exclusivamente dados estritamente clínicos (sinais vitais, escores de escalas validadas como BRADEN, CAM, SAK, AUDIT e CALOI) para fins de mapeamento taxonômico NANDA-I, NIC e NOC.
 
-### 5. CONTRATO DE RETENÇÃO ZERO (ZERO DATA RETENTION)
-5.1. Os conectores de inferência de IA operam sob cláusulas de **Zero Data Retention**, garantindo que:
-* As requisições clínicas não são armazenadas em disco pelos provedores de modelo de linguagem após o término da inferência;
-* Nenhum dado assistencial ou registro hospitalar é utilizado para treinamento, calibração ou aprimoramento de modelos de IA fundamentais.
+### 5. SUBOPERADORES E RETENÇÃO
+5.1. Suboperadores em uso (atualizado em 07/11/2026):
+* **Supabase**: autenticação, banco de dados, armazenamento e Edge Functions.
+* **Google (Gemini API)**: geração de texto (pacientes simulados, Goti, avaliações) e de voz (TTS). **No plano gratuito da Gemini API, o Google pode usar o conteúdo enviado para melhorar seus produtos**; não há cláusula de retenção zero nesse plano. Só a contratação do plano pago muda isso.
+* **AssemblyAI**: transcrição de voz. O áudio do aluno não é guardado pelo Enfere; a transcrição é apagada na AssemblyAI logo após a leitura do texto.
+* **OpenRouter**: reserva de geração de texto quando o Gemini está indisponível.
+5.2. Por isso, o uso permitido é educacional, com **dados sintéticos**. A higienização do item 4 continua valendo antes de qualquer envio.
 
 ### 6. NOTIFICAÇÃO DE INCIDENTES E DIREITOS DOS TITULARES
 6.1. O Operador cooperará diligentemente com a Controladora no atendimento a solicitações dos titulares de dados (art. 18 da LGPD) e na elaboração de Relatórios de Impacto à Proteção de Dados Pessoais (RIPD).  

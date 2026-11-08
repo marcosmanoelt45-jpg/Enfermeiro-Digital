@@ -16,13 +16,10 @@ import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import EnfereSplash from '@/components/EnfereSplash';
-import { flagAtiva } from '@/features/flags';
 
 // Páginas Principais Carregadas sob Demanda (Code-Splitting)
 const StudentDashboard = lazy(() => import('@/pages/StudentDashboard'));
 const CaseStudySimulator = lazy(() => import('@/pages/CaseStudySimulator'));
-const CaseStudio = lazy(() => import('@/pages/CaseStudio'));
-const MedicationDosageLab = lazy(() => import('@/pages/MedicationDosageLab'));
 const CalculoPage = lazy(() => import('@/features/calculo/CalculoPage'));
 const PrivacyPolicyLGPD = lazy(() => import('@/pages/PrivacyPolicyLGPD'));
 const CaseLibrary = lazy(() => import('@/pages/CaseLibrary'));
@@ -39,13 +36,21 @@ const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
 const ResetPassword = lazy(() => import('@/pages/ResetPassword'));
 const SbarHandoffLab = lazy(() => import('@/pages/SbarHandoffLab'));
 const PlantaoPage = lazy(() => import('@/features/plantao/PlantaoPage'));
-const ProcedimentosLab = lazy(() => import('@/pages/ProcedimentosLab'));
-const Videochamada = lazy(() => import('@/pages/Videochamada'));
+const RevisaoPage = lazy(() => import('@/features/revisao/RevisaoPage'));
 // Só em desenvolvimento: no build de produção o import é descartado.
 const ConsultaPage = lazy(() => import('@/features/consulta/ConsultaPage'));
 const TecnicasPage = lazy(() => import('@/features/tecnicas/TecnicasPage'));
 const RelatorioPage = lazy(() => import('@/features/consulta/RelatorioPage'));
 const DevCenaPage = import.meta.env.DEV ? lazy(() => import('@/features/cena/DevCenaPage')) : null;
+
+// Rota antiga: leva à nova mantendo a query (ex.: ?procedimento= abre o vídeo direto). `aba` entra se a query não tiver.
+function Redirecionar({ para, aba }) {
+  const { search } = useLocation();
+  const q = new URLSearchParams(search);
+  if (aba && !q.has('aba')) q.set('aba', aba);
+  const busca = q.toString();
+  return <Navigate to={{ pathname: para, search: busca ? `?${busca}` : '' }} replace />;
+}
 
 const PageLoader = () => (
   <div className="fixed inset-0 flex items-center justify-center bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-sm z-50">
@@ -169,13 +174,13 @@ const AuthenticatedApp = () => {
         <Route element={<ProtectedRoute unauthenticatedElement={<SplashPage />} />}>
           {/* Hub Principal do Estudante e Módulos Educacionais */}
           <Route path="/" element={<StudentDashboard />} />
-          <Route path="/montar-caso" element={<CaseStudio />} />
-          <Route path="/case-studio" element={<CaseStudio />} />
+          <Route path="/montar-caso" element={<Redirecionar para="/consulta" />} />
+          <Route path="/case-studio" element={<Redirecionar para="/consulta" />} />
           <Route path="/simulador-casos" element={<CaseStudySimulator />} />
           <Route path="/case-study" element={<CaseStudySimulator />} />
-          <Route path="/laboratorio-calculos" element={flagAtiva('calculoMedico') ? <CalculoPage /> : <MedicationDosageLab />} />
-          <Route path="/calculo-doses" element={flagAtiva('calculoMedico') ? <CalculoPage /> : <MedicationDosageLab />} />
-          <Route path="/dosage-lab" element={flagAtiva('calculoMedico') ? <CalculoPage /> : <MedicationDosageLab />} />
+          <Route path="/laboratorio-calculos" element={<CalculoPage />} />
+          <Route path="/calculo-doses" element={<Redirecionar para="/laboratorio-calculos" />} />
+          <Route path="/dosage-lab" element={<Redirecionar para="/laboratorio-calculos" />} />
           <Route path="/sistemas-organicos" element={<Navigate to="/" replace />} />
           <Route path="/systems-assessment" element={<Navigate to="/" replace />} />
           <Route path="/banco-casos" element={<CaseLibrary />} />
@@ -188,16 +193,18 @@ const AuthenticatedApp = () => {
           <Route path="/tecnicas" element={<TecnicasPage />} />
           <Route path="/consulta" element={<ConsultaPage />} />
           <Route path="/consulta/relatorio/:sessaoId" element={<RelatorioPage />} />
-          <Route path="/passagem-plantao" element={flagAtiva('plantaoVivo') ? <PlantaoPage /> : <SbarHandoffLab />} />
-          <Route path="/passagem-plantao-sbar" element={flagAtiva('plantaoVivo') ? <PlantaoPage /> : <SbarHandoffLab />} />
-          <Route path="/sbar" element={flagAtiva('plantaoVivo') ? <PlantaoPage /> : <SbarHandoffLab />} />
-          <Route path="/sbar-lab" element={flagAtiva('plantaoVivo') ? <PlantaoPage /> : <SbarHandoffLab />} />
-          <Route path="/procedimentos" element={<ProcedimentosLab />} />
-          <Route path="/procedimentos-lab" element={<ProcedimentosLab />} />
-          <Route path="/skills-lab" element={<ProcedimentosLab />} />
-          <Route path="/videoteca" element={<ProcedimentosLab />} />
-          <Route path="/videochamada" element={<Videochamada />} />
-          <Route path="/atendimento-voz" element={<Videochamada />} />
+          <Route path="/passagem-plantao" element={<PlantaoPage />} />
+          <Route path="/plantao/gravacao" element={<SbarHandoffLab />} />
+          <Route path="/passagem-plantao-sbar" element={<Redirecionar para="/passagem-plantao" />} />
+          <Route path="/sbar" element={<Redirecionar para="/passagem-plantao" />} />
+          <Route path="/sbar-lab" element={<Redirecionar para="/passagem-plantao" />} />
+          <Route path="/procedimentos" element={<Redirecionar para="/tecnicas" aba="videos" />} />
+          <Route path="/procedimentos-lab" element={<Redirecionar para="/tecnicas" aba="videos" />} />
+          <Route path="/skills-lab" element={<Redirecionar para="/tecnicas" aba="videos" />} />
+          <Route path="/videoteca" element={<Redirecionar para="/tecnicas" aba="videos" />} />
+          <Route path="/videochamada" element={<Redirecionar para="/consulta" />} />
+          <Route path="/atendimento-voz" element={<Redirecionar para="/consulta" />} />
+          <Route path="/revisao" element={<RevisaoPage />} />
 
           {/* Rotas de Áudio e Avaliação Assistencial Hospitalar */}
           <Route path="/avaliacao-audio" element={<AudioAssessment />} />

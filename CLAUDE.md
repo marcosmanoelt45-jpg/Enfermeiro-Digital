@@ -8,13 +8,21 @@ O **Enfermeiro Digital** (plataforma **Enfere**) é uma aplicação educacional 
 
 ---
 
-## Pilares Essenciais Ativos (Os 6 Módulos Oficiais)
+## Pilares Essenciais Ativos
+Navegação num registro só: `src/features/navegacao/modulos.js` (header, dock, gaveta "Prática" e trilha). Dock: Início · Prática · Cálculo · Técnicas · Perfil. Chaves de emergência em `src/features/flags.js`.
 1. **Hub do Estudante**: `src/pages/StudentDashboard.jsx` + `src/components/mobile/MobileBottomDock.jsx` + `src/components/mobile/EnfereVivoTrail.jsx`.
-2. **Goti Preceptor & IA Socrática**: `src/components/mascot/GotiAnimated.jsx` + `src/components/mascot/GotiChatDrawer.jsx` + `src/services/gotiPreceptorService.js` + `src/services/socraticTutorService.js`.
-3. **Simulador de Casos Clínicos**: `src/pages/CaseStudySimulator.jsx` + `src/pages/CaseStudio.jsx` + `src/pages/CaseLibrary.jsx` (NANDA-I, NIC, NOC, raciocínio diagnóstico e evolução da SAE).
-4. **Plantão SBAR**: `src/pages/SbarHandoffLab.jsx` + `src/services/sbarTutorService.js` (passagem de plantão, gravação de áudio e transcrição).
-5. **Cálculo de Doses & Soluções**: `src/pages/MedicationDosageLab.jsx` + `src/lib/medicationCatalog.js` (regras de três, gotejamento macrogotas/microgotas, BIC).
-6. **Laboratório de Procedimentos (Skills Lab)**: `src/pages/ProcedimentosLab.jsx` + `src/services/procedureService.js` (POPs, checklists cirúrgicos/clínicos, vídeos UFSM).
+2. **Goti Preceptor & IA Socrática**: `src/components/mascot/GotiAnimated.jsx` + `GotiChatDrawer.jsx` + `src/services/gotiPreceptorService.js` (filtro de saída em `gotiFiltro.js`) + `src/services/socraticTutorService.js`.
+3. **Consulta ao Vivo** (`/consulta`): `src/features/consulta/` sobre o motor `src/features/cena/` (personagem em vídeo, voz, microfone, anotações, registro e relatório). Servidor: Edge Function `cena-ia`.
+4. **Plantão ao Vivo** (`/passagem-plantao`): `src/features/plantao/` (enfermeira Ana). O SBAR antigo segue em `/plantao/gravacao` (`src/pages/SbarHandoffLab.jsx`).
+5. **Cálculo com o Dr. Rui** (`/laboratorio-calculos`): `src/features/calculo/` + banco `src/data/calculo/banco.json`.
+6. **Técnicas** (`/tecnicas`): `src/features/tecnicas/` + `src/features/minijogos/` (minijogos, POPs, videoteca UFSM).
+7. **Casos Clínicos**: `src/pages/CaseStudySimulator.jsx` + `src/pages/CaseLibrary.jsx` (NANDA-I, NIC, NOC e SAE). O Montar Caso saiu do menu (`/montar-caso` leva à Consulta).
+
+## Voz e IA
+- IA: Gemini (`GEMINI_API_KEY`, `supabase/functions/_shared/llm.ts`), com OpenRouter de reserva.
+- Voz dos personagens: Gemini TTS (`_shared/vozGemini.ts`, função `voz`), cache permanente no bucket `vozes-cache`. Plano gratuito: 10 áudios/dia. O lote diário (`{acao:"lote"}`) gera as falas fixas mais prováveis (`scripts/vozes/exportar-falas-fixas.mjs`); o agendamento é a migration 012 (pg_cron). Reserva: mp3 do VoiceBox e voz do navegador.
+- Transcrição: AssemblyAI (`stt-token`, `transcrever`, que apaga o transcript depois de ler).
+- Edge Functions: `cena-ia`, `voz`, `stt-token`, `transcrever`, `clinical-ai-sanitize`. Cotas desligadas (`COTAS_ATIVAS`), o app é gratuito.
 
 ---
 
@@ -80,10 +88,8 @@ O **Enfermeiro Digital** (plataforma **Enfere**) é uma aplicação educacional 
 
 ---
 
-## Plano Cenas ao Vivo (em andamento)
-- Leia `docs/plano/README.md`; uma fase por sessão; `docs/plano/ESTADO.md` registra o progresso.
-- Código novo em `src/features/`.
-- Não edite `Videochamada.jsx`, `CaseStudio.jsx` nem `SbarHandoffLab.jsx` antes da F8, exceto onde a fase mandar.
+## Plano Cenas ao Vivo (concluído)
+- Histórico em `docs/plano/` (`ESTADO.md` tem as divergências e os pendentes). Código novo continua em `src/features/`.
 
 ## Teste no iPhone (WebKit, no Windows)
 - O Simulador do iOS só existe em Mac com Xcode. Aqui o teste é o WebKit (motor do Safari) com perfil de iPhone: `node C:/Users/mxmin/.claude/tools/ios-webkit/ios.mjs shot <rota> --out arquivo.png`, de dentro do projeto. Ele sobe o Vite sozinho, entra pela sessão demo e lista erros de console e de rede.

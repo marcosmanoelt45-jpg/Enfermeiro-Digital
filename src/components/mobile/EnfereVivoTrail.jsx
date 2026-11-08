@@ -4,7 +4,7 @@ import { useNavigate } from "react-router-dom";
 import {
   Flame,
   Zap,
-  PlusCircle,
+  Stethoscope,
   ChevronRight,
   BookOpen
 } from "lucide-react";
@@ -47,7 +47,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
 
   const hasInProgressCase = Boolean(latestActivity);
 
-  // Módulos sugeridos de hoje (incluindo Videochamada em destaque)
+  // Módulos sugeridos de hoje (Consulta ao Vivo em destaque)
   const suggestions = useMemo(
     () =>
       modulosDaTrilha().map((m) => ({
@@ -178,9 +178,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
           <button
             onClick={() => {
               triggerHaptic(20);
-              if (latestActivity.moduleType === "case_builder") {
-                navigate("/montar-caso");
-              } else if (latestActivity.moduleType === "sbar") {
+              if (latestActivity.moduleType === "sbar") {
                 navigate("/passagem-plantao");
               } else {
                 navigate("/simulador-casos");
@@ -208,7 +206,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
               Inicie sua Prática Clínica
             </h2>
             <p className="text-xs font-medium text-[#9FB3C6] leading-relaxed">
-              Monte seu primeiro caso clínico personalizado com escores de enfermagem e viva simulações imersivas.
+              Converse com um paciente por voz ou texto, anote o que ele contar e receba nota e comentários.
             </p>
           </div>
 
@@ -216,12 +214,12 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
           <button
             onClick={() => {
               triggerHaptic(20);
-              navigate("/montar-caso");
+              navigate("/consulta");
             }}
             className="btn-3d-teal w-full h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
           >
-            <PlusCircle className="w-[18px] h-[18px] stroke-[2.5]" />
-            <span>Montar Caso Clínico</span>
+            <Stethoscope className="w-[18px] h-[18px] stroke-[2.5]" />
+            <span>Começar uma consulta</span>
           </button>
         </div>
       )}

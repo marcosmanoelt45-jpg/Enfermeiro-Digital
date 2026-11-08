@@ -1,4 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
+import { useSearchParams } from "react-router-dom";
 import { Button } from "@/components/ui/button";
 import { Chip, Tile } from "@/components/ui/surface";
 import PageShell from "@/components/layout/PageShell";
@@ -29,7 +30,9 @@ function estimarTempo(m) {
 export default function TecnicasPage() {
   const { user } = useAuth();
   const userId = user?.id ?? null;
-  const [aba, setAba] = useState("minijogos");
+  // ?aba=videos|pops abre direto na aba (as rotas antigas da videoteca redirecionam com ela).
+  const [busca] = useSearchParams();
+  const [aba, setAba] = useState(() => (["minijogos", "pops", "videos"].includes(busca.get("aba")) ? busca.get("aba") : "minijogos"));
   const [categoria, setCategoria] = useState("todas");
   const [aberto, setAberto] = useState(null);
   const [versao, setVersao] = useState(0);

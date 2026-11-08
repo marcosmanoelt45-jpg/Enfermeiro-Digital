@@ -19,7 +19,7 @@ const GOTI_NAVIGATION_PROMPTS = [
   "Como estruturar uma intervenção NIC?",
   "Como calcular gotejamento de soro?",
   "Como formular diagnóstico NANDA-I?",
-  "Como funciona a videochamada por voz?",
+  "Como funciona a Consulta ao Vivo?",
   "O que você achou do meu atendimento?",
   "Como passar plantão no método SBAR?",
   "Qual a diferença de jelco 18G para 22G?"

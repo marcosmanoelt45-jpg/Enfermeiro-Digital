@@ -7,12 +7,12 @@ import {
   ArrowRight,
   Mic,
   FileText,
-  Clock,
   Video,
   Calculator,
   PlusCircle,
   ArrowRightLeft,
-  ShieldCheck
+  ShieldCheck,
+  Stethoscope
 } from "lucide-react";
 import { useTheme } from "@/lib/ThemeContext";
 
@@ -57,34 +57,51 @@ const MODULE_DATA = {
     ]
   },
   sbar: {
-    title: "Passagem de Plantão SBAR",
-    category: "Comunicação Segura & Simulação",
-    badge: "Meta 2 OMS • SBAR Multimodal",
+    title: "Plantão ao Vivo",
+    category: "Passagem de plantão SBAR",
+    badge: "Meta 2 OMS • SBAR",
     icon: ArrowRightLeft,
-    speech: "A passagem de plantão estruturada SBAR (Situação, Breve Histórico, Avaliação e Recomendação) reduz falhas de comunicação na transição do cuidado (Meta Internacional 2 de Segurança do Paciente). Como deseja treinar hoje?",
+    speech: "A enfermeira Ana vai passar o plantão para você e fazer perguntas. Examine o que faltou, responda por voz ou texto e receba o relatório no fim. Leva uns 8 minutos.",
     targetPath: "/passagem-plantao",
-    isSbarSpecial: true,
     actions: [
-      { id: "sbar_voice", label: "Passagem por Áudio (Voz)", desc: "Treine falando ao microfone com transcrição e checagem de itens", icon: Mic, primary: true, query: "?tab=free_voice" },
-      { id: "sbar_manual", label: "Passagem Estruturada (Texto)", desc: "Preencha os 4 pilares guiados passo a passo no teclado", icon: FileText, primary: false, query: "?tab=guided" },
-      { id: "sbar_quick", label: "Simulação Rápida Beira-Leito", desc: "Caso crítico com contagem regressiva de 2 minutos para priorização", icon: Clock, primary: false, query: "?mode=rapid" },
-      { id: "sbar_review", label: "Exercícios Anteriores & Revisão", desc: "Consultar histórico de passagens de plantão e debriefings", icon: RotateCcw, primary: false, query: "?action=review" }
+      { id: "start", label: "Começar plantão", desc: "Receba a passagem da enfermeira Ana e responda as perguntas", icon: Play, primary: true, query: "" },
+      { id: "gravacao", label: "Modo gravação", desc: "Grave sua passagem completa ou faça a simulação rápida com timer", icon: Mic, primary: false, path: "/plantao/gravacao" }
     ]
   },
   calculos: {
-    title: "Laboratório de Cálculo de Doses",
+    title: "Cálculo com o Dr. Rui",
     category: "Farmacologia Clínica & Segurança",
-    badge: "Gotejamento • Diluições",
+    badge: "Gotejamento • Diluições • BIC",
     icon: Calculator,
-    speech: "Erros de dosagem são preveníveis! Aqui você treina macrogotas, microgotas, infusões em minutos e diluição de antibióticos com suporte do Goti.",
+    speech: "O Dr. Rui passa a prescrição e você calcula: gotejamento, diluição, bomba de infusão. Fique de olho: às vezes a prescrição vem com erro e você precisa questionar. Uns 5 minutos.",
     targetPath: "/laboratorio-calculos",
     actions: [
-      { id: "start", label: "Começar Novo Desafio de Dose", desc: "Sorteia prescrição médica e calcula gotejamento", icon: Play, primary: true, query: "?action=new" },
-      { id: "continue", label: "Continuar Modo Prática", desc: "Voltar para o laboratório de infusão ativa", icon: ArrowRight, primary: false, query: "?action=continue" },
-      { id: "review", label: "Revisão de Fórmulas e Histórico", desc: "Consultar histórico de cálculos, acertos e macetes", icon: RotateCcw, primary: false, query: "?action=review" }
+      { id: "start", label: "Começar rodada", desc: "Questões de dose com o Dr. Rui", icon: Play, primary: true, query: "" }
     ]
   },
-
+  consulta: {
+    title: "Consulta ao Vivo",
+    category: "Anamnese e raciocínio clínico",
+    badge: "Voz ou texto • NANDA-I",
+    icon: Stethoscope,
+    speech: "Converse com um paciente por voz ou texto, anote o que ele contar e registre no fim: você recebe nota e comentários. Uns 10 minutos.",
+    targetPath: "/consulta",
+    actions: [
+      { id: "start", label: "Começar consulta", desc: "Escolha o paciente e comece a conversa", icon: Play, primary: true, query: "" }
+    ]
+  },
+  tecnicas: {
+    title: "Técnicas",
+    category: "Laboratório de Habilidades",
+    badge: "Minijogos • POPs • Vídeos",
+    icon: Video,
+    speech: "Pratique com as mãos: minijogos de técnicas, POPs com checklists e a videoteca de procedimentos. Uns 5 minutos por técnica.",
+    targetPath: "/tecnicas",
+    actions: [
+      { id: "start", label: "Minijogos", desc: "Treine as etapas das técnicas", icon: Play, primary: true, query: "" },
+      { id: "videos", label: "Vídeos e POPs", desc: "Videoteca e checklists dos procedimentos", icon: Video, primary: false, query: "?aba=videos" }
+    ]
+  },
 };
 
 export default function ModuleBriefingModal({ isOpen, moduleId, onClose, onSelectAction }) {

@@ -4,13 +4,12 @@ import { m as motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Calculator,
-  PlusCircle,
   Video,
   ArrowRightLeft,
   ChevronRight,
   Flame,
   Zap,
-  Mic,
+  Stethoscope,
   BookOpen
 } from "lucide-react";
 import StudentHeader from "@/components/StudentHeader";
@@ -63,67 +62,18 @@ export default function StudentDashboard() {
 
   // Módulos recomendados para as "Sugestões de Hoje" no desktop
   const desktopSuggestions = useMemo(() => [
-    {
-      id: "videochamada",
-      title: "Atendimento por Voz (Videochamada)",
-      subtitle: "5 min · Paciente simulado com fala e voz neural",
-      badge: "NOVO",
-      highlight: true,
-      icon: Mic,
-      action: () => {
-        triggerHaptic(15);
-        navigate("/videochamada");
-      }
+    { id: "consulta", title: "Consulta ao Vivo", subtitle: "10 min · Converse com um paciente por voz ou texto", badge: "NOVO", highlight: true, icon: Stethoscope, rota: "/consulta" },
+    { id: "sbar", title: "Plantão ao Vivo", subtitle: "8 min · Receba a passagem SBAR da enfermeira Ana", badge: "SBAR", highlight: false, icon: ArrowRightLeft, rota: "/passagem-plantao" },
+    { id: "doses", title: "Cálculo com o Dr. Rui", subtitle: "5 min · Gotejamento, diluição e BIC", badge: "Doses", highlight: false, icon: Calculator, rota: "/laboratorio-calculos" },
+    { id: "tecnicas", title: "Técnicas: minijogos, POPs e vídeos", subtitle: "5 min · Pratique com as mãos", badge: "Minijogos", highlight: false, icon: Video, rota: "/tecnicas" },
+    { id: "casos", title: "Casos Clínicos", subtitle: "Processo de Enfermagem · 5 etapas", badge: "NANDA-I", highlight: false, icon: BookOpen, rota: "/simulador-casos" },
+  ].map((s) => ({
+    ...s,
+    action: () => {
+      triggerHaptic(15);
+      navigate(s.rota);
     },
-    {
-      id: "doses",
-      title: "Laboratório de Cálculo de Doses",
-      subtitle: "5 min · 4 Modos (Macrogotas, Microgotas, BIC)",
-      badge: "4 Modos",
-      highlight: false,
-      icon: Calculator,
-      action: () => {
-        triggerHaptic(15);
-        navigate("/laboratorio-calculos");
-      }
-    },
-    {
-      id: "sbar",
-      title: "Passagem de Plantão SBAR",
-      subtitle: "8 min · Comunicação interprofissional com IA",
-      badge: "Preceptoria IA",
-      highlight: false,
-      icon: ArrowRightLeft,
-      action: () => {
-        triggerHaptic(15);
-        navigate("/passagem-plantao");
-      }
-    },
-    {
-      id: "pops",
-      title: "Videoteca de Procedimentos & POPs",
-      subtitle: "8 min · Vídeos cirúrgicos + Checklists validados",
-      badge: "Checklists",
-      highlight: false,
-      icon: Video,
-      action: () => {
-        triggerHaptic(15);
-        navigate("/procedimentos");
-      }
-    },
-    {
-      id: "case_maker",
-      title: "Montador de Casos Clínicos",
-      subtitle: "Construção de pacientes com escores Braden e áudio",
-      badge: "Escores + Voz",
-      highlight: false,
-      icon: PlusCircle,
-      action: () => {
-        triggerHaptic(15);
-        navigate("/montar-caso");
-      }
-    }
-  ], [navigate, triggerHaptic]);
+  })), [navigate, triggerHaptic]);
 
   return (
     <div className="min-h-screen bg-[#0B131D] flex flex-col text-[#EAF2F8] pb-24 md:pb-12 transition-colors select-none">
@@ -242,9 +192,7 @@ export default function StudentDashboard() {
                 <button
                   onClick={() => {
                     triggerHaptic(20);
-                    if (latestActivity.moduleType === "case_builder") {
-                      navigate("/montar-caso");
-                    } else if (latestActivity.moduleType === "sbar") {
+                    if (latestActivity.moduleType === "sbar") {
                       navigate("/passagem-plantao");
                     } else {
                       navigate("/simulador-casos");
@@ -258,12 +206,12 @@ export default function StudentDashboard() {
                 <button
                   onClick={() => {
                     triggerHaptic(15);
-                    navigate("/montar-caso");
+                    navigate("/consulta");
                   }}
                   className="btn-3d-outline px-5 h-12 text-sm flex items-center gap-2 cursor-pointer"
                 >
-                  <PlusCircle className="w-4 h-4 text-[#20D5B5]" />
-                  <span>Novo Caso</span>
+                  <Stethoscope className="w-4 h-4 text-[#20D5B5]" />
+                  <span>Nova consulta</span>
                 </button>
               </div>
             </div>
@@ -283,7 +231,7 @@ export default function StudentDashboard() {
                   Inicie sua Prática Clínica
                 </h2>
                 <p className="text-sm font-medium text-[#9FB3C6] leading-relaxed max-w-2xl">
-                  Monte seu primeiro caso clínico personalizado com escores de enfermagem validados e experimente o Atendimento por Voz com nossos pacientes simulados.
+                  Converse com um paciente na Consulta ao Vivo, receba o plantão da enfermeira Ana ou treine doses com o Dr. Rui.
                 </p>
               </div>
 
@@ -291,22 +239,22 @@ export default function StudentDashboard() {
                 <button
                   onClick={() => {
                     triggerHaptic(20);
-                    navigate("/montar-caso");
+                    navigate("/consulta");
                   }}
                   className="btn-3d-teal px-6 h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
                 >
-                  <PlusCircle className="w-[18px] h-[18px] stroke-[2.5]" />
-                  <span>Montar Caso Clínico</span>
+                  <Stethoscope className="w-[18px] h-[18px] stroke-[2.5]" />
+                  <span>Começar uma consulta</span>
                 </button>
                 <button
                   onClick={() => {
                     triggerHaptic(15);
-                    navigate("/videochamada");
+                    navigate("/simulador-casos");
                   }}
                   className="btn-3d-outline px-5 h-12 text-sm flex items-center gap-2 cursor-pointer"
                 >
-                  <Mic className="w-4 h-4 text-[#20D5B5]" />
-                  <span>Atendimento por Voz</span>
+                  <BookOpen className="w-4 h-4 text-[#20D5B5]" />
+                  <span>Casos Clínicos</span>
                 </button>
               </div>
             </div>

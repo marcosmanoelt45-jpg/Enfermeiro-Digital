@@ -11,6 +11,7 @@
 
 import { callResilientAI } from './aiCoreService.js';
 import { filtrarRespostaGoti } from './gotiFiltro.js';
+import { clinicalHistoryService } from './clinicalHistoryService.js';
 
 // System Prompt Oficial do Goti Socrático
 const GOTI_SYSTEM_PROMPT = `
@@ -47,7 +48,7 @@ MISSÃO E PRINCÍPIOS PEDAGÓGICOS FUNDAMENTAIS:
      Cinco momentos de higienização das mãos (OMS), desinfecção com álcool a 70% com fricção por 30s, escolha de jelco/scalp por indicação clínica (ex: 20G/22G para clínica; 18G/16G para urgência, cirurgia e hemoderivados), técnicas estéreis de sondagens e curativos.
 
 5. **HISTÓRICO REAL DE ATENDIMENTO:**
-   - Se o aluno perguntar como se saiu ou o que achou da videochamada recente dele, avalie com carinho e precisão os dados do histórico fornecidos no contexto.
+   - Se o aluno perguntar como se saiu nas atividades recentes (Consulta ao Vivo, Plantão, Cálculo, Técnicas), avalie com carinho e precisão os dados do histórico fornecidos no contexto.
 
 6. **IDENTIDADE E AUTORIA:**
    - Você é o Goti 💧 (gota d'água carismática, companheiro de plantão).
@@ -82,26 +83,25 @@ function chatStorageKey() {
   return `${GOTI_CHAT_STORAGE_PREFIX}:${currentUserId()}`;
 }
 
+const MODULOS_NOVOS = ['consulta', 'plantao_vivo', 'calculo_medico', 'tecnica'];
+
 /**
- * Recupera o resumo dos atendimentos recentes em videochamada salvos no storage.
+ * Resumo das 3 últimas atividades concluídas nos módulos novos (Consulta, Plantão, Cálculo, Técnicas),
+ * lido do histórico unificado do aluno atual.
  */
-function getRecentVideochamadaSummary() {
+function getResumoAtividadesRecentes() {
   try {
-    if (typeof localStorage === 'undefined') return '';
-    const raw = localStorage.getItem('enfermeiro_historico_videochamadas');
-    if (!raw) return '';
-    const list = JSON.parse(raw);
-    if (!Array.isArray(list) || list.length === 0) return '';
-    const last = list[0];
-    const statusVidas = last.semVidas
-      ? 'Ficou sem vidas antes do término'
-      : `${last.vidasRestantes} vida(s) restante(s)`;
-    return `HISTÓRICO REAL DE ATENDIMENTO DO ALUNO:
-- Última Videochamada: Paciente ${last.pacienteNome}
-- Resultado: ${last.acertos} de ${last.totalQuestoes} questões acertadas (${last.precisao}% de precisão)
-- Condição final: ${statusVidas}
-- Data/Hora: ${last.data} às ${last.hora}
-- PE Ganhos: ${last.xpGanho || 0} PE`;
+    const recentes = clinicalHistoryService
+      .getAllActivities('all')
+      .filter((a) => MODULOS_NOVOS.includes(a.moduleType) && a.status === 'concluido')
+      .slice(0, 3);
+    if (recentes.length === 0) return '';
+    const linhas = recentes.map((a) => {
+      const data = a.updatedAt ? new Date(a.updatedAt).toLocaleDateString('pt-BR') : '';
+      const nota = typeof a.score === 'number' ? ` · nota ${a.score}` : '';
+      return `- ${a.moduleLabel || a.moduleType}: ${String(a.title || '').slice(0, 80)}${nota}${data ? ` · ${data}` : ''}`;
+    });
+    return `HISTÓRICO REAL DE ATIVIDADES DO ALUNO:\n${linhas.join('\n')}`;
   } catch {
     return '';
   }
@@ -192,8 +192,8 @@ export const gotiPreceptorService = {
         })
         .join('\n');
 
-      const videochamadaContext = getRecentVideochamadaSummary();
-      const contextPrefix = videochamadaContext ? `${cleanStudentText(videochamadaContext)}\n\n` : '';
+      const contextoAtividades = getResumoAtividadesRecentes();
+      const contextPrefix = contextoAtividades ? `${cleanStudentText(contextoAtividades)}\n\n` : '';
 
       const prompt = recentHistory
         ? `${contextPrefix}<historico>\n${recentHistory}\n</historico>\n\n<pergunta>\n${userMessage}\n</pergunta>`
@@ -414,31 +414,30 @@ export const gotiPreceptorService = {
       );
     }
 
-    // 8. Desempenho e Histórico de Videochamada
+    // 8. Desempenho recente e a Consulta ao Vivo
     if (
-      has('videochamada') || has('video chamada') || has('chamada') ||
+      has('consulta') || has('videochamada') || has('video chamada') || has('chamada') ||
       has('paciente virtual') || has('marcus') || has('teresinha') ||
       has('voz') || has('microfone') || has('meu atendimento') ||
       has('como fui') || has('meu desempenho')
     ) {
-      const summary = getRecentVideochamadaSummary();
-      if (summary) {
+      const resumo = getResumoAtividadesRecentes();
+      if (resumo) {
         return (
-          '🩺 **Análise do seu Desempenho Clínico na Videochamada:**\n\n' +
-          'Acompanhei o seu atendimento recente! Aqui está o registro oficial do seu plantão:\n\n' +
-          summary.replace('HISTÓRICO REAL DE ATENDIMENTO DO ALUNO:\n', '') + '\n\n' +
-          '💡 **Feedback Formativo do Preceptor:**\n' +
-          'Você demonstrou raciocínio rápido sob pressão. Lembre-se de sempre revisar a dose prescrita antes de confirmar a conduta e manter a escuta ativa empática com o paciente. Se quiser refazer a simulação para alcançar 100% de acertos, a aba **Videochamada** está sempre disponível no menu!'
+          '🩺 **Seu desempenho recente:**\n\n' +
+          resumo.replace('HISTÓRICO REAL DE ATIVIDADES DO ALUNO:\n', '') + '\n\n' +
+          '💡 **Feedback do preceptor:**\n' +
+          'Abra o relatório de cada atividade no Perfil para ver os pontos fortes e o que melhorar. Na próxima consulta, capriche nas perguntas abertas e registre também o que o paciente negou.'
         );
       }
 
       return (
-        '📹 **Simulação por Vídeo e Voz com Pacientes Virtuais:**\n\n' +
-        'Na aba **Videochamada** você vivencia o atendimento em tempo real com o **Sr. Marcus** e a **Dona Teresinha**!\n\n' +
-        '• O paciente relata o caso em vídeo e você responde falando no microfone ou digitando.\n' +
-        '• As questões abordam avaliação de sintomas, cálculos emergenciais e condutas imediatas de enfermagem.\n' +
-        '• Você tem um sistema de 3 vidas para testar sua precisão sob pressão clínica!\n\n' +
-        'Deseja iniciar um plantão com o Sr. Marcus ou a Dona Teresinha agora?'
+        '🎙️ **Consulta ao Vivo:**\n\n' +
+        'Você conversa com um paciente (como o **Sr. Marcus** ou a **Dona Teresinha**) por voz ou texto, como numa consulta de verdade.\n\n' +
+        '• Faça a anamnese: queixa, início, intensidade, medicações, alergias, antecedentes.\n' +
+        '• Use o botão **Anotações** para registrar o que ouvir.\n' +
+        '• No fim, clique em **Encerrar e registrar** e receba nota e comentários.\n\n' +
+        'Que tal começar uma consulta agora?'
       );
     }
 
