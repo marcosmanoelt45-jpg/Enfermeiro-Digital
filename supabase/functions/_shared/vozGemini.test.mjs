@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { falarComGemini, limparFinal, ordenarModelosTts, pcmParaWav, vozDoPersonagem } from "./vozGemini.ts";
+import { chaveCacheGemini, executarLote, falarComGemini, limparFinal, ordenarModelosTts, pcmParaWav, vozDoPersonagem } from "./vozGemini.ts";
 
 const logOriginal = console.log;
 test.before(() => { console.log = () => {}; });
@@ -101,4 +101,24 @@ test("cota do dia esgotada: para de tentar até ela voltar (resposta imediata, s
   assert.equal(await falarComGemini({ texto: "Dois.", personagemId: "marcus", chave: "k", fetchImpl }), null);
   assert.equal(chamadas, 1, "não devia chamar de novo");
   _zerarBloqueio();
+});
+
+test("chaveCacheGemini: mesma voz e texto dão o mesmo arquivo g2-<sha1>.wav", async () => {
+  const a = await chaveCacheGemini("marcus", "Oi, tudo bem?");
+  assert.match(a, /^g2-[0-9a-f]{40}\.wav$/);
+  assert.equal(a, await chaveCacheGemini("marcus", "Oi, tudo bem?"));
+  assert.notEqual(a, await chaveCacheGemini("teresinha", "Oi, tudo bem?"));
+});
+
+test("executarLote: pula o que já existe, respeita o máximo e para quando a cota acaba", async () => {
+  const lista = [{ p: "marcus", t: "um" }, { p: "marcus", t: "dois" }, { p: "marcus", t: "três" }, { p: "marcus", t: "quatro" }];
+  const existentes = new Set([await chaveCacheGemini("marcus", "um")]);
+  const salvos = [];
+  const r1 = await executarLote({ lista, existentes, gerar: async () => new Uint8Array([1]), salvar: async (c) => salvos.push(c), max: 2 });
+  assert.deepEqual(r1, { gerados: 2, faltam: 1, parouPorFalha: false });
+  assert.equal(salvos.length, 2);
+
+  let chamadas = 0;
+  const r2 = await executarLote({ lista, existentes, gerar: async () => (++chamadas === 1 ? new Uint8Array([1]) : null), salvar: async () => {}, max: 10 });
+  assert.deepEqual(r2, { gerados: 1, faltam: 2, parouPorFalha: true });
 });

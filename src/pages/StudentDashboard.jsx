@@ -1,4 +1,5 @@
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
+import { dispararLoteVozes } from "@/features/cena/servidor.js";
 import { m as motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
@@ -29,6 +30,10 @@ import { useMediaQuery } from "@/hooks/useMediaQuery";
 export default function StudentDashboard() {
   const navigate = useNavigate();
   const { user } = useAuth();
+  // Lote diário de vozes do Gemini (falas fixas), em segundo plano: só com sessão de verdade.
+  useEffect(() => {
+    if (user?.id) dispararLoteVozes();
+  }, [user?.id]);
   const { triggerHaptic } = useTheme();
   // Só o layout da tela atual é montado: o outro rodaria um segundo Goti em vídeo, escondido.
   const isDesktop = useMediaQuery("(min-width: 768px)");

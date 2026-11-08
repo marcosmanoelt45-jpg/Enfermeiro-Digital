@@ -46,14 +46,34 @@ export function sttToken() {
 }
 
 // Voz ao vivo hospedada: devolve um Blob de áudio, ou null (204) quando não há voz hospedada.
+// Áudios já recebidos nesta sessão: ouvir de novo não pede ao servidor outra vez.
+const vozesDaSessao = new Map();
+const MAX_VOZES_SESSAO = 60;
+
 export async function gerarVoz({ texto, personagemId }) {
+  const chave = `${personagemId}|${texto}`;
+  if (vozesDaSessao.has(chave)) return vozesDaSessao.get(chave);
   const { data, error } = await supabase.functions.invoke("voz", { body: { texto, personagemId } });
   if (error) {
     // Falha de voz nunca atrapalha a cena: o chamador cai na voz do navegador.
     return null;
   }
   // O servidor manda octet-stream (único tipo que o supabase-js entrega como Blob); aqui vira áudio WAV.
-  return data instanceof Blob && data.size > 44 ? new Blob([data], { type: "audio/wav" }) : null;
+  const blob = data instanceof Blob && data.size > 44 ? new Blob([data], { type: "audio/wav" }) : null;
+  if (blob) {
+    if (vozesDaSessao.size >= MAX_VOZES_SESSAO) vozesDaSessao.delete(vozesDaSessao.keys().next().value);
+    vozesDaSessao.set(chave, blob);
+  }
+  return blob;
+}
+
+// Uma vez por sessão: pede ao servidor o lote do dia, que gera com a cota grátis do Gemini as falas fixas
+// que ainda faltam e as guarda. O servidor roda no máximo uma vez por dia; aqui é só um aviso, sem esperar.
+let loteDisparado = false;
+export function dispararLoteVozes() {
+  if (loteDisparado) return;
+  loteDisparado = true;
+  supabase.functions.invoke("voz", { body: { acao: "lote" } }).catch(() => {});
 }
 
 // Cliente das ações da cena-ia (Consulta ao Vivo). Cada função devolve os dados ou lança ErroServidor.

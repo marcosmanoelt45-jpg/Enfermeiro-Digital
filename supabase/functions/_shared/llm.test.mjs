@@ -1,7 +1,7 @@
 import test, { after, before } from "node:test";
 import assert from "node:assert/strict";
 import { ErroApp } from "./erros.ts";
-import { MODELOS_GEMINI, MODELOS_PADRAO, chamarLLM, escolherProvedor, extrairJson, modelosConfigurados, ordenarModelosGemini } from "./llm.ts";
+import { MODELOS_PADRAO, chamarLLM, escolherProvedor, extrairJson, modelosConfigurados, ordenarModelosGemini } from "./llm.ts";
 
 // O módulo registra eventos com console.log; silencia durante os testes.
 const logOriginal = console.log;

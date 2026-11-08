@@ -11,10 +11,46 @@ import { consumirCota, limiteDe } from "../_shared/cota.ts";
 import { ErroApp, erroDeExcecao } from "../_shared/erros.ts";
 import { logEvento } from "../_shared/log.ts";
 import { z } from "../_shared/schemas.ts";
-import { falarComGemini, vozDoPersonagem } from "../_shared/vozGemini.ts";
+import { chaveCacheGemini, executarLote, falarComGemini } from "../_shared/vozGemini.ts";
+import falasFixas from "../_shared/falasFixas.json" with { type: "json" };
 
 const MAX_CARACTERES = 400;
 const BUCKET = "vozes-cache";
+
+// deno-lint-ignore no-explicit-any
+type Admin = any;
+
+// Lote diário das falas fixas com a cota grátis do Gemini (10 áudios por dia). Roda no máximo uma vez por dia
+// (marcador no bucket, pelo dia do Pacífico, quando a cota do Google zera) e em segundo plano: responde na hora.
+async function iniciarLote(admin: Admin, chave: string): Promise<Response> {
+  const dia = new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(new Date());
+  const marcador = await admin.storage.from(BUCKET).upload(`lote/${dia}.txt`, new TextEncoder().encode(dia), { contentType: "text/plain", upsert: false });
+  if (marcador.error) return new Response(JSON.stringify({ lote: "ja_rodou" }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+
+  const tarefa = (async () => {
+    const existentes = new Set<string>();
+    for (let offset = 0; offset < 20000; offset += 1000) {
+      const { data } = await admin.storage.from(BUCKET).list("", { limit: 1000, offset, search: "g2-" });
+      for (const o of data ?? []) existentes.add(o.name);
+      if (!data || data.length < 1000) break;
+    }
+    const r = await executarLote({
+      lista: falasFixas as { p: string; t: string }[],
+      existentes,
+      gerar: (texto, personagemId) => falarComGemini({ texto, personagemId, chave, maxEsperaMs: 15000 }),
+      salvar: async (nome, wav) => {
+        await admin.storage.from(BUCKET).upload(nome, wav, { contentType: "audio/wav", upsert: true });
+      },
+    });
+    logEvento("voz_lote", { gerados: r.gerados, faltam: r.faltam, parou: r.parouPorFalha });
+  })().catch((e) => logEvento("voz_lote_excecao", { tipo: e instanceof Error ? e.name : "Erro" }));
+
+  // deno-lint-ignore no-explicit-any
+  const runtime = (globalThis as any).EdgeRuntime;
+  if (runtime?.waitUntil) runtime.waitUntil(tarefa);
+  else await tarefa;
+  return new Response(JSON.stringify({ lote: "iniciado" }), { status: 202, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+}
 
 const Entrada = z.object({
   texto: z.string().trim().min(1).max(MAX_CARACTERES),
@@ -69,6 +105,9 @@ Deno.serve(async (req) => {
     } catch {
       corpo = null;
     }
+    if (!base && chaveGemini && (corpo as { acao?: string } | null)?.acao === "lote") {
+      return await iniciarLote(usuario.supabaseAdmin, chaveGemini);
+    }
     const entrada = Entrada.safeParse(corpo);
     if (!entrada.success) {
       throw new ErroApp("ENTRADA_INVALIDA", `Informe texto (até ${MAX_CARACTERES} caracteres) e personagemId.`);
@@ -77,8 +116,7 @@ Deno.serve(async (req) => {
 
     if (!base && chaveGemini) {
       const admin = usuario.supabaseAdmin;
-      // g2: áudios sem o chiado final (os g- antigos ficam sem uso).
-      const chaveCache = `g2-${await sha1(`${vozDoPersonagem(personagemId).voz}|${texto}`)}.wav`;
+      const chaveCache = await chaveCacheGemini(personagemId, texto);
       try {
         const { data } = await admin.storage.from(BUCKET).download(chaveCache);
         if (data) return respostaAudio(new Uint8Array(await data.arrayBuffer()), true);

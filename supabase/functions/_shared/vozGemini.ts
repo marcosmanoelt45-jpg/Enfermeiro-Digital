@@ -119,6 +119,46 @@ export function vozDoPersonagem(personagemId: string) {
   return VOZES_GEMINI[personagemId] ?? PADRAO;
 }
 
+// Nome do arquivo no bucket "vozes-cache". g2: áudios sem o chiado final (os g- antigos ficam sem uso).
+export async function chaveCacheGemini(personagemId: string, texto: string): Promise<string> {
+  const bytes = new TextEncoder().encode(`${vozDoPersonagem(personagemId).voz}|${texto}`);
+  const hash = await crypto.subtle.digest("SHA-1", bytes);
+  return `g2-${Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("")}.wav`;
+}
+
+/**
+ * Lote diário: gera, na ordem da lista, as falas que ainda não estão guardadas, até `max` ou até a
+ * geração falhar (cota do dia acabou). Cada áudio gerado é salvo e passa a ser nosso: tocar de novo não gasta cota.
+ */
+export async function executarLote(
+  { lista, existentes, gerar, salvar, max = 10 }: {
+    lista: { p: string; t: string }[];
+    existentes: Set<string>;
+    gerar: (texto: string, personagemId: string) => Promise<Uint8Array | null>;
+    salvar: (chave: string, wav: Uint8Array) => Promise<void>;
+    max?: number;
+  },
+): Promise<{ gerados: number; faltam: number; parouPorFalha: boolean }> {
+  const pendentes: { p: string; t: string; chave: string }[] = [];
+  for (const f of lista) {
+    const chave = await chaveCacheGemini(f.p, f.t);
+    if (!existentes.has(chave)) pendentes.push({ ...f, chave });
+  }
+  let gerados = 0;
+  let parouPorFalha = false;
+  for (const f of pendentes) {
+    if (gerados >= max) break;
+    const wav = await gerar(f.t, f.p);
+    if (!wav) {
+      parouPorFalha = true;
+      break;
+    }
+    await salvar(f.chave, wav);
+    gerados++;
+  }
+  return { gerados, faltam: pendentes.length - gerados, parouPorFalha };
+}
+
 /** Gera a fala em WAV. Devolve null se não der (o cliente cai na voz do navegador). */
 export async function falarComGemini(
   { texto, personagemId, chave, fetchImpl = fetch, timeoutMs = 12000, maxEsperaMs }: { texto: string; personagemId: string; chave: string; fetchImpl?: typeof fetch; timeoutMs?: number; maxEsperaMs?: number },
