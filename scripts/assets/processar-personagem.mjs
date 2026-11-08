@@ -3,7 +3,9 @@
 // Entrada: assets-brutos/personagens/<id>/<emocao>.mp4 (fundo verde #00FF00).
 // Saída: public/personagens/<id>/<emocao>.webm (VP9 com alfa) + .mp4 de reserva sobre #16222E + poster.png/.webp,
 // relatório de QA e atualização de clipes/pasta/poster em src/features/cena/dados/personagens.js.
-// Uso: node scripts/assets/processar-personagem.mjs <id> [--sem-atualizar]
+// Uso: node scripts/assets/processar-personagem.mjs <id> [--sem-atualizar] [--vaivem=parado[:segundos]]
+// --vaivem: para clipes gerados só com o quadro inicial (o Veo recusa início = fim quase parado). Usa os primeiros
+// N segundos (padrão 3,5) de ida e os mesmos de volta, então o loop fecha sem emenda.
 import { spawnSync } from "node:child_process";
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, unlinkSync, writeFileSync } from "node:fs";
 import { basename, join } from "node:path";
@@ -16,14 +18,30 @@ if (!id) {
 const ENTRADA = join("assets-brutos/personagens", id);
 const SAIDA = join("public/personagens", id);
 const DADOS = "src/features/cena/dados/personagens.js";
-// Calibrado na enfermeira-ana (2026-11-08): o verde que o Flow entrega é ~#0AF609, não #00FF00 puro.
-// Sem despill: ele puxa o verde-água da marca (#20D5B5) para azul. No lugar, a borda do alfa encolhe 2 px.
+// Recorte por dominância do verde (calibrado em Ana e Rui, 2026-11-08). d = G - max(R,B):
+// fundo do Flow (~#0AF609) dá d≈236; verde-água da marca (#20D5B5) dá d≈32; pele e jaleco dão d<=0.
+// Alfa cheio com d<=50 e zero com d>=95. O chromakey comum não pegava as frestas finas entre braço e corpo,
+// onde a compressão mistura o verde com a pele. O despill só baixa G até max(R,B)+40, então o verde-água
+// fica como está e o verde da borda some. A borda do alfa ainda encolhe 1 px.
 const VERDE = "0x0AF609";
-const CHAVE = `chromakey=${VERDE}:0.18:0.03,format=yuva444p,split[ck_c][ck_a];[ck_a]alphaextract,erosion,erosion[ck_m];[ck_c][ck_m]alphamerge`;
-// Corta 4 px da borda (o Veo deixa uma linha), recorta 4:3, e encolhe 8% com folga em cima (o coque não encosta no topo).
-const BASE = `crop=iw-8:ih-8,crop='min(iw,ih*4/3)':'min(ih,iw*3/4)',scale=516:390:flags=lanczos,pad=560:424:(ow-iw)/2:oh-ih:color=${VERDE},fps=24`;
+const CHAVE =
+  "format=gbrap,geq=r='r(X,Y)':g='min(g(X,Y),max(r(X,Y),b(X,Y))+40)':b='b(X,Y)'" +
+  ":a='255*clip((95-(g(X,Y)-max(r(X,Y),b(X,Y))))/45,0,1)',split[ck_c][ck_a];[ck_a]alphaextract,erosion[ck_m];[ck_c][ck_m]alphamerge";
+// Corta 4 px da borda (o Veo deixa uma linha), recorta 4:3, e encolhe 8% com folga em cima (a cabeça não encosta no topo).
+// O croma é reamostrado em alta qualidade antes do recorte (o vídeo vem em 4:2:0).
+const BASE = `crop=iw-8:ih-8,crop='min(iw,ih*4/3)':'min(ih,iw*3/4)',scale=516:390:flags=lanczos+full_chroma_inp+full_chroma_int,pad=560:424:(ow-iw)/2:oh-ih:color=${VERDE},fps=24`;
 const FUNDO = "0x16222E";
 // Ordem em que as emoções aparecem nos dados (as que não estiverem aqui vão no fim).
+// Emoções com loop de ida e volta: --vaivem=parado ou --vaivem=parado:3.
+const VAIVEM = Object.fromEntries(
+  flags
+    .filter((f) => f.startsWith("--vaivem="))
+    .flatMap((f) => f.slice(9).split(","))
+    .map((v) => {
+      const [e, seg] = v.split(":");
+      return [e, Number(seg) || 3.5];
+    }),
+);
 const ORDEM = ["parado", "falando", "pensando", "acerto", "erro", "dor", "desconfiado", "confuso", "irritado", "feliz"];
 
 function rodar(cmd, args) {
@@ -62,8 +80,21 @@ function verdeRestante(webm, d) {
   return opacos ? (verdes / opacos) * 100 : 0;
 }
 
-function processarClipe(emocao) {
+// Fonte do clipe: o mp4 bruto, ou uma versão ida e volta dele quando a emoção está em --vaivem.
+function fonte(emocao) {
   const bruto = join(ENTRADA, `${emocao}.mp4`);
+  if (!VAIVEM[emocao]) return bruto;
+  const saida = join(ENTRADA, `.${emocao}-vaivem.mp4`);
+  ff([
+    "-i", bruto,
+    "-filter_complex", `[0:v]trim=0:${VAIVEM[emocao]},setpts=PTS-STARTPTS,split[ida][b];[b]reverse,setpts=PTS-STARTPTS[volta];[ida][volta]concat=n=2:v=1:a=0`,
+    "-c:v", "libx264", "-crf", "12", "-preset", "veryfast", "-pix_fmt", "yuv420p", "-an", saida,
+  ]);
+  return saida;
+}
+
+function processarClipe(emocao) {
+  const bruto = fonte(emocao);
   const webm = join(SAIDA, `${emocao}.webm`);
   const mp4 = join(SAIDA, `${emocao}.mp4`);
   ff(["-i", bruto, "-vf", `${BASE},${CHAVE},format=yuva420p`, "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-crf", "34", "-b:v", "0", "-row-mt", "1", "-auto-alt-ref", "0", "-an", webm]);
@@ -86,7 +117,7 @@ function processarClipe(emocao) {
 }
 
 function poster(emocao) {
-  const bruto = join(ENTRADA, `${emocao}.mp4`);
+  const bruto = fonte(emocao);
   const png = join(SAIDA, "poster.png");
   ff(["-i", bruto, "-vf", `${BASE},${CHAVE},format=rgba`, "-frames:v", "1", png]);
   ff(["-i", png, "-c:v", "libwebp", "-quality", "80", join(SAIDA, "poster.webp")]);
@@ -117,7 +148,7 @@ if (!existsSync(ENTRADA)) {
 }
 mkdirSync(SAIDA, { recursive: true });
 const emocoes = readdirSync(ENTRADA)
-  .filter((f) => f.endsWith(".mp4"))
+  .filter((f) => f.endsWith(".mp4") && !f.startsWith("."))
   .map((f) => basename(f, ".mp4"))
   .sort((a, b) => (ORDEM.indexOf(a) + 1 || 99) - (ORDEM.indexOf(b) + 1 || 99));
 if (!emocoes.length) {

@@ -46,3 +46,22 @@ Projeto no Flow: "Enfere · Minijogos" (9b026244-f66a-4991-ac91-6f4379f9860c). C
 | 2026-11-08 | medico-rui · pensando | Imagem a90b6cf1; mesmo prompt do pensando da Ana | Veo 3.1 Lite (16:9, 720p, 8 s) | 10 | `public/personagens/medico-rui/pensando.webm` + `.mp4` |
 
 Um pedido de vídeo com a opção 2 do Rui foi rejeitado no Flow antes de gerar (0 crédito).
+
+## Rodada 2 (2026-11-08): correções pedidas pelo dono
+
+Motivos: estrelinhas e linhas de efeito, "parado" agitado (boca abrindo, gestos), pescoço do Rui com faixa marrom, recorte ruim entre braço e corpo.
+
+| Data | Item | Prompt | Modelo | Créditos | Arquivo |
+|---|---|---|---|---|---|
+| 2026-11-08 | medico-rui · referência corrigida | Edição da opção 4 (a90b6cf1): pescoço no mesmo tom de pele do rosto, sem faixa marrom; resto idêntico → media b4322012 | Nano Banana 2.1 (edição) | 0 | `assets-brutos/personagens/medico-rui/ref-pescoco.jpg` |
+| 2026-11-08 | enfermeira-ana · falando | Início e fim 9c7fabd4; "talking calmly to the viewer like a real person… no exaggerated cartoon expressions, no big gestures… no sparkles, no stars, no particles, no motion lines…" | Veo 3.1 Lite | 10 | `public/personagens/enfermeira-ana/falando.webm` |
+| 2026-11-08 | enfermeira-ana · pensando | Início e fim 9c7fabd4; "thinking calmly like a real person… no thought bubbles, no visual effects" | Veo 3.1 Lite | 10 | `public/personagens/enfermeira-ana/pensando.webm` |
+| 2026-11-08 | medico-rui · falando | Início e fim b4322012; mesmo prompt do falando da Ana | Veo 3.1 Lite | 10 | `public/personagens/medico-rui/falando.webm` |
+| 2026-11-08 | medico-rui · pensando | Início e fim b4322012; mesmo prompt do pensando da Ana | Veo 3.1 Lite | 10 | `public/personagens/medico-rui/pensando.webm` |
+| 2026-11-08 | enfermeira-ana · parado (Veo, descartado) | Agente do Flow, início e fim 9c7fabd4: acenou e piscou com linhas de movimento | Veo 3.1 Lite | 10 | — |
+| 2026-11-08 | medico-rui · parado (Veo, descartado) | Só início b4322012, "gentle head movement": esticou o braço e teve um corte fantasma | Veo 3.1 Lite | 10 | — |
+| 2026-11-08 | enfermeira-ana · parado (Veo, descartado) | Só início 9c7fabd4, "gentle head movement": gesto de braço | Veo 3.1 Lite | 10 | — |
+| 2026-11-08 | enfermeira-ana e medico-rui · parado | Sem IA: `scripts/assets/parado-sintetico.mjs` (imagem de referência inclinando ±1,4° na base, 6 s, respiração de 2 px) | — | 0 | `public/personagens/*/parado.webm` |
+
+Falharam sem cobrança (o Flow apagou o pedido): 4 tentativas de "parado" com início = fim quase parado, ou com "breathing/idle/waiting" no texto.
+Recorte novo (dominância do verde) aplicado em todos os clipes. Créditos da rodada: 70.

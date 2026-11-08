@@ -68,7 +68,7 @@ Leia docs/plano/producao/flow.md e assets/pedidos/<id>.json.
 ## 6. Pós-processamento (`scripts/assets/processar-personagem.mjs`, criado quando chegar o primeiro pedido)
 Para cada `assets-brutos/personagens/<id>/<emocao>.mp4`:
 1. **Recorte e escala:** corte central para 4:3 e escale para 560x424 a 24 fps.
-2. **Remoção do fundo verde:** calibrado na enfermeira-ana: `chromakey=0x0AF609:0.18:0.03` (o verde real do Flow) e a borda do alfa encolhida 2 px. **Sem `despill`**, que deixa o verde-água da marca azul.
+2. **Remoção do fundo verde:** recorte por dominância do verde (`G - max(R,B)`, alfa cheio até 50 e zero a partir de 95), despill limitado a `max(R,B)+40` (não mexe no verde-água da marca) e borda do alfa encolhida 1 px. O `chromakey` comum deixava verde nas frestas entre braço e corpo, e o `despill` padrão deixa o verde-água azul.
 3. **WebM com alfa:** `-c:v libvpx-vp9 -pix_fmt yuva420p -crf 34 -b:v 0 -row-mt 1 -an` → `public/personagens/<id>/<emocao>.webm`.
 4. **MP4 de reserva:** sobreposição em `color=0x16222E` → `-c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -movflags +faststart -an` → `.mp4`.
 5. **Poster:** PNG do 1º quadro do `parado` → `poster.png` (+ `.webp`).
@@ -80,6 +80,12 @@ Para cada `assets-brutos/personagens/<id>/<emocao>.mp4`:
 7. Atualiza `clipes` e `poster` em `src/features/cena/dados/personagens.js` (só a entrada do personagem).
 
 Para objetos: `processar-objetos.mjs` (recorte de verde → `.webp` com alfa, 512 px no maior lado, `-quality 80`).
+
+## 6.1 Lições da produção (2026-11-08)
+- O `gflow` não faz vídeo a partir de imagem nesta conta (Flow novo): use o site do Flow (modo clássico com "Início" e "Fim", Veo 3.1 Lite, x1 = 10 créditos) e baixe pela URL `flow-content.google/video/...`.
+- **"parado" não sai bom no Veo**: ele acena, estica o braço ou recusa o pedido sem cobrar. Use `node scripts/assets/parado-sintetico.mjs <id> <imagem>`: a própria referência balançando de leve.
+- Nos prompts, proíba efeitos por extenso ("no sparkles, no stars, no particles, no motion lines, no thought bubbles").
+- Se a referência tiver defeito (ex.: pescoço com outra cor), corrija antes no editor de imagem do Flow, que não gasta crédito.
 
 ## 7. Se o MCP quebrar
 Gere manualmente no site do Flow com os mesmos prompts, salve em `assets-brutos/` com os mesmos nomes e rode só o passo 6. O pipeline não depende do MCP.
