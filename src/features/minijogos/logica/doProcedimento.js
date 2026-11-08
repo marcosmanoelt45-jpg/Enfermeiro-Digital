@@ -1,3 +1,4 @@
+import { referenciaPop } from "../../../data/procedimentos/referenciasPop.js";
 // Gera um minijogo "ordenar" a partir de um procedimento do procedureService (POPs viram minijogos de graça).
 const LIMITE_TITULO = 70;
 const MINIMO_PASSOS = 4;
@@ -21,7 +22,7 @@ export function gerarOrdenarDeProcedimento(proc) {
     titulo: `Ordene: ${cortarTitulo(proc.title, 60)}`,
     instrucao: "Coloque os passos do procedimento na ordem correta.",
     categoria,
-    fonte: { titulo: `POP: ${cortarTitulo(proc.title, 80)}`, url: proc.officialGuideUrl ?? proc.sourceUrl },
+    fonte: referenciaPop(proc.id) ?? { titulo: `POP: ${cortarTitulo(proc.title, 80)}`, url: proc.officialGuideUrl ?? proc.sourceUrl },
     ordenar: {
       passos: passos.map((p) => ({ id: p.id, texto: cortarTitulo(p.title) })),
       origem: { procedimentoId: proc.id },

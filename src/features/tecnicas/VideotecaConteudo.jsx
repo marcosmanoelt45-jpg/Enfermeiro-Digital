@@ -24,6 +24,7 @@ import { useNavigate, useSearchParams } from 'react-router-dom';
 import { prefersReducedMotion } from '@/lib/motion';
 import { AnimatedNumber } from '@/components/ui/animated-number';
 import { AnimatedProgress } from '@/components/ui/animated-progress';
+import { referenciaPop } from "@/data/procedimentos/referenciasPop";
 
 // Catálogo de vídeos e POPs, reaproveitado na página /procedimentos e nas abas de Técnicas.
 export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos & POPs' }) {
@@ -200,6 +201,17 @@ export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos
                     <ExternalLink className="w-3.5 h-3.5" />
                     Acessar fonte institucional oficial (UFSM LabEnf / Diretrizes)
                   </a>
+                </div>
+              )}
+              {referenciaPop(activeProcedure.id) && (
+                <div className="rounded-xl border border-[#27394B] bg-[#131F2E] p-3 text-[11px] leading-relaxed text-[#9FB3C6]">
+                  <p>
+                    <strong className="text-[#EAF2F8]">POP de referência:</strong>{" "}
+                    <a href={referenciaPop(activeProcedure.id).url} target="_blank" rel="noopener noreferrer" className="font-bold text-[#20D5B5] hover:underline">
+                      {referenciaPop(activeProcedure.id).titulo}
+                    </a>
+                  </p>
+                  {referenciaPop(activeProcedure.id).observacao && <p className="mt-1">{referenciaPop(activeProcedure.id).observacao}</p>}
                 </div>
               )}
             </div>
