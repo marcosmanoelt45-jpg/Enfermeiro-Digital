@@ -242,6 +242,32 @@ export const TAREFAS_IA = {
 
 export const MAX_TEXTO_ALUNO = 8000;
 
+// Compatibilidade com o app antigo (ainda publicado), que manda o prompt de sistema inteiro em vez da tarefa.
+// Só o começo do texto serve para RECONHECER qual tarefa era; o texto do cliente é descartado e o servidor usa
+// o próprio prompt. Um prompt que não começa como um destes continua recusado.
+const INICIOS_LEGADOS = [
+  ["Você é o Goti, o mascote e Preceptor Clínico Inteligente da plataforma Enfere", "goti"],
+  ["Você é o Goti IA, especialista em procedimentos e práticas de enfermagem", "procedimento"],
+  ["Você é um Especialista e Docente Sênior de Enfermagem em Terapia Intensiva", "desafio_diagnostico"],
+  ["Você é o \"Goti IA\", enfermeiro digital especialista em Prática Clínica", "sbar_avaliacao"],
+  ["Você é o Goti IA, o enfermeiro digital especialista em Raciocínio Clínico", "raciocinio_clinico"],
+  ["Você é o Goti IA, enfermeiro digital da plataforma Enfere. O estudante está analisando um caso simulado", "dica_caso"],
+  ["Você é o Goti IA ensinando Cálculo de Medicamentos", "calculo_guiado"],
+];
+
+/** Reconhece a tarefa de um pedido do app antigo. Devolve { tarefa, parametros } ou null. */
+export function tarefaLegada(systemPrompt) {
+  const t = String(systemPrompt ?? "").trimStart();
+  const achado = INICIOS_LEGADOS.find(([inicio]) => t.startsWith(inicio));
+  if (!achado) return null;
+  const [, tarefa] = achado;
+  // Parâmetros curtos que dá para recuperar com segurança (passam pelo mesmo corte de textoParam).
+  const parametros = {};
+  if (tarefa === "procedimento") parametros.titulo = (t.match(/treinando o procedimento: "([^"\n]{1,200})"/) || [])[1];
+  if (tarefa === "dica_caso") parametros.nivel = Number((t.match(/Dica Pedagógica de Nível (\d)/) || [])[1]);
+  return { tarefa, parametros };
+}
+
 /** Monta o prompt de sistema de uma tarefa permitida. Devolve null se a tarefa não existe. */
 export function montarSistema(tarefa, parametros = {}) {
   const t = Object.prototype.hasOwnProperty.call(TAREFAS_IA, tarefa) ? TAREFAS_IA[tarefa] : null;

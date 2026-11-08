@@ -14,7 +14,7 @@ import { ErroApp } from "../_shared/erros.ts";
 import { chamarLLM, extrairJson } from "../_shared/llm.ts";
 import { logEvento } from "../_shared/log.ts";
 import { sanitizeClinicalText } from "../_shared/dlp.ts";
-import { MAX_TEXTO_ALUNO, TAREFAS_IA, montarSistema } from "../_shared/tarefasIA.js";
+import { MAX_TEXTO_ALUNO, TAREFAS_IA, montarSistema, tarefaLegada } from "../_shared/tarefasIA.js";
 
 // ------------------------------------------------------------------------------
 // 1. Sanitização e DLP Server-Side (LGPD): sanitizeClinicalText fica em ../_shared/dlp.ts
@@ -141,9 +141,11 @@ Deno.serve(async (req) => {
 
     // Cenário B: tarefa da lista fechada (TAREFAS_IA). O prompt de sistema é do servidor; o cliente manda só
     // o id da tarefa, parâmetros curtos e o texto do aluno. Prompt livre virava um proxy aberto da nossa chave.
-    const tarefa = typeof requestData.tarefa === "string" ? requestData.tarefa : "";
+    // App antigo (ainda publicado): reconhece a tarefa pelo começo do prompt e descarta o texto dele.
+    const legado = typeof requestData.tarefa === "string" ? null : tarefaLegada(requestData.systemPrompt);
+    const tarefa = legado ? legado.tarefa : typeof requestData.tarefa === "string" ? requestData.tarefa : "";
     const config = Object.prototype.hasOwnProperty.call(TAREFAS_IA, tarefa) ? TAREFAS_IA[tarefa as keyof typeof TAREFAS_IA] : null;
-    const sistema = config ? montarSistema(tarefa, requestData.parametros) : null;
+    const sistema = config ? montarSistema(tarefa, legado ? legado.parametros : requestData.parametros) : null;
     if (!config || !sistema) {
       logEvento("clinical_ai_tarefa_recusada", { usuario: userId });
       return responder({ error: "Tarefa de IA não permitida." }, 400);
@@ -165,7 +167,7 @@ Deno.serve(async (req) => {
       json: config.json,
     });
 
-    logEvento("clinical_ai", { cenario: "B", tarefa, usuario: userId, modelo: resposta.modelo, truncado: resposta.truncado, ms: Date.now() - inicio });
+    logEvento("clinical_ai", { cenario: "B", tarefa, legado: Boolean(legado), usuario: userId, modelo: resposta.modelo, truncado: resposta.truncado, ms: Date.now() - inicio });
     return responder({
       success: true,
       text: resposta.texto,
