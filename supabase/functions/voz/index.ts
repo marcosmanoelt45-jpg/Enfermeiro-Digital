@@ -5,6 +5,7 @@
 // POST {VOZ_AO_VIVO_URL}/generate. Devolve o WAV do VoiceBox como veio (sem converter para mp3 no Deno):
 // o navegador toca WAV normalmente. Perfis: secret VOZ_PERFIS = {"marcus":"<profile_id>", ...}.
 // ==============================================================================
+import { createClient } from "npm:@supabase/supabase-js@2";
 import { corsHeaders, responderOptions } from "../_shared/cors.ts";
 import { exigirUsuario } from "../_shared/auth.ts";
 import { consumirCota, limiteDe } from "../_shared/cota.ts";
@@ -91,7 +92,6 @@ Deno.serve(async (req) => {
 
   try {
     if (req.method !== "POST") throw new ErroApp("ENTRADA_INVALIDA", "Use POST.");
-    const usuario = await exigirUsuario(req);
 
     // Sem servidor próprio (VOZ_AO_VIVO_URL): usa o Gemini TTS, se houver chave. Sem nenhum dos dois: 204
     // e o cliente cai na voz do navegador.
@@ -105,9 +105,13 @@ Deno.serve(async (req) => {
     } catch {
       corpo = null;
     }
+    // Bot diário (pg_cron, com a chave anon) e o Hub chamam o lote. Não precisa de sessão: ele só gera as
+    // falas fixas da nossa lista, uma vez por dia (marcador no bucket), então chamar de novo não faz nada.
     if (!base && chaveGemini && (corpo as { acao?: string } | null)?.acao === "lote") {
-      return await iniciarLote(usuario.supabaseAdmin, chaveGemini);
+      const admin = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", { auth: { persistSession: false, autoRefreshToken: false } });
+      return await iniciarLote(admin, chaveGemini);
     }
+    const usuario = await exigirUsuario(req);
     const entrada = Entrada.safeParse(corpo);
     if (!entrada.success) {
       throw new ErroApp("ENTRADA_INVALIDA", `Informe texto (até ${MAX_CARACTERES} caracteres) e personagemId.`);
