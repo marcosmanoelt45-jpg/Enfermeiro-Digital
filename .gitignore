@@ -54,3 +54,6 @@ public/vozes/_amostra.html
 
 # Credenciais da bateria de comportamento (branch do Supabase)
 .env.bateria.local
+
+# Brutos do Google Flow (docs/plano/producao/flow.md); só o processado vai para public/
+assets-brutos/

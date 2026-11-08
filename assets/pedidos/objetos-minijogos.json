@@ -1,0 +1,128 @@
+{
+  "tipo": "objetos",
+  "estilo": "sem referência (o Flow novo não aceita i2i pelo gflow); estilo descrito no prompt, a partir de public/goti/goti-pose-happy.png",
+  "promptBase": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand.",
+  "saida": "assets-brutos/objetos/<id>.png",
+  "objetos": [
+    {
+      "id": "bandeja",
+      "descricao": "a stainless steel hospital procedure tray (kidney-free rectangular tray), empty",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a stainless steel hospital procedure tray (kidney-free rectangular tray), empty."
+    },
+    {
+      "id": "pacote-curativo",
+      "descricao": "a sealed sterile dressing kit pack in paper and clear plastic, small metal forceps visible inside",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a sealed sterile dressing kit pack in paper and clear plastic, small metal forceps visible inside."
+    },
+    {
+      "id": "sf09",
+      "descricao": "a small clear plastic bottle of saline solution with a blue cap, blank label",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a small clear plastic bottle of saline solution with a blue cap, blank label."
+    },
+    {
+      "id": "gazes",
+      "descricao": "a small stack of folded white sterile gauze pads",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a small stack of folded white sterile gauze pads."
+    },
+    {
+      "id": "luvas",
+      "descricao": "a pair of light blue nitrile procedure gloves",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a pair of light blue nitrile procedure gloves."
+    },
+    {
+      "id": "cobertura",
+      "descricao": "a roll of white medical adhesive tape next to a square adhesive wound dressing",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a roll of white medical adhesive tape next to a square adhesive wound dressing."
+    },
+    {
+      "id": "saco-lixo",
+      "descricao": "a small white plastic waste bag, open at the top",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a small white plastic waste bag, open at the top."
+    },
+    {
+      "id": "bisturi",
+      "descricao": "a single surgical scalpel blade with a metal handle",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a single surgical scalpel blade with a metal handle."
+    },
+    {
+      "id": "seringa-insulina",
+      "descricao": "a thin insulin syringe with an orange cap",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a thin insulin syringe with an orange cap."
+    },
+    {
+      "id": "garrote",
+      "descricao": "a blue rubber tourniquet strap with a buckle",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a blue rubber tourniquet strap with a buckle."
+    },
+    {
+      "id": "sonda-vesical",
+      "descricao": "a coiled transparent urinary catheter tube with a colored connector",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a coiled transparent urinary catheter tube with a colored connector."
+    },
+    {
+      "id": "algodao-alcool",
+      "descricao": "a cotton ball next to a small alcohol bottle with blank label",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a cotton ball next to a small alcohol bottle with blank label."
+    },
+    {
+      "id": "perfuro",
+      "descricao": "a yellow rigid sharps disposal box made of cardboard, closed lid with opening, biohazard style marking without text",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a yellow rigid sharps disposal box made of cardboard, closed lid with opening, biohazard style marking without text."
+    },
+    {
+      "id": "infectante",
+      "descricao": "a white plastic hospital pedal waste bin with a white lid, lined with a milky white plastic bag folded over the rim, small red biohazard symbol on the front, no text",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a white plastic hospital pedal waste bin with a white lid, lined with a milky white plastic bag folded over the rim, small red biohazard symbol on the front, no text."
+    },
+    {
+      "id": "comum",
+      "descricao": "a grey hospital trash bin with pedal and black bag",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a grey hospital trash bin with pedal and black bag."
+    },
+    {
+      "id": "reciclavel",
+      "descricao": "a blue recycling bin with a simple recycling arrows symbol",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a blue recycling bin with a simple recycling arrows symbol."
+    },
+    {
+      "id": "agulha",
+      "descricao": "a single used hypodermic needle without cap",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a single used hypodermic needle without cap."
+    },
+    {
+      "id": "lanceta",
+      "descricao": "a small blood glucose lancet device with tiny needle tip",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a small blood glucose lancet device with tiny needle tip."
+    },
+    {
+      "id": "ampola",
+      "descricao": "a broken glass medicine ampoule, the top snapped off",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a broken glass medicine ampoule, the top snapped off."
+    },
+    {
+      "id": "gaze-sangue",
+      "descricao": "a used white gauze pad with a red blood stain",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a used white gauze pad with a red blood stain."
+    },
+    {
+      "id": "luva-usada",
+      "descricao": "a single crumpled used light blue nitrile glove",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a single crumpled used light blue nitrile glove."
+    },
+    {
+      "id": "papel-toalha",
+      "descricao": "a crumpled white paper towel",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a crumpled white paper towel."
+    },
+    {
+      "id": "copo-cafe",
+      "descricao": "a small disposable paper coffee cup",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a small disposable paper coffee cup."
+    },
+    {
+      "id": "embalagem-seringa",
+      "descricao": "an empty clean paper and plastic syringe wrapper, torn open",
+      "prompt": "Flat vector game icon in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions, slightly top-down three-quarter view. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no floor, no shadow, no other objects. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: an empty clean paper and plastic syringe wrapper, torn open."
+    }
+  ]
+}

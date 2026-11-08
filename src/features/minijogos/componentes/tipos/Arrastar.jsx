@@ -43,7 +43,10 @@ export default function Arrastar({ definicao, conferir, feedback }) {
             onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && selecionado && colocar(selecionado, alvo.id)}
             className={`min-h-[120px] rounded-2xl border-2 border-dashed p-3 transition-colors ${selecionado ? "border-[#20D5B5] bg-[#20D5B5]/5" : "border-[#27394B]"}`}
           >
-            <p className="mb-2 text-xs font-bold text-[#9FB3C6]">{alvo.label}</p>
+            <div className="mb-2 flex items-center gap-2">
+              {alvo.imagem && <img src={alvo.imagem} alt="" width={40} height={40} loading="lazy" draggable={false} className="h-10 w-10 object-contain" />}
+              <p className="text-xs font-bold text-[#9FB3C6]">{alvo.label}</p>
+            </div>
             <div className="flex flex-wrap gap-2">
               {dentro.map((i) => (
                 <button
@@ -54,8 +57,9 @@ export default function Arrastar({ definicao, conferir, feedback }) {
                     devolver(i.id);
                   }}
                   aria-label={`${i.label}: tocar para tirar da bandeja`}
-                  className={`rounded-xl border px-3 py-2 text-sm font-bold ${estado(i.id) === "errado" ? "border-[#FF6B6B] text-[#FF6B6B]" : estado(i.id) === "certo" ? "border-[#3DD68C] text-[#3DD68C]" : "border-[#27394B]"}`}
+                  className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold ${estado(i.id) === "errado" ? "border-[#FF6B6B] text-[#FF6B6B]" : estado(i.id) === "certo" ? "border-[#3DD68C] text-[#3DD68C]" : "border-[#27394B]"}`}
                 >
+                  <Miniatura src={i.imagem} />
                   {i.label}
                 </button>
               ))}
@@ -78,8 +82,9 @@ export default function Arrastar({ definicao, conferir, feedback }) {
             onClick={() => setSelecionado(selecionado === i.id ? null : i.id)}
             aria-pressed={selecionado === i.id}
             style={{ touchAction: "none" }}
-            className={`rounded-xl border px-3 py-2 text-sm font-bold ${selecionado === i.id ? "border-[#20D5B5] ring-2 ring-[#20D5B5]" : "border-[#27394B]"} bg-[#16222E]`}
+            className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-sm font-bold ${selecionado === i.id ? "border-[#20D5B5] ring-2 ring-[#20D5B5]" : "border-[#27394B]"} bg-[#16222E]`}
           >
+            <Miniatura src={i.imagem} />
             {i.label}
           </motion.button>
         ))}
@@ -89,5 +94,12 @@ export default function Arrastar({ definicao, conferir, feedback }) {
     </div>
   );
 }
+
+// Figura do objeto (public/minijogos/<id>.webp). O texto continua ao lado: é ele que ensina e que o leitor de tela lê.
+function Miniatura({ src }) {
+  if (!src) return null;
+  return <img src={src} alt="" width={36} height={36} loading="lazy" draggable={false} className="pointer-events-none h-9 w-9 shrink-0 object-contain" />;
+}
+Miniatura.propTypes = { src: PropTypes.string };
 
 Arrastar.propTypes = { definicao: PropTypes.object.isRequired, conferir: PropTypes.func.isRequired, feedback: PropTypes.object };
