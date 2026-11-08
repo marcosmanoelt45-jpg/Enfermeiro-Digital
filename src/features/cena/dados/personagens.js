@@ -45,7 +45,8 @@ export const PERSONAGENS = [
     faixa: "adulto",
     sexo: "F",
     voz: { voiceboxPerfil: "Ana", navegador: { pitch: 1.1, rate: 1 } },
-    clipes: [],
+    clipes: ["parado"],
+    pasta: "/personagens/enfermeira-ana",
     poster: "/personagens/enfermeira-ana/poster.png",
   },
   {

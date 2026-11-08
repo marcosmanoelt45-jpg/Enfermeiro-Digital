@@ -31,3 +31,10 @@ Pedidos em `assets/pedidos/`; brutos em `assets-brutos/` (fora do git); processa
 | 2026-11-08 | embalagem-seringa | `assets/pedidos/objetos-minijogos.json` (base + "an empty clean paper and plastic syringe wrapper, torn open") | Nano Banana 2.1 (t2i, 1:1, 2 opções) | 0 | `public/minijogos/embalagem-seringa.webp` |
 
 Projeto no Flow: "Enfere · Minijogos" (9b026244-f66a-4991-ac91-6f4379f9860c). Créditos antes e depois: 1050. O `infectante` foi regerado uma vez (a 1ª saiu com lixeira vermelha).
+
+## Personagens
+
+| Data | Item | Prompt | Modelo | Créditos | Arquivo |
+|---|---|---|---|---|---|
+| 2026-11-08 | enfermeira-ana · referência | Estilo do Goti em vetor chapado + "female nurse, around 35, dark hair in a bun, teal (#20D5B5) scrubs, plain badge clip without text, warm kind expression", meio corpo, fundo #00FF00 (4 opções; o dono escolheu a 1, media 9c7fabd4) | Nano Banana 2.1 (t2i, 16:9) | 0 | `assets-brutos/personagens/enfermeira-ana/ref-opcoes/` |
+| 2026-11-08 | enfermeira-ana · parado | Imagem 9c7fabd4 como quadro inicial e final; "idle, gentle breathing, one slow blink, tiny head movement, 5 seconds", mesmo personagem, estilo, enquadramento e fundo verde, câmera parada (gerado pelo agente do site do Flow; o gflow não faz i2v nesta conta) | Veo 3.1 Lite (16:9, 720p, 8 s) | 10 | `public/personagens/enfermeira-ana/parado.webm` + `.mp4` + `poster.png` |

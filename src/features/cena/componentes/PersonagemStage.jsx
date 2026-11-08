@@ -33,6 +33,11 @@ export default function PersonagemStage({ personagemId, emocao = "parado", falan
   }, [ativa, montados]);
 
   const clipesDoPersonagem = useMemo(() => new Set(personagem?.clipes ?? []), [personagem]);
+  // Clipes com o 1º quadro pronto. Com o clipe ativo pronto, o fallback some: os webm novos têm alfa
+  // e o nome/inicial atrás apareceria através do personagem.
+  const [prontos, setProntos] = useState(() => new Set());
+  const marcarPronto = (nome) => setProntos((s) => (s.has(nome) ? s : new Set(s).add(nome)));
+  const fallbackOculto = Boolean(ativa && prontos.has(ativa));
 
   // Toca o clipe ativo e pausa os demais. Falando fica em loop; acerto/erro tocam uma vez.
   useEffect(() => {
@@ -87,7 +92,10 @@ export default function PersonagemStage({ personagemId, emocao = "parado", falan
       <div className="absolute inset-0 z-30 bg-transparent" aria-hidden="true" />
 
       {/* Fallback visual: aparece enquanto os clipes carregam ou quando não existem */}
-      <div className="absolute inset-0 z-0 flex flex-col items-center justify-center p-4 text-center bg-[#16222E]">
+      <div
+        className={`absolute inset-0 z-0 flex flex-col items-center justify-center p-4 text-center bg-[#16222E] transition-opacity duration-150 ${fallbackOculto ? "opacity-0" : "opacity-100"}`}
+        aria-hidden={fallbackOculto || undefined}
+      >
         <motion.div
           className="relative w-24 h-24 rounded-full bg-[#1C2C3C] border border-[#2B3F54] overflow-hidden flex items-center justify-center text-[#20D5B5] font-extrabold text-3xl"
           animate={!temClipe && falando ? { scale: [1, 1.04, 1] } : { scale: 1 }}
@@ -124,6 +132,7 @@ export default function PersonagemStage({ personagemId, emocao = "parado", falan
               controlsList="nodownload noplaybackrate nofullscreen"
               preload={SEMPRE.includes(nome) ? "auto" : "metadata"}
               onEnded={() => UMA_VEZ.has(nome) && aoTerminarRef.current?.(nome)}
+              onLoadedData={() => marcarPronto(nome)}
               className={`absolute inset-0 w-full h-full object-cover pointer-events-none select-none transition-opacity duration-150 ${
                 visivel ? "opacity-100 z-10" : "opacity-0 z-0"
               }`}

@@ -68,14 +68,14 @@ Leia docs/plano/producao/flow.md e assets/pedidos/<id>.json.
 ## 6. Pós-processamento (`scripts/assets/processar-personagem.mjs`, criado quando chegar o primeiro pedido)
 Para cada `assets-brutos/personagens/<id>/<emocao>.mp4`:
 1. **Recorte e escala:** corte central para 4:3 e escale para 560x424 a 24 fps.
-2. **Remoção do fundo verde:** `chromakey=0x00FF00:0.12:0.06` + `despill=type=green`. Calibre os valores no primeiro personagem e fixe no script.
+2. **Remoção do fundo verde:** calibrado na enfermeira-ana: `chromakey=0x0AF609:0.18:0.03` (o verde real do Flow) e a borda do alfa encolhida 2 px. **Sem `despill`**, que deixa o verde-água da marca azul.
 3. **WebM com alfa:** `-c:v libvpx-vp9 -pix_fmt yuva420p -crf 34 -b:v 0 -row-mt 1 -an` → `public/personagens/<id>/<emocao>.webm`.
 4. **MP4 de reserva:** sobreposição em `color=0x16222E` → `-c:v libx264 -preset veryfast -crf 26 -pix_fmt yuv420p -movflags +faststart -an` → `.mp4`.
 5. **Poster:** PNG do 1º quadro do `parado` → `poster.png` (+ `.webp`).
 6. **QA automático** (relatório no terminal):
    - SSIM entre o 1º e o último quadro (< 0,85 → "loop vai pular, regerar ou cortar");
    - % de pixels verdes remanescentes (> 0,5% → "vazou verde");
-   - duração (fora de 3–7 s → aviso);
+   - duração (fora de 3–8 s → aviso; o Veo entrega 8 s);
    - tamanho (webm > 1,5 MB → aviso).
 7. Atualiza `clipes` e `poster` em `src/features/cena/dados/personagens.js` (só a entrada do personagem).
 

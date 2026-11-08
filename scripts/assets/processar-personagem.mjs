@@ -16,8 +16,12 @@ if (!id) {
 const ENTRADA = join("assets-brutos/personagens", id);
 const SAIDA = join("public/personagens", id);
 const DADOS = "src/features/cena/dados/personagens.js";
-const CHAVE = "chromakey=0x00FF00:0.12:0.06,despill=type=green";
-const BASE = "crop='min(iw,ih*4/3)':'min(ih,iw*3/4)',scale=560:424:flags=lanczos,fps=24";
+// Calibrado na enfermeira-ana (2026-11-08): o verde que o Flow entrega é ~#0AF609, não #00FF00 puro.
+// Sem despill: ele puxa o verde-água da marca (#20D5B5) para azul. No lugar, a borda do alfa encolhe 2 px.
+const VERDE = "0x0AF609";
+const CHAVE = `chromakey=${VERDE}:0.18:0.03,format=yuva444p,split[ck_c][ck_a];[ck_a]alphaextract,erosion,erosion[ck_m];[ck_c][ck_m]alphamerge`;
+// Corta 4 px da borda (o Veo deixa uma linha), recorta 4:3, e encolhe 8% com folga em cima (o coque não encosta no topo).
+const BASE = `crop=iw-8:ih-8,crop='min(iw,ih*4/3)':'min(ih,iw*3/4)',scale=516:390:flags=lanczos,pad=560:424:(ow-iw)/2:oh-ih:color=${VERDE},fps=24`;
 const FUNDO = "0x16222E";
 // Ordem em que as emoções aparecem nos dados (as que não estiverem aqui vão no fim).
 const ORDEM = ["parado", "falando", "pensando", "acerto", "erro", "dor", "desconfiado", "confuso", "irritado", "feliz"];
@@ -74,7 +78,7 @@ function processarClipe(emocao) {
   const avisos = [];
   if (!(ssim >= 0.85)) avisos.push(`SSIM ${ssim.toFixed(3)}: loop vai pular, regerar ou cortar`);
   if (verde > 0.5) avisos.push(`vazou verde (${verde.toFixed(2)}%)`);
-  if (d < 3 || d > 7) avisos.push(`duração ${d.toFixed(1)} s fora de 3–7 s`);
+  if (d < 3 || d > 8.2) avisos.push(`duração ${d.toFixed(1)} s fora de 3–8 s`);
   if (mb > 1.5) avisos.push(`webm com ${mb.toFixed(2)} MB (> 1,5 MB)`);
   console.log(`${avisos.length ? "⚠" : "✓"} ${emocao}: ${d.toFixed(1)} s, SSIM ${ssim.toFixed(3)}, verde ${verde.toFixed(2)}%, webm ${mb.toFixed(2)} MB`);
   for (const a of avisos) console.log(`    - ${a}`);
