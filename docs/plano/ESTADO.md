@@ -101,7 +101,8 @@
 - **`CaseStudio.jsx` removido** (sem rota); componentes de prontuário mantidos.
 - **Não movi `public/pacientes` para `public/personagens`**: só renomearia arquivos e invalidaria o cache dos vídeos. Os `passo_*.mp3` e `fala.mp3` sem uso foram apagados (1,9 MB).
 - **`/revisao`** nova e simples (questões pendentes do atendimento por voz antigo, com o `PlurallQuestionCard`).
-- **README e DESIGN.md não foram reescritos** nesta fase.
+- **README e DESIGN.md reescritos** em 08/11 (setup Supabase, scripts, deploy, nota do Base44; tokens e regras reais).
+- **Verificação final:** falas fixas sem órfãos e sem mp3 faltando nos 4 personagens; `dist/assets` 4,4 MB, maior chunk 55 kB gzip (vendor-supabase). A CSP só vale na Vercel: a checagem de violações e a troca de Report-Only para obrigatória ficam para depois de publicar, num PR separado.
 - **Achado fora do escopo:** RLS de `profiles` com recursão infinita (erro 500 ao ler o perfil, também em produção). Correção em `supabase/migrations/013_profiles_sem_recursao.sql`, aguardando o dono aplicar.
 - **DPA e política de privacidade** agora listam Supabase, Google (Gemini), AssemblyAI e OpenRouter, e dizem que o plano gratuito do Gemini pode usar o conteúdo para melhorar produtos do Google (o DPA dizia "retenção zero", o que não vale nesse plano).
 
@@ -119,6 +120,6 @@
 - ~~Filtro de fala com provedores/modelos e prompt~~ já estava no `filtroFala` (paciente) e agora no Goti
 - Histórico e gamificação no Supabase em vez do localStorage (hoje se perde ao trocar de aparelho)
 - Voz ao vivo hospedada (D4)
-- Minijogos: feitos em 08/11 descarte, higienização das mãos, paramentação, desparamentação, 9 certos, glicemia capilar, flebite e LPP (luva estéril e sondagem já vêm dos POPs). Faltam IM ventroglútea (precisa de imagem do Flow para o tocar-região) e purgar equipo
+- Minijogos: feitos em 08/11 descarte, higienização das mãos, paramentação, desparamentação, 9 certos, glicemia capilar, flebite e LPP (luva estéril e sondagem já vêm dos POPs). Purgar equipo feito. Falta IM ventroglútea (precisa de imagem do Flow para o tocar-região)
 - ~~Bot diário das vozes Gemini~~ migration 012 aplicada em 08/11 (pg_cron às 08:15 UTC)
 - ~~RLS de profiles com recursão e usuários sem perfil~~ migrations 013 e 014 aplicadas em 08/11

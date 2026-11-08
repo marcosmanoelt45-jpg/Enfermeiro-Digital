@@ -1,6 +1,6 @@
 # 03 — Design (padrão "Enfere Vivo" aplicado às cenas)
 
-Fonte da verdade: `CLAUDE.md` (seção Design & Motion) + `src/components/ui/surface.jsx` + `src/components/ui/button.jsx` + `src/lib/motion.js`. O `DESIGN.md` está **desatualizado**: não use.
+Fonte da verdade: `CLAUDE.md` (seção Design & Motion) + `src/components/ui/surface.jsx` + `src/components/ui/button.jsx` + `src/lib/motion.js`. O `DESIGN.md` foi reescrito na F8 com estes tokens.
 **Skills:** `impeccable` e `emil-design-eng` para decisões visuais; `motion-framer` para animação; `mobile-native` para toque; `review-animations` antes de fechar cada fase com interface; `stop-slop` + `humanizer` (adaptados ao PT-BR) para todo texto de interface e fala.
 
 ---

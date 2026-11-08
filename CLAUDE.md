@@ -42,7 +42,7 @@ Navegação num registro só: `src/features/navegacao/modulos.js` (header, dock,
 ---
 
 ## Sistema de Design & Motion ("Enfere Vivo", inspirado no Duolingo sem copiar)
-- **Tema**: escuro permanente. Fundo `#0B131D`; superfícies `#131F2E`/`#16222E`; linhas `#27394B`; marca `#20D5B5`; acerto `#3DD68C`; erro `#FF6B6B`; alerta e ofensiva `#FFC247`. Fonte Nunito. O `DESIGN.md` está desatualizado (ainda fala em Inter e `#0D9488`).
+- **Tema**: escuro permanente. Fundo `#0B131D`; superfícies `#131F2E`/`#16222E`; linhas `#27394B`; marca `#20D5B5`; acerto `#3DD68C`; erro `#FF6B6B`; alerta e ofensiva `#FFC247`. Fonte Nunito. Detalhes em `DESIGN.md`.
 - **Botões**: use sempre o `<Button>` de `src/components/ui/button.jsx`.
   - Variantes: `primary`, `success`, `danger`, `warning`, `info`, `outline`, `locked`, `ghost`, `link`.
   - Tamanhos: `sm`, `default`, `lg`, `xl`, `icon`. Prop `loading` mostra o spinner.

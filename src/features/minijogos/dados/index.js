@@ -9,11 +9,12 @@ import maos from "./higienizacao-maos.js";
 import { paramentacao, desparamentacao } from "./paramentacao-epi.js";
 import noveCertos from "./nove-certos.js";
 import glicemia from "./glicemia-capilar.js";
+import purgarEquipo from "./purgar-equipo.js";
 import { flebite, lppEstagio1 } from "./situacoes-clinicas.js";
 import { gerarTodosOsOrdenar } from "../logica/doProcedimento.js";
 import { gerarTodosOsEscolher } from "../logica/daSemiologia.js";
 
-export const MINIJOGOS_ESTATICOS = [bandeja, ausculta, contarFr, maos, paramentacao, desparamentacao, descarte, noveCertos, glicemia, flebite, lppEstagio1];
+export const MINIJOGOS_ESTATICOS = [bandeja, ausculta, contarFr, maos, paramentacao, desparamentacao, descarte, noveCertos, glicemia, purgarEquipo, flebite, lppEstagio1];
 
 // procedimentos = MASTER_PROCEDURES; semiologia = SEMIOLOGY_KNOWLEDGE_BASE (passados de fora: este arquivo fica puro).
 export function montarCatalogo({ procedimentos = [], semiologia = {} } = {}) {
