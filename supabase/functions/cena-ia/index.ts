@@ -14,6 +14,7 @@ import { turnoConsulta } from "./acoes/turnoConsulta.ts";
 import { retomarConsulta } from "./acoes/retomarConsulta.ts";
 import { finalizarConsulta } from "./acoes/finalizarConsulta.ts";
 import { avaliarPlantao } from "./acoes/avaliarPlantao.ts";
+import { turnoPlantao } from "./acoes/turnoPlantao.ts";
 import { montarResposta } from "./acoes/resposta.ts";
 import { criarRepositorio } from "./repositorio.ts";
 
@@ -60,6 +61,13 @@ const Entrada = z.discriminatedUnion("acao", [
     })).min(1).max(12),
     lacunas: z.record(z.string().max(40), z.object({ avaliada: z.boolean(), achado: z.string().max(200).optional() })),
   }),
+  z.object({
+    acao: z.literal("turno_plantao"),
+    cenarioId: z.string().regex(/^[a-z0-9_]{2,60}$/),
+    perguntaId: z.string().regex(/^plt\.[a-z0-9_]+\.[a-z0-9_]+$/),
+    texto: z.string().trim().min(1).max(600),
+    tentativa: z.number().int().min(0).max(3),
+  }),
 ]);
 
 Deno.serve(async (req) => {
@@ -102,6 +110,10 @@ Deno.serve(async (req) => {
       case "avaliar_plantao": {
         const cota = () => consumirCota(usuario.supabaseUsuario, "avaliacao", limiteDe("avaliacao"));
         return ok(await avaliarPlantao(usuario.userId, dados, { llm: chamarLLM, cota }));
+      }
+      case "turno_plantao": {
+        const cota = () => consumirCota(usuario.supabaseUsuario, "turno", limiteDe("turno"));
+        return ok(await turnoPlantao(usuario.userId, dados, { llm: chamarLLM, cota }));
       }
     }
   } catch (e) {

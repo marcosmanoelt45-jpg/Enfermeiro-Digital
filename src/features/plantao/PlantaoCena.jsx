@@ -1,11 +1,11 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { AnimatePresence, m as motion } from "framer-motion";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { sheetVariants, scrimVariants } from "@/lib/motion";
 import CenaAoVivo from "@/features/cena/CenaAoVivo.jsx";
-import { ErroServidor, plantao as servidor } from "@/features/cena/servidor.js";
+import { ErroServidor, plantao as servidor, preCarregarVoz } from "@/features/cena/servidor.js";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
 import { MINIJOGOS_ESTATICOS } from "@/features/minijogos/dados/index.js";
 import falasAna from "@/data/falas/enfermeira-ana.json";
@@ -17,10 +17,22 @@ const FALAS = falasAna.falas;
 const TEXTO = new Map(FALAS.map((f) => [f.id, f.texto]));
 const perguntaFala = (p) => ({ id: p.id, texto: TEXTO.get(p.id) ?? p.texto, origem: "fixa" });
 
+const PERSONAGEM = "enfermeira-ana";
+
 // Cena do Plantão: a enfermeira pergunta em ordem SBAR (falas fixas), o aluno responde consultando o prontuário.
+// A cada resposta de texto, a IA da Ana entende o que o aluno disse (turno_plantao): se ele não soube ou fugiu do
+// assunto, ela orienta e pergunta de novo (uma vez); se respondeu, ela reage ao conteúdo e segue. Sem servidor,
+// cai nas reações fixas de antes. Perguntas de números seguem conferidas só por código.
 export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
   const roteiro = useRef(criarRoteiro(cenario));
   const ultimas = useRef({});
+  const tentativas = useRef({}); // perguntaId -> respostas já recusadas pela Ana
+
+  // A próxima pergunta já é conhecida: pede a voz dela enquanto o aluno responde, para não esperar a geração.
+  useEffect(() => {
+    const p = roteiro.current.cenario.perguntas[1];
+    if (p) preCarregarVoz({ texto: perguntaFala(p).texto, personagemId: PERSONAGEM });
+  }, []);
   const [lacunas, setLacunas] = useState({});
   const [prontuario, setProntuario] = useState(false);
   const [lacunaAberta, setLacunaAberta] = useState(null);
@@ -53,20 +65,44 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
 
   const onEnviar = useCallback(
     async (texto) => {
+      const pergunta = perguntaAtual(roteiro.current);
+      if (!pergunta || !String(texto ?? "").trim()) return [];
+
+      // IA da Ana (só nas perguntas de texto; números são conferidos por código).
+      let ia = null;
+      if (pergunta.espera.tipo === "texto") {
+        const tentativa = tentativas.current[pergunta.id] ?? 0;
+        ia = await servidor.turno({ cenarioId: cenario.id, perguntaId: pergunta.id, texto, tentativa }).catch(() => null);
+        if (ia?.fala && ia.situacao !== "respondeu" && tentativa === 0) {
+          // Não soube, fugiu do assunto ou ficou incompleto: a Ana orienta e pergunta de novo, sem avançar.
+          tentativas.current[pergunta.id] = 1;
+          return [{ id: `${pergunta.id}.ia.${Date.now()}`, texto: ia.fala, origem: "aovivo" }];
+        }
+      }
+
       const r = responder(roteiro.current, texto);
       if (!r.reacao) return [];
       roteiro.current = r.estado;
       const falas = [];
-      const reacao = falaDaEnfermeira(r.reacao, FALAS, Math.random, ultimas.current);
-      if (reacao) {
-        ultimas.current[r.reacao] = reacao.id;
-        falas.push(reacao);
+      if (ia?.fala && r.reacao === "ok") {
+        falas.push({ id: `${pergunta.id}.ia.${Date.now()}`, texto: ia.fala, origem: "aovivo" });
+      } else {
+        const reacao = falaDaEnfermeira(r.reacao, FALAS, Math.random, ultimas.current);
+        if (reacao) {
+          ultimas.current[r.reacao] = reacao.id;
+          falas.push(reacao);
+        }
       }
       if (r.concluida) setTimeout(avaliar, 0);
-      else if (r.reacao !== "faltou_numero") falas.push(perguntaFala(perguntaAtual(r.estado)));
+      else if (r.reacao !== "faltou_numero") {
+        falas.push(perguntaFala(perguntaAtual(r.estado)));
+        // E já pede a voz da pergunta seguinte a esta.
+        const seguinte = r.estado.cenario.perguntas[r.estado.indice + 1];
+        if (seguinte) preCarregarVoz({ texto: perguntaFala(seguinte).texto, personagemId: PERSONAGEM });
+      }
       return falas;
     },
-    [avaliar]
+    [avaliar, cenario.id]
   );
 
   const preencher = (lacuna, resultado) => {
@@ -82,7 +118,7 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
   return (
     <>
       <CenaAoVivo
-        personagemId="enfermeira-ana"
+        personagemId={PERSONAGEM}
         titulo={`Enfermeira Ana · ${cenario.bed}`}
         progresso={{ atual: Math.min(roteiro.current.indice + 1, cenario.perguntas.length), total: cenario.perguntas.length }}
         falasIniciais={abertura}

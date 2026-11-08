@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { shake, vibrate } from "@/lib/motion";
 import { celebrate } from "@/lib/celebrate";
 import CenaAoVivo from "@/features/cena/CenaAoVivo.jsx";
+import { preCarregarVoz } from "@/features/cena/servidor.js";
 import falasRui from "@/data/falas/medico-rui.json";
 import Receita from "./componentes/Receita.jsx";
 import TecladoCalculo from "./componentes/TecladoCalculo.jsx";
@@ -129,6 +130,12 @@ export default function CalculoCena({ rodada, modo, onFinalizar, onSair }) {
   const s = useRef({ indice: 0, estado: novoEstadoItem(rodada[0]), finalizados: [], tempos: [], inicioItem: Date.now(), ultimas: {}, confeteFeito: false });
 
   const falasIniciais = useMemo(() => [falaDaReacao("abertura", FALAS), enunciadoDe(rodada[0])].filter(Boolean), [rodada]);
+
+  // O enunciado da próxima questão já é conhecido: pede a voz dele enquanto o aluno resolve esta.
+  useEffect(() => {
+    const prox = rodada[indice + 1];
+    if (prox) preCarregarVoz({ texto: enunciadoDe(prox).texto, personagemId: "medico-rui" });
+  }, [indice, rodada]);
 
   const onEnviar = useCallback(
     async (texto) => {

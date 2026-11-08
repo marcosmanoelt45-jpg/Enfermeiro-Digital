@@ -46,25 +46,37 @@ export function sttToken() {
 }
 
 // Voz ao vivo hospedada: devolve um Blob de áudio, ou null (204) quando não há voz hospedada.
-// Áudios já recebidos nesta sessão: ouvir de novo não pede ao servidor outra vez.
+// Áudios desta sessão (e pedidos em andamento) ficam guardados: ouvir de novo, ou a fala que já foi pedida
+// antes da hora (preCarregarVoz), não pede ao servidor outra vez.
 const vozesDaSessao = new Map();
 const MAX_VOZES_SESSAO = 60;
 
-export async function gerarVoz({ texto, personagemId }) {
+async function pedirVoz(texto, personagemId) {
+  const { data, error } = await supabase.functions.invoke("voz", { body: { texto, personagemId } });
+  // Falha de voz nunca atrapalha a cena: o chamador cai na voz do navegador.
+  if (error) return null;
+  // O servidor manda octet-stream (único tipo que o supabase-js entrega como Blob); aqui vira áudio WAV.
+  return data instanceof Blob && data.size > 44 ? new Blob([data], { type: "audio/wav" }) : null;
+}
+
+export function gerarVoz({ texto, personagemId }) {
   const chave = `${personagemId}|${texto}`;
   if (vozesDaSessao.has(chave)) return vozesDaSessao.get(chave);
-  const { data, error } = await supabase.functions.invoke("voz", { body: { texto, personagemId } });
-  if (error) {
-    // Falha de voz nunca atrapalha a cena: o chamador cai na voz do navegador.
-    return null;
-  }
-  // O servidor manda octet-stream (único tipo que o supabase-js entrega como Blob); aqui vira áudio WAV.
-  const blob = data instanceof Blob && data.size > 44 ? new Blob([data], { type: "audio/wav" }) : null;
-  if (blob) {
-    if (vozesDaSessao.size >= MAX_VOZES_SESSAO) vozesDaSessao.delete(vozesDaSessao.keys().next().value);
-    vozesDaSessao.set(chave, blob);
-  }
-  return blob;
+  const pedido = pedirVoz(texto, personagemId).catch(() => null);
+  if (vozesDaSessao.size >= MAX_VOZES_SESSAO) vozesDaSessao.delete(vozesDaSessao.keys().next().value);
+  vozesDaSessao.set(chave, pedido);
+  // Falhou: não guarda, para tentar de novo da próxima vez.
+  pedido.then((blob) => {
+    if (!blob && vozesDaSessao.get(chave) === pedido) vozesDaSessao.delete(chave);
+  });
+  return pedido;
+}
+
+// Pede antes da hora a voz de uma fala que já se sabe que vem (ex.: a próxima pergunta do Plantão), para ela
+// tocar sem esperar a geração. Fala fixa vai inteira, do mesmo jeito que useVozPersonagem pede.
+export function preCarregarVoz({ texto, personagemId }) {
+  if (!texto || !temSessaoDoServidor()) return;
+  gerarVoz({ texto, personagemId });
 }
 
 // Uma vez por sessão: pede ao servidor o lote do dia, que gera com a cota grátis do Gemini as falas fixas
@@ -87,6 +99,8 @@ export const consulta = {
 
 // Plantão com a Enfermeira: o servidor avalia as respostas (texto pela IA, números e lacunas por código).
 export const plantao = {
+  // A enfermeira reage à resposta com IA: { situacao: "respondeu"|"incompleto"|"nao_sabe"|"fora_do_tema", fala|null }.
+  turno: ({ cenarioId, perguntaId, texto, tentativa }) => invocarFuncao(invoke, "cena-ia", { acao: "turno_plantao", cenarioId, perguntaId, texto, tentativa }, { timeoutMs: 12000, tentativas: 1 }),
   avaliar: ({ cenarioId, respostas, lacunas }) => invocarFuncao(invoke, "cena-ia", { acao: "avaliar_plantao", cenarioId, respostas, lacunas }, { timeoutMs: 30000, tentativas: 1 }),
 };
 
