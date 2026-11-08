@@ -17,9 +17,11 @@ import { callResilientAI } from "./aiCoreService.js";
 /**
  * Executa uma chamada à IA usando callResilientAI (chave pessoal do aluno ou Edge Function do Supabase).
  */
-async function callGemini(systemPrompt, userPrompt) {
+async function callGemini(tarefa, userPrompt, parametros = {}) {
   try {
-    const result = await callResilientAI(systemPrompt, userPrompt, {
+    const result = await callResilientAI(null, userPrompt, {
+      tarefa,
+      parametros,
       temperature: 0.3,
       responseMimeType: "application/json",
       maxTokens: 1500,
@@ -69,34 +71,7 @@ export async function evaluateClinicalReasoning({
   const cleanInterventions = sanitizeTextForLGPD(actualInterventions);
   const cleanEvolution = sanitizeTextForLGPD(actualEvolution);
 
-  const systemPrompt = `Você é o Goti IA, o enfermeiro digital especialista em Raciocínio Clínico e no Processo de Enfermagem (Resolução COFEN nº 736/2024 e Teoria das Necessidades Humanas Básicas) da plataforma Enfere.
-
-REGRAS PEDAGÓGICAS E DE PONTUAÇÃO CRITERIOSA (RESOLUÇÃO COFEN nº 736/2024):
-1. O Processo de Enfermagem é composto por 5 etapas indissociáveis (Coleta, Diagnóstico, Planejamento/Metas, Implementação/Prescrição e Evolução).
-2. REGRA MANDATÓRIA DE BLOQUEIO POR OMISSÃO DE ETAPAS:
-   - Se o estudante NÃO preencheu cuidados, metas e evolução (etapas 3, 4 e 5 ausentes ou "(Não preenchido)"), A NOTA MÁXIMA TOTAL NÃO PODE ULTRAPASSAR 25 PONTOS (Score entre 10 e 25). É TERMINANTEMENTE PROIBIDO atribuir notas como 50%, 60% ou 65% para formulações sem plano de cuidados!
-   - Se houver contradição clínica flagrante entre as evidências citadas e os sinais vitais reais do caso (ex: citar "bradipneia" quando o paciente tem FR > 20 taquipneico, ou citar "hipotensão" em paciente hipertenso), DEDUZA 10 a 15 pontos adicionais por erro iatrogênico de avaliação.
-3. CRITÉRIO RIGOROSO DE NOTAS:
-   - Spam, repetição de letras ou texto sem sentido: NOTA ZERO (0 a 10).
-   - Somente Diagnóstico e Evidências preenchidas, mas sem intervenções/metas: NOTA ENTRE 15 e 25 (Reprovado por Processo Incompleto).
-   - Diagnóstico correto com intervenções vagas sem aprazamento de horário ou metas: NOTA ENTRE 40 e 55.
-   - Diagnóstico correto, evidências coerentes e prescrições com aprazamento de horários: NOTA ENTRE 75 e 89.
-   - Excelência de padrão ouro em todas as 5 etapas com evolução e metas NOC quantificadas: NOTA ENTRE 90 e 100.
-4. Explique no campo "reasoningAnalysis" com total transparência o motivo da pontuação, detalhando a falta de intervenções e eventuais contradições encontradas.
-
-Retorne EXCLUSIVAMENTE um JSON válido com esta estrutura:
-{
-  "score": number (0 a 100, calibrado rigorosamente conforme os critérios acima),
-  "feedbackTitle": string (título formativo acolhedor),
-  "reasoningAnalysis": string (análise detalhada do julgamento clínico explicando com transparência por que a nota foi atribuída e quais pontos foram deduzidos),
-  "reflectiveQuestion": string (pergunta socrática principal instigando a reflexão profunda do aluno),
-  "pointsToConsider": string[] (2 a 3 pontos práticos essenciais para a assistência segura),
-  "strengths": string[] (aspectos positivos identificados),
-  "gaps": string[] (lacunas, dados clínicos ou sinais vitais omitidos),
-  "socraticQuestions": string[] (perguntas socráticas instigando fisiopatologia e segurança),
-  "pedagogicalHint": string (pista orientadora sem entregar a resposta completa),
-  "cofenStepFocus": string (etapa da Resolução COFEN 736/2024 que requer atenção)
-}`;
+  // Prompt de sistema: tarefa "raciocinio_clinico" em supabase/functions/_shared/tarefasIA.js
 
   const userPrompt = `DADOS DO CASO SIMULADO:
 Título: ${caseData.title}
@@ -112,7 +87,7 @@ RESPOSTA SUBMETIDA PELO ESTUDANTE:
 
 Avalie criteriosamente o raciocínio clínico. Se o texto for genérico ou vago, deduza pontos e explique o motivo.`;
 
-  const aiResult = await callGemini(systemPrompt, userPrompt);
+  const aiResult = await callGemini("raciocinio_clinico", userPrompt);
   if (aiResult && (aiResult.score !== undefined || aiResult.reasoningAnalysis)) {
     const finalScore = typeof aiResult.score === 'number' ? Math.max(0, Math.min(100, Math.round(aiResult.score))) : 70;
     const reasoningAnalysis = aiResult.reasoningAnalysis ||
@@ -143,23 +118,11 @@ Avalie criteriosamente o raciocínio clínico. Se o texto for genérico ou vago,
  * @param {number} level - 1 (pergunta guia), 2 (pista fisiopatológica), 3 (fundamentação conceitual)
  */
 export async function getScaffoldingHint(caseData, level = 1) {
-  const systemPrompt = `Você é o Goti IA, enfermeiro digital da plataforma Enfere. O estudante está analisando um caso simulado e pediu uma Dica Pedagógica de Nível ${level}.
-
-NÍVEIS DE ANDAIME PEDAGÓGICO:
-- Nível 1 (Pergunta Guia): Faça uma pergunta orientando o olhar do aluno para o sinal vital ou achado mais crítico, sem citar diagnósticos.
-- Nível 2 (Pista Fisiopatológica): Explique o mecanismo fisiológico alterado que o organismo do paciente está demonstrando, instigando o raciocínio.
-- Nível 3 (Fundamentação Conceitual & Referência): Indique qual Necessidade Humana Básica (Wanda Horta) ou Domínio Taxonômico (CIPE / literatura oficial) está comprometido e como ele deve estruturar a resposta.
-
-Retorne EXCLUSIVAMENTE um JSON:
-{
-  "level": ${level},
-  "title": "Nível ${level}: ...",
-  "content": "Texto da dica socrática..."
-}`;
+  // Prompt de sistema: tarefa "dica_caso" em supabase/functions/_shared/tarefasIA.js
 
   const userPrompt = `Caso: ${caseData.title}. Sinais Vitais: PA ${caseData.vitals?.pa_sistolica}/${caseData.vitals?.pa_diastolica}, FC ${caseData.vitals?.fc}, FR ${caseData.vitals?.fr}, SatO2 ${caseData.vitals?.sat}%.`;
 
-  const aiResult = await callGemini(systemPrompt, userPrompt);
+  const aiResult = await callGemini("dica_caso", userPrompt, { nivel: level });
   if (aiResult && aiResult.content) {
     return aiResult;
   }
@@ -194,19 +157,7 @@ Retorne EXCLUSIVAMENTE um JSON:
 export async function guideMedicationCalculation(problem, studentAnswer) {
   const cleanAnswer = sanitizeTextForLGPD(studentAnswer);
 
-  const systemPrompt = `Você é o Goti IA ensinando Cálculo de Medicamentos e Gotejamento em Enfermagem na plataforma Enfere.
-O estudante está tentando resolver um problema de cálculo farmacológico.
-NUNCA diga o resultado numérico final direto de mão beijada se o aluno tiver errado.
-Se o aluno acertou, confirme o cálculo, comente a segurança da dose e valide a dupla checagem.
-Se errou, mostre onde pode ter ocorrido a falha (ex: conversão de unidades, tempo em horas vs minutos, ou fórmula de macrogotas vs microgotas).
-
-Retorne EXCLUSIVAMENTE um JSON:
-{
-  "isCorrect": true/false,
-  "feedback": "Comentário pedagógico detalhado",
-  "stepClarification": "Explicação do raciocínio matemático das etapas",
-  "safetyAlert": "Dica de segurança do paciente na administração desse medicamento"
-}`;
+  // Prompt de sistema: tarefa "calculo_guiado" em supabase/functions/_shared/tarefasIA.js
 
   const userPrompt = `PROBLEMA DE CÁLCULO:
 Prescrição: ${problem.description}
@@ -214,7 +165,7 @@ Fórmula Aplicável: ${problem.formulaHint}
 Resposta do Estudante: ${cleanAnswer}
 Resposta Correta Esperada: ${problem.correctResult}`;
 
-  const aiResult = await callGemini(systemPrompt, userPrompt);
+  const aiResult = await callGemini("calculo_guiado", userPrompt);
   if (aiResult && aiResult.feedback) {
     return aiResult;
   }

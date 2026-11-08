@@ -75,6 +75,20 @@ export default [
     },
   },
   {
+    // Serviços, hooks e API também rodam no navegador. Sem no-undef aqui, um import esquecido
+    // (sanitizeTextForLGPD no Goti) quebrou o chat sem o lint avisar.
+    files: ["src/services/**/*.js", "src/hooks/**/*.js", "src/api/**/*.js", "supabase/functions/_shared/**/*.js"],
+    languageOptions: {
+      globals: globals.browser,
+      parserOptions: { ecmaVersion: 2022, sourceType: "module" },
+    },
+    plugins: { "unused-imports": pluginUnusedImports },
+    rules: {
+      "no-undef": "error",
+      "unused-imports/no-unused-imports": "error",
+    },
+  },
+  {
     // Testes (node:test) e o executor de testes rodam no Node, não no navegador.
     files: ["**/*.test.mjs", "scripts/run-tests.mjs"],
     ...pluginJs.configs.recommended,

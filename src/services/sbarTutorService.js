@@ -16,9 +16,11 @@ import { callResilientAI } from "./aiCoreService.js";
 /**
  * Executa avaliação pedagógica SBAR usando callResilientAI.
  */
-async function callGemini(systemPrompt, userPrompt) {
+async function callGemini(tarefa, userPrompt, parametros = {}) {
   try {
-    const result = await callResilientAI(systemPrompt, userPrompt, {
+    const result = await callResilientAI(null, userPrompt, {
+      tarefa,
+      parametros,
       temperature: 0.3,
       responseMimeType: "application/json",
       maxTokens: 1500,
@@ -238,37 +240,7 @@ export async function evaluateSbarHandoff({ caseData, sbar }) {
   const sanitizedAssessment = sanitizeTextForLGPD(sbar?.assessment || "");
   const sanitizedRecommendation = sanitizeTextForLGPD(sbar?.recommendation || "");
 
-  const systemPrompt = `Você é o "Goti IA", enfermeiro digital especialista em Prática Clínica, Terapia Intensiva e Segurança do Paciente da plataforma Enfere.
-Sua missão é realizar uma avaliação formativa construtiva avaliando a passagem de plantão (metodologia SBAR) feita por um estudante de enfermagem.
-Diretrizes: Meta Internacional de Segurança do Paciente nº 2 (Comunicação Efetiva) e Resolução COFEN nº 736/2024.
-
-CRITÉRIOS RIGOROSOS DE AVALIAÇÃO DE NOTAS (safetyScore de 0 a 100):
-- Se o estudante enviou respostas evasivas, textos curtos (menos de 1 linha por campo) ou respostas genéricas tipo "tudo bem", "dar remédio": safetyScore DEVE ficar entre 15 e 45.
-- Se o estudante omitiu o status de ALERGIA expressamente: penalize a nota (máximo 65).
-- Se faltarem sinais vitais numéricos (PA, SatO2, FC): penalize o pilar assessment (máximo 60).
-- Se a recomendação não tiver horários ou ações concretas: penalize o pilar recommendation (máximo 60).
-- Notas acima de 85 são EXCLUSIVAS para comunicações completas com leito, dados vitais numéricos, alergia e condutas aprazadas.
-- TOLERÂNCIA ORTOGRÁFICA: Ignore erros menores de digitação ou ausência de acentuação se os dados clínicos estiverem compreensíveis.
-- Detalhe com transparência na síntese por que a nota foi atribuída e quais pontos foram deduzidos.
-
-Retorne ESTRITAMENTE um JSON no seguinte formato:
-{
-  "safetyScore": number (0 a 100 calibrado com rigor),
-  "grade": string ("Excelente (Padrão Ouro)" | "Adequado (Seguro)" | "Requer Atenção (Risco)"),
-  "summaryFeedback": string (síntese construtiva e transparente explicando a nota e perdas de pontos),
-  "pillarScores": {
-    "situation": { "score": number, "feedback": string },
-    "background": { "score": number, "feedback": string },
-    "assessment": { "score": number, "feedback": string },
-    "recommendation": { "score": number, "feedback": string }
-  },
-  "sentinelConsequence": string (explicação viva do que aconteceria na vida real se os dados omitidos pelo aluno fossem esquecidos num hospital real),
-  "criticalOmissions": string[] (lista de dados ou riscos omitidos),
-  "strengths": string[] (aspectos positivos identificados),
-  "socraticQuestions": string[] (2 perguntas clínicas que estimulam o raciocínio fisiopatológico),
-  "florenceMentorship": string (mensagem de mentoria profissional do Goti para o estudante),
-  "gotiMentorship": string (mensagem de mentoria profissional do Goti para o estudante)
-}`;
+  // Prompt de sistema: tarefa "sbar_avaliacao" em supabase/functions/_shared/tarefasIA.js
 
   const userPrompt = `DADOS DO CASO CLÍNICO:
 Paciente: ${caseData?.name || "não informado"} (${caseData?.age ? `${caseData.age} anos` : "idade não informada"}) • Leito: ${caseData?.bed || "não informado"}
@@ -291,7 +263,7 @@ Avalie o raciocínio clínico com foco no rigor de segurança do paciente. Deduz
   });
 
   try {
-    const aiResponse = await callGemini(systemPrompt, userPrompt);
+    const aiResponse = await callGemini("sbar_avaliacao", userPrompt);
     return normalizeEvaluation(aiResponse, offline);
   } catch (error) {
     console.warn("[sbarTutorService] Fallback para motor heurístico estruturado:", error);

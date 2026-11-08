@@ -14,6 +14,7 @@ import { ErroApp } from "../_shared/erros.ts";
 import { chamarLLM, extrairJson } from "../_shared/llm.ts";
 import { logEvento } from "../_shared/log.ts";
 import { sanitizeClinicalText } from "../_shared/dlp.ts";
+import { MAX_TEXTO_ALUNO, TAREFAS_IA, montarSistema } from "../_shared/tarefasIA.js";
 
 // ------------------------------------------------------------------------------
 // 1. Sanitização e DLP Server-Side (LGPD): sanitizeClinicalText fica em ../_shared/dlp.ts
@@ -138,25 +139,33 @@ Deno.serve(async (req) => {
       });
     }
 
-    // Cenário B: Requisição Geral de Inferência (systemPrompt + userPrompt / options)
-    const { systemPrompt, userPrompt } = requestData;
-    const options = requestData.options && typeof requestData.options === "object" ? requestData.options : {};
-    if (!userPrompt) {
+    // Cenário B: tarefa da lista fechada (TAREFAS_IA). O prompt de sistema é do servidor; o cliente manda só
+    // o id da tarefa, parâmetros curtos e o texto do aluno. Prompt livre virava um proxy aberto da nossa chave.
+    const tarefa = typeof requestData.tarefa === "string" ? requestData.tarefa : "";
+    const config = Object.prototype.hasOwnProperty.call(TAREFAS_IA, tarefa) ? TAREFAS_IA[tarefa as keyof typeof TAREFAS_IA] : null;
+    const sistema = config ? montarSistema(tarefa, requestData.parametros) : null;
+    if (!config || !sistema) {
+      logEvento("clinical_ai_tarefa_recusada", { usuario: userId });
+      return responder({ error: "Tarefa de IA não permitida." }, 400);
+    }
+    const userPrompt = typeof requestData.userPrompt === "string" ? requestData.userPrompt.slice(0, MAX_TEXTO_ALUNO) : "";
+    if (!userPrompt.trim()) {
       return responder({ error: "userPrompt ou clinical_data é obrigatório." }, 400);
     }
+    const options = requestData.options && typeof requestData.options === "object" ? requestData.options : {};
 
-    // Sanitização DLP do conteúdo textual antes do envio à IA externa
+    // Sanitização DLP do texto do aluno antes do envio à IA externa. Tokens e temperatura nunca passam do teto da tarefa.
     const resposta = await chamarLLM({
       mensagens: [
-        { role: "system", content: sanitizeClinicalText(systemPrompt || "") },
+        { role: "system", content: sistema },
         { role: "user", content: sanitizeClinicalText(userPrompt) },
       ],
-      maxTokens: Number(options.maxTokens) || 1500,
-      temperatura: Number(options.temperature) || 0.4,
-      json: options.responseMimeType === "application/json",
+      maxTokens: Math.min(Number(options.maxTokens) || config.maxTokens, config.maxTokens),
+      temperatura: Math.min(Number(options.temperature) || config.temperatura, config.temperatura),
+      json: config.json,
     });
 
-    logEvento("clinical_ai", { cenario: "B", usuario: userId, modelo: resposta.modelo, truncado: resposta.truncado, ms: Date.now() - inicio });
+    logEvento("clinical_ai", { cenario: "B", tarefa, usuario: userId, modelo: resposta.modelo, truncado: resposta.truncado, ms: Date.now() - inicio });
     return responder({
       success: true,
       text: resposta.texto,

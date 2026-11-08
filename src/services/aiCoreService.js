@@ -9,6 +9,7 @@
 
 import { supabase, isSupabaseConfigured } from './supabaseClient.js';
 import { sanitizeTextForLGPD } from '../lib/dlpSanitizer.js';
+import { montarSistema } from '../../supabase/functions/_shared/tarefasIA.js';
 
 /**
  * Obtém a chave pessoal do Google Gemini configurada pelo usuário no LocalStorage.
@@ -209,13 +210,17 @@ async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
   }
 
   if (options.signal?.aborted) return null;
+  // O servidor só aceita tarefas da lista fechada (supabase/functions/_shared/tarefasIA.js) e monta o prompt
+  // de sistema sozinho: daqui vão só o id da tarefa, os parâmetros e o texto do aluno.
+  if (!options.tarefa) return null;
   let timeoutId;
   try {
     // Timeout de 10 segundos via Promise.race para blindar a Edge Function.
     // Sem headers manuais: o supabase-js envia o JWT da sessão do usuário, que a função exige.
     const invokePromise = supabase.functions.invoke('clinical-ai-sanitize', {
       body: {
-        systemPrompt,
+        tarefa: options.tarefa,
+        parametros: options.parametros || {},
         userPrompt,
         options: {
           maxTokens: options.maxTokens || 1500,
@@ -263,6 +268,8 @@ async function callSupabaseEdgeAI(systemPrompt, userPrompt, options) {
  * @returns {Promise<{ text: string, provider: string, truncated?: boolean } | null>}
  */
 export async function callResilientAI(systemPrompt, userPrompt, options = {}) {
+  // Com `options.tarefa`, o prompt de sistema vem da lista única (o mesmo texto que o servidor usa).
+  if (options.tarefa) systemPrompt = montarSistema(options.tarefa, options.parametros) || systemPrompt;
   // Mascara CPF, telefone, e-mail etc. antes de qualquer provedor, inclusive nas chaves pessoais.
   userPrompt = sanitizeTextForLGPD(String(userPrompt || ''));
 

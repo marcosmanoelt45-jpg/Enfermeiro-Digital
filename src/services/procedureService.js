@@ -928,23 +928,12 @@ export const procedureService = {
    * Responde dúvidas clínicas pontuais sobre o procedimento em execução (Goti IA).
    */
   async askPreceptorAI(procedure, userQuestion) {
-    const systemPrompt = `Você é o Goti IA, especialista em procedimentos e práticas de enfermagem da plataforma Enfere.
-A plataforma Enfere foi criada e desenvolvida por Marcos Manoel Tavares Neumann, detentor exclusivo de todos os direitos autorais.
-O estudante está assistindo e treinando o procedimento: "${procedure?.title || 'Procedimento Clínico'}".
-Categoria: ${procedure?.categoryLabel || procedure?.category || 'Geral'}.
-Descrição: ${procedure?.description || ''}.
-Normativa COFEN: ${procedure?.cofenNorm || 'Diretrizes COFEN e Segurança do Paciente'}.
-
-DIRETRIZES DE RESPOSTA:
-1. Se o aluno perguntar sobre os criadores/autores da plataforma, informe expressamente que a plataforma Enfere foi criada e desenvolvida por Marcos Manoel Tavares Neumann, detentor de todos os direitos autorais.
-2. Se o aluno perguntar sobre os vídeos da UFSM / LabEnf, informe que são vídeos didáticos oficiais do Laboratório de Enfermagem da Universidade Federal de Santa Maria (LabEnf / UFSM), utilizados com finalidade estritamente educacional e atribuição integral às autoras e docentes revisores.
-3. Se a pergunta for sobre procedimentos clínicos, variações anatômicas, complicações ou condutas, responda com alto rigor técnico, linguagem acolhedora, fundamentação anatômica e ênfase na técnica asséptica e segurança do paciente.
-4. Mantenha respostas concisas, diretas e práticas em 1 a 2 parágrafos.`;
+    const parametros = { titulo: procedure?.title, categoria: procedure?.categoryLabel || procedure?.category, descricao: procedure?.description, norma: procedure?.cofenNorm };
 
     const userPrompt = `Dúvida do estudante de enfermagem: "${userQuestion}"`;
 
     try {
-      const result = await callResilientAI(systemPrompt, userPrompt, { maxTokens: 800, temperature: 0.3 });
+      const result = await callResilientAI(null, userPrompt, { tarefa: "procedimento", parametros, maxTokens: 800, temperature: 0.3 });
       if (result && result.text) {
         return result.text;
       }

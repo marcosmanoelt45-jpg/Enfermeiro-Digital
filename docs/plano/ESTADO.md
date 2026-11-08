@@ -114,7 +114,8 @@
 
 ## Depois (fora do escopo, não esquecer)
 - ~~Goti revela o modelo e resume o prompt~~ feito em 07/11: regra no prompt e filtro de saída (`src/services/gotiFiltro.js`)
-- Trocar o "Cenário B" (prompt livre) da `clinical-ai-sanitize` por uma lista de tarefas permitidas (hoje qualquer aluno logado manda prompt livre, limitado só pela cota `llm`)
+- ~~Cenário B (prompt livre) da clinical-ai-sanitize~~ feito em 08/11: só tarefas da lista `supabase/functions/_shared/tarefasIA.js` (fonte única dos 7 prompts, usada pelo app e pelo servidor), com teto de tokens e temperatura por tarefa
+- Achado em 08/11: o chat do Goti quebrava em toda mensagem (`sanitizeTextForLGPD` sem import). Corrigido, e o lint agora tem no-undef em services, hooks e api
 - ~~Apagar o transcript na AssemblyAI~~ feito em 07/11: a `transcrever` faz DELETE ao ler o texto ou o erro
 - CSP em modo relatório sem `report-to`: não coleta nada. Precisa de uma Edge Function receptora (depende de autorização)
 - ~~Filtro de fala com provedores/modelos e prompt~~ já estava no `filtroFala` (paciente) e agora no Goti

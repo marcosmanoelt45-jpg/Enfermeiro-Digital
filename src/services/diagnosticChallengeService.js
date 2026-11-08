@@ -4,7 +4,7 @@
  * Inspirado nas metodologias de ensino de AMBOSS NextGen NCLEX, Osmosis, SimX, Whitebook/PEBMED e COFEN nº 736/2024.
  */
 
-import { computeGlobalRisk, computeBradenTotal, computeCamPositive, computeCaloiTotal, computeSakTotal } from "../lib/riskEngine.js";
+import { computeBradenTotal, computeCamPositive, computeCaloiTotal, computeSakTotal } from "../lib/riskEngine.js";
 import { formatToInitials } from "../lib/sampleNames.js";
 import { callResilientAI } from "./aiCoreService.js";
 import { generateContextualHeuristicBattery } from "./clinicalCaseHeuristics.js";
@@ -160,71 +160,7 @@ export async function generateCaseDiagnosticChallenge(profile, assessmentData, a
   const scoresSummary = `Braden: ${bradenTotal} | CAM (Delirium): ${camPositive ? "Positivo" : "Negativo"} | Dor (CALOI): ${caloiTotal}/10 | Risco Quedas (SAK): ${sakTotal}`;
 
   try {
-    const systemPrompt = `Você é um Especialista e Docente Sênior de Enfermagem em Terapia Intensiva e Clínica Médica, especialista em julgamento clínico avançado e na Resolução COFEN nº 736/2024.
-Sua missão: Criar uma BATERIA DE 4 QUESTÕES CLÍNICAS DE ALTA COMPLEXIDADE baseadas na vivência real do plantão hospitalar, com distratores de alta verossimilhança e raciocínio fisiopatológico profundo.
-NÃO faça perguntas puramente teóricas ou óbvias. Crie dilemas reais de conduta que enfermeiros enfrentam à beira-leito.
-NUNCA insira a palavra 'pegadinha' ou qualquer aviso/spoiler no texto das alternativas ou enunciados.
-
-DIRETRIZ MANDATÓRIA DE PSICOMETRIA & BALANCEAMENTO DE ALTERNATIVAS:
-1. HOMOGENEIDADE ABSOLUTA DE EXTENSÃO: Todas as 4 alternativas (A, B, C, D) DEVEM POSSUIR EXATAMENTE O MESMO NÚMERO DE PALAVRAS (entre 22 e 28 palavras cada). É TERMINANTEMENTE PROIBIDO fazer a alternativa correta mais longa ou mais detalhada do que os distratores!
-2. PROIBIÇÃO ABSOLUTA DE DISTRATORES ÓBVIOS: É expressamente PROIBIDO gerar alternativas absurdas como "delegar ao acompanhante", "administrar medicação sem rótulo", "fazer sem consultar ninguém", "amarrar com ataduras", "apagar luzes no escuro" ou "suspender cuidados". Todos os distratores devem parecer condutas profissionais sérias e plausíveis, pecando por sutilezas fisiopatológicas, falhas de timing, aprazamentos incorretos ou inversão de prioridades ABCDE.
-3. DISTRIBUIÇÃO DA RESPOSTA CORRETA: Exatamente UMA alternativa por questão deve possuir "isCorrect": true, e as outras três "isCorrect": false.
-
-DIRETRIZ MANDATÓRIA DE PRIVACIDADE E LGPD (Lei nº 13.709/2018):
-É expressamente PROIBIDO gerar nomes completos de pessoas. Refira-se ao paciente EXCLUSIVAMENTE por suas iniciais ("Paciente ${patientInitials}") ou pelo leito hospitalar.
-
-A bateria DEVE conter EXATAMENTE 4 QUESTÕES com estes eixos temáticos:
-1. "Priorização & Conduta Imediata": O que o enfermeiro faz nos primeiros 5 minutos diante dos sinais vitais e achados, antes do médico chegar?
-2. "Fisiopatologia & Diagnóstico Crítico": Raciocínio clínico sobre a causa raiz (ex: descompensação de ICC com congestão pulmonar vs EAP, choque séptico inicial vs hipovolemia, delirium hipoativo vs demência).
-3. "Farmacologia Clínica & Iatrogenia": Vigilância dos medicamentos em uso pelo paciente (${profile.current_medications || "conforme caso"}), riscos hidroeletrolíticos (K+, Na+), interações perigosas, cuidados na administração intravenosa e riscos de toxicidade.
-4. "Segurança do Paciente & Legislação Ética (COFEN 736/2024 / Lei 7.498/86)": Atribuições privativas do enfermeiro vs delegação ao técnico de enfermagem, prevenção de LPP grave com Braden alterado, contenção no delirium ou manejo de quedas.
-
-Formato OBRIGATÓRIO de retorno: JSON estrito com esta estrutura:
-{
-  "questionTitle": "Bateria de Julgamento Clínico Avançado",
-  "clinicalVignette": "Vinheta detalhada do caso clínico com contextualização de plantão",
-  "questions": [
-    {
-      "id": 1,
-      "category": "Priorização & Conduta Imediata",
-      "questionStem": "Enunciado denso e situacional descrevendo o dilema nos primeiros 5 minutos à beira-leito",
-      "attendingTip": "Dica socrática de vivência orientando o olhar sem dar a resposta",
-      "options": [
-        {
-          "id": "A",
-          "title": "Ação correta ou distrator com 22 a 28 palavras rigorosamente balanceadas",
-          "isCorrect": true,
-          "whyCorrect": "Justificativa fisiopatológica e clínica da prioridade imediata",
-          "whyDistractor": null
-        },
-        {
-          "id": "B",
-          "title": "Distrator plausível com exatamente 22 a 28 palavras",
-          "isCorrect": false,
-          "whyCorrect": null,
-          "whyDistractor": "Por que esta conduta é uma armadilha ou atrasa a intervenção prioritária"
-        },
-        {
-          "id": "C",
-          "title": "Distrator secundário com exatamente 22 a 28 palavras",
-          "isCorrect": false,
-          "whyCorrect": null,
-          "whyDistractor": "Por que esta conduta não é a primeira medida a ser tomada"
-        },
-        {
-          "id": "D",
-          "title": "Conduta contraindicada ou iatrogênica com 22 a 28 palavras",
-          "isCorrect": false,
-          "whyCorrect": null,
-          "whyDistractor": "Explicação do risco iatrogênico desta opção"
-        }
-      ]
-    }
-  ],
-  "recommendedInterventions": [
-    "Cuidados privativos de enfermagem prescritos com aprazamento de horário (COFEN nº 736/2024)"
-  ]
-}`;
+    const parametros = { iniciais: patientInitials, medicacoes: profile.current_medications };
 
     const randomSeed = `${Date.now().toString(36)}-cycle${cycle}-${Math.random().toString(36).substring(2, 6)}`;
     const userPrompt = `DADOS DO CASO CLÍNICO MONTADO PELO ESTUDANTE (Bateria #${cycle + 1} | Seed: ${randomSeed}):
@@ -244,7 +180,9 @@ DIRETRIZ CRÍTICA DE CONTEXTUALIZAÇÃO & VARIEDADE:
 4. Como esta é a Bateria #${cycle + 1}, gere abordagens e dilemas totalmente INÉDITOS em relação às baterias anteriores.
 Retorne exclusivamente JSON válido com as 4 questões contextualizadas.`;
 
-    const result = await callResilientAI(systemPrompt, userPrompt, {
+    const result = await callResilientAI(null, userPrompt, {
+      tarefa: "desafio_diagnostico",
+      parametros,
       temperature: 0.65,
       responseMimeType: "application/json",
       maxTokens: 2500,

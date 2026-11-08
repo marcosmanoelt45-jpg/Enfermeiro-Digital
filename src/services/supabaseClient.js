@@ -46,7 +46,7 @@ function resolveSupabaseUrl(url, key) {
       if (parts.length >= 2) {
         const jsonStr = typeof atob !== 'undefined'
           ? atob(parts[1])
-          : Buffer.from(parts[1], 'base64').toString('utf8');
+          : globalThis.Buffer.from(parts[1], "base64").toString("utf8"); // só no Node (testes)
         const payload = JSON.parse(jsonStr);
         if (payload?.ref && payload.ref.startsWith('xwqgyvq')) {
           return CANONICAL_SUPABASE_URL;
