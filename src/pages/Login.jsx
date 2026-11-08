@@ -92,7 +92,7 @@ export default function Login() {
     <AuthLayout
       icon={LogIn}
       title="Acessar Plataforma"
-      subtitle="Entre com suas credenciais ou teste o modo demonstrativo"
+      subtitle="Entre com a sua conta"
       footer={
         <>
           Não tem uma conta?{" "}

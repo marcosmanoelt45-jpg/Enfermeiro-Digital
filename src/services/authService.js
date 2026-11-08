@@ -195,10 +195,10 @@ export const authService = {
       const stored = typeof localStorage !== 'undefined' ? localStorage.getItem(LOCAL_STORAGE_USER_KEY) : null;
       if (stored) {
         const parsed = JSON.parse(stored);
-        // Sem sessão do Supabase, só o modo demonstrativo continua valendo; qualquer outra cópia
-        // (sessão expirada, saída em outra aba, conta local antiga) é apagada.
-        const sessaoSupabaseVencida = isSupabaseConfigured() && !parsed?.is_demo;
-        if (parsed?.email?.includes('google@hospital.digital') || sessaoSupabaseVencida) {
+        // Sem sessão do Supabase não há acesso: qualquer cópia local (sessão expirada, saída em outra aba,
+        // conta local antiga ou o antigo modo demonstrativo) é apagada.
+        const semSessao = isSupabaseConfigured() || parsed?.is_demo;
+        if (parsed?.email?.includes('google@hospital.digital') || semSessao) {
           localStorage.removeItem(LOCAL_STORAGE_USER_KEY);
           return null;
         }
@@ -208,7 +208,8 @@ export const authService = {
       return null;
     } catch {
       const stored = localStorage.getItem(LOCAL_STORAGE_USER_KEY);
-      return stored ? JSON.parse(stored) : null;
+      const parsed = stored ? JSON.parse(stored) : null;
+      return parsed?.is_demo ? null : parsed;
     }
   },
 
