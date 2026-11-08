@@ -35,7 +35,8 @@ export const PERSONAGENS = [
     faixa: "adulto",
     sexo: "M",
     voz: { voiceboxPerfil: "Rui", navegador: { pitch: 0.85, rate: 1 } },
-    clipes: [],
+    clipes: ["parado", "falando", "pensando"],
+    pasta: "/personagens/medico-rui",
     poster: "/personagens/medico-rui/poster.png",
   },
   {
