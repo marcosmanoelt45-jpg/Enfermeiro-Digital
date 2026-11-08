@@ -62,7 +62,7 @@ export default function StudentDashboard() {
 
   // Módulos recomendados para as "Sugestões de Hoje" no desktop
   const desktopSuggestions = useMemo(() => [
-    { id: "consulta", title: "Consulta ao Vivo", subtitle: "10 min · Converse com um paciente por voz ou texto", badge: "NOVO", highlight: true, icon: Stethoscope, rota: "/consulta" },
+    { id: "consulta", title: "Consulta ao Vivo", subtitle: "10 min · Converse com um paciente por voz ou texto", badge: "Voz", highlight: true, icon: Stethoscope, rota: "/consulta" },
     { id: "sbar", title: "Plantão ao Vivo", subtitle: "8 min · Receba a passagem SBAR da enfermeira Ana", badge: "SBAR", highlight: false, icon: ArrowRightLeft, rota: "/passagem-plantao" },
     { id: "doses", title: "Cálculo com o Dr. Rui", subtitle: "5 min · Gotejamento, diluição e BIC", badge: "Doses", highlight: false, icon: Calculator, rota: "/laboratorio-calculos" },
     { id: "tecnicas", title: "Técnicas: minijogos, POPs e vídeos", subtitle: "5 min · Pratique com as mãos", badge: "Minijogos", highlight: false, icon: Video, rota: "/tecnicas" },
