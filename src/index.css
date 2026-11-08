@@ -371,3 +371,7 @@ html, body {
 }
 
 
+
+/* Minijogo da mesa: a mão aberta sobre os objetos e fechada enquanto segura (fallback: grab/grabbing). */
+.mesa-bandeja .mesa-objeto { cursor: url("/minijogos/cursor-mao-aberta.png") 24 24, grab; }
+.mesa-bandeja.mesa-pegando, .mesa-bandeja.mesa-pegando * { cursor: url("/minijogos/cursor-mao-fechada.png") 24 24, grabbing !important; }

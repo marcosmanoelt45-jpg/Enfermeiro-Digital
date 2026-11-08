@@ -1,0 +1,96 @@
+{
+  "tipo": "objetos-topo",
+  "estilo": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade.",
+  "objetos": [
+    {
+      "id": "topo-pacote-curativo",
+      "descricao": "a sealed sterile dressing kit pouch in paper and clear plastic, metal forceps and white gauze visible inside",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a sealed sterile dressing kit pouch in paper and clear plastic, metal forceps and white gauze visible inside."
+    },
+    {
+      "id": "topo-sf09",
+      "descricao": "a small clear plastic saline bottle with a blue cap lying on its side, blank white label",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a small clear plastic saline bottle with a blue cap lying on its side, blank white label."
+    },
+    {
+      "id": "topo-gazes",
+      "descricao": "a small neat stack of folded white sterile gauze pads",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a small neat stack of folded white sterile gauze pads."
+    },
+    {
+      "id": "topo-luvas",
+      "descricao": "a pair of light blue nitrile procedure gloves lying flat side by side",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a pair of light blue nitrile procedure gloves lying flat side by side."
+    },
+    {
+      "id": "topo-cobertura",
+      "descricao": "a roll of white medical adhesive tape next to a square beige adhesive wound dressing",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a roll of white medical adhesive tape next to a square beige adhesive wound dressing."
+    },
+    {
+      "id": "topo-saco-lixo",
+      "descricao": "a folded small white plastic waste bag",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a folded small white plastic waste bag."
+    },
+    {
+      "id": "topo-bisturi",
+      "descricao": "a surgical scalpel with a metal handle and a blade",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a surgical scalpel with a metal handle and a blade."
+    },
+    {
+      "id": "topo-seringa-insulina",
+      "descricao": "a thin insulin syringe with an orange cap",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a thin insulin syringe with an orange cap."
+    },
+    {
+      "id": "topo-garrote",
+      "descricao": "a blue rubber tourniquet strap with a white plastic buckle, lying flat",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a blue rubber tourniquet strap with a white plastic buckle, lying flat."
+    },
+    {
+      "id": "topo-sonda-vesical",
+      "descricao": "a coiled transparent urinary catheter tube with a colored connector",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a coiled transparent urinary catheter tube with a colored connector."
+    },
+    {
+      "id": "topo-algodao-alcool",
+      "descricao": "a white cotton ball next to a small white alcohol bottle with a red cap and blank label",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a white cotton ball next to a small white alcohol bottle with a red cap and blank label."
+    },
+    {
+      "id": "topo-bandeja",
+      "descricao": "an empty rectangular stainless steel hospital procedure tray with rounded corners and a raised rim, light grey metal",
+      "aspecto": "4:3",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: an empty rectangular stainless steel hospital procedure tray with rounded corners and a raised rim, light grey metal."
+    },
+    {
+      "id": "topo-mao-aberta",
+      "descricao": "a cartoon hand wearing a light blue nitrile glove, open relaxed palm facing down, fingers slightly spread",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a cartoon hand wearing a light blue nitrile glove, open relaxed palm facing down, fingers slightly spread."
+    },
+    {
+      "id": "topo-mao-fechada",
+      "descricao": "a cartoon hand wearing a light blue nitrile glove, closed in a pinching grab as if holding something, palm facing down",
+      "aspecto": "1:1",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view from directly above (bird's-eye view), the object lying flat as if resting on a table. One single object only, centered, filling about 70% of the frame. Background: solid flat pure chroma green #00FF00, no gradient, no shadow, no table. The object itself must not use any green color. No text, no letters, no numbers, no logo, no brand. Object: a cartoon hand wearing a light blue nitrile glove, closed in a pinching grab as if holding something, palm facing down."
+    },
+    {
+      "id": "mesa",
+      "descricao": "mesa de madeira vista de cima",
+      "aspecto": "16:9",
+      "prompt": "Flat vector game asset in a friendly Duolingo-like style: simple rounded shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade. Strict top-down view of a plain warm light-brown wooden table surface filling the entire frame edge to edge, with soft subtle wood grain stripes, evenly lit, nothing on the table. No objects, no text, no green."
+    }
+  ]
+}

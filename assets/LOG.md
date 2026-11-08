@@ -65,3 +65,13 @@ Motivos: estrelinhas e linhas de efeito, "parado" agitado (boca abrindo, gestos)
 
 Falharam sem cobrança (o Flow apagou o pedido): 4 tentativas de "parado" com início = fim quase parado, ou com "breathing/idle/waiting" no texto.
 Recorte novo (dominância do verde) aplicado em todos os clipes. Créditos da rodada: 70.
+
+## Mesa da bandeja (2026-11-08)
+
+Figuras vistas de cima para a cena "mesa" do minijogo da bandeja do curativo (pedido do dono, com desenho de referência).
+Prompts em `assets/pedidos/mesa-bandeja.json`; 1 imagem por item (sem opções a escolher).
+
+| Data | Item | Prompt | Modelo | Créditos | Arquivo |
+|---|---|---|---|---|---|
+| 2026-11-08 | 11 materiais (topo-*), bandeja, mão aberta e fechada | estilo + "strict top-down view… lying flat… green background" + descrição do objeto | Nano Banana 2.1 (t2i) | 0 | `public/minijogos/topo-*.webp`, `cursor-mao-*.png` |
+| 2026-11-08 | mesa | madeira clara vista de cima, sem objetos | Nano Banana 2.1 (t2i, 16:9) | 0 | `public/minijogos/mesa.webp` |

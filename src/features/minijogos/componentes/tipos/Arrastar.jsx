@@ -2,10 +2,17 @@ import React, { useState } from "react";
 import PropTypes from "prop-types";
 import { m as motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
+import MesaBandeja from "./MesaBandeja.jsx";
 
 // Arrastar itens para o alvo. Dois jeitos, o mesmo resultado: arrastar com o dedo/mouse, ou (obrigatório no celular)
 // tocar no item para selecionar e tocar no alvo para colocar. Tocar num item já colocado o devolve.
-export default function Arrastar({ definicao, conferir, feedback }) {
+export default function Arrastar(props) {
+  // Cena "mesa": objetos de verdade sobre a mesa, vista de cima (bandeja do curativo).
+  if (props.definicao.arrastar.cena?.tipo === "mesa") return <MesaBandeja {...props} />;
+  return <ArrastarLista {...props} />;
+}
+
+function ArrastarLista({ definicao, conferir, feedback }) {
   const { alvos, itens } = definicao.arrastar;
   const [colocados, setColocados] = useState({});
   const [selecionado, setSelecionado] = useState(null);
@@ -102,4 +109,5 @@ function Miniatura({ src }) {
 }
 Miniatura.propTypes = { src: PropTypes.string };
 
+ArrastarLista.propTypes = { definicao: PropTypes.object.isRequired, conferir: PropTypes.func.isRequired, feedback: PropTypes.object };
 Arrastar.propTypes = { definicao: PropTypes.object.isRequired, conferir: PropTypes.func.isRequired, feedback: PropTypes.object };

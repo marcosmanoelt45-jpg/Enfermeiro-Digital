@@ -84,7 +84,9 @@ export default function MinijogoRunner({ definicao, onConcluir, modo = "livre", 
     </div>
   );
 
-  if (modo === "livre") return <PageShell semDock>{corpo}</PageShell>;
+  // A cena da mesa é larga (paisagem) no computador: objetos à esquerda e à direita da bandeja.
+  const larga = definicao.arrastar?.cena?.tipo === "mesa";
+  if (modo === "livre") return <PageShell semDock larguraMax={larga ? "4xl" : "xl"}>{corpo}</PageShell>;
 
   return (
     <div className="fixed inset-0 z-50 flex items-end" role="dialog" aria-modal="true" aria-label={definicao.titulo}>
