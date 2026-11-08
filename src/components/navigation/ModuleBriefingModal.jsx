@@ -99,7 +99,7 @@ const MODULE_DATA = {
     targetPath: "/tecnicas",
     actions: [
       { id: "start", label: "Minijogos", desc: "Treine as etapas das técnicas", icon: Play, primary: true, query: "" },
-      { id: "videos", label: "Vídeos e POPs", desc: "Videoteca e checklists dos procedimentos", icon: Video, primary: false, query: "?aba=videos" }
+      { id: "videos", label: "POPs com vídeo", desc: "Procedimentos com vídeo, checklist e referência", icon: Video, primary: false, query: "?aba=pops" }
     ]
   },
 };

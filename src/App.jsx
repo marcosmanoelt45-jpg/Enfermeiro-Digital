@@ -198,10 +198,10 @@ const AuthenticatedApp = () => {
           <Route path="/passagem-plantao-sbar" element={<Redirecionar para="/passagem-plantao" />} />
           <Route path="/sbar" element={<Redirecionar para="/passagem-plantao" />} />
           <Route path="/sbar-lab" element={<Redirecionar para="/passagem-plantao" />} />
-          <Route path="/procedimentos" element={<Redirecionar para="/tecnicas" aba="videos" />} />
-          <Route path="/procedimentos-lab" element={<Redirecionar para="/tecnicas" aba="videos" />} />
-          <Route path="/skills-lab" element={<Redirecionar para="/tecnicas" aba="videos" />} />
-          <Route path="/videoteca" element={<Redirecionar para="/tecnicas" aba="videos" />} />
+          <Route path="/procedimentos" element={<Redirecionar para="/tecnicas" aba="pops" />} />
+          <Route path="/procedimentos-lab" element={<Redirecionar para="/tecnicas" aba="pops" />} />
+          <Route path="/skills-lab" element={<Redirecionar para="/tecnicas" aba="pops" />} />
+          <Route path="/videoteca" element={<Redirecionar para="/tecnicas" aba="pops" />} />
           <Route path="/videochamada" element={<Redirecionar para="/consulta" />} />
           <Route path="/atendimento-voz" element={<Redirecionar para="/consulta" />} />
           <Route path="/revisao" element={<RevisaoPage />} />

@@ -4,19 +4,17 @@ import { Button } from "@/components/ui/button";
 import { Chip, Tile } from "@/components/ui/surface";
 import PageShell from "@/components/layout/PageShell";
 import { useAuth } from "@/lib/AuthContext";
-import { MASTER_PROCEDURES } from "@/services/procedureService";
-import { SEMIOLOGY_KNOWLEDGE_BASE } from "@/data/semiologyFindings";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
-import { montarCatalogo, ROTULOS_CATEGORIA, ROTULOS_TIPO } from "@/features/minijogos/dados/index.js";
+import { catalogoPronto, ROTULOS_CATEGORIA, ROTULOS_TIPO } from "@/features/minijogos/dados/index.js";
 import { notaDoResultado } from "@/features/minijogos/logica/avaliar.js";
 import VideotecaConteudo from "@/features/tecnicas/VideotecaConteudo.jsx";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
 
+// POPs e Vídeos eram a mesma tela (cada POP já traz o vídeo, o checklist e a referência): ficou uma aba só.
 const ABAS = [
   { id: "minijogos", rotulo: "Minijogos" },
   { id: "pops", rotulo: "POPs" },
-  { id: "videos", rotulo: "Vídeos" },
 ];
 
 function estimarTempo(m) {
@@ -26,18 +24,18 @@ function estimarTempo(m) {
   return "2 min";
 }
 
-// Aba Técnicas: minijogos (gerados dos POPs e da semiologia, mais os criados à mão), POPs e vídeos.
+// Aba Técnicas: minijogos prontos (só os interativos no nível da bandeja; o resto está na reserva) e os POPs com vídeo.
 export default function TecnicasPage() {
   const { user } = useAuth();
   const userId = user?.id ?? null;
-  // ?aba=videos|pops abre direto na aba (as rotas antigas da videoteca redirecionam com ela).
+  // ?aba=pops abre direto nos POPs; ?aba=videos (rotas antigas da videoteca) também cai neles.
   const [busca] = useSearchParams();
-  const [aba, setAba] = useState(() => (["minijogos", "pops", "videos"].includes(busca.get("aba")) ? busca.get("aba") : "minijogos"));
+  const [aba, setAba] = useState(() => (["pops", "videos"].includes(busca.get("aba")) ? "pops" : "minijogos"));
   const [categoria, setCategoria] = useState("todas");
   const [aberto, setAberto] = useState(null);
   const [versao, setVersao] = useState(0);
 
-  const catalogo = useMemo(() => montarCatalogo({ procedimentos: MASTER_PROCEDURES, semiologia: SEMIOLOGY_KNOWLEDGE_BASE }), []);
+  const catalogo = useMemo(() => catalogoPronto(), []);
 
   // Concluídos: lidos do histórico (atividades "tecnica" com o id do minijogo).
   const concluidos = useMemo(() => {
@@ -77,7 +75,7 @@ export default function TecnicasPage() {
     <PageShell activeTab="tecnicas">
       <header className="space-y-3">
         <h1 className="text-xl font-extrabold">Técnicas</h1>
-        <div className="grid grid-cols-3 gap-2" role="tablist" aria-label="Seções">
+        <div className="grid grid-cols-2 gap-2" role="tablist" aria-label="Seções">
           {ABAS.map((a) => (
             <button key={a.id} type="button" role="tab" aria-selected={aba === a.id} onClick={() => setAba(a.id)} className={`rounded-full border px-3 py-1.5 text-sm font-bold ${aba === a.id ? "border-[#20D5B5] bg-[#20D5B5]/15 text-[#20D5B5]" : "border-[#27394B]"}`}>
               {a.rotulo}
@@ -88,6 +86,7 @@ export default function TecnicasPage() {
 
       {aba === "minijogos" && (
         <>
+          {categorias.length > 1 && (
           <div className="flex flex-wrap gap-2">
             {["todas", ...categorias].map((c) => (
               <button key={c} type="button" aria-pressed={categoria === c} onClick={() => setCategoria(c)} className={`rounded-full border px-3 py-1 text-xs font-bold ${categoria === c ? "border-[#20D5B5] text-[#20D5B5]" : "border-[#27394B] text-[#EAF2F8]"}`}>
@@ -95,6 +94,7 @@ export default function TecnicasPage() {
               </button>
             ))}
           </div>
+          )}
           <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
             {visiveis.map((m) => (
               <Tile key={m.id} className="space-y-2">
@@ -110,9 +110,7 @@ export default function TecnicasPage() {
         </>
       )}
 
-      {aba === "pops" && <VideotecaConteudo titulo="POPs e checklists" />}
-
-      {aba === "videos" && <VideotecaConteudo titulo="Videoteca de procedimentos" />}
+      {aba === "pops" && <VideotecaConteudo titulo="POPs com vídeo e checklist" />}
     </PageShell>
   );
 }
