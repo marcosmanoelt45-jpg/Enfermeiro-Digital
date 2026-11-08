@@ -328,25 +328,6 @@ export const authService = {
     }
   },
 
-  async loginDemo() {
-    const demoUser = {
-      id: 'aluno-demo-session',
-      email: 'estudante@enfere.digital',
-      full_name: 'Estudante de Enfermagem',
-      name: 'Estudante de Enfermagem',
-      role: 'aluno',
-      user_type: 'aluno',
-      coren: 'ESTUDANTE-GRADUAÇÃO',
-      org_id: 'enfere-academico',
-      is_demo: true,
-      is_local: true,
-    };
-    if (typeof localStorage !== 'undefined') {
-      localStorage.setItem(LOCAL_STORAGE_USER_KEY, JSON.stringify(demoUser));
-    }
-    return { user: demoUser };
-  },
-
   async register(email, password, { full_name, user_type = 'aluno', coren = '' } = {}) {
     if (!email || !password) {
       throw new Error('Informe o e-mail e a senha para realizar o cadastro.');

@@ -5,7 +5,7 @@ import { useAuth } from "@/lib/AuthContext";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { LogIn, Mail, Lock, Loader2, CheckCircle2, Sparkles } from "lucide-react";
+import { LogIn, Mail, Lock, Loader2, CheckCircle2 } from "lucide-react";
 import AuthLayout from "@/components/AuthLayout";
 import GoogleIcon from "@/components/GoogleIcon";
 import { safeReturnTo } from "@/lib/authReturnTo";
@@ -85,19 +85,6 @@ export default function Login() {
     } catch (err) {
       setError(err.message || "Falha ao autenticar com o Google. Tente novamente.");
       setGoogleLoading(false);
-    }
-  };
-
-  const handleDemoLogin = async () => {
-    setError("");
-    setLoading(true);
-    try {
-      await authService.loginDemo();
-      if (checkUserAuth) await checkUserAuth();
-      navigate(returnTo || "/");
-    } catch (err) {
-      setError(err.message || "Erro no acesso demonstrativo");
-      setLoading(false);
     }
   };
 
@@ -231,22 +218,6 @@ export default function Login() {
         </Button>
       </form>
 
-      {/* ACESSO DE DEMONSTRAÇÃO IMEDIATA */}
-      <div className="mt-5 pt-4 border-t border-[#1F3045] text-center">
-        <p className="text-[11px] font-bold text-[#9FB3C6] uppercase tracking-wider mb-2.5">
-          Deseja experimentar sem cadastro?
-        </p>
-        <Button
-          type="button"
-          variant="outline"
-          className="w-full text-xs rounded-xl h-11 border-teal-800 bg-teal-950/40 hover:bg-teal-900/60 text-[#20D5B5] font-bold shadow-sm transition"
-          onClick={handleDemoLogin}
-          disabled={loading}
-        >
-          <Sparkles className="w-4 h-4 mr-2 text-teal-400" />
-          Acessar Modo Demonstrativo Imediato
-        </Button>
-      </div>
     </AuthLayout>
   );
 }
