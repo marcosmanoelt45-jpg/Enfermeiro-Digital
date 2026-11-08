@@ -14,8 +14,9 @@ const SUGESTOES = ["Monitorar os sinais vitais", "Orientar o paciente e a famíl
 const MAX_ACHADOS = 1500;
 
 /** Registro de enfermagem ao fechar a consulta: achados, diagnósticos (NANDA-I) e intervenções. */
-export default function RegistroConsulta({ onEnviar, enviando = false, erro = null, onVoltar }) {
-  const [achados, setAchados] = useState("");
+export default function RegistroConsulta({ onEnviar, enviando = false, erro = null, onVoltar, achadosIniciais = "" }) {
+  // As anotações feitas durante a conversa já entram aqui, para o aluno revisar.
+  const [achados, setAchados] = useState(String(achadosIniciais ?? "").slice(0, MAX_ACHADOS));
   const [diagnosticos, setDiagnosticos] = useState([]);
   const [intervencoes, setIntervencoes] = useState([]);
   const [nova, setNova] = useState("");
@@ -105,4 +106,5 @@ RegistroConsulta.propTypes = {
   enviando: PropTypes.bool,
   erro: PropTypes.string,
   onVoltar: PropTypes.func,
+  achadosIniciais: PropTypes.string,
 };

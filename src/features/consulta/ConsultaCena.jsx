@@ -1,4 +1,4 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import CenaAoVivo from "@/features/cena/CenaAoVivo.jsx";
 import { consulta, ErroServidor, obterRelatorioDaConsulta } from "@/features/cena/servidor.js";
@@ -10,8 +10,19 @@ import { abertura } from "./dados/aberturas.js";
 import { resumoParaHistorico } from "./logica/relatorioView.js";
 import RegistroConsulta from "./componentes/RegistroConsulta.jsx";
 import RelatorioConsulta from "./componentes/RelatorioConsulta.jsx";
+import BlocoNotas from "./componentes/BlocoNotas.jsx";
 
 const AVISO_FIM = 5;
+
+// Anotações por aluno e por consulta (sobrevivem a recarregar a página).
+const chaveNotas = (userId, sessaoId) => `enfere_notas_${userId ?? "anon"}_${sessaoId}`;
+function lerNotas(chave) {
+  try {
+    return localStorage.getItem(chave) ?? "";
+  } catch {
+    return "";
+  }
+}
 
 /**
  * Cena da consulta: o motor Cena ao Vivo ligado às ações da cena-ia, depois o registro e o relatório.
@@ -28,6 +39,17 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
   const [relatorio, setRelatorio] = useState(null);
   const [turnosDoRelatorio, setTurnosDoRelatorio] = useState([]);
   const inicio = useRef(Date.now());
+  const chave = chaveNotas(user?.id, sessao.sessaoId);
+  const [notas, setNotas] = useState(() => lerNotas(chave));
+  const [notasAbertas, setNotasAbertas] = useState(false);
+  useEffect(() => {
+    try {
+      if (notas) localStorage.setItem(chave, notas);
+      else localStorage.removeItem(chave);
+    } catch {
+      // sem armazenamento: as notas valem só nesta tela
+    }
+  }, [chave, notas]);
 
   const falasIniciais = useMemo(
     () => (retomada ? [] : abertura(sessao.personagemId, sessao.personalidadePublica, sessao.sessaoId)),
@@ -55,6 +77,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
         clinicalHistoryService.submitActivity({ id: sessao.sessaoId, moduleType: MODULE_TYPES.CONSULTA, ...resumo, durationSeconds: duracao, score: r.notas.geral, evaluation: r.notas, userId: user?.id ?? null });
         clinicalGamificationService.recordActivity("consulta", 40, user?.id ?? null, { activityId: sessao.sessaoId });
         onFinalizada?.();
+        setNotas(""); // registro enviado: as anotações já estão nele
         setRelatorio(r);
         setFase("relatorio");
         // "Rever conversa": depois de encerrada, a RLS libera os turnos; se falhar, o relatório abre sem eles.
@@ -73,11 +96,12 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
     return <RelatorioConsulta relatorio={relatorio} turnos={turnosDoRelatorio} onNova={onNova} onInicio={onSair} />;
   }
   if (fase === "registro") {
-    return <RegistroConsulta onEnviar={finalizar} enviando={enviando} erro={erro} onVoltar={() => setFase("cena")} />;
+    return <RegistroConsulta achadosIniciais={notas} onEnviar={finalizar} enviando={enviando} erro={erro} onVoltar={() => setFase("cena")} />;
   }
 
   const slotTopo = (
     <div className="space-y-1">
+      <p className="text-center text-xs font-bold text-[#9FB3C6]">{40 - restantes} de 40 falas</p>
       {restantes <= AVISO_FIM && restantes > 0 && (
         <p className="text-center text-xs font-bold text-[#FFC247]" role="status">
           Faltam {restantes} falas: hora de ir fechando.
@@ -88,18 +112,24 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
 
   const b = sessao.briefing;
   return (
+    <>
     <CenaAoVivo
       personagemId={sessao.personagemId}
       titulo={`${personagem?.nome ?? b.nome} · ${b.setor}`}
       progresso={{ atual: 40 - restantes, total: 40 }}
       slotTopo={slotTopo}
-      acoes={[{ id: "encerrar", rotulo: "Encerrar consulta", onClick: () => setFase("registro") }]}
+      acoes={[
+        { id: "notas", rotulo: notas.trim() ? "Anotações ✓" : "Anotações", onClick: () => setNotasAbertas(true) },
+        { id: "encerrar", rotulo: "Encerrar e registrar", onClick: () => setFase("registro") },
+      ]}
       falasIniciais={falasIniciais}
       turnosIniciais={retomada ? retomada.turnos : null}
       autoIniciar={!retomada}
       onEnviar={onEnviar}
       onEncerrar={onSair}
     />
+    <BlocoNotas aberto={notasAbertas} texto={notas} onMudar={setNotas} onFechar={() => setNotasAbertas(false)} />
+    </>
   );
 }
 
