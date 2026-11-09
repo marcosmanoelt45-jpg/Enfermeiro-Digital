@@ -10,7 +10,6 @@ import { catalogoPronto, ROTULOS_CATEGORIA, ROTULOS_TIPO } from "@/features/mini
 import { notaDoResultado } from "@/features/minijogos/logica/avaliar.js";
 import VideotecaConteudo from "@/features/tecnicas/VideotecaConteudo.jsx";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
-import PacienteMaca from "@/features/minijogos/componentes/ausculta/PacienteMaca.jsx";
 import MaoEstetoscopio from "@/features/minijogos/componentes/ausculta/MaoEstetoscopio.jsx";
 
 // POPs e Vídeos eram a mesma tela (cada POP já traz o vídeo, o checklist e a referência): ficou uma aba só.
@@ -103,9 +102,9 @@ export default function TecnicasPage() {
               <Tile key={m.id} className={`overflow-hidden p-0 ${visiveis.length === 1 ? "md:flex md:items-stretch" : ""}`}>
                 <button type="button" onClick={() => setAberto(m)} className={`relative block w-full overflow-hidden bg-[#0F1924] ${visiveis.length === 1 ? "aspect-[16/10] md:aspect-auto md:w-[58%]" : "aspect-[16/10]"}`} aria-label={`Jogar: ${m.titulo}`}>
                   {m.tipo === "ausculta" ? (
-                    <svg viewBox="40 60 320 300" className="absolute inset-0 h-full w-full bg-gradient-to-b from-[#DCE7EE] to-[#C8D6DF]" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
-                      <PacienteMaca paciente="marcus" vista="costas" />
-                      <MaoEstetoscopio x={232} y={262} />
+                    <svg viewBox="80 200 736 660" className="absolute inset-0 h-full w-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+                      <image href="/minijogos/ausculta/marcus-costas.webp" width="896" height="1200" />
+                      <MaoEstetoscopio x={540} y={600} escala={2.24} />
                     </svg>
                   ) : (
                     <>

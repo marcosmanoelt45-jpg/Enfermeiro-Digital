@@ -3,12 +3,12 @@ import PropTypes from "prop-types";
 import { m as motion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { vibrate } from "@/lib/motion";
-import PacienteMaca from "../ausculta/PacienteMaca.jsx";
 import MaoEstetoscopio from "../ausculta/MaoEstetoscopio.jsx";
 import { criarSomPulmonar, RUIDOS } from "../../audio/somPulmonar.js";
-import { SEGURAR_MS, gerador, montarCaso, somNoPonto } from "../../logica/ausculta.js";
+import { CENA, IMAGENS, SEGURAR_MS, gerador, montarCaso, somNoPonto } from "../../logica/ausculta.js";
 
-const VB = { w: 400, h: 500 };
+const VB = CENA;
+const ESCALA_MAO = 2.24;
 const OPCOES = [
   ["normal", RUIDOS.normal],
   ["crepitantes_finos", "Estertores crepitantes"],
@@ -18,7 +18,7 @@ const OPCOES = [
 
 // "Câmera" em primeira pessoa: a cena desliza um pouco com a mão. A posição da mão é levada para o desenho do
 // paciente (já deslocado), senão o aluno miraria num lugar e o jogo ouviria outro.
-const cameraPara = (p, encostado) => ({ x: (200 - p.x) * 0.05, y: (250 - p.y) * 0.03, s: encostado ? 1.05 : 1 });
+const cameraPara = (p, encostado) => ({ x: (VB.w / 2 - p.x) * 0.05, y: (VB.h / 2 - p.y) * 0.03, s: encostado ? 1.05 : 1 });
 const noPaciente = (p, encostado) => {
   const c = cameraPara(p, encostado);
   return { x: p.x - c.x / c.s, y: p.y - c.y / c.s };
@@ -35,9 +35,9 @@ export default function Ausculta({ definicao, conferir }) {
   // Na frente só o Sr. Marcus; a Dona Teresinha é auscultada pelas costas.
   const vistas = useMemo(() => (paciente === "teresinha" ? ["costas"] : vistasPedidas), [paciente, vistasPedidas]);
   // Anatomia e pontos do caso: estáveis durante a rodada.
-  const caso = useMemo(() => montarCaso(achado, { rng: gerador(Math.floor(Math.random() * 1e9)), vistas }), [achado, vistas]);
+  const caso = useMemo(() => montarCaso(achado, { rng: gerador(Math.floor(Math.random() * 1e9)), vistas, paciente }), [achado, vistas]);
   const [vista, setVista] = useState(vistas.includes("costas") ? "costas" : vistas[0]);
-  const [mao, setMao] = useState({ x: 300, y: 300 });
+  const [mao, setMao] = useState({ x: 680, y: 720 });
   const [encostado, setEncostado] = useState(false);
   const [progresso, setProgresso] = useState(0);
   const [marcado, setMarcado] = useState(null);
@@ -160,15 +160,15 @@ export default function Ausculta({ definicao, conferir }) {
           aria-label="Tórax do paciente: encoste e segure o estetoscópio para auscultar"
         >
           <motion.g animate={{ x: camera.x, y: camera.y, scale: camera.s }} transition={{ type: "spring", stiffness: 320, damping: 30 }} style={{ originX: `${mao.x}px`, originY: `${mao.y}px` }}>
-            <PacienteMaca paciente={paciente} vista={vista} />
+            <image href={IMAGENS[`${paciente}-${vista}`]} width={VB.w} height={VB.h} preserveAspectRatio="xMidYMid slice" />
             {marcado && marcado.vista === vista && (
               <g transform={`translate(${marcado.x} ${marcado.y})`} aria-hidden="true">
-                <circle r="11" fill="none" stroke="#20D5B5" strokeWidth="3" />
-                <circle r="4" fill="#20D5B5" />
+                <circle r="24" fill="none" stroke="#20D5B5" strokeWidth="6" />
+                <circle r="9" fill="#20D5B5" />
               </g>
             )}
           </motion.g>
-          <MaoEstetoscopio x={mao.x} y={mao.y} encostado={encostado} progresso={progresso} />
+          <MaoEstetoscopio x={mao.x} y={mao.y} encostado={encostado} progresso={progresso} escala={ESCALA_MAO} />
         </svg>
       </div>
 

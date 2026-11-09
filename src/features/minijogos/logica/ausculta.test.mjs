@@ -24,7 +24,7 @@ test("som: no ponto máximo é nítido e marca; na coluna é abafado e sem o ru�
   assert.equal(aqui.tipo, "crepitantes_finos");
   assert.equal(aqui.noMaximo, true);
   assert.ok(aqui.qualidade > 0.8);
-  const coluna = somNoPonto(caso, "costas", { x: 200, y: 400 });
+  const coluna = somNoPonto(caso, "costas", { x: 448, y: 1000 });
   assert.equal(coluna.noMaximo, false);
   assert.ok(coluna.qualidade < 0.3);
 });
@@ -33,7 +33,7 @@ test("sibilos nos dois lados; roncos perto do centro", () => {
   const sib = montarCaso("sibilos", { rng: gerador(2) });
   assert.equal(sib.pontos.length, 2);
   const ron = montarCaso("roncos", { rng: gerador(2) });
-  assert.ok(Math.abs(ron.pontos[0].x - 200) < 40);
+  assert.ok(Math.abs(ron.pontos[0].x - 448) < 90);
   assert.equal(pontoMaisProximo(ron, "frente", { x: 0, y: 0 }).ponto, null);
 });
 

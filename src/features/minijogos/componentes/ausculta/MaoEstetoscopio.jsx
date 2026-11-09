@@ -3,11 +3,11 @@ import PropTypes from "prop-types";
 
 // A mão do aluno (visão em primeira pessoa) segurando o diafragma do estetoscópio. O centro do diafragma fica em
 // (x, y); a mão sai pelo canto inferior direito. `progresso` (0 a 1) desenha o anel de "segurando para ouvir".
-export default function MaoEstetoscopio({ x, y, encostado = false, progresso = 0, cor = "#20D5B5" }) {
+export default function MaoEstetoscopio({ x, y, encostado = false, progresso = 0, cor = "#20D5B5", escala = 1 }) {
   const r = 15;
   const c = 2 * Math.PI * (r + 6);
   return (
-    <g transform={`translate(${x} ${y})`} style={{ pointerEvents: "none" }} aria-hidden="true">
+    <g transform={`translate(${x} ${y}) scale(${escala})`} style={{ pointerEvents: "none" }} aria-hidden="true">
       {/* tubo do estetoscópio saindo da tela */}
       <path d="M10 -6 C60 -40 130 -30 210 -120" fill="none" stroke="#2B3440" strokeWidth="7" strokeLinecap="round" />
       {/* diafragma */}
@@ -32,4 +32,4 @@ export default function MaoEstetoscopio({ x, y, encostado = false, progresso = 0
   );
 }
 
-MaoEstetoscopio.propTypes = { x: PropTypes.number.isRequired, y: PropTypes.number.isRequired, encostado: PropTypes.bool, progresso: PropTypes.number, cor: PropTypes.string };
+MaoEstetoscopio.propTypes = { x: PropTypes.number.isRequired, y: PropTypes.number.isRequired, encostado: PropTypes.bool, progresso: PropTypes.number, cor: PropTypes.string, escala: PropTypes.number };

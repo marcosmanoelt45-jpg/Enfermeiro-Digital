@@ -3,22 +3,34 @@
 // pontos de referência seguem a aula de exame físico do tórax (Barros, E. et al., Anamnese e exame físico):
 // ápices acima da clavícula/escápula, bases na região infraescapular; roncos de vias aéreas maiores (centrais),
 // sibilos de brônquios menores (difusos), crepitantes nos alvéolos (bases, na congestão).
-// Coordenadas no viewBox da cena (400 x 500). Na FRENTE o lado direito do paciente fica à esquerda da tela;
-// nas COSTAS, à direita.
+// Coordenadas nas ilustrações do Flow (896 x 1200, uma por paciente e vista). Na FRENTE o lado direito do
+// paciente fica à esquerda da tela; nas COSTAS, à direita.
 
-// Campos pulmonares (elipses) por vista, antes da variação de anatomia de cada paciente.
-const PULMOES = {
-  frente: [
-    { lado: "direito", cx: 166, cy: 262, rx: 34, ry: 50 },
-    { lado: "esquerdo", cx: 236, cy: 266, rx: 30, ry: 46 }, // um pouco menor: o coração ocupa espaço
-  ],
-  costas: [
-    { lado: "esquerdo", cx: 164, cy: 270, rx: 34, ry: 56 },
-    { lado: "direito", cx: 236, cy: 270, rx: 34, ry: 56 },
-  ],
+export const CENA = { w: 896, h: 1200 };
+export const IMAGENS = {
+  "marcus-costas": "/minijogos/ausculta/marcus-costas.webp",
+  "marcus-frente": "/minijogos/ausculta/marcus-frente.webp",
+  "teresinha-costas": "/minijogos/ausculta/teresinha-costas.webp",
 };
 
-export const RAIO_MAXIMO = 16; // perto assim do ponto de melhor ausculta, o som está no máximo
+// Campos pulmonares (elipses) medidos em cada ilustração, antes da variação de anatomia de cada rodada.
+const PULMOES = {
+  "marcus-costas": [
+    { lado: "esquerdo", cx: 360, cy: 530, rx: 76, ry: 100 },
+    { lado: "direito", cx: 536, cy: 530, rx: 76, ry: 100 },
+  ],
+  "marcus-frente": [
+    { lado: "direito", cx: 380, cy: 492, rx: 62, ry: 66 },
+    { lado: "esquerdo", cx: 518, cy: 496, rx: 56, ry: 62 }, // um pouco menor: o coração ocupa espaço
+  ],
+  "teresinha-costas": [
+    { lado: "esquerdo", cx: 364, cy: 536, rx: 72, ry: 104 },
+    { lado: "direito", cx: 532, cy: 536, rx: 72, ry: 104 },
+  ],
+};
+const ESCALA = 2.24; // 896 / 400 (as distâncias abaixo foram pensadas numa cena de 400 de largura)
+
+export const RAIO_MAXIMO = 16 * ESCALA; // perto assim do ponto de melhor ausculta, o som está no máximo
 export const SEGURAR_MS = 1500; // tempo parado no som máximo para marcar o ponto
 export const distancia = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
@@ -35,12 +47,15 @@ export function gerador(semente = 1) {
  * Monta o paciente da rodada: campos pulmonares levemente deslocados (cada um tem a sua anatomia) e os pontos de
  * melhor ausculta conforme o achado. Devolve { pulmoes: {frente, costas}, pontos: [{vista, x, y, lado}], achado }.
  */
-export function montarCaso(achado, { rng = Math.random, vistas = ["costas"] } = {}) {
-  const desloca = () => (rng() * 2 - 1) * 7;
+export function montarCaso(achado, { rng = Math.random, vistas = ["costas"], paciente = "marcus" } = {}) {
+  const desloca = () => (rng() * 2 - 1) * 7 * ESCALA;
   const dx = desloca();
   const dy = desloca();
   const pulmoes = Object.fromEntries(
-    Object.entries(PULMOES).map(([v, lista]) => [v, lista.map((p) => ({ ...p, cx: p.cx + dx * (p.lado === "direito" ? 1 : -1) * 0.5, cy: p.cy + dy, rx: p.rx * (0.94 + rng() * 0.1), ry: p.ry * (0.94 + rng() * 0.1) }))])
+    vistas.map((v) => [
+      v,
+      (PULMOES[`${paciente}-${v}`] ?? PULMOES[`marcus-${v}`]).map((p) => ({ ...p, cx: p.cx + dx * (p.lado === "direito" ? 1 : -1) * 0.5, cy: p.cy + dy, rx: p.rx * (0.94 + rng() * 0.1), ry: p.ry * (0.94 + rng() * 0.1) })),
+    ])
   );
   const pontos = [];
   const lado = rng() < 0.5 ? "direito" : "esquerdo";
@@ -49,11 +64,12 @@ export function montarCaso(achado, { rng = Math.random, vistas = ["costas"] } = 
     const outro = pulmoes[v].find((p) => p.lado !== lado);
     if (achado === "crepitantes_finos" || achado === "crepitantes_grossos") {
       // bases: terço inferior do campo pulmonar (na frente, na linha axilar; atrás, infraescapular)
-      if (v === "costas") pontos.push({ vista: v, lado, x: doLado.cx + (rng() * 2 - 1) * 8, y: doLado.cy + doLado.ry * 0.62 });
+      if (v === "costas") pontos.push({ vista: v, lado, x: doLado.cx + (rng() * 2 - 1) * 8 * ESCALA, y: doLado.cy + doLado.ry * 0.62 });
       else pontos.push({ vista: v, lado, x: doLado.cx + (lado === "direito" ? -1 : 1) * doLado.rx * 0.45, y: doLado.cy + doLado.ry * 0.55 });
     } else if (achado === "roncos") {
       // vias aéreas maiores: perto do hilo (interescapular atrás; 2º espaço junto ao esterno na frente)
-      const hilo = v === "costas" ? { x: (doLado.cx + 200) / 2, y: doLado.cy - doLado.ry * 0.3 } : { x: (doLado.cx + 200) / 2, y: doLado.cy - doLado.ry * 0.45 };
+      const meio = CENA.w / 2;
+      const hilo = v === "costas" ? { x: (doLado.cx + meio) / 2, y: doLado.cy - doLado.ry * 0.3 } : { x: (doLado.cx + meio) / 2, y: doLado.cy - doLado.ry * 0.45 };
       pontos.push({ vista: v, lado, ...hilo });
     } else if (achado === "sibilos") {
       // difusos, mais fortes no meio dos campos (os dois lados)
@@ -90,7 +106,7 @@ export function pontoMaisProximo(caso, vista, p) {
 export function somNoPonto(caso, vista, p) {
   const pulmao = dentroDoPulmao(caso, vista, p);
   const { d } = pontoMaisProximo(caso, vista, p);
-  const perto = Number.isFinite(d) ? Math.max(0, 1 - d / 75) : 0;
+  const perto = Number.isFinite(d) ? Math.max(0, 1 - d / (75 * ESCALA)) : 0;
   const advent = caso.achado !== "normal";
   const tipo = advent && perto > 0.25 ? caso.achado : "normal";
   const qualidade = Math.max(0, Math.min(1, advent ? pulmao * (0.45 + 0.55 * perto) : pulmao * (0.6 + 0.4 * perto)));
