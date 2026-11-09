@@ -73,7 +73,10 @@ export function avaliarEscolher(def, opcaoId) {
   return { acertos: ok ? 1 : 0, erros: opcao && !ok ? 1 : 0, concluido: ok, detalhes: [{ id: opcaoId, ok, feedback: opcao?.feedback ?? "" }] };
 }
 
+import { avaliarAusculta } from "./ausculta.js";
+
 export const AVALIADORES = {
+  ausculta: avaliarAusculta,
   arrastar: avaliarArrastar,
   ordenar: avaliarOrdenar,
   "tocar-regiao": avaliarTocar,

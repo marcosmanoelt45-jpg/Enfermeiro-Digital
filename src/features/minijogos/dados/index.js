@@ -7,6 +7,7 @@
 // ponha em MINIJOGOS_PRONTOS.
 import bandeja from "./bandeja-curativo-simples.js";
 import ausculta from "./ausculta-pulmonar.js";
+import auscultaPov from "./ausculta-pulmonar-pov.js";
 import contarFr from "./contar-fr.js";
 import descarte from "./descarte-residuos.js";
 import maos from "./higienizacao-maos.js";
@@ -19,14 +20,14 @@ import { gerarTodosOsOrdenar } from "../logica/doProcedimento.js";
 import { gerarTodosOsEscolher } from "../logica/daSemiologia.js";
 
 // Os que aparecem na aba Técnicas.
-export const MINIJOGOS_PRONTOS = [bandeja];
+export const MINIJOGOS_PRONTOS = [bandeja, auscultaPov];
 
 export function catalogoPronto() {
   return { todos: MINIJOGOS_PRONTOS, porId: Object.fromEntries(MINIJOGOS_PRONTOS.map((m) => [m.id, m])) };
 }
 
 // Reserva (e Plantão): todos os estáticos feitos à mão.
-export const MINIJOGOS_ESTATICOS = [bandeja, ausculta, contarFr, maos, paramentacao, desparamentacao, descarte, noveCertos, glicemia, purgarEquipo, flebite, lppEstagio1];
+export const MINIJOGOS_ESTATICOS = [bandeja, auscultaPov, ausculta, contarFr, maos, paramentacao, desparamentacao, descarte, noveCertos, glicemia, purgarEquipo, flebite, lppEstagio1];
 
 // Catálogo completo da reserva. procedimentos = MASTER_PROCEDURES; semiologia = SEMIOLOGY_KNOWLEDGE_BASE
 // (passados de fora: este arquivo fica puro).
@@ -37,5 +38,5 @@ export function montarCatalogo({ procedimentos = [], semiologia = {} } = {}) {
   return { todos, pulados, porId: Object.fromEntries(todos.map((m) => [m.id, m])) };
 }
 
-export const ROTULOS_TIPO = { arrastar: "Arrastar", "tocar-regiao": "Tocar", ordenar: "Ordenar", medir: "Medir", escolher: "Escolher" };
+export const ROTULOS_TIPO = { arrastar: "Arrastar", "tocar-regiao": "Tocar", ordenar: "Ordenar", medir: "Medir", escolher: "Escolher", ausculta: "Ausculta" };
 export const ROTULOS_CATEGORIA = { curativos: "Curativos", avaliacao: "Avaliação", biosseguranca: "Biossegurança", medicacao: "Medicação", sinais_vitais: "Sinais vitais", procedimentos: "Procedimentos" };

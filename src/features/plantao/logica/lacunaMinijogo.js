@@ -2,8 +2,14 @@
 // - lacuna com `minijogo`: usa o minijogo estático de mesmo id;
 // - lacuna com `exame`: monta um minijogo "escolher" (4 opções, 1 correta) com o achado esperado.
 import { validarDefinicao } from "../../minijogos/logica/validarDefinicao.js";
+import { achadoDoTexto } from "../../minijogos/logica/ausculta.js";
+import { dadosDaAusculta } from "../../minijogos/dados/ausculta-pulmonar-pov.js";
 
-export function minijogoDaLacuna(lacuna, cenarioId, estaticos = []) {
+export function minijogoDaLacuna(lacuna, cenarioId, estaticos = [], { paciente = "marcus" } = {}) {
+  // Ausculta pulmonar: o minijogo em primeira pessoa, com o achado do caso (lido do valor esperado).
+  if (/ausculta/i.test(`${lacuna.campo} ${lacuna.rotulo}`)) {
+    return { ...dadosDaAusculta({ achado: achadoDoTexto(lacuna.valorEsperado), paciente, id: `plantao-${cenarioId}-ausculta`.toLowerCase().replace(/[^a-z0-9-]/g, "-") }), achado: { campo: lacuna.campo, valor: lacuna.valorEsperado, texto: lacuna.rotulo } };
+  }
   if (lacuna.minijogo) return estaticos.find((m) => m.id === lacuna.minijogo) ?? null;
   if (!lacuna.exame) return null;
   const def = {

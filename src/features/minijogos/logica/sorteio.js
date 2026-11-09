@@ -2,6 +2,23 @@
 // sorteada, dos itens que não vão no alvo (arrastar.sorteio.distratores = quantos). A ordem também é sorteada.
 // Sem `sorteio`, devolve a definição como está. `rng` permite teste determinístico.
 export function sortearItens(def, rng = Math.random) {
+  // Ausculta "aleatório": cada rodada sorteia o paciente (Marcus ou Teresinha) e o achado.
+  if (def?.tipo === "ausculta") {
+    const a = def.ausculta;
+    const achados = ["normal", "crepitantes_finos", "crepitantes_grossos", "sibilos", "roncos"];
+    return {
+      ...def,
+      ausculta: {
+        ...a,
+        achado: a.achado === "aleatorio" ? achados[Math.floor(rng() * achados.length)] : a.achado,
+        paciente: a.paciente ?? (rng() < 0.5 ? "marcus" : "teresinha"),
+      },
+    };
+  }
+  return sortearArrastar(def, rng);
+}
+
+function sortearArrastar(def, rng) {
   const n = def?.tipo === "arrastar" ? def.arrastar?.sorteio?.distratores : null;
   if (!n) return def;
   const corretos = def.arrastar.itens.filter((i) => i.alvoCorreto !== null);

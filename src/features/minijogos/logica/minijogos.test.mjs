@@ -87,8 +87,8 @@ test("escolher: opção correta acerta e devolve o feedback da escolhida", () =>
   assert.equal(avaliarEscolher(def, "Z").erros, 0);
 });
 
-test("os 5 tipos têm avaliador e a nota é round(100 × acertos / (acertos + erros))", () => {
-  assert.deepEqual(Object.keys(AVALIADORES).sort(), ["arrastar", "escolher", "medir", "ordenar", "tocar-regiao"]);
+test("os 6 tipos têm avaliador e a nota é round(100 × acertos / (acertos + erros))", () => {
+  assert.deepEqual(Object.keys(AVALIADORES).sort(), ["arrastar", "ausculta", "escolher", "medir", "ordenar", "tocar-regiao"]);
   assert.equal(notaDoResultado({ acertos: 3, erros: 1 }), 75);
   assert.equal(notaDoResultado({ acertos: 0, erros: 0 }), 0);
   assert.equal(notaDoResultado({ acertos: 1, erros: 2 }), 33);

@@ -16,6 +16,9 @@ import ProntuarioConsulta from "./componentes/ProntuarioConsulta.jsx";
 import PainelFlutuante from "@/components/prontuario/PainelFlutuante.jsx";
 import PainelExames from "./componentes/PainelExames.jsx";
 import { detectarExame } from "./dados/exames.js";
+import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
+import { dadosDaAusculta } from "@/features/minijogos/dados/ausculta-pulmonar-pov.js";
+import { achadoDoTexto } from "@/features/minijogos/logica/ausculta.js";
 
 const AVISO_FIM = 5;
 
@@ -56,6 +59,8 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
   const [examePedido, setExamePedido] = useState(null);
   const [fazendoExame, setFazendoExame] = useState(false);
   const feitosRef = useRef(new Set());
+  // Ausculta pulmonar vira o minijogo em primeira pessoa (com o achado do caso); os outros exames dão o resultado direto.
+  const [ausculta, setAusculta] = useState(null); // { definicao, resultado }
   const fazerExame = async () => {
     if (!examePedido) return;
     setFazendoExame(true);
@@ -66,8 +71,13 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       const bruto = String(r.resultado ?? "");
       const sem = bruto.toLowerCase().startsWith(r.rotulo.toLowerCase()) ? bruto.slice(r.rotulo.length).replace(/^[:\s-]+/, "") : bruto;
       r = { ...r, resultado: sem ? sem.charAt(0).toUpperCase() + sem.slice(1) : bruto };
-      setExames((lista) => [...lista.filter((x) => x.exameId !== r.exameId), r]);
       setExamePedido(null);
+      if (r.exameId === "ausculta-pulmonar") {
+        const paciente = sessao.personagemId === "teresinha" ? "teresinha" : "marcus";
+        setAusculta({ resultado: r, definicao: dadosDaAusculta({ achado: achadoDoTexto(r.resultado), paciente, id: "consulta-ausculta" }) });
+        return;
+      }
+      setExames((lista) => [...lista.filter((x) => x.exameId !== r.exameId), r]);
     } catch {
       // segue com o botão para tentar de novo
     } finally {
@@ -179,6 +189,22 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
         </div>
       }
     />
+    {ausculta && (
+      <MinijogoRunner
+        key={ausculta.definicao.id}
+        definicao={ausculta.definicao}
+        modo="consulta"
+        onConcluir={() => {
+          const r = ausculta.resultado;
+          setExames((lista) => [...lista.filter((x) => x.exameId !== r.exameId), r]);
+          setAusculta(null);
+        }}
+        onFechar={() => {
+          feitosRef.current.delete("ausculta-pulmonar");
+          setAusculta(null);
+        }}
+      />
+    )}
     <PainelFlutuante aberto={prontuarioAberto} titulo="Prontuário" onFechar={() => setProntuarioAberto(false)}>
       <ProntuarioConsulta sessao={sessao} exames={exames} compacto />
     </PainelFlutuante>

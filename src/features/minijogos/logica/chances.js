@@ -27,6 +27,7 @@ export function avisoDoErro(def, acao, r) {
     const fora = r?.foraDeLugar?.length ?? 0;
     return { vazio: false, mensagem: fora <= 2 ? "Quase! Só algumas etapas estão trocadas." : "Algumas etapas estão fora de ordem. O que vem antes de tocar no paciente?" };
   }
+  if (def.tipo === "ausculta") return { vazio: false, mensagem: "Esse não é o ruído deste paciente. Ausculte de novo, comparando os dois lados e prestando atenção nas bases." };
   if (def.tipo === "medir") return { vazio: false, mensagem: "O valor não confere. Leia de novo com calma." };
   if (def.tipo === "escolher") return { vazio: false, mensagem: r?.detalhes?.[0]?.feedback || "Não é essa. Pense de novo." };
   return { vazio: false, mensagem: "Quase! Revise e tente de novo." };

@@ -13,9 +13,10 @@ import TocarRegiao from "./tipos/TocarRegiao.jsx";
 import Ordenar from "./tipos/Ordenar.jsx";
 import Medir from "./tipos/Medir.jsx";
 import Escolher from "./tipos/Escolher.jsx";
+import Ausculta from "./tipos/Ausculta.jsx";
 import ResultadoMinijogo from "./ResultadoMinijogo.jsx";
 
-const TIPOS = { arrastar: Arrastar, "tocar-regiao": TocarRegiao, ordenar: Ordenar, medir: Medir, escolher: Escolher };
+const TIPOS = { arrastar: Arrastar, "tocar-regiao": TocarRegiao, ordenar: Ordenar, medir: Medir, escolher: Escolher, ausculta: Ausculta };
 
 /**
  * Motor de minijogos movido a dados (C11). `modo`: "livre" ocupa a tela; "plantao" e "consulta" abrem numa

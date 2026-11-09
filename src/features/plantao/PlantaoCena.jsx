@@ -9,6 +9,7 @@ import { MINIJOGOS_ESTATICOS } from "@/features/minijogos/dados/index.js";
 import falasAna from "@/data/falas/enfermeira-ana.json";
 import Prontuario from "./componentes/Prontuario.jsx";
 import { minijogoDaLacuna } from "./logica/lacunaMinijogo.js";
+import { sexoDoCenario } from "./dados/prontuarioPlantao.js";
 import { criarRoteiro, falaDaEnfermeira, lacunasAbertas, lacunasParaAvaliacao, perguntaAtual, preencherLacuna, responder, respostasParaAvaliacao } from "./logica/roteiro.js";
 
 const FALAS = falasAna.falas;
@@ -45,6 +46,8 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
   const [lacunaAberta, setLacunaAberta] = useState(null);
   // Exame pedido na conversa ("vou avaliar o dreno"): aparece o botão para examinar.
   const [examePendente, setExamePendente] = useState(null);
+  // Paciente do minijogo de ausculta: o do mesmo sexo do caso.
+  const pacienteDoCaso = sexoDoCenario(cenario.id) === "F" ? "teresinha" : "marcus";
   const [avaliando, setAvaliando] = useState(false);
   const [erro, setErro] = useState(null);
 
@@ -148,12 +151,12 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
   // (o aluno examina e encontra; antes era uma escolha sem dado nenhum para basear).
   const examinar = (lacuna) => {
     setExamePendente(null);
-    if (lacuna.minijogo) setLacunaAberta(lacuna);
+    if (minijogoDaLacuna(lacuna, cenario.id, MINIJOGOS_ESTATICOS, { paciente: pacienteDoCaso })) setLacunaAberta(lacuna);
     else preencher(lacuna, null);
   };
 
   const abertas = lacunasAbertas({ ...roteiro.current, lacunas }).length;
-  const definicao = lacunaAberta ? minijogoDaLacuna(lacunaAberta, cenario.id, MINIJOGOS_ESTATICOS) : null;
+  const definicao = lacunaAberta ? minijogoDaLacuna(lacunaAberta, cenario.id, MINIJOGOS_ESTATICOS, { paciente: pacienteDoCaso }) : null;
 
   return (
     <>

@@ -1,5 +1,5 @@
 // Confere se uma definição de minijogo cumpre o C11. Devolve a lista de problemas (vazia = válida).
-export const TIPOS = ["arrastar", "tocar-regiao", "ordenar", "medir", "escolher"];
+export const TIPOS = ["arrastar", "tocar-regiao", "ordenar", "medir", "escolher", "ausculta"];
 export const CATEGORIAS = ["curativos", "avaliacao", "biosseguranca", "medicacao", "sinais_vitais", "procedimentos"];
 const INSTRUMENTOS = ["termometro", "esfigmo", "glicosimetro", "contar-fr", "contar-pulso"];
 
@@ -22,6 +22,11 @@ export function validarDefinicao(def) {
     for (const i of itens) if (i.alvoCorreto !== null && !ids.has(i.alvoCorreto)) erros.push(`item ${i.id}: alvoCorreto inexistente`);
     if (!itens.some((i) => i.alvoCorreto !== null)) erros.push("arrastar precisa de pelo menos 1 item correto");
     for (const i of itens) if (i.alvoCorreto === null && !String(i.explicacao ?? "").trim()) erros.push(`distrator ${i.id} sem explicação`);
+  }
+  if (def.tipo === "ausculta" && def.ausculta) {
+    const a = def.ausculta;
+    if (!["aleatorio", "normal", "crepitantes_finos", "crepitantes_grossos", "sibilos", "roncos"].includes(a.achado)) erros.push(`achado inválido: ${a.achado}`);
+    if (!(a.vistas ?? []).length || a.vistas.some((v) => !["frente", "costas"].includes(v))) erros.push("ausculta precisa de vistas (frente e/ou costas)");
   }
   if (def.tipo === "ordenar" && def.ordenar) {
     const p = def.ordenar.passos ?? [];

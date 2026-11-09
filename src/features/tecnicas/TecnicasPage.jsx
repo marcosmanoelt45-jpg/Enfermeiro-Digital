@@ -10,6 +10,8 @@ import { catalogoPronto, ROTULOS_CATEGORIA, ROTULOS_TIPO } from "@/features/mini
 import { notaDoResultado } from "@/features/minijogos/logica/avaliar.js";
 import VideotecaConteudo from "@/features/tecnicas/VideotecaConteudo.jsx";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
+import PacienteMaca from "@/features/minijogos/componentes/ausculta/PacienteMaca.jsx";
+import MaoEstetoscopio from "@/features/minijogos/componentes/ausculta/MaoEstetoscopio.jsx";
 
 // POPs e Vídeos eram a mesma tela (cada POP já traz o vídeo, o checklist e a referência): ficou uma aba só.
 const ABAS = [
@@ -21,6 +23,7 @@ function estimarTempo(m) {
   if (m.tipo === "medir") return `${(m.medir.duracaoSeg ?? 20) + 10} s`;
   if (m.tipo === "escolher") return "1 min";
   if (m.tipo === "ordenar") return "2 min";
+  if (m.tipo === "ausculta") return "3 min";
   return "2 min";
 }
 
@@ -99,8 +102,17 @@ export default function TecnicasPage() {
             {visiveis.map((m) => (
               <Tile key={m.id} className={`overflow-hidden p-0 ${visiveis.length === 1 ? "md:flex md:items-stretch" : ""}`}>
                 <button type="button" onClick={() => setAberto(m)} className={`relative block w-full overflow-hidden bg-[#0F1924] ${visiveis.length === 1 ? "aspect-[16/10] md:aspect-auto md:w-[58%]" : "aspect-[16/10]"}`} aria-label={`Jogar: ${m.titulo}`}>
-                  <img src="/minijogos/mesa.webp" alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
-                  <img src="/minijogos/topo-bandeja.webp" alt="" className="absolute left-1/2 top-1/2 w-[62%] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)]" loading="lazy" decoding="async" />
+                  {m.tipo === "ausculta" ? (
+                    <svg viewBox="40 60 320 300" className="absolute inset-0 h-full w-full bg-gradient-to-b from-[#DCE7EE] to-[#C8D6DF]" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+                      <PacienteMaca paciente="marcus" vista="costas" />
+                      <MaoEstetoscopio x={232} y={262} />
+                    </svg>
+                  ) : (
+                    <>
+                      <img src="/minijogos/mesa.webp" alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+                      <img src="/minijogos/topo-bandeja.webp" alt="" className="absolute left-1/2 top-1/2 w-[62%] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)]" loading="lazy" decoding="async" />
+                    </>
+                  )}
                 </button>
                 <div className="flex flex-1 flex-col justify-center gap-3 p-5">
                   <div className="flex items-start justify-between gap-2">
