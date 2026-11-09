@@ -300,17 +300,30 @@ test("turno: sessão encerrada dá SESSAO_ENCERRADA; 40 falas dá COTA_EXCEDIDA;
   await assert.rejects(turnoConsulta(OUTRO, { sessaoId, turnoId: TURNO(4), texto: "oi", canal: "texto" }, { repo, llm: llmFalso(respostaIA()) }), (e) => e.codigo === "ENTRADA_INVALIDA");
 });
 
-test("turno: JSON inválido -> uma tentativa de reparo; inválido de novo -> IA_INDISPONIVEL e nada é gravado", async () => {
+test("turno: JSON inválido -> uma tentativa de reparo; inválido de novo -> o paciente pede para repetir (sem erro)", async () => {
   const { repo, sessaoId } = await preparar();
   const llm = llmFalso("não é json", respostaIA());
   const r = await turno(repo, sessaoId, llm);
   assert.equal(llm.chamadas.length, 2);
-  assert.equal(llm.chamadas[1].mensagens.at(-1).content, "Responda apenas o JSON no formato pedido");
+  assert.match(llm.chamadas[1].mensagens.at(-1).content, /^Responda apenas o JSON no formato pedido/);
   assert.equal(r.fala, "Tô com falta de ar, enfermeiro.");
 
   const llmRuim = llmFalso("lixo", { fala: "", delta_confianca: 0 });
-  await assert.rejects(turno(repo, sessaoId, llmRuim, { n: 2 }), (e) => e.codigo === "IA_INDISPONIVEL");
-  assert.equal(repo.db.turnos.length, 2);
+  const reserva = await turno(repo, sessaoId, llmRuim, { n: 2 });
+  assert.match(reserva.fala, /repetir/);
+});
+
+test("turno: formatos que o modelo já mandou: fala aninhada em dialogo/atualizacao_estado e em lista de falas", async () => {
+  const casos = [
+    [{ dialogo: { paciente: "Tô com dor na barriga." }, atualizacao_estado: { emocao: "dor", revelados: [], delta_confianca: 2 } }, "Tô com dor na barriga."],
+    [{ dialogo: [{ falante: "paciente", texto: "Bom dia, enfermeiro." }], atualizacao_estado: { emocao: "falando" } }, "Bom dia, enfermeiro."],
+    [{ resposta: { fala: "Aninhada." } }, "Aninhada."],
+  ];
+  for (const [bruto, esperado] of casos) {
+    const { repo, sessaoId } = await preparar();
+    const r = await turno(repo, sessaoId, llmFalso(bruto));
+    assert.equal(r.fala, esperado);
+  }
 });
 
 test("turno: fala vazia ou ausente conta como inválida e dispara o reparo", async () => {

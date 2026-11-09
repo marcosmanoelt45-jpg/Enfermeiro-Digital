@@ -43,21 +43,27 @@ export function lerResposta(bruto: unknown): RespostaIA | null {
   let r = bruto as any;
   if (Array.isArray(r)) r = r.find((x) => x && typeof x === "object") ?? null;
   if (!r || typeof r !== "object") return null;
-  // Objeto aninhado ({ "resposta": { "fala": ... } }) também vale.
-  for (const v of Object.values(r)) {
-    if (v && typeof v === "object" && !Array.isArray(v) && typeof (v as { fala?: unknown }).fala === "string") {
-      r = { ...r, ...(v as object) };
-      break;
-    }
-  }
-  const NOMES_DE_FALA = /^(fala|resposta|texto|mensagem|dialogo|di[aá]logo|speech|reply|answer|content|text|patient_?speech|paciente|resposta_paciente)$/i;
-  const IGNORAR = /^(emocao|emoção|emotion|nota_memoria|exame_solicitado|revelados|temas_do_aluno)$/i;
-  const porNome = Object.entries(r).find(([k, v]) => NOMES_DE_FALA.test(k) && typeof v === "string" && v.trim());
-  // Sem nome conhecido: a maior string que não é emoção nem nota.
-  const maior = Object.entries(r)
-    .filter(([k, v]) => !IGNORAR.test(k) && typeof v === "string" && v.trim().length > 1)
-    .sort((a, b) => String(b[1]).length - String(a[1]).length)[0];
-  const falaBruta = porNome?.[1] ?? maior?.[1];
+
+  const NOMES_DE_FALA = /^(fala|resposta|texto|mensagem|dialogo|di[aá]logo|speech|reply|answer|content|text|patient_?speech|paciente|resposta_paciente|fala_paciente|falas?)$/i;
+  const IGNORAR = /^(emocao|emoção|emotion|nota_memoria|nota|exame_solicitado|exame|revelados|temas_do_aluno|temas|delta_confianca|falante|autor|role|quem|personagem|speaker|tipo|id)$/i;
+
+  // Todos os pares (caminho, valor) do objeto, em qualquer profundidade (o modelo às vezes aninha:
+  // { "dialogo": { "paciente": "..." }, "atualizacao_estado": { "emocao": ..., "revelados": [...] } }).
+  // deno-lint-ignore no-explicit-any
+  const pares: Array<{ chave: string; valor: any; nivel: number }> = [];
+  // deno-lint-ignore no-explicit-any
+  const andar = (v: any, chave: string, nivel: number) => {
+    if (nivel > 5 || v == null) return;
+    pares.push({ chave, valor: v, nivel });
+    if (Array.isArray(v)) v.forEach((x) => andar(x, chave, nivel + 1));
+    else if (typeof v === "object") for (const [k, x] of Object.entries(v)) andar(x, k, nivel + 1);
+  };
+  andar(r, "", 0);
+  const textos = pares.filter((p) => typeof p.valor === "string" && p.valor.trim().length > 1 && !IGNORAR.test(p.chave));
+  // Fala: a string com nome de fala mais rasa; senão, a maior string que não é campo de controle.
+  const porNome = textos.filter((p) => NOMES_DE_FALA.test(p.chave)).sort((x, y) => x.nivel - y.nivel)[0];
+  const maior = [...textos].sort((x, y) => String(y.valor).length - String(x.valor).length)[0];
+  const falaBruta = porNome?.valor ?? maior?.valor;
   if (!falaBruta) return null;
   let fala = String(falaBruta).trim();
   if (fala.length > 400) {
@@ -66,21 +72,38 @@ export function lerResposta(bruto: unknown): RespostaIA | null {
     const fim = Math.max(corte.lastIndexOf(". "), corte.lastIndexOf("? "), corte.lastIndexOf("! "));
     fala = fim > 80 ? corte.slice(0, fim + 1) : `${corte.slice(0, 397)}...`;
   }
-  const deltaNum = Number(r.delta_confianca);
+  // Campos de controle: onde quer que estejam.
+  const achar = (re: RegExp) => pares.find((p) => re.test(p.chave))?.valor;
+  const deltaNum = Number(achar(/^delta_confianca$/i));
   const delta = Number.isFinite(deltaNum) ? Math.max(-10, Math.min(10, Math.round(deltaNum))) : 0;
   const lista = (v: unknown) => (Array.isArray(v) ? v.filter((x) => typeof x === "string") : []);
+  const emocao = achar(/^(emocao|emoção|emotion)$/i);
+  const nota = achar(/^nota_memoria$/i);
+  const exame = achar(/^exame_solicitado$/i);
   return {
     fala,
-    emocao: typeof r.emocao === "string" ? r.emocao : "falando",
-    revelados: lista(r.revelados),
-    temas_do_aluno: lista(r.temas_do_aluno),
+    emocao: typeof emocao === "string" ? emocao : "falando",
+    revelados: lista(achar(/^revelados$/i)),
+    temas_do_aluno: lista(achar(/^temas_do_aluno$/i)),
     delta_confianca: delta,
-    nota_memoria: typeof r.nota_memoria === "string" ? r.nota_memoria : "",
-    exame_solicitado: typeof r.exame_solicitado === "string" ? r.exame_solicitado : null,
+    nota_memoria: typeof nota === "string" ? nota : "",
+    exame_solicitado: typeof exame === "string" ? exame : null,
   };
 }
 
-const MSG_REPARO = "Responda apenas o JSON no formato pedido";
+const MSG_REPARO = 'Responda apenas o JSON no formato pedido, com a fala do paciente em "fala" (texto), "emocao", "revelados", "temas_do_aluno", "delta_confianca", "nota_memoria" e "exame_solicitado". Sem outras chaves.';
+
+// Sem resposta aproveitável depois do reparo: o paciente pede para repetir (a conversa segue) em vez do erro
+// "ficou em silêncio". Erro de verdade só quando a IA está fora do ar (aí o llm lança antes).
+export const RESPOSTA_RESERVA: RespostaIA = {
+  fala: "Desculpa, não entendi direito. Pode repetir?",
+  emocao: "confuso",
+  revelados: [],
+  temas_do_aluno: [],
+  delta_confianca: 0,
+  nota_memoria: "",
+  exame_solicitado: null,
+};
 
 export async function turnoConsulta(userId: string, entrada: EntradaTurno, deps: Dependencias & { cota?: () => Promise<void> }) {
   const { repo, llm, cota } = deps;
@@ -118,7 +141,7 @@ export async function turnoConsulta(userId: string, entrada: EntradaTurno, deps:
     textoAluno,
   });
 
-  // IA -> formato válido; se não vier, uma tentativa de reparo; se falhar de novo, IA_INDISPONIVEL.
+  // IA -> formato válido; se não vier, uma tentativa de reparo; se falhar de novo, a fala de reserva.
   const opcoes = { json: PARAMETROS_PACIENTE.json, temperatura: PARAMETROS_PACIENTE.temperatura, maxTokens: PARAMETROS_PACIENTE.maxTokens, timeoutMs: PARAMETROS_PACIENTE.timeoutMs };
   let resposta: RespostaIA | null = null;
   let modelo = "";
@@ -140,10 +163,16 @@ export async function turnoConsulta(userId: string, entrada: EntradaTurno, deps:
       }
     } catch {
       logEvento("resposta_sem_json", { tentativa: tentativa + 1, modelo: r.modelo, chars: r.texto.length, comeca: r.texto.trim().slice(0, 1) });
-      resposta = null;
+      // Texto puro (sem JSON) também serve como fala, se parecer uma frase.
+      const puro = r.texto.trim().replace(/^["'`]+|["'`]+$/g, "");
+      // (só na última tentativa: na primeira, o reparo costuma trazer o JSON certo)
+      resposta = tentativa === 1 && puro && !/^[[{]/.test(puro) && puro.length < 400 ? { ...RESPOSTA_RESERVA, fala: puro, emocao: "falando" } : null;
     }
   }
-  if (!resposta) throw new ErroApp("IA_INDISPONIVEL", "O paciente ficou em silêncio. Tente de novo.");
+  if (!resposta) {
+    logEvento("resposta_reserva", { sessao: entrada.sessaoId, modelo });
+    resposta = RESPOSTA_RESERVA;
+  }
 
   // Só o que estava liberado neste turno conta como revelado.
   const liberadosIds = estadoDosFatos(ficha, { confianca: sessao.confianca, contagemTemas: sessao.contagem_temas ?? {} })

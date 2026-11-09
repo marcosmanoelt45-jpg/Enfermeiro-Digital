@@ -1,38 +1,40 @@
 import { test } from "node:test";
 import assert from "node:assert/strict";
-import { FOCOS, sequencia, qualidadeDoSom, ruidoNoFoco, achadoDoTexto, avaliarAusculta, dicaDeDirecao } from "./ausculta.js";
+import { montarCaso, gerador, somNoPonto, dentroDoPulmao, achadoDoTexto, avaliarAusculta, pontoMaisProximo } from "./ausculta.js";
 
-test("focos: frente tem 5 níveis e costas 9, sempre em par direito/esquerdo", () => {
-  assert.equal(FOCOS.frente.length, 10);
-  assert.equal(FOCOS.costas.length, 18);
-  for (const v of ["frente", "costas"]) {
-    const s = sequencia(v);
-    assert.equal(s.length, FOCOS[v].length);
-    // zigue-zague: nível 1 começa no direito, nível 2 no esquerdo
-    assert.equal(s[0].lado, "direito");
-    assert.equal(s[2].lado, "esquerdo");
-  }
+test("crepitantes: ponto de melhor ausculta na base de um pulmão, nas costas", () => {
+  const caso = montarCaso("crepitantes_finos", { rng: gerador(3), vistas: ["costas"] });
+  assert.equal(caso.pontos.length, 1);
+  const p = caso.pontos[0];
+  const campo = caso.pulmoes.costas.find((x) => x.lado === p.lado);
+  assert.ok(p.y > campo.cy, "abaixo do meio do campo (base)");
+  assert.ok(dentroDoPulmao(caso, "costas", p) > 0.5, "dentro do pulmão");
 });
 
-test("lado do paciente: na frente o direito fica à esquerda da tela; nas costas, à direita", () => {
-  const f1 = FOCOS.frente.find((f) => f.id === "frente-1d");
-  const c1 = FOCOS.costas.find((f) => f.id === "costas-1d");
-  assert.ok(f1.x < 200);
-  assert.ok(c1.x > 200);
+test("cada paciente tem anatomia um pouco diferente (semente muda o campo pulmonar)", () => {
+  const a = montarCaso("normal", { rng: gerador(1) });
+  const b = montarCaso("normal", { rng: gerador(99) });
+  assert.notDeepEqual(a.pulmoes.costas[0], b.pulmoes.costas[0]);
 });
 
-test("som: perfeito em cima do foco, abafado longe", () => {
-  assert.equal(qualidadeDoSom(0), 1);
-  assert.ok(qualidadeDoSom(30) < 0.7);
-  assert.equal(qualidadeDoSom(200), 0);
+test("som: no ponto máximo é nítido e marca; na coluna é abafado e sem o ruído", () => {
+  const caso = montarCaso("crepitantes_finos", { rng: gerador(5) });
+  const p = caso.pontos[0];
+  const aqui = somNoPonto(caso, "costas", p);
+  assert.equal(aqui.tipo, "crepitantes_finos");
+  assert.equal(aqui.noMaximo, true);
+  assert.ok(aqui.qualidade > 0.8);
+  const coluna = somNoPonto(caso, "costas", { x: 200, y: 400 });
+  assert.equal(coluna.noMaximo, false);
+  assert.ok(coluna.qualidade < 0.3);
 });
 
-test("crepitantes só nas bases; sibilos e roncos em todos os focos", () => {
-  const apice = FOCOS.costas.find((f) => f.nivel === 1);
-  const base = FOCOS.costas.find((f) => f.nivel === 9);
-  assert.equal(ruidoNoFoco("crepitantes_finos", apice), "normal");
-  assert.equal(ruidoNoFoco("crepitantes_finos", base), "crepitantes_finos");
-  assert.equal(ruidoNoFoco("sibilos", apice), "sibilos");
+test("sibilos nos dois lados; roncos perto do centro", () => {
+  const sib = montarCaso("sibilos", { rng: gerador(2) });
+  assert.equal(sib.pontos.length, 2);
+  const ron = montarCaso("roncos", { rng: gerador(2) });
+  assert.ok(Math.abs(ron.pontos[0].x - 200) < 40);
+  assert.equal(pontoMaisProximo(ron, "frente", { x: 0, y: 0 }).ponto, null);
 });
 
 test("achado lido do texto do caso", () => {
@@ -42,11 +44,10 @@ test("achado lido do texto do caso", () => {
   assert.equal(achadoDoTexto("estertores bolhosos"), "crepitantes_grossos");
 });
 
-test("avaliação: acerta o ruído (finos e grossos valem como crepitantes); errar dá dica", () => {
+test("avaliação: acerta o ruído (finos e grossos valem como crepitantes) e diz se achou o ponto", () => {
   const def = { ausculta: { achado: "crepitantes_finos" } };
-  assert.equal(avaliarAusculta(def, { focosCertos: 18, ruido: "crepitantes_grossos" }).concluido, true);
-  const r = avaliarAusculta(def, { focosCertos: 18, focosErros: 2, ruido: "sibilos" });
-  assert.equal(r.concluido, false);
-  assert.equal(r.erros, 3);
-  assert.match(dicaDeDirecao({ x: 100, y: 100 }, { x: 140, y: 150 }), /cima/);
+  const certo = avaliarAusculta(def, { achouPonto: true, ruido: "crepitantes_grossos" });
+  assert.equal(certo.concluido, true);
+  assert.equal(certo.achouPonto, true);
+  assert.equal(avaliarAusculta(def, { achouPonto: false, ruido: "sibilos" }).concluido, false);
 });

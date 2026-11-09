@@ -1,93 +1,100 @@
-// Lógica pura do minijogo de ausculta pulmonar (sem tela nem áudio): focos, ordem, distância e avaliação.
-// Focos e sequência: Barros, E. et al. "Anamnese e exame físico", como na aula de exame físico do tórax
-// (frente: 5 níveis; costas: 9 níveis; sempre comparando direita e esquerda, em zigue-zague).
+// Lógica pura do minijogo de ausculta pulmonar (sem tela nem áudio).
+// Ausculta livre: o aluno explora o tórax e procura o PONTO DE MELHOR AUSCULTA do caso. Os campos pulmonares e os
+// pontos de referência seguem a aula de exame físico do tórax (Barros, E. et al., Anamnese e exame físico):
+// ápices acima da clavícula/escápula, bases na região infraescapular; roncos de vias aéreas maiores (centrais),
+// sibilos de brônquios menores (difusos), crepitantes nos alvéolos (bases, na congestão).
 // Coordenadas no viewBox da cena (400 x 500). Na FRENTE o lado direito do paciente fica à esquerda da tela;
 // nas COSTAS, à direita.
 
-const D = "direito";
-const E = "esquerdo";
+// Campos pulmonares (elipses) por vista, antes da variação de anatomia de cada paciente.
+const PULMOES = {
+  frente: [
+    { lado: "direito", cx: 166, cy: 262, rx: 34, ry: 50 },
+    { lado: "esquerdo", cx: 236, cy: 266, rx: 30, ry: 46 }, // um pouco menor: o coração ocupa espaço
+  ],
+  costas: [
+    { lado: "esquerdo", cx: 164, cy: 270, rx: 34, ry: 56 },
+    { lado: "direito", cx: 236, cy: 270, rx: 34, ry: 56 },
+  ],
+};
 
-// [nível, lado, x, y, nome]
-const FRENTE = [
-  [1, D, 162, 198, "região infraclavicular (ápice)"],
-  [1, E, 238, 198, "região infraclavicular (ápice)"],
-  [2, D, 166, 226, "2º espaço intercostal, linha hemiclavicular"],
-  [2, E, 234, 226, "2º espaço intercostal, linha hemiclavicular"],
-  [3, D, 168, 254, "4º espaço intercostal, linha hemiclavicular"],
-  [3, E, 232, 254, "4º espaço intercostal, linha hemiclavicular"],
-  [4, D, 156, 286, "6º espaço intercostal, linha hemiclavicular"],
-  [4, E, 244, 286, "6º espaço intercostal, linha hemiclavicular"],
-  [5, D, 118, 314, "base lateral, linha axilar média"],
-  [5, E, 282, 314, "base lateral, linha axilar média"],
-];
-
-const COSTAS = [
-  [1, D, 240, 198, "região supraescapular"],
-  [1, E, 160, 198, "região supraescapular"],
-  [2, D, 218, 222, "região interescapulovertebral superior"],
-  [2, E, 182, 222, "região interescapulovertebral superior"],
-  [3, D, 218, 242, "região interescapulovertebral"],
-  [3, E, 182, 242, "região interescapulovertebral"],
-  [4, D, 218, 262, "região interescapulovertebral"],
-  [4, E, 182, 262, "região interescapulovertebral"],
-  [5, D, 218, 282, "região interescapulovertebral inferior"],
-  [5, E, 182, 282, "região interescapulovertebral inferior"],
-  [6, D, 252, 302, "região infraescapular"],
-  [6, E, 148, 302, "região infraescapular"],
-  [7, D, 236, 324, "região infraescapular inferior"],
-  [7, E, 164, 324, "região infraescapular inferior"],
-  [8, D, 282, 326, "linha axilar posterior"],
-  [8, E, 118, 326, "linha axilar posterior"],
-  [9, D, 228, 352, "base pulmonar"],
-  [9, E, 172, 352, "base pulmonar"],
-];
-
-const montar = (vista, lista) =>
-  lista.map(([nivel, lado, x, y, nome]) => ({ id: `${vista}-${nivel}${lado[0]}`, vista, nivel, lado, x, y, nome }));
-
-export const FOCOS = { frente: montar("frente", FRENTE), costas: montar("costas", COSTAS) };
-
-// Zigue-zague da figura: níveis ímpares direita -> esquerda; pares, esquerda -> direita.
-export function sequencia(vista) {
-  const porNivel = new Map();
-  for (const f of FOCOS[vista]) {
-    if (!porNivel.has(f.nivel)) porNivel.set(f.nivel, []);
-    porNivel.get(f.nivel).push(f);
-  }
-  return [...porNivel.entries()]
-    .sort((a, b) => a[0] - b[0])
-    .flatMap(([nivel, par]) => {
-      const dir = par.find((f) => f.lado === D);
-      const esq = par.find((f) => f.lado === E);
-      return nivel % 2 ? [dir, esq] : [esq, dir];
-    });
-}
-
-export const RAIO_ACERTO = 17; // unidades do viewBox (~um dedo na tela)
+export const RAIO_MAXIMO = 16; // perto assim do ponto de melhor ausculta, o som está no máximo
+export const SEGURAR_MS = 1500; // tempo parado no som máximo para marcar o ponto
 export const distancia = (a, b) => Math.hypot(a.x - b.x, a.y - b.y);
 
-// 1 = em cima do foco; 0 = longe (o som fica abafado).
-export function qualidadeDoSom(d) {
-  if (d <= 8) return 1;
-  return Math.max(0, Math.min(1, 1 - (d - 8) / 60));
+// Gerador simples com semente, para o mesmo caso ter a mesma anatomia numa rodada.
+export function gerador(semente = 1) {
+  let s = semente >>> 0 || 1;
+  return () => {
+    s = (s * 1664525 + 1013904223) >>> 0;
+    return s / 4294967296;
+  };
 }
 
-// Bases (onde os crepitantes de congestão aparecem): frente 4–5; costas 7–9.
-export const ehBase = (foco) => (foco.vista === "frente" ? foco.nivel >= 4 : foco.nivel >= 7);
-
-// O que se ouve num foco, dado o achado do caso.
-export function ruidoNoFoco(achado, foco) {
-  if (achado === "crepitantes_finos" || achado === "crepitantes_grossos") return ehBase(foco) ? achado : "normal";
-  return achado; // normal, sibilos e roncos: difusos
+/**
+ * Monta o paciente da rodada: campos pulmonares levemente deslocados (cada um tem a sua anatomia) e os pontos de
+ * melhor ausculta conforme o achado. Devolve { pulmoes: {frente, costas}, pontos: [{vista, x, y, lado}], achado }.
+ */
+export function montarCaso(achado, { rng = Math.random, vistas = ["costas"] } = {}) {
+  const desloca = () => (rng() * 2 - 1) * 7;
+  const dx = desloca();
+  const dy = desloca();
+  const pulmoes = Object.fromEntries(
+    Object.entries(PULMOES).map(([v, lista]) => [v, lista.map((p) => ({ ...p, cx: p.cx + dx * (p.lado === "direito" ? 1 : -1) * 0.5, cy: p.cy + dy, rx: p.rx * (0.94 + rng() * 0.1), ry: p.ry * (0.94 + rng() * 0.1) }))])
+  );
+  const pontos = [];
+  const lado = rng() < 0.5 ? "direito" : "esquerdo";
+  for (const v of vistas) {
+    const doLado = pulmoes[v].find((p) => p.lado === lado);
+    const outro = pulmoes[v].find((p) => p.lado !== lado);
+    if (achado === "crepitantes_finos" || achado === "crepitantes_grossos") {
+      // bases: terço inferior do campo pulmonar (na frente, na linha axilar; atrás, infraescapular)
+      if (v === "costas") pontos.push({ vista: v, lado, x: doLado.cx + (rng() * 2 - 1) * 8, y: doLado.cy + doLado.ry * 0.62 });
+      else pontos.push({ vista: v, lado, x: doLado.cx + (lado === "direito" ? -1 : 1) * doLado.rx * 0.45, y: doLado.cy + doLado.ry * 0.55 });
+    } else if (achado === "roncos") {
+      // vias aéreas maiores: perto do hilo (interescapular atrás; 2º espaço junto ao esterno na frente)
+      const hilo = v === "costas" ? { x: (doLado.cx + 200) / 2, y: doLado.cy - doLado.ry * 0.3 } : { x: (doLado.cx + 200) / 2, y: doLado.cy - doLado.ry * 0.45 };
+      pontos.push({ vista: v, lado, ...hilo });
+    } else if (achado === "sibilos") {
+      // difusos, mais fortes no meio dos campos (os dois lados)
+      pontos.push({ vista: v, lado, x: doLado.cx, y: doLado.cy });
+      pontos.push({ vista: v, lado: outro.lado, x: outro.cx, y: outro.cy });
+    } else {
+      // normal: murmúrio vesicular bem audível no meio de qualquer campo
+      for (const p of pulmoes[v]) pontos.push({ vista: v, lado: p.lado, x: p.cx, y: p.cy + p.ry * 0.2 });
+    }
+  }
+  return { achado, pulmoes, pontos };
 }
 
-// Dica de direção quando o aluno erra o mesmo foco duas vezes.
-export function dicaDeDirecao(alvo, ponto) {
-  const dx = alvo.x - ponto.x;
-  const dy = alvo.y - ponto.y;
-  const vertical = Math.abs(dy) > 12 ? (dy < 0 ? "mais para cima" : "mais para baixo") : "";
-  const horizontal = Math.abs(dx) > 12 ? (dx < 0 ? "mais para a esquerda" : "mais para a direita") : "";
-  return [vertical, horizontal].filter(Boolean).join(" e ") || "quase lá, ajuste um pouquinho";
+// 1 no meio do campo pulmonar, caindo até a borda; fora do pulmão (coluna, escápula, abdome) o som é abafado.
+export function dentroDoPulmao(caso, vista, p) {
+  let melhor = 0;
+  for (const e of caso.pulmoes[vista]) {
+    const k = ((p.x - e.cx) / e.rx) ** 2 + ((p.y - e.cy) / e.ry) ** 2; // < 1 dentro da elipse
+    melhor = Math.max(melhor, k <= 1 ? 1 - 0.35 * k : Math.max(0, 1 - (Math.sqrt(k) - 1) * 2.2) * 0.4);
+  }
+  return melhor;
+}
+
+export function pontoMaisProximo(caso, vista, p) {
+  const daVista = caso.pontos.filter((x) => x.vista === vista);
+  if (!daVista.length) return { ponto: null, d: Infinity };
+  return daVista.reduce((a, x) => (distancia(x, p) < a.d ? { ponto: x, d: distancia(x, p) } : a), { ponto: null, d: Infinity });
+}
+
+/**
+ * O que se ouve com o diafragma em p: { tipo, qualidade, noMaximo }.
+ * qualidade: nitidez geral (pulmão x fora dele) somada à proximidade do ponto de melhor ausculta.
+ */
+export function somNoPonto(caso, vista, p) {
+  const pulmao = dentroDoPulmao(caso, vista, p);
+  const { d } = pontoMaisProximo(caso, vista, p);
+  const perto = Number.isFinite(d) ? Math.max(0, 1 - d / 75) : 0;
+  const advent = caso.achado !== "normal";
+  const tipo = advent && perto > 0.25 ? caso.achado : "normal";
+  const qualidade = Math.max(0, Math.min(1, advent ? pulmao * (0.45 + 0.55 * perto) : pulmao * (0.6 + 0.4 * perto)));
+  return { tipo, qualidade, noMaximo: d <= RAIO_MAXIMO && pulmao > 0.5 };
 }
 
 // Achado do caso a partir do texto (prontuário/lacuna): "crepitações finas em bases" -> crepitantes_finos.
@@ -99,16 +106,26 @@ export function achadoDoTexto(texto = "") {
   return "normal";
 }
 
-// Avaliação (formato do C11): focos certos e errados + o ruído escolhido no fim.
-// Os crepitantes finos e grossos contam como a mesma resposta "crepitantes" no teste de identificação.
+export const ONDE = {
+  normal: "Murmúrio vesicular presente nos dois campos, sem ruídos adventícios.",
+  crepitantes_finos: "Crepitantes finos nas bases (alvéolos), no fim da inspiração, como na congestão pulmonar.",
+  crepitantes_grossos: "Crepitantes grossos (bolhosos) nas bases, na inspiração e na expiração (secreção em vias menores).",
+  sibilos: "Sibilos difusos, agudos e musicais, mais na expiração (brônquios médios e menores estreitados).",
+  roncos: "Roncos graves e ressonantes, mais perto das vias aéreas centrais (brônquios maiores com secreção).",
+};
+
+// Os crepitantes finos e grossos contam como a mesma resposta "crepitantes" na identificação.
 export const familia = (r) => (r?.startsWith("crepitantes") ? "crepitantes" : r);
+
+// Avaliação (formato do C11): achou o ponto de melhor ausculta? acertou o ruído?
 export function avaliarAusculta(def, acao) {
-  const { focosCertos = 0, focosErros = 0, ruido = null } = acao ?? {};
+  const { achouPonto = false, ruido = null } = acao ?? {};
   const ok = familia(ruido) === familia(def.ausculta.achado);
   return {
-    acertos: focosCertos + (ok ? 1 : 0),
-    erros: focosErros + (ruido && !ok ? 1 : 0),
+    acertos: (achouPonto ? 1 : 0) + (ok ? 1 : 0),
+    erros: ok ? 0 : 1,
     concluido: ok,
-    detalhes: [{ id: "ruido", ok, feedback: ok ? "" : "Esse não é o ruído deste paciente. Ausculte de novo, comparando os dois lados e as bases." }],
+    achouPonto,
+    detalhes: [{ id: "ruido", ok, feedback: ok ? "" : "Esse não é o ruído deste paciente. Procure o ponto onde o som fica mais forte e ouça de novo." }],
   };
 }

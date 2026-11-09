@@ -2,6 +2,7 @@ import React from "react";
 import PropTypes from "prop-types";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/surface";
+import { ONDE } from "../logica/ausculta.js";
 
 function formatarTempo(ms) {
   const s = Math.max(0, Math.round(ms / 1000));
@@ -28,11 +29,28 @@ export default function ResultadoMinijogo({ definicao, resultado, avaliacao, onT
   return (
     <Panel className="space-y-4 text-center" role="status">
       <h2 className="text-lg font-extrabold">{resultado.concluido === false ? "Não foi dessa vez" : resultado.erros === 0 ? "Perfeito!" : "Concluído!"}</h2>
+      {definicao.tipo === "ausculta" ? (
+        <ul className="space-y-2 text-left text-sm font-semibold">
+          <li className="flex items-center justify-between gap-2 rounded-xl border border-[#27394B] px-3 py-2">
+            <span>Ponto de melhor ausculta</span>
+            <b className={avaliacao?.achouPonto ? "text-[#3DD68C]" : "text-[#9FB3C6]"}>{avaliacao?.achouPonto ? "encontrado" : "não encontrado"}</b>
+          </li>
+          <li className="flex items-center justify-between gap-2 rounded-xl border border-[#27394B] px-3 py-2">
+            <span>Ruído</span>
+            <b className={resultado.concluido === false ? "text-[#FF6B6B]" : "text-[#3DD68C]"}>{resultado.concluido === false ? "não identificado" : "certo"}</b>
+          </li>
+          <li className="rounded-xl bg-[#131F2E] px-3 py-2 text-[#EAF2F8]">
+            <b className="text-[#20D5B5]">Este paciente:</b> {ONDE[definicao.ausculta.achado] ?? ""}
+          </li>
+          <li className="text-xs text-[#9FB3C6]">Tempo: {formatarTempo(resultado.tempoMs)}</li>
+        </ul>
+      ) : (
       <dl className="grid grid-cols-3 gap-2 text-center">
         <div><dt className="text-xs font-bold text-[#9FB3C6]">Acertos</dt><dd className="text-xl font-black text-[#3DD68C]">{resultado.acertos}</dd></div>
         <div><dt className="text-xs font-bold text-[#9FB3C6]">Erros</dt><dd className="text-xl font-black text-[#FF6B6B]">{resultado.erros}</dd></div>
         <div><dt className="text-xs font-bold text-[#9FB3C6]">Tempo</dt><dd className="text-xl font-black">{formatarTempo(resultado.tempoMs)}</dd></div>
       </dl>
+      )}
       {resultado.achado && <p className="rounded-xl border border-[#27394B] p-2 text-sm font-semibold">{resultado.achado.texto}: <b>{resultado.achado.valor}</b></p>}
       {porques.length > 0 && (
         <ul className="space-y-1 text-left text-sm font-semibold text-[#9FB3C6]">
