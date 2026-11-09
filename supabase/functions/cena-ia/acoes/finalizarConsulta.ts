@@ -21,6 +21,8 @@ export interface RegistroAluno {
   achados: string;
   diagnosticos: string[];
   intervencoes: string[];
+  // Fatores relacionados/de risco e características definidoras que o aluno escolheu para cada diagnóstico.
+  indicadores?: Array<{ codigo: string; fatores: string[]; caracteristicas: string[] }>;
   examesFeitos?: Array<{ minijogoId: string; resultado?: unknown }>;
 }
 
@@ -61,6 +63,7 @@ export async function finalizarConsulta(
     achados: entrada.registro.achados,
     diagnosticos: [...new Set(entrada.registro.diagnosticos.filter((c) => CODIGOS_NANDA.has(c)))],
     intervencoes: entrada.registro.intervencoes,
+    indicadores: (entrada.registro.indicadores ?? []).filter((i) => CODIGOS_NANDA.has(i.codigo)),
     examesFeitos: entrada.registro.examesFeitos ?? [],
   };
 
@@ -86,7 +89,7 @@ export async function finalizarConsulta(
     descobertos,
     escondidos,
     diagnosticos: dx,
-    registro: { achados: registro.achados, diagnosticos: registro.diagnosticos, intervencoes: registro.intervencoes },
+    registro: { achados: registro.achados, diagnosticos: registro.diagnosticos, intervencoes: registro.intervencoes, indicadores: registro.indicadores },
     nomeDx,
   });
   let avaliacao = null;

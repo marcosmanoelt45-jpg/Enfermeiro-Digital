@@ -11,7 +11,6 @@ import { useTheme } from "@/lib/ThemeContext";
 
 import GotiChatDrawer from "@/components/mascot/GotiChatDrawer";
 import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
-import ModuleBriefingModal from "@/components/navigation/ModuleBriefingModal";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import gotiLogoOficial from "@/assets/goti-icone-oficial.png";
 import { modulosDoHeader } from "@/features/navegacao/modulos";
@@ -23,8 +22,6 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
   const { triggerHaptic } = useTheme();
 
   // Estados dos Modais do Goti e Navegação
-  const [briefingModuleId, setBriefingModuleId] = useState(null);
-  const [isBriefingOpen, setIsBriefingOpen] = useState(false);
   const [isGotiChatOpen, setIsGotiChatOpen] = useState(false);
   const [isStudyPointsOpen, setIsStudyPointsOpen] = useState(false);
   const [studyPoints, setStudyPoints] = useState(() => clinicalGamificationService.getStudyPoints());
@@ -52,31 +49,17 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
         label: m.rotulo,
         path: m.rota,
         icon: icone(m.icone),
-        briefingId: m.briefingId,
-        hasBriefing: Boolean(m.briefingId),
         isNew: m.novo,
       })),
     []
   );
 
+  // Cada aba abre direto; as opções de cada módulo (modo gravação, histórico) ficam dentro da própria aba.
   function handleNavClick(link) {
     triggerHaptic(12);
-    if (link.hasBriefing) {
-      setBriefingModuleId(link.briefingId);
-      setIsBriefingOpen(true);
-    } else {
-      navigate(link.path);
-    }
+    navigate(link.path);
   }
 
-  function handleBriefingAction(action, targetPath) {
-    setIsBriefingOpen(false);
-    triggerHaptic(20);
-    // Uma ação pode levar a outra tela (ex.: revisão dos casos montados fica no Banco de Casos).
-    const basePath = action.path || targetPath;
-    const destination = action.query ? `${basePath}${action.query}` : basePath;
-    navigate(destination);
-  }
 
   return (
     <>
@@ -207,14 +190,6 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
           <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-emerald-400"></span>
         </span>
       </button>
-
-      {/* Modal Intersticial de Briefing Pedagógico nas 6 Abas */}
-      <ModuleBriefingModal
-        isOpen={isBriefingOpen}
-        moduleId={briefingModuleId}
-        onClose={() => setIsBriefingOpen(false)}
-        onSelectAction={handleBriefingAction}
-      />
 
       {/* Gaveta / Modal de Chat com o Goti */}
       <GotiChatDrawer

@@ -1,0 +1,28 @@
+{
+  "tipo": "fotos de paciente (prontuário do Plantão)",
+  "promptBase": "Flat vector character portrait in a friendly Duolingo-like style: simple rounded geometric shapes, no outlines, bold clean flat colors with one soft lighter highlight and one soft darker shade, chunky cute proportions. Head and shoulders of a hospital patient, facing the viewer, centered, filling the frame like an ID photo, calm neutral expression. Background: solid flat pale blue-grey #DCE4EB, no gradient, no other objects. No text, no letters, no logo.",
+  "saida": "assets-brutos/fotos-pacientes/<id>/",
+  "final": "public/pacientes/fotos/<id>.webp",
+  "pacientes": [
+    { "id": "pos_op", "descricao": "a 58-year-old man, light brown skin, short grey hair, light blue hospital gown" },
+    { "id": "icc", "descricao": "a 67-year-old man, pale skin, balding with white hair, tired face, thin transparent nasal oxygen cannula, light blue hospital gown" },
+    { "id": "delirium", "descricao": "an 82-year-old man, very old, wrinkled light skin, sparse messy white hair, slightly confused look, light blue hospital gown" },
+    { "id": "dpoc", "descricao": "a 64-year-old man, tan skin, grey stubble, thin transparent nasal oxygen cannula, light blue hospital gown" },
+    { "id": "sepse_urinaria", "descricao": "a 71-year-old woman, brown skin, grey hair in a short bun, flushed cheeks, sleepy look, light blue hospital gown" },
+    { "id": "avc_isquemico", "descricao": "a 63-year-old man, dark brown skin, short black hair with grey, light blue hospital gown" },
+    { "id": "iam_st", "descricao": "a 56-year-old man, light skin, short brown hair with grey temples, light blue hospital gown, small ECG electrodes on the chest" },
+    { "id": "trauma_cranio", "descricao": "a 29-year-old man, medium brown skin, short black hair, white head bandage, white rigid cervical collar around the neck, light blue hospital gown" },
+    { "id": "cetoacidose_pediatrica", "descricao": "a 14-year-old girl, light brown skin, long dark hair in a ponytail, tired face, light blue hospital gown" },
+    { "id": "pre_eclampsia_grave", "descricao": "a 31-year-old pregnant woman, black skin, curly black hair, light pink hospital gown" },
+    { "id": "pancreatite_aguda", "descricao": "a 49-year-old man, light skin, short dark hair, thin transparent nasogastric tube taped to the nose, light blue hospital gown" },
+    { "id": "choque_anafilatico", "descricao": "a 38-year-old woman, light skin, shoulder-length brown hair, slight redness on the cheeks, light blue hospital gown" },
+    { "id": "queimado_agudo", "descricao": "a 32-year-old man, light brown skin, short black hair, white gauze bandages on one cheek and on the shoulders, light blue hospital gown" },
+    { "id": "politrauma_bacia", "descricao": "a young man in his twenties, dark brown skin, short black hair, small white bandage on the forehead, light blue hospital gown" },
+    { "id": "hemorragia_digestiva", "descricao": "a 52-year-old man, pale yellowish skin, thinning dark hair, gaunt face, light blue hospital gown" },
+    { "id": "tep_pos_op", "descricao": "a 59-year-old man, light skin, white beard, short white hair, transparent nasal oxygen cannula, light blue hospital gown" },
+    { "id": "falciforme_toracica", "descricao": "a 20-year-old young man, dark brown skin, short black hair, transparent nasal oxygen cannula, light blue hospital gown" },
+    { "id": "bronquiolite_lactente", "descricao": "a 7-month-old baby boy, light brown skin, little hair, round cheeks, tiny transparent nasal oxygen cannula, light blue baby hospital gown" },
+    { "id": "paliativos_terminal", "descricao": "a 74-year-old woman, light skin, very short thin white hair, peaceful face with closed eyes, soft lilac hospital gown" },
+    { "id": "crise_tireotoxica", "descricao": "a 35-year-old woman, light brown skin, long black hair, slightly wide eyes, sweaty forehead, light blue hospital gown" }
+  ]
+}

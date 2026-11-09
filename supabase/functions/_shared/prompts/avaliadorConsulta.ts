@@ -47,7 +47,7 @@ export interface EntradaAvaliador {
   descobertos: Array<{ id: string; texto: string }>;
   escondidos: Array<{ id: string; texto: string }>;
   diagnosticos: { certos: string[]; faltando: string[]; extras: string[] };
-  registro: { achados: string; diagnosticos: string[]; intervencoes: string[] };
+  registro: { achados: string; diagnosticos: string[]; intervencoes: string[]; indicadores?: Array<{ codigo: string; fatores: string[]; caracteristicas: string[] }> };
   nomeDx: (codigo: string) => string;
 }
 
@@ -85,6 +85,7 @@ export function montarMensagensAvaliador(e: EntradaAvaliador): MensagemLLM[] {
     "REGISTRO DO ALUNO:",
     `- achados: ${e.registro.achados || "(vazio)"}`,
     `- diagnósticos: ${dx(e.registro.diagnosticos)}`,
+    ...(e.registro.indicadores ?? []).map((i) => `  - ${i.codigo}: fatores ${i.fatores.length ? i.fatores.join("; ") : "(nenhum)"} | características ${i.caracteristicas.length ? i.caracteristicas.join("; ") : "(nenhuma)"}`),
     `- intervenções: ${e.registro.intervencoes.length ? e.registro.intervencoes.join("; ") : "(nenhuma)"}`,
   ].join("\n");
   return [

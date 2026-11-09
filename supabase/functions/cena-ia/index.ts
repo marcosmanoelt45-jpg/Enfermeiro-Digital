@@ -46,6 +46,10 @@ const Entrada = z.discriminatedUnion("acao", [
       achados: z.string().max(1500),
       diagnosticos: z.array(z.string().regex(/^\d{5}$/)).max(6),
       intervencoes: z.array(z.string().trim().min(1).max(160)).max(8),
+      indicadores: z
+        .array(z.object({ codigo: z.string().regex(/^\d{5}$/), fatores: z.array(z.string().trim().min(1).max(200)).max(12), caracteristicas: z.array(z.string().trim().min(1).max(200)).max(12) }))
+        .max(6)
+        .optional(),
       examesFeitos: z.array(z.object({ minijogoId: z.string().max(60), resultado: z.unknown().optional() })).max(6).optional(),
     }),
   }),

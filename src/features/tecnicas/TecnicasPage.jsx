@@ -72,10 +72,10 @@ export default function TecnicasPage() {
   }
 
   return (
-    <PageShell activeTab="tecnicas">
+    <PageShell activeTab="tecnicas" larguraMax="4xl">
       <header className="space-y-3">
         <h1 className="text-xl font-extrabold">Técnicas</h1>
-        <div className="grid grid-cols-2 gap-2" role="tablist" aria-label="Seções">
+        <div className="mx-auto grid w-full max-w-md grid-cols-2 gap-2" role="tablist" aria-label="Seções">
           {ABAS.map((a) => (
             <button key={a.id} type="button" role="tab" aria-selected={aba === a.id} onClick={() => setAba(a.id)} className={`rounded-full border px-3 py-1.5 text-sm font-bold ${aba === a.id ? "border-[#20D5B5] bg-[#20D5B5]/15 text-[#20D5B5]" : "border-[#27394B]"}`}>
               {a.rotulo}
@@ -95,22 +95,29 @@ export default function TecnicasPage() {
             ))}
           </div>
           )}
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+          <div className={`grid gap-4 ${visiveis.length > 1 ? "sm:grid-cols-2" : ""}`}>
             {visiveis.map((m) => (
-              <Tile key={m.id} className="space-y-2">
-                <div className="flex items-start justify-between gap-2">
-                  <p className="text-sm font-extrabold leading-snug">{m.titulo}</p>
-                  {concluidos.has(m.id) && <Chip tone="success">Concluído</Chip>}
+              <Tile key={m.id} className={`overflow-hidden p-0 ${visiveis.length === 1 ? "md:flex md:items-stretch" : ""}`}>
+                <button type="button" onClick={() => setAberto(m)} className={`relative block w-full overflow-hidden bg-[#0F1924] ${visiveis.length === 1 ? "aspect-[16/10] md:aspect-auto md:w-[58%]" : "aspect-[16/10]"}`} aria-label={`Jogar: ${m.titulo}`}>
+                  <img src="/minijogos/mesa.webp" alt="" className="absolute inset-0 h-full w-full object-cover" loading="lazy" decoding="async" />
+                  <img src="/minijogos/topo-bandeja.webp" alt="" className="absolute left-1/2 top-1/2 w-[62%] -translate-x-1/2 -translate-y-1/2 drop-shadow-[0_10px_18px_rgba(0,0,0,0.45)]" loading="lazy" decoding="async" />
+                </button>
+                <div className="flex flex-1 flex-col justify-center gap-3 p-5">
+                  <div className="flex items-start justify-between gap-2">
+                    <p className="text-lg font-extrabold leading-snug md:text-xl">{m.titulo}</p>
+                    {concluidos.has(m.id) && <Chip tone="success">Concluído</Chip>}
+                  </div>
+                  <p className="text-sm font-semibold text-[#9FB3C6]">{ROTULOS_TIPO[m.tipo]} · {ROTULOS_CATEGORIA[m.categoria]} · {estimarTempo(m)}</p>
+                  {m.instrucao && <p className="text-sm font-semibold">{m.instrucao}</p>}
+                  <Button variant="primary" size="lg" className="w-full" onClick={() => setAberto(m)}>{concluidos.has(m.id) ? "Jogar de novo" : "Jogar"}</Button>
                 </div>
-                <p className="text-xs font-semibold text-[#9FB3C6]">{ROTULOS_TIPO[m.tipo]} · {ROTULOS_CATEGORIA[m.categoria]} · {estimarTempo(m)}</p>
-                <Button variant="primary" size="sm" className="w-full" onClick={() => setAberto(m)}>{concluidos.has(m.id) ? "Jogar de novo" : "Jogar"}</Button>
               </Tile>
             ))}
           </div>
         </>
       )}
 
-      {aba === "pops" && <VideotecaConteudo titulo="POPs com vídeo e checklist" />}
+      {aba === "pops" && <VideotecaConteudo titulo="POPs com vídeo e checklist" embutido />}
     </PageShell>
   );
 }

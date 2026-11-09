@@ -11,6 +11,7 @@ import { resumoParaHistorico } from "./logica/relatorioView.js";
 import RegistroConsulta from "./componentes/RegistroConsulta.jsx";
 import RelatorioConsulta from "./componentes/RelatorioConsulta.jsx";
 import BlocoNotas from "./componentes/BlocoNotas.jsx";
+import FolhaEvolucao from "./componentes/FolhaEvolucao.jsx";
 
 const AVISO_FIM = 5;
 
@@ -42,6 +43,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
   const chave = chaveNotas(user?.id, sessao.sessaoId);
   const [notas, setNotas] = useState(() => lerNotas(chave));
   const [notasAbertas, setNotasAbertas] = useState(false);
+  const [turnos, setTurnos] = useState(retomada?.turnos ?? []);
   useEffect(() => {
     try {
       if (notas) localStorage.setItem(chave, notas);
@@ -96,7 +98,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
     return <RelatorioConsulta relatorio={relatorio} turnos={turnosDoRelatorio} onNova={onNova} onInicio={onSair} />;
   }
   if (fase === "registro") {
-    return <RegistroConsulta achadosIniciais={notas} onEnviar={finalizar} enviando={enviando} erro={erro} onVoltar={() => setFase("cena")} />;
+    return <RegistroConsulta achadosIniciais={notas} briefing={sessao.briefing} turnos={turnos} onEnviar={finalizar} enviando={enviando} erro={erro} onVoltar={() => setFase("cena")} />;
   }
 
   const slotTopo = (
@@ -119,7 +121,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       progresso={{ atual: 40 - restantes, total: 40 }}
       slotTopo={slotTopo}
       acoes={[
-        { id: "notas", rotulo: notas.trim() ? "Anotações ✓" : "Anotações", onClick: () => setNotasAbertas(true) },
+        { id: "notas", rotulo: notas.trim() ? "Evolução ✓" : "Evolução", onClick: () => setNotasAbertas(true), soCelular: true },
         { id: "encerrar", rotulo: "Encerrar e registrar", onClick: () => setFase("registro") },
       ]}
       falasIniciais={falasIniciais}
@@ -127,8 +129,10 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       autoIniciar={!retomada}
       onEnviar={onEnviar}
       onEncerrar={onSair}
+      onTurnos={setTurnos}
+      slotLateral={<FolhaEvolucao texto={notas} onMudar={setNotas} briefing={b} turnos={turnos} linhas={16} />}
     />
-    <BlocoNotas aberto={notasAbertas} texto={notas} onMudar={setNotas} onFechar={() => setNotasAbertas(false)} />
+    <BlocoNotas aberto={notasAbertas} texto={notas} onMudar={setNotas} onFechar={() => setNotasAbertas(false)} briefing={b} turnos={turnos} />
     </>
   );
 }

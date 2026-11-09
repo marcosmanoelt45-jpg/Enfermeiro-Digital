@@ -35,6 +35,8 @@ export default function CenaAoVivo({
   slotAbaixoPalco = null,
   slotControle = null,
   placeholderFala,
+  slotLateral = null,
+  onTurnos = null,
 }) {
   const [estado, dispatch] = useReducer(cenaReducer, undefined, () => (turnosIniciais ? criarEstado({ status: "aguardando_aluno", turnos: turnosIniciais }) : criarEstado()));
   const voz = useVozPersonagem(personagemId);
@@ -46,6 +48,15 @@ export default function CenaAoVivo({
   useEffect(() => {
     enviarRef.current = onEnviar;
   });
+
+  // Quem usa a cena pode ler a conversa (ex.: a ajuda do Goti nas anotações).
+  const onTurnosRef = useRef(onTurnos);
+  useEffect(() => {
+    onTurnosRef.current = onTurnos;
+  });
+  useEffect(() => {
+    onTurnosRef.current?.(estado.turnos);
+  }, [estado.turnos]);
 
   const suportaVoz = permitirVoz && aluno.suportaVoz;
   const bloqueado = bloqueio || (estado.status === "bloqueada" ? { tipo: "cota", mensagem: estado.erro?.mensagem || MENSAGENS_PADRAO.COTA_EXCEDIDA } : null);
@@ -142,7 +153,9 @@ export default function CenaAoVivo({
   };
 
   return (
-    <PageShell semDock>
+    <PageShell semDock larguraMax={slotLateral ? "6xl" : "xl"}>
+      <div className={slotLateral ? "lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,440px)] lg:items-start lg:gap-6" : ""}>
+      <div className="space-y-5">
       <BarraCena titulo={titulo} progresso={progresso} slotTopo={slotTopo} onSair={sair} rodando={estado.status !== "ocioso" && estado.status !== "encerrada"} />
 
       <PersonagemStage personagemId={personagemId} emocao={emocao} falando={voz.falando} onReacaoTerminou={() => setReacao(null)} />
@@ -152,7 +165,7 @@ export default function CenaAoVivo({
       {acoes.length > 0 && (
         <div className="flex flex-wrap gap-2">
           {acoes.map((a) => (
-            <Button key={a.id} variant="outline" size="sm" onClick={a.onClick}>
+            <Button key={a.id} variant="outline" size="sm" onClick={a.onClick} className={a.soCelular && slotLateral ? "lg:hidden" : undefined}>
               {a.rotulo}
             </Button>
           ))}
@@ -199,6 +212,9 @@ export default function CenaAoVivo({
           )}
         </>
       )}
+      </div>
+      {slotLateral && <aside className="hidden lg:sticky lg:top-4 lg:block">{slotLateral}</aside>}
+      </div>
     </PageShell>
   );
 }
@@ -218,5 +234,7 @@ CenaAoVivo.propTypes = {
   autoIniciar: PropTypes.bool,
   slotAbaixoPalco: PropTypes.node,
   slotControle: PropTypes.func,
+  slotLateral: PropTypes.node,
+  onTurnos: PropTypes.func,
   placeholderFala: PropTypes.string,
 };

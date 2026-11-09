@@ -1,18 +1,58 @@
+import PropTypes from "prop-types";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
-import { Panel, Inset } from "@/components/ui/surface";
+import { Panel } from "@/components/ui/surface";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import PageShell from "@/components/layout/PageShell";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { useAuth } from "@/lib/AuthContext";
 import { isLocalDemoSession } from "@/services/supabaseClient";
+import FichaProntuario, { nascimentoPorIdade } from "@/components/prontuario/FichaProntuario.jsx";
+
 import EstadoBloqueado from "@/features/cena/componentes/EstadoBloqueado.jsx";
 import { PERSONAGENS } from "@/features/cena/dados/personagens.js";
 import { consulta, ErroServidor } from "@/features/cena/servidor.js";
 import { desbloquearAudio } from "@/features/cena/voz/reprodutor.js";
 import { PERSONALIDADES, TEMAS } from "./dados/index.js";
 import ConsultaCena from "./ConsultaCena.jsx";
+
+const A_INVESTIGAR = <span className="text-[#7D8A85]">A investigar na consulta.</span>;
+const SEXO = { M: "Masculino", F: "Feminino" };
+
+// O que a equipe já sabe, no papel: identificação, setor, queixa e sinais vitais. Histórico, alergias e medicações
+// ficam em branco de propósito (é o que a consulta vai descobrir).
+function ProntuarioConsulta({ sessao }) {
+  const b = sessao.briefing ?? {};
+  const v = b.sinaisVitais;
+  return (
+    <FichaProntuario
+      foto={`/pacientes/fotos/${sessao.personagemId}.webp`}
+      nome={b.nome ?? "Paciente"}
+      nascimento={b.idade ? `${nascimentoPorIdade(b.idade, sessao.sessaoId)} (${b.idade} anos)` : ""}
+      sexo={SEXO[b.sexo] ?? b.sexo ?? ""}
+      leito={b.setor}
+      motivo={b.queixa}
+      historico={A_INVESTIGAR}
+      sinaisVitais={
+        v
+          ? [
+              ["PA", `${v.pa_sistolica}/${v.pa_diastolica} mmHg`],
+              ["FC", `${v.fc} bpm`],
+              ["FR", `${v.fr} irpm`],
+              ["SatO₂", `${v.sat}%`],
+              ["Tax", `${String(v.tax).replace(".", ",")} °C`],
+            ]
+          : []
+      }
+      anamnese={A_INVESTIGAR}
+      alergias={A_INVESTIGAR}
+      prescricao={A_INVESTIGAR}
+    />
+  );
+}
+
+ProntuarioConsulta.propTypes = { sessao: PropTypes.object.isRequired };
 
 const DIFICULDADES = [
   { id: "facil", rotulo: "Fácil" },
@@ -186,7 +226,7 @@ export default function ConsultaPage() {
   }
 
   return (
-    <PageShell>
+    <PageShell larguraMax={passo === 3 && sessao ? "4xl" : "xl"}>
       <header className="space-y-2">
         <h1 className="text-xl font-extrabold">Consulta ao Vivo</h1>
         <AnimatedProgress value={(passo / 3) * 100} label={`Passo ${passo} de 3`} />
@@ -285,19 +325,11 @@ export default function ConsultaPage() {
       )}
 
       {passo === 3 && !carregando && !erro && sessao && (
-        <Panel className="space-y-4">
-          <h2 className="text-base font-extrabold">O que a equipe já sabe</h2>
-          <Inset className="space-y-1 text-sm font-semibold">
-            <p><span className="text-[#9FB3C6]">Paciente:</span> {sessao.briefing.nome}, {sessao.briefing.idade} anos</p>
-            <p><span className="text-[#9FB3C6]">Setor:</span> {sessao.briefing.setor}</p>
-            <p><span className="text-[#9FB3C6]">Queixa:</span> {sessao.briefing.queixa}</p>
-            <p>
-              <span className="text-[#9FB3C6]">Sinais vitais:</span>{" "}
-              PA {sessao.briefing.sinaisVitais.pa_sistolica}/{sessao.briefing.sinaisVitais.pa_diastolica} · FC {sessao.briefing.sinaisVitais.fc} · FR {sessao.briefing.sinaisVitais.fr} · SpO2 {sessao.briefing.sinaisVitais.sat}% · Tax {sessao.briefing.sinaisVitais.tax}
-            </p>
-          </Inset>
-          <Button variant="primary" size="xl" className="w-full" onClick={comecar}>Começar consulta</Button>
-        </Panel>
+        <div className="space-y-4">
+          <p className="text-center text-sm font-semibold text-[#9FB3C6]">Leia o prontuário. O resto você descobre conversando com o paciente.</p>
+          <ProntuarioConsulta sessao={sessao} />
+          <Button variant="primary" size="xl" className="mx-auto flex w-full max-w-[760px]" onClick={comecar}>Começar consulta</Button>
+        </div>
       )}
     </PageShell>
   );

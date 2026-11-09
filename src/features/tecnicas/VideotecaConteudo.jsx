@@ -27,7 +27,8 @@ import { AnimatedProgress } from '@/components/ui/animated-progress';
 import { referenciaPop } from "@/data/procedimentos/referenciasPop";
 
 // Catálogo de vídeos e POPs, reaproveitado na página /procedimentos e nas abas de Técnicas.
-export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos & POPs' }) {
+// `embutido`: dentro de outra página (aba POPs de Técnicas), sem o cabeçalho e o rodapé do site, que a página já tem.
+export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos & POPs', embutido = false }) {
   const { triggerHaptic } = useTheme();
 
   const [procedures, setProcedures] = useState(() => procedureService.list());
@@ -137,13 +138,9 @@ export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos
     openProcedure(proc);
   };
 
-  return (
-    <div className="min-h-screen bg-[#0B131D] text-[#EAF2F8] pb-28 md:pb-8 flex flex-col">
-      <div className="hidden md:block">
-        <StudentHeader activeTab="procedimentos" />
-      </div>
-
-      <main className="flex-1 mx-auto max-w-xl md:max-w-4xl w-full px-4 sm:px-6 py-4 space-y-5">
+  const Casca = embutido ? 'div' : 'main';
+  const conteudo = (
+      <Casca className={embutido ? 'w-full space-y-5' : 'flex-1 mx-auto max-w-xl md:max-w-4xl w-full px-4 sm:px-6 py-4 space-y-5'}>
         {/* Se estiver visualizando um procedimento ativo (Modo Treinamento) */}
         {activeProcedure ? (
           <div className="space-y-5 animate-in fade-in duration-200">
@@ -371,11 +368,10 @@ export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos
             )}
           </div>
         )}
-      </main>
+      </Casca>
+  );
 
-      <StudentFooter />
-
-      {/* Modal de Histórico de Treinamentos */}
+  const historico = (
       <CaseHistoryModal
         isOpen={isHistoryOpen}
         onClose={() => setIsHistoryOpen(false)}
@@ -383,6 +379,25 @@ export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos
         lockModuleFilter
         title="Histórico de Treinamentos"
       />
+  );
+
+  if (embutido) {
+    return (
+      <>
+        {conteudo}
+        {historico}
+      </>
+    );
+  }
+
+  return (
+    <div className="min-h-screen bg-[#0B131D] text-[#EAF2F8] pb-28 md:pb-8 flex flex-col">
+      <div className="hidden md:block">
+        <StudentHeader activeTab="procedimentos" />
+      </div>
+      {conteudo}
+      <StudentFooter />
+      {historico}
     </div>
   );
 }

@@ -5,6 +5,10 @@ export const MODOS = {
   rotina: { id: "rotina", rotulo: "Rotina", descricao: "10 prescrições, sem tempo", total: 10, erros: [0, 0], tempoPorItemS: null, pressaAoS: null },
   corrido: { id: "corrido", rotulo: "Plantão corrido", descricao: "8 prescrições, 90 segundos cada", total: 8, erros: [0, 0], tempoPorItemS: 90, pressaAoS: 60 },
   erro: { id: "erro", rotulo: "Prescrição com erro", descricao: "10 prescrições, 3 ou 4 com erro", total: 10, erros: [3, 4], tempoPorItemS: null, pressaAoS: null },
+  // Questões aleatórias (tela de início): quantidade sorteada dentro da faixa, com uma prescrição errada às vezes.
+  rapidas: { id: "rapidas", rotulo: "Questões rápidas", descricao: "Cerca de 3 minutos, de 4 a 7 questões", faixa: [4, 7], erros: [0, 1], tempoPorItemS: null, pressaAoS: null },
+  medias: { id: "medias", rotulo: "Questões médias", descricao: "Cerca de 5 minutos, de 7 a 9 questões", faixa: [7, 9], erros: [1, 2], tempoPorItemS: null, pressaAoS: null },
+  escolhidas: { id: "escolhidas", rotulo: "Questões escolhidas", descricao: "As questões que você escolheu", total: 0, erros: [0, 0], tempoPorItemS: null, pressaAoS: null },
 };
 
 export const MOTIVOS = [
@@ -46,13 +50,20 @@ function sortearRevezando(itens, chave, n, rng) {
 export function montarRodada(banco, modoId, rng = Math.random) {
   const modo = MODOS[modoId];
   if (!modo) throw new Error(`Modo desconhecido: ${modoId}`);
+  const total = modo.faixa ? modo.faixa[0] + Math.floor(rng() * (modo.faixa[1] - modo.faixa[0] + 1)) : modo.total;
   const [minErros, maxErros] = modo.erros;
   const nErros = maxErros ? minErros + Math.floor(rng() * (maxErros - minErros + 1)) : 0;
   const normais = banco.filter((i) => !i.erroProposital);
   const comErro = banco.filter((i) => i.erroProposital);
-  const escolhidosNormais = sortearRevezando(normais, (i) => i.tipo, modo.total - nErros, rng);
+  const escolhidosNormais = sortearRevezando(normais, (i) => i.tipo, total - nErros, rng);
   const escolhidosErro = sortearRevezando(comErro, (i) => i.erroProposital.tipo, nErros, rng);
   return embaralhar([...escolhidosNormais, ...escolhidosErro], rng);
+}
+
+// Rodada com as questões que o aluno escolheu, na ordem da lista.
+export function montarRodadaEscolhida(banco, ids) {
+  const porId = new Map(banco.map((i) => [i.id, i]));
+  return ids.map((id) => porId.get(id)).filter(Boolean);
 }
 
 // Aceita "2,5", "2.5", 2.5. Texto com letras ou vazio é inválido ("42abc" não vira 42).

@@ -9,7 +9,7 @@ const SEMPRE = ["parado", "falando", "pensando"];
 const UMA_VEZ = new Set(["acerto", "erro"]);
 const TEMPO_LIMITE_MS = 6000;
 // Troque quando os vídeos mudarem: o navegador guarda os clipes por 1 dia (vercel.json) e mostraria o antigo.
-const VERSAO_CLIPES = "3";
+const VERSAO_CLIPES = "4";
 
 /**
  * Palco do personagem: vídeos webm+mp4 empilhados com crossfade por opacidade, camada anti-PiP e
