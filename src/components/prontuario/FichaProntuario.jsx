@@ -65,6 +65,7 @@ export default function FichaProntuario({
   prescricao,
   extra = null,
   className = "",
+  compacto = false, // uma coluna só: painel lateral ou topo do celular
 }) {
   const [semFoto, setSemFoto] = useState(false);
   return (
@@ -84,10 +85,10 @@ export default function FichaProntuario({
           style={{ boxShadow: "0 6px 0 #3E2C26" }}
           aria-label={`Prontuário de ${nome}`}
         >
-          <div className="grid gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,36%)_1fr]">
+          <div className={compacto ? "grid gap-y-3" : "grid gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,36%)_1fr]"}>
             {/* Foto e identificação */}
             <div className="space-y-2">
-              <div className="aspect-square w-full max-w-[220px] overflow-hidden border-[3px] border-[#1A1A1A] bg-[#DCE4EB]">
+              <div className={`aspect-square w-full overflow-hidden border-[3px] border-[#1A1A1A] bg-[#DCE4EB] ${compacto ? "max-w-[150px]" : "max-w-[220px]"}`}>
                 {foto && !semFoto ? (
                   <img src={foto} alt={`Foto de ${nome}`} className="h-full w-full object-cover" loading="lazy" decoding="async" onError={() => setSemFoto(true)} />
                 ) : (
@@ -161,6 +162,7 @@ FichaProntuario.propTypes = {
   prescricao: PropTypes.node,
   extra: PropTypes.node,
   className: PropTypes.string,
+  compacto: PropTypes.bool,
 };
 
 // Data de nascimento estável a partir da idade (o caso só guarda a idade): dia e mês saem do id do caso.

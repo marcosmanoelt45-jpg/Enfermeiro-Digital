@@ -10,6 +10,7 @@ import {
   History,
   Home,
   LayoutGrid,
+  ListChecks,
   Mic,
   PhoneCall,
   PlusCircle,
@@ -19,6 +20,7 @@ import {
 } from "lucide-react";
 
 const ICONES = {
+  ListChecks,
   Activity,
   ArrowRightLeft,
   BookOpen,

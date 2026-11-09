@@ -19,7 +19,7 @@ export default function ResultadoMinijogo({ definicao, resultado, avaliacao, onT
   const porques = motivos(definicao, avaliacao);
   return (
     <Panel className="space-y-4 text-center" role="status">
-      <h2 className="text-lg font-extrabold">{resultado.erros === 0 ? "Perfeito!" : "Concluído!"}</h2>
+      <h2 className="text-lg font-extrabold">{resultado.concluido === false ? "Não foi dessa vez" : resultado.erros === 0 ? "Perfeito!" : "Concluído!"}</h2>
       <dl className="grid grid-cols-3 gap-2 text-center">
         <div><dt className="text-xs font-bold text-[#9FB3C6]">Acertos</dt><dd className="text-xl font-black text-[#3DD68C]">{resultado.acertos}</dd></div>
         <div><dt className="text-xs font-bold text-[#9FB3C6]">Erros</dt><dd className="text-xl font-black text-[#FF6B6B]">{resultado.erros}</dd></div>

@@ -1,13 +1,13 @@
 import React, { useCallback, useEffect, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { Mic, Send, X } from "lucide-react";
+import { Mic, Send } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
 
 
 /**
  * Entrada do aluno: segurar para falar (ou Espaço no computador) + caixa de texto que cresce.
- * Em `revisando_texto` mostra Enviar e Descartar. Sem microfone, só o teclado.
+ * Em `revisando_texto` a fala transcrita fica na caixa para editar e enviar (sem "Descartar": tocava sem querer). Sem microfone, só o teclado.
  */
 export default function ControleFala({
   status,
@@ -89,11 +89,6 @@ export default function ControleFala({
     setTexto("");
   };
 
-  const descartar = () => {
-    setTexto("");
-    onDescartar?.();
-  };
-
   return (
     <div className="space-y-2">
       {segurando && (
@@ -144,13 +139,6 @@ export default function ControleFala({
           <Send size={20} aria-hidden="true" />
         </Button>
       </div>
-      {revisando && (
-        <div className="flex justify-end">
-          <Button variant="ghost" size="sm" onClick={descartar}>
-            <X size={16} aria-hidden="true" /> Descartar
-          </Button>
-        </div>
-      )}
     </div>
   );
 }

@@ -19,7 +19,8 @@ export function avaliarArrastar(def, colocados) {
     return { id: item.id, estado: ok ? "certo" : "errado", ok, explicacao: item.explicacao };
   });
   const corretos = itens.filter((i) => i.alvoCorreto !== null);
-  const concluido = corretos.every((i) => colocados?.[i.id] === i.alvoCorreto);
+  // Certo = todos os itens corretos no lugar e nenhum item a mais (um distrator na bandeja também é erro).
+  const concluido = erros === 0 && corretos.every((i) => colocados?.[i.id] === i.alvoCorreto);
   return { acertos, erros, concluido, detalhes };
 }
 

@@ -12,6 +12,8 @@ import RegistroConsulta from "./componentes/RegistroConsulta.jsx";
 import RelatorioConsulta from "./componentes/RelatorioConsulta.jsx";
 import BlocoNotas from "./componentes/BlocoNotas.jsx";
 import FolhaEvolucao from "./componentes/FolhaEvolucao.jsx";
+import ProntuarioConsulta from "./componentes/ProntuarioConsulta.jsx";
+import PainelFlutuante from "@/components/prontuario/PainelFlutuante.jsx";
 
 const AVISO_FIM = 5;
 
@@ -44,6 +46,8 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
   const [notas, setNotas] = useState(() => lerNotas(chave));
   const [notasAbertas, setNotasAbertas] = useState(false);
   const [turnos, setTurnos] = useState(retomada?.turnos ?? []);
+  const [prontuarioAberto, setProntuarioAberto] = useState(false);
+  const [aba, setAba] = useState("evolucao"); // painel lateral: evolucao | prontuario
   useEffect(() => {
     try {
       if (notas) localStorage.setItem(chave, notas);
@@ -121,6 +125,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       progresso={{ atual: 40 - restantes, total: 40 }}
       slotTopo={slotTopo}
       acoes={[
+        { id: "prontuario", rotulo: "Prontuário", onClick: () => setProntuarioAberto((v) => !v), soCelular: true },
         { id: "notas", rotulo: notas.trim() ? "Evolução ✓" : "Evolução", onClick: () => setNotasAbertas(true), soCelular: true },
         { id: "encerrar", rotulo: "Encerrar e registrar", onClick: () => setFase("registro") },
       ]}
@@ -130,8 +135,22 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       onEnviar={onEnviar}
       onEncerrar={onSair}
       onTurnos={setTurnos}
-      slotLateral={<FolhaEvolucao texto={notas} onMudar={setNotas} briefing={b} turnos={turnos} linhas={16} />}
+      slotLateral={
+        <div className="space-y-3">
+          <div className="grid grid-cols-2 gap-1 rounded-2xl border border-[#27394B] bg-[#0E1722] p-1" role="tablist" aria-label="Painel">
+            {[["evolucao", "Evolução"], ["prontuario", "Prontuário"]].map(([id, rotulo]) => (
+              <button key={id} type="button" role="tab" aria-selected={aba === id} onClick={() => setAba(id)} className={`rounded-xl py-2 text-sm font-bold transition-colors ${aba === id ? "bg-[#20D5B5] text-[#0B131D]" : "text-[#9FB3C6]"}`}>
+                {rotulo}
+              </button>
+            ))}
+          </div>
+          {aba === "evolucao" ? <FolhaEvolucao texto={notas} onMudar={setNotas} briefing={b} turnos={turnos} linhas={15} /> : <ProntuarioConsulta sessao={sessao} compacto />}
+        </div>
+      }
     />
+    <PainelFlutuante aberto={prontuarioAberto} titulo="Prontuário" onFechar={() => setProntuarioAberto(false)}>
+      <ProntuarioConsulta sessao={sessao} compacto />
+    </PainelFlutuante>
     <BlocoNotas aberto={notasAbertas} texto={notas} onMudar={setNotas} onFechar={() => setNotasAbertas(false)} briefing={b} turnos={turnos} />
     </>
   );

@@ -1,11 +1,12 @@
-import React, { useCallback, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { m as motion } from "framer-motion";
+import { m as motion, useAnimationControls } from "framer-motion";
 import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import PageShell from "@/components/layout/PageShell";
 import { shake, sheetVariants, scrimVariants, vibrate } from "@/lib/motion";
 import { AVALIADORES } from "../logica/avaliar.js";
+import { avisoDoErro, CHANCES } from "../logica/chances.js";
 import { sortearItens } from "../logica/sorteio.js";
 import Arrastar from "./tipos/Arrastar.jsx";
 import TocarRegiao from "./tipos/TocarRegiao.jsx";
@@ -28,6 +29,13 @@ export default function MinijogoRunner({ definicao: original, onConcluir, modo =
   const [feedback, setFeedback] = useState(null);
   const [resultado, setResultado] = useState(null);
   const [tremer, setTremer] = useState(0);
+  const [aviso, setAviso] = useState(null); // aviso do 1º erro (ou da entrega vazia)
+  const chancesRef = useRef(0);
+  // Tremida no erro sem remontar o jogo (antes a key mudava e apagava o que o aluno já tinha montado).
+  const controles = useAnimationControls();
+  useEffect(() => {
+    if (tremer > 0) controles.start(shake);
+  }, [tremer, controles]);
   const errosRef = useRef(0);
   const inicio = useRef(Date.now());
 
@@ -36,6 +44,29 @@ export default function MinijogoRunner({ definicao: original, onConcluir, modo =
       const r = AVALIADORES[definicao.tipo](definicao, acao);
       // Tocar devolve o total acumulado a cada toque; os outros tipos devolvem os erros desta tentativa.
       errosRef.current = definicao.tipo === "tocar-regiao" ? r.erros : errosRef.current + r.erros;
+      // Tocar região e escolher (1 toque) seguem como antes; os demais têm 2 chances com aviso.
+      const comChances = !["tocar-regiao"].includes(definicao.tipo);
+      if (!r.concluido && comChances) {
+        const a = avisoDoErro(definicao, acao, r);
+        vibrate([30, 40, 30]);
+        setTremer((n) => n + 1);
+        if (a.vazio) {
+          setAviso({ texto: a.mensagem, tom: "info" });
+          setFeedback(null);
+          return { ...r, aviso: a.mensagem };
+        }
+        chancesRef.current += 1;
+        if (chancesRef.current < CHANCES) {
+          setAviso({ texto: a.mensagem, tom: "alerta" });
+          setFeedback(null); // destrava: o aluno corrige sem perder o que já montou
+          return { ...r, aviso: a.mensagem };
+        }
+        setFeedback(r);
+        setAviso(null);
+        setResultado({ minijogoId: definicao.id, acertos: r.acertos, erros: errosRef.current, tempoMs: Date.now() - inicio.current, concluido: false });
+        return r;
+      }
+      setAviso(null);
       setFeedback(r);
       if (r.concluido) {
         vibrate(15);
@@ -58,6 +89,8 @@ export default function MinijogoRunner({ definicao: original, onConcluir, modo =
 
   const reiniciar = () => {
     errosRef.current = 0;
+    chancesRef.current = 0;
+    setAviso(null);
     inicio.current = Date.now();
     setFeedback(null);
     setResultado(null);
@@ -81,9 +114,17 @@ export default function MinijogoRunner({ definicao: original, onConcluir, modo =
       {resultado ? (
         <ResultadoMinijogo definicao={definicao} resultado={resultado} avaliacao={feedback} onTentarDeNovo={reiniciar} onContinuar={() => onConcluir?.(resultado)} />
       ) : (
-        <motion.div key={`${rodada}-${tremer}`} animate={tremer > 0 ? shake : undefined}>
-          <Jogo key={rodada} definicao={definicao} conferir={conferir} feedback={feedback} />
-        </motion.div>
+        <>
+          {aviso && (
+            <p role="status" aria-live="polite" className={`rounded-xl border px-3 py-2 text-sm font-bold ${aviso.tom === "info" ? "border-[#27394B] bg-[#131F2E] text-[#EAF2F8]" : "border-[#FFC247]/50 bg-[#FFC247]/10 text-[#FFE2A3]"}`}>
+              {aviso.texto}
+              {aviso.tom === "alerta" && <span className="mt-0.5 block text-xs font-semibold text-[#9FB3C6]">Última chance: corrija e confira de novo.</span>}
+            </p>
+          )}
+          <motion.div animate={controles}>
+            <Jogo key={rodada} definicao={definicao} conferir={conferir} feedback={feedback} />
+          </motion.div>
+        </>
       )}
     </div>
   );

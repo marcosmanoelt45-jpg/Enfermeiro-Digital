@@ -36,7 +36,8 @@ export default function useVozPersonagem(personagemId) {
       const personagem = buscarPersonagem(personagemId);
       const manifesto = await carregarManifesto(personagemId);
       const player = reprodutor();
-      setFalando(true);
+      // "falando" (a animação) liga quando o áudio começa a sair, não quando a voz é pedida.
+      const comecou = () => gen === geracaoRef.current && setFalando(true);
       try {
         for (const fala of falas) {
           if (gen !== geracaoRef.current) return false;
@@ -57,7 +58,7 @@ export default function useVozPersonagem(personagemId) {
             const primeira = await pedidos[0];
             if (gen !== geracaoRef.current) return false;
             if (!primeira && resolvida.tipo === "mp3") {
-              await player.tocar(resolvida, { texto: fala.texto, personagem, onPalavra: (i) => gen === geracaoRef.current && setPalavraAtual(i) });
+              await player.tocar(resolvida, { texto: fala.texto, personagem, onInicio: comecou, onPalavra: (i) => gen === geracaoRef.current && setPalavraAtual(i) });
               continue;
             }
             let deslocamento = 0;
@@ -68,6 +69,7 @@ export default function useVozPersonagem(personagemId) {
               await player.tocar(blob ? { tipo: "blob", blob } : { tipo: "navegador" }, {
                 texto: frases[i],
                 personagem,
+                onInicio: comecou,
                 onPalavra: (p) => gen === geracaoRef.current && setPalavraAtual(base + p),
               });
               deslocamento += frases[i].split(/\s+/).filter(Boolean).length;
@@ -76,7 +78,7 @@ export default function useVozPersonagem(personagemId) {
           }
           const fonte = resolvida.tipo === "mp3" ? resolvida : { tipo: "navegador" };
           if (gen !== geracaoRef.current) return false;
-          await player.tocar(fonte, { texto: fala.texto, personagem, onPalavra: (i) => gen === geracaoRef.current && setPalavraAtual(i) });
+          await player.tocar(fonte, { texto: fala.texto, personagem, onInicio: comecou, onPalavra: (i) => gen === geracaoRef.current && setPalavraAtual(i) });
         }
         return gen === geracaoRef.current;
       } finally {

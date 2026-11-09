@@ -1,4 +1,3 @@
-import PropTypes from "prop-types";
 import React, { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button } from "@/components/ui/button";
@@ -8,7 +7,6 @@ import PageShell from "@/components/layout/PageShell";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { useAuth } from "@/lib/AuthContext";
 import { isLocalDemoSession } from "@/services/supabaseClient";
-import FichaProntuario, { nascimentoPorIdade } from "@/components/prontuario/FichaProntuario.jsx";
 
 import EstadoBloqueado from "@/features/cena/componentes/EstadoBloqueado.jsx";
 import { PERSONAGENS } from "@/features/cena/dados/personagens.js";
@@ -16,43 +14,8 @@ import { consulta, ErroServidor } from "@/features/cena/servidor.js";
 import { desbloquearAudio } from "@/features/cena/voz/reprodutor.js";
 import { PERSONALIDADES, TEMAS } from "./dados/index.js";
 import ConsultaCena from "./ConsultaCena.jsx";
+import ProntuarioConsulta from "./componentes/ProntuarioConsulta.jsx";
 
-const A_INVESTIGAR = <span className="text-[#7D8A85]">A investigar na consulta.</span>;
-const SEXO = { M: "Masculino", F: "Feminino" };
-
-// O que a equipe já sabe, no papel: identificação, setor, queixa e sinais vitais. Histórico, alergias e medicações
-// ficam em branco de propósito (é o que a consulta vai descobrir).
-function ProntuarioConsulta({ sessao }) {
-  const b = sessao.briefing ?? {};
-  const v = b.sinaisVitais;
-  return (
-    <FichaProntuario
-      foto={`/pacientes/fotos/${sessao.personagemId}.webp`}
-      nome={b.nome ?? "Paciente"}
-      nascimento={b.idade ? `${nascimentoPorIdade(b.idade, sessao.sessaoId)} (${b.idade} anos)` : ""}
-      sexo={SEXO[b.sexo] ?? b.sexo ?? ""}
-      leito={b.setor}
-      motivo={b.queixa}
-      historico={A_INVESTIGAR}
-      sinaisVitais={
-        v
-          ? [
-              ["PA", `${v.pa_sistolica}/${v.pa_diastolica} mmHg`],
-              ["FC", `${v.fc} bpm`],
-              ["FR", `${v.fr} irpm`],
-              ["SatO₂", `${v.sat}%`],
-              ["Tax", `${String(v.tax).replace(".", ",")} °C`],
-            ]
-          : []
-      }
-      anamnese={A_INVESTIGAR}
-      alergias={A_INVESTIGAR}
-      prescricao={A_INVESTIGAR}
-    />
-  );
-}
-
-ProntuarioConsulta.propTypes = { sessao: PropTypes.object.isRequired };
 
 const DIFICULDADES = [
   { id: "facil", rotulo: "Fácil" },

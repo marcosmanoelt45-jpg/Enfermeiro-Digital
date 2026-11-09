@@ -51,7 +51,7 @@ export const MODULE_TYPES = {
 };
 
 export const MODULE_LABELS = {
-  videochamada: 'Atendimento por voz (antigo)',
+  videochamada: 'Questões',
   sbar: 'Passagem de Plantão SBAR',
   case_builder: 'Montador de Casos Clínicos',
   case_simulator: 'Simulador de Casos Clínicos (PE)',
@@ -272,7 +272,7 @@ export const clinicalHistoryService = {
       id,
       moduleType: MODULE_TYPES.VIDEOCHAMADA,
       moduleLabel: MODULE_LABELS.videochamada,
-      title: `Atendimento Clínico — ${sessionData.pacienteNome || 'Paciente Simulado'}`,
+      title: sessionData.titulo || `Atendimento Clínico — ${sessionData.pacienteNome || 'Paciente Simulado'}`,
       patientInfo: `${sessionData.pacienteNome || 'Paciente'} · ${sessionData.modalidade || 'Normal'} (${sessionData.totalQuestoes} questões)`,
       progressPercentage: 100,
       status: 'concluido',

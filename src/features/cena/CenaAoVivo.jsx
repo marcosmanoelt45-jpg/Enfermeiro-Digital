@@ -213,7 +213,7 @@ export default function CenaAoVivo({
         </>
       )}
       </div>
-      {slotLateral && <aside className="hidden lg:sticky lg:top-4 lg:block">{slotLateral}</aside>}
+      {slotLateral && <aside className="hidden overscroll-contain lg:sticky lg:top-4 lg:block lg:max-h-[calc(100vh-2rem)] lg:overflow-y-auto lg:pr-1">{slotLateral}</aside>}
       </div>
     </PageShell>
   );

@@ -6,11 +6,12 @@ import { dadosDoProntuario } from "../dados/prontuarioPlantao.js";
 
 // Prontuário do paciente em papel na prancheta. Os achados das lacunas aparecem como "?" até serem examinados.
 // A narrativa da avaliação NÃO aparece (ela entrega os achados).
-export default function Prontuario({ cenario, lacunasPreenchidas = {}, onAbrirLacuna }) {
+export default function Prontuario({ cenario, lacunasPreenchidas = {}, onAbrirLacuna, compacto = false }) {
   const d = dadosDoProntuario(cenario);
   const exame = (
     <section>
-      <h3 className="text-[13px] font-bold text-[#2B2F2E]">Exame do paciente (toque para examinar):</h3>
+      <h3 className="text-[13px] font-bold text-[#2B2F2E]">Exame do paciente</h3>
+      <p className="text-[12px] font-semibold leading-snug text-[#4A5550]">A Ana vai perguntar sobre estes itens. Toque em cada um para examinar o paciente: o que você encontrar fica anotado aqui para usar na passagem.</p>
       <ul className="mt-1 space-y-1.5">
         {cenario.lacunas.map((l) => {
           const feita = lacunasPreenchidas[l.campo];
@@ -54,6 +55,7 @@ export default function Prontuario({ cenario, lacunasPreenchidas = {}, onAbrirLa
       alergias={d.alergias}
       prescricao={cenario.goldenSbar.recommendation}
       extra={exame}
+      compacto={compacto}
     />
   );
 }
@@ -62,4 +64,5 @@ Prontuario.propTypes = {
   cenario: PropTypes.object.isRequired,
   lacunasPreenchidas: PropTypes.object,
   onAbrirLacuna: PropTypes.func.isRequired,
+  compacto: PropTypes.bool,
 };

@@ -11,7 +11,7 @@ import contarFr from "../dados/contar-fr.js";
 import { SEMIOLOGY_KNOWLEDGE_BASE } from "../../../data/semiologyFindings.js";
 
 // ---- arrastar ----
-test("arrastar: acerto no alvo certo; distrator em qualquer alvo é erro; concluir = corretos todos dentro", () => {
+test("arrastar: acerto no alvo certo; distrator em qualquer alvo é erro; concluir = corretos dentro e nada a mais", () => {
   const certos = bandeja.arrastar.itens.filter((i) => i.alvoCorreto);
   const todos = Object.fromEntries(certos.map((i) => [i.id, "bandeja"]));
   const r = avaliarArrastar(bandeja, todos);
@@ -21,7 +21,7 @@ test("arrastar: acerto no alvo certo; distrator em qualquer alvo é erro; conclu
 
   const comDistrator = avaliarArrastar(bandeja, { ...todos, bisturi: "bandeja" });
   assert.equal(comDistrator.erros, 1);
-  assert.equal(comDistrator.concluido, true, "concluir só exige os corretos dentro");
+  assert.equal(comDistrator.concluido, false, "um item a mais na bandeja também é erro");
   assert.equal(comDistrator.detalhes.find((d) => d.id === "bisturi").estado, "errado");
 
   const faltando = avaliarArrastar(bandeja, { luvas: "bandeja" });
@@ -189,4 +189,16 @@ test("ausculta: 6 focos anteriores e 6 posteriores, todos com achado e sem áudi
     assert.ok(x.achado.startsWith("Som:"));
     assert.equal(x.audio, undefined, "áudio só com licença registrada");
   }
+});
+
+test("2 chances: avisos específicos da bandeja (vazia, falta um, sobra)", async () => {
+  const { avisoDoErro } = await import("./chances.js");
+  const certos = bandeja.arrastar.itens.filter((i) => i.alvoCorreto);
+  const todos = Object.fromEntries(certos.map((i) => [i.id, "bandeja"]));
+  assert.equal(avisoDoErro(bandeja, {}, null).vazio, true);
+  assert.match(avisoDoErro(bandeja, {}, null).mensagem, /vazia/);
+  const menosUm = { ...todos };
+  delete menosUm[certos[0].id];
+  assert.match(avisoDoErro(bandeja, menosUm, null).mensagem, /quase/i);
+  assert.match(avisoDoErro(bandeja, { ...todos, bisturi: "bandeja" }, null).mensagem, /não é usado/);
 });

@@ -1,5 +1,6 @@
 // Cliente das Edge Functions do Enfere: nenhuma chave de provedor passa pelo navegador.
 import { supabase, isSupabaseConfigured, isLocalDemoSession } from "@/services/supabaseClient";
+import { limparWav } from "./voz/limparAudio.js";
 import { invocarFuncao } from "./logica/chamada.js";
 import { aguardarTranscricao, estimarDuracaoSeg } from "./logica/transcricao.js";
 
@@ -56,7 +57,13 @@ async function pedirVoz(texto, personagemId) {
   // Falha de voz nunca atrapalha a cena: o chamador cai na voz do navegador.
   if (error) return null;
   // O servidor manda octet-stream (único tipo que o supabase-js entrega como Blob); aqui vira áudio WAV.
-  return data instanceof Blob && data.size > 44 ? new Blob([data], { type: "audio/wav" }) : null;
+  if (!(data instanceof Blob) || data.size <= 44) return null;
+  // Tira o chiado que o Gemini às vezes deixa no fim (vale também para os áudios já guardados no cache).
+  try {
+    return new Blob([limparWav(new Uint8Array(await data.arrayBuffer()))], { type: "audio/wav" });
+  } catch {
+    return new Blob([data], { type: "audio/wav" });
+  }
 }
 
 export function gerarVoz({ texto, personagemId }) {
@@ -100,7 +107,7 @@ export const consulta = {
 // Plantão com a Enfermeira: o servidor avalia as respostas (texto pela IA, números e lacunas por código).
 export const plantao = {
   // A enfermeira reage à resposta com IA: { situacao: "respondeu"|"incompleto"|"nao_sabe"|"fora_do_tema", fala|null }.
-  turno: ({ cenarioId, perguntaId, texto, tentativa }) => invocarFuncao(invoke, "cena-ia", { acao: "turno_plantao", cenarioId, perguntaId, texto, tentativa }, { timeoutMs: 12000, tentativas: 1 }),
+  turno: ({ cenarioId, perguntaId, texto, tentativa, historico = [] }) => invocarFuncao(invoke, "cena-ia", { acao: "turno_plantao", cenarioId, perguntaId, texto, tentativa, historico }, { timeoutMs: 12000, tentativas: 1 }),
   avaliar: ({ cenarioId, respostas, lacunas }) => invocarFuncao(invoke, "cena-ia", { acao: "avaliar_plantao", cenarioId, respostas, lacunas }, { timeoutMs: 30000, tentativas: 1 }),
 };
 

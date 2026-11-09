@@ -1,9 +1,7 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
-import { AnimatePresence, m as motion } from "framer-motion";
-import { X } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { sheetVariants, scrimVariants } from "@/lib/motion";
+import PainelFlutuante from "@/components/prontuario/PainelFlutuante.jsx";
 import CenaAoVivo from "@/features/cena/CenaAoVivo.jsx";
 import { ErroServidor, plantao as servidor, preCarregarVoz } from "@/features/cena/servidor.js";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
@@ -27,6 +25,7 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
   const roteiro = useRef(criarRoteiro(cenario));
   const ultimas = useRef({});
   const tentativas = useRef({}); // perguntaId -> respostas já recusadas pela Ana
+  const recusadas = useRef([]); // respostas que a Ana pediu para completar: também contam como "já dito"
 
   // A próxima pergunta já é conhecida: pede a voz dela enquanto o aluno responde, para não esperar a geração.
   useEffect(() => {
@@ -72,17 +71,30 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
       let ia = null;
       if (pergunta.espera.tipo === "texto") {
         const tentativa = tentativas.current[pergunta.id] ?? 0;
-        ia = await servidor.turno({ cenarioId: cenario.id, perguntaId: pergunta.id, texto, tentativa }).catch(() => null);
+        // O que o aluno já disse (respostas aceitas e as que ela pediu para completar): a Ana não pede de novo.
+        const historico = [...roteiro.current.respostas.map((r) => ({ perguntaId: r.perguntaId, texto: r.texto })), ...recusadas.current].slice(-10);
+        ia = await servidor.turno({ cenarioId: cenario.id, perguntaId: pergunta.id, texto, tentativa, historico }).catch(() => null);
         if (ia?.fala && ia.situacao !== "respondeu" && tentativa === 0) {
           // Não soube, fugiu do assunto ou ficou incompleto: a Ana orienta e pergunta de novo, sem avançar.
           tentativas.current[pergunta.id] = 1;
+          recusadas.current.push({ perguntaId: pergunta.id, texto });
           return [{ id: `${pergunta.id}.ia.${Date.now()}`, texto: ia.fala, origem: "aovivo" }];
         }
       }
 
-      const r = responder(roteiro.current, texto);
+      let r = responder(roteiro.current, texto);
       if (!r.reacao) return [];
       roteiro.current = r.estado;
+      // O aluno já respondeu o que a próxima pergunta pediria: ela não pergunta de novo, registra e segue.
+      const seguinteJa = perguntaAtual(r.estado);
+      if (ia?.cobreProxima && !r.concluida && r.reacao === "ok" && seguinteJa?.espera.tipo === "texto" && !seguinteJa.dependeDe) {
+        const anteriores = [...recusadas.current.filter((x) => x.perguntaId === pergunta.id).map((x) => x.texto), texto].join(" ");
+        const r2 = responder(r.estado, anteriores);
+        if (r2.reacao) {
+          r = { ...r2, reacao: "ok" };
+          roteiro.current = r2.estado;
+        }
+      }
       const falas = [];
       if (ia?.fala && r.reacao === "ok") {
         falas.push({ id: `${pergunta.id}.ia.${Date.now()}`, texto: ia.fala, origem: "aovivo" });
@@ -112,6 +124,10 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
     setLacunaAberta(null);
   };
 
+  // Examinar: lacuna com minijogo abre o minijogo; as demais revelam o achado direto no prontuário
+  // (o aluno examina e encontra; antes era uma escolha sem dado nenhum para basear).
+  const examinar = (lacuna) => (lacuna.minijogo ? setLacunaAberta(lacuna) : preencher(lacuna, null));
+
   const abertas = lacunasAbertas({ ...roteiro.current, lacunas }).length;
   const definicao = lacunaAberta ? minijogoDaLacuna(lacunaAberta, cenario.id, MINIJOGOS_ESTATICOS) : null;
 
@@ -125,23 +141,13 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
         onEnviar={onEnviar}
         onEncerrar={onSair}
         placeholderFala="Responda por voz ou texto"
-        acoes={[{ id: "prontuario", rotulo: abertas ? `Prontuário (${abertas} para examinar)` : "Prontuário", onClick: () => setProntuario(true) }]}
+        acoes={[{ id: "prontuario", rotulo: abertas ? `Prontuário (${abertas} para examinar)` : "Prontuário", onClick: () => setProntuario((v) => !v), soCelular: true }]}
+        slotLateral={<Prontuario cenario={cenario} lacunasPreenchidas={lacunas} onAbrirLacuna={examinar} compacto />}
       />
 
-      <AnimatePresence>
-        {prontuario && (
-          <div className="fixed inset-0 z-40 flex items-end" role="dialog" aria-modal="true" aria-label="Prontuário do paciente">
-            <motion.div className="absolute inset-0 bg-black/70" variants={scrimVariants} initial="hidden" animate="show" exit="exit" onClick={() => setProntuario(false)} />
-            <motion.div className="relative max-h-[85vh] w-full space-y-3 overflow-y-auto rounded-t-3xl border border-[#27394B] bg-[#0B131D] p-4 pb-8" variants={sheetVariants} initial="hidden" animate="show" exit="exit">
-              <div className="flex items-center justify-between">
-                <h2 className="text-lg font-extrabold">Prontuário</h2>
-                <Button variant="ghost" size="icon" onClick={() => setProntuario(false)} aria-label="Fechar prontuário"><X size={20} aria-hidden="true" /></Button>
-              </div>
-              <Prontuario cenario={cenario} lacunasPreenchidas={lacunas} onAbrirLacuna={setLacunaAberta} />
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      <PainelFlutuante aberto={prontuario} titulo="Prontuário" onFechar={() => setProntuario(false)}>
+        <Prontuario cenario={cenario} lacunasPreenchidas={lacunas} onAbrirLacuna={examinar} compacto />
+      </PainelFlutuante>
 
       {definicao && <MinijogoRunner key={definicao.id} definicao={definicao} modo="plantao" onConcluir={(res) => preencher(lacunaAberta, res)} onFechar={() => setLacunaAberta(null)} />}
 

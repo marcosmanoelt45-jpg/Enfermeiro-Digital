@@ -76,7 +76,7 @@ export function criarReprodutor({
     geracao++;
     limparTimers();
     try {
-      audio.onended = audio.onerror = audio.onloadedmetadata = null;
+      audio.onended = audio.onerror = audio.onloadedmetadata = audio.onplaying = null;
       audio.pause();
     } catch {
       // elemento já solto
@@ -117,7 +117,7 @@ export function criarReprodutor({
     });
   }
 
-  function tocarArquivo(url, texto, duracaoMs, onPalavra, gen, ehBlob) {
+  function tocarArquivo(url, texto, duracaoMs, onPalavra, gen, ehBlob, onInicio) {
     return new Promise((resolve) => {
       encerrarAtual = resolve;
       const terminou = () => {
@@ -133,12 +133,13 @@ export function criarReprodutor({
       };
       audio.onended = terminou;
       audio.onerror = terminou;
+      audio.onplaying = () => gen === geracao && onInicio?.();
       audio.src = url;
       audio.play?.().catch(terminou);
     });
   }
 
-  async function falarPeloNavegador(texto, { personagem, onPalavra }, gen) {
+  async function falarPeloNavegador(texto, { personagem, onPalavra, onInicio }, gen) {
     if (!sintese) return;
     await aguardarVozes(sintese);
     if (gen !== geracao) return;
@@ -168,6 +169,7 @@ export function criarReprodutor({
           if (gen === geracao) encerrarAtual = null;
           resolve();
         };
+        u.onstart = () => gen === geracao && onInicio?.();
         u.onend = fim;
         u.onerror = fim;
         sintese.speak(u);
@@ -178,15 +180,16 @@ export function criarReprodutor({
 
   // fonte: { tipo: 'mp3', url, duracaoMs } | { tipo: 'blob', blob } | { tipo: 'navegador' }
   // Resolve no fim da fala (ou quando parar() for chamado).
-  async function tocar(fonte, { texto, personagem, onPalavra } = {}) {
+  // onInicio: chamado quando o som realmente começa (a animação de fala acompanha o áudio, não o pedido).
+  async function tocar(fonte, { texto, personagem, onPalavra, onInicio } = {}) {
     parar();
     const gen = geracao;
-    if (fonte.tipo === "mp3") return tocarArquivo(fonte.url, texto, fonte.duracaoMs, onPalavra, gen, false);
+    if (fonte.tipo === "mp3") return tocarArquivo(fonte.url, texto, fonte.duracaoMs, onPalavra, gen, false, onInicio);
     if (fonte.tipo === "blob") {
       urlAtual = criarUrl(fonte.blob);
-      return tocarArquivo(urlAtual, texto, fonte.duracaoMs, onPalavra, gen, true);
+      return tocarArquivo(urlAtual, texto, fonte.duracaoMs, onPalavra, gen, true, onInicio);
     }
-    await falarPeloNavegador(texto, { personagem, onPalavra }, gen);
+    await falarPeloNavegador(texto, { personagem, onPalavra, onInicio }, gen);
   }
 
   return { desbloquear, tocar, parar };

@@ -58,6 +58,7 @@ test("menus finais (D2): header, dock, gaveta Prática e trilha", () => {
       ["sbar", "Plantão", "/passagem-plantao", "sbar"],
       ["calculos", "Cálculo", "/laboratorio-calculos", "calculos"],
       ["tecnicas", "Técnicas", "/tecnicas", "tecnicas"],
+      ["questoes", "Questões", "/questoes", null],
       ["casos", "Casos Clínicos", "/simulador-casos", "casos"],
     ]
   );
@@ -73,11 +74,11 @@ test("menus finais (D2): header, dock, gaveta Prática e trilha", () => {
   );
   assert.deepEqual(
     opcoesDaGavetaPratica(nenhuma).slice(0, 4).map((o) => o.id),
-    ["consulta", "plantao", "pe_simulator", "continue"]
+    ["consulta", "plantao", "questoes", "pe_simulator"]
   );
   assert.deepEqual(
     modulosDaTrilha(nenhuma).map((m) => [m.id, m.destaque]),
-    [["consulta", true], ["sbar", false], ["calculos", false], ["tecnicas", false]]
+    [["consulta", true], ["sbar", false], ["calculos", false], ["tecnicas", false], ["questoes", false]]
   );
 });
 

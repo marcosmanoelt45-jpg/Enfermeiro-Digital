@@ -19,9 +19,9 @@ export function limparFala(fala: unknown): string | null {
 
 export async function turnoPlantao(
   _userId: string,
-  entrada: { cenarioId: string; perguntaId: string; texto: string; tentativa: number },
+  entrada: { cenarioId: string; perguntaId: string; texto: string; tentativa: number; historico?: Array<{ perguntaId: string; texto: string }> },
   deps: { llm: ChamarLLM; cota?: () => Promise<void> },
-): Promise<{ situacao: SituacaoPlantao; fala: string | null }> {
+): Promise<{ situacao: SituacaoPlantao; fala: string | null; cobreProxima: boolean }> {
   const inicio = Date.now();
   // deno-lint-ignore no-explicit-any
   const cenario: any = buscarCenarioPlantao(entrada.cenarioId);
@@ -30,12 +30,20 @@ export async function turnoPlantao(
   const pergunta = cenario.perguntas.find((p: any) => p.id === entrada.perguntaId);
   if (!pergunta) throw new ErroApp("ENTRADA_INVALIDA", "Pergunta não confere com o cenário.");
   const segundaTentativa = entrada.tentativa >= 1;
+  // deno-lint-ignore no-explicit-any
+  const idx = cenario.perguntas.findIndex((p: any) => p.id === entrada.perguntaId);
+  const proxima = cenario.perguntas[idx + 1]?.texto ?? null;
+  const historico = (entrada.historico ?? [])
+    .slice(-8)
+    // deno-lint-ignore no-explicit-any
+    .map((h) => ({ pergunta: cenario.perguntas.find((p: any) => p.id === h.perguntaId)?.texto ?? "", resposta: h.texto }))
+    .filter((h) => h.pergunta);
 
   await deps.cota?.();
 
   try {
     const r = await deps.llm({
-      mensagens: montarMensagensEnfermeiraPlantao({ cenario, pergunta, resposta: entrada.texto, segundaTentativa }),
+      mensagens: montarMensagensEnfermeiraPlantao({ cenario, pergunta, resposta: entrada.texto, segundaTentativa, historico, proxima }),
       json: PARAMETROS_ENFERMEIRA_PLANTAO.json,
       temperatura: PARAMETROS_ENFERMEIRA_PLANTAO.temperatura,
       maxTokens: PARAMETROS_ENFERMEIRA_PLANTAO.maxTokens,
@@ -46,10 +54,11 @@ export async function turnoPlantao(
     let situacao: SituacaoPlantao = SITUACOES_PLANTAO.includes(j?.situacao) ? j.situacao : "respondeu";
     if (segundaTentativa) situacao = "respondeu";
     const fala = limparFala(j?.fala);
-    logEvento("turno_plantao", { cenario: cenario.id, situacao, modelo: r.modelo, ms: Date.now() - inicio });
-    return { situacao, fala };
+    const cobreProxima = j?.cobre_proxima === true && Boolean(proxima);
+    logEvento("turno_plantao", { cenario: cenario.id, situacao, cobreProxima, modelo: r.modelo, ms: Date.now() - inicio });
+    return { situacao, fala, cobreProxima };
   } catch (e) {
     logEvento("turno_plantao_ia_falhou", { tipo: e instanceof Error ? e.name : "Erro", ms: Date.now() - inicio });
-    return { situacao: "respondeu", fala: null };
+    return { situacao: "respondeu", fala: null, cobreProxima: false };
   }
 }

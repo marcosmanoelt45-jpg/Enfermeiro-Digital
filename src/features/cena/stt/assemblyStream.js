@@ -1,6 +1,6 @@
 // WebSocket da AssemblyAI (streaming v3) com token temporário. Aberto só enquanto o aluno segura o botão:
 // a conexão aberta cobra por tempo. Fechar manda ForceEndpoint (fecha o turno atual), espera o último
-// final por até 1,5 s e então Terminate.
+// final por até 0,7 s e então Terminate.
 import { criarAcumulador } from "../logica/acumuladorTurnos.js";
 
 export function montarUrl({ wsUrl, parametros, token }) {
@@ -8,7 +8,7 @@ export function montarUrl({ wsUrl, parametros, token }) {
   return `${wsUrl}?${q.toString()}`;
 }
 
-export function abrirStream({ credencial, onTexto = () => {}, onErro = () => {}, criarWebSocket = (u) => new WebSocket(u), esperaFinalMs = 1500 }) {
+export function abrirStream({ credencial, onTexto = () => {}, onErro = () => {}, criarWebSocket = (u) => new WebSocket(u), esperaFinalMs = 700 }) {
   const acumulador = criarAcumulador();
   const ws = criarWebSocket(montarUrl(credencial));
   let aberto = false;

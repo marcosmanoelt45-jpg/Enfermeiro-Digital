@@ -11,6 +11,7 @@ export const ROTAS_CONHECIDAS = [
   "/plantao/gravacao",
   "/laboratorio-calculos",
   "/tecnicas",
+  "/questoes",
   "/simulador-casos",
   "/conta",
 ];
@@ -87,6 +88,20 @@ export const MODULOS = [
     },
   },
   {
+    id: "questoes",
+    rota: "/questoes",
+    grupo: "pratica",
+    flag: null,
+    header: { rotulo: "Questões", icone: "ListChecks", ordem: 55 },
+    trilha: {
+      titulo: "Questões",
+      subtitulo: "3 min · Curativo, medicamentos e punção, com 2 chances",
+      selo: "Quiz",
+      icone: "ListChecks",
+      ordem: 45,
+    },
+  },
+  {
     id: "casos",
     rota: "/simulador-casos",
     grupo: "pratica",
@@ -123,6 +138,15 @@ export const GAVETA_PRATICA = [
     subtitulo: "Passagem SBAR com a enfermeira Ana",
     icone: "ArrowRightLeft",
     ordem: 20,
+  },
+  {
+    id: "questoes",
+    modulo: "questoes",
+    rota: "/questoes",
+    titulo: "Questões",
+    subtitulo: "Múltipla escolha com 2 chances",
+    icone: "ListChecks",
+    ordem: 25,
   },
   {
     id: "pe_simulator",
