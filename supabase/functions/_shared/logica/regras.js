@@ -2,6 +2,7 @@
 // garante que o texto verdadeiro de um fato bloqueado NUNCA chega ao prompt.
 import { limitarConfianca } from "./rapport.js";
 import { acrescentarNota, blocoMemoria } from "./memoria.js";
+import { TODOS_EXAMES } from "../dados/examesPorEspecialidade.js";
 
 export const TEMAS_FATO = ["hda", "antecedentes", "medicacoes", "alergias", "habitos", "familia", "social", "sintomas_associados", "adesao", "sono", "eliminacoes", "alimentacao"];
 export const TEMAS_DO_ALUNO = [...TEMAS_FATO, "identificacao", "dor", "outro"];
@@ -80,7 +81,8 @@ export function aplicarResposta({ ficha, confianca, contagemTemas = {}, notas = 
 
   const emocao = EMOCOES_VALIDAS.includes(resposta.emocao) ? resposta.emocao : "falando";
   const examePedido = resposta.exame_solicitado;
-  const exame = typeof examePedido === "string" && (ficha.examesDisponiveis ?? []).includes(examePedido) ? examePedido : null;
+  // Qualquer exame de beira de leito da lista vale (antes só os 0 a 2 sorteados para o caso).
+  const exame = typeof examePedido === "string" && TODOS_EXAMES.includes(examePedido) ? examePedido : null;
 
   return {
     confianca: novaConfianca,

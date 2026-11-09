@@ -189,3 +189,11 @@ test("finalizar duas vezes: a segunda é SESSAO_ENCERRADA e nada é regravado", 
   await assert.rejects(rodar(m, llmFalso(avaliacaoIA())), (e) => e.codigo === "SESSAO_ENCERRADA");
   assert.equal(m.salvos.length, 1);
 });
+
+test("conferência pelo sentido: fato dito pelo paciente conta como descoberto mesmo sem marcação no turno", async () => {
+  const m = montar({ revelados: ["f1"] });
+  const conferir = async () => ({ texto: JSON.stringify({ revelados: ["f2", "inexistente"] }), modelo: "t" });
+  const r = await finalizarConsulta("u1", { sessaoId: "s1", registro: registro() }, { repo: m.repo, llm: llmFalso(avaliacaoIA()), llmConferir: conferir });
+  assert.ok(r.relatorio.cobertura.revelados.some((f) => f.id === "f2"));
+  assert.ok(!r.relatorio.cobertura.escondidos.some((f) => f.id === "f2"));
+});

@@ -17,6 +17,14 @@ const perguntaFala = (p) => ({ id: p.id, texto: TEXTO.get(p.id) ?? p.texto, orig
 
 const PERSONAGEM = "enfermeira-ana";
 
+// Reserva sem IA: "vou avaliar o dreno" -> lacuna cujo rótulo tem uma palavra dita junto de um verbo de exame.
+const normal = (t) => String(t ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
+export function exameDoTexto(texto, lacunas = []) {
+  const t = normal(texto);
+  if (!/(examin|aval|medi|verific|olh|palp|auscult|confer|checar|ver o|ver a)/.test(t)) return null;
+  return lacunas.find((l) => normal(l.rotulo).split(/[^a-z]+/).filter((p) => p.length >= 5).some((p) => t.includes(p))) ?? null;
+}
+
 // Cena do Plantão: a enfermeira pergunta em ordem SBAR (falas fixas), o aluno responde consultando o prontuário.
 // A cada resposta de texto, a IA da Ana entende o que o aluno disse (turno_plantao): se ele não soube ou fugiu do
 // assunto, ela orienta e pergunta de novo (uma vez); se respondeu, ela reage ao conteúdo e segue. Sem servidor,
@@ -35,6 +43,8 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
   const [lacunas, setLacunas] = useState({});
   const [prontuario, setProntuario] = useState(false);
   const [lacunaAberta, setLacunaAberta] = useState(null);
+  // Exame pedido na conversa ("vou avaliar o dreno"): aparece o botão para examinar.
+  const [examePendente, setExamePendente] = useState(null);
   const [avaliando, setAvaliando] = useState(false);
   const [erro, setErro] = useState(null);
 
@@ -74,6 +84,12 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
         // O que o aluno já disse (respostas aceitas e as que ela pediu para completar): a Ana não pede de novo.
         const historico = [...roteiro.current.respostas.map((r) => ({ perguntaId: r.perguntaId, texto: r.texto })), ...recusadas.current].slice(-10);
         ia = await servidor.turno({ cenarioId: cenario.id, perguntaId: pergunta.id, texto, tentativa, historico }).catch(() => null);
+        const pedido = ia?.examinar ? cenario.lacunas.find((l) => l.campo === ia.examinar) : exameDoTexto(texto, cenario.lacunas);
+        if (pedido && !roteiro.current.lacunas[pedido.campo]) {
+          // Disse que vai examinar: não conta como tentativa; a Ana concorda e aparece o botão.
+          setExamePendente(pedido);
+          return [{ id: `${pergunta.id}.ex.${Date.now()}`, texto: ia?.fala || "Pode examinar, eu espero. Depois me conta o que achou.", origem: ia?.fala ? "aovivo" : "fixa" }];
+        }
         if (ia?.fala && ia.situacao !== "respondeu" && tentativa === 0) {
           // Não soube, fugiu do assunto ou ficou incompleto: a Ana orienta e pergunta de novo, sem avançar.
           tentativas.current[pergunta.id] = 1;
@@ -85,15 +101,19 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
       let r = responder(roteiro.current, texto);
       if (!r.reacao) return [];
       roteiro.current = r.estado;
-      // O aluno já respondeu o que a próxima pergunta pediria: ela não pergunta de novo, registra e segue.
-      const seguinteJa = perguntaAtual(r.estado);
-      if (ia?.cobreProxima && !r.concluida && r.reacao === "ok" && seguinteJa?.espera.tipo === "texto" && !seguinteJa.dependeDe) {
-        const anteriores = [...recusadas.current.filter((x) => x.perguntaId === pergunta.id).map((x) => x.texto), texto].join(" ");
+      // O aluno já respondeu o que as próximas perguntas pediriam: ela não pergunta de novo, registra e segue
+      // (uma ou várias seguidas, enquanto estiverem cobertas pela mensagem dele).
+      const cobertas = new Set(ia?.cobertas ?? []);
+      const anteriores = [...recusadas.current.filter((x) => x.perguntaId === pergunta.id).map((x) => x.texto), texto].join(" ");
+      for (let guarda = 0; guarda < 8 && !r.concluida && r.reacao === "ok"; guarda++) {
+        const seguinte = perguntaAtual(r.estado);
+        const coberta = seguinte && (cobertas.has(seguinte.id) || (guarda === 0 && ia?.cobreProxima));
+        if (!coberta || seguinte.dependeDe) break;
+        // Pergunta de número também é aceita se o texto trouxer os números (o roteiro confere por código).
         const r2 = responder(r.estado, anteriores);
-        if (r2.reacao) {
-          r = { ...r2, reacao: "ok" };
-          roteiro.current = r2.estado;
-        }
+        if (!r2.reacao || r2.reacao !== "ok") break;
+        r = { ...r2, reacao: "ok" };
+        roteiro.current = r2.estado;
       }
       const falas = [];
       if (ia?.fala && r.reacao === "ok") {
@@ -126,7 +146,11 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
 
   // Examinar: lacuna com minijogo abre o minijogo; as demais revelam o achado direto no prontuário
   // (o aluno examina e encontra; antes era uma escolha sem dado nenhum para basear).
-  const examinar = (lacuna) => (lacuna.minijogo ? setLacunaAberta(lacuna) : preencher(lacuna, null));
+  const examinar = (lacuna) => {
+    setExamePendente(null);
+    if (lacuna.minijogo) setLacunaAberta(lacuna);
+    else preencher(lacuna, null);
+  };
 
   const abertas = lacunasAbertas({ ...roteiro.current, lacunas }).length;
   const definicao = lacunaAberta ? minijogoDaLacuna(lacunaAberta, cenario.id, MINIJOGOS_ESTATICOS) : null;
@@ -143,6 +167,15 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
         placeholderFala="Responda por voz ou texto"
         acoes={[{ id: "prontuario", rotulo: abertas ? `Prontuário (${abertas} para examinar)` : "Prontuário", onClick: () => setProntuario((v) => !v), soCelular: true }]}
         slotLateral={<Prontuario cenario={cenario} lacunasPreenchidas={lacunas} onAbrirLacuna={examinar} compacto />}
+        slotAbaixoPalco={
+          examePendente ? (
+            <div className="flex items-center gap-2 rounded-2xl border border-[#20D5B5]/40 bg-[#20D5B5]/10 p-2 pl-3">
+              <span className="min-w-0 flex-1 text-sm font-bold">Examinar: {examePendente.rotulo}</span>
+              <button type="button" onClick={() => setExamePendente(null)} className="rounded-xl px-2 py-1.5 text-xs font-bold text-[#9FB3C6]">Agora não</button>
+              <button type="button" onClick={() => examinar(examePendente)} className="btn-3d-teal rounded-xl px-3 py-1.5 text-xs font-extrabold">Examinar</button>
+            </div>
+          ) : null
+        }
       />
 
       <PainelFlutuante aberto={prontuario} titulo="Prontuário" onFechar={() => setProntuario(false)}>

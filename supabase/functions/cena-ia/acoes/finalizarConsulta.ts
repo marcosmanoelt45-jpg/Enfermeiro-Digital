@@ -15,6 +15,7 @@ import { reveladosAteAgora } from "../../_shared/logica/memoria.js";
 // @ts-ignore
 import { classificarDiagnosticos, limparCitacoes, motivoNaoRevelado, notaAnamnese, notaComunicacao, notaGeral, notaIaRaciocinio, notaRaciocinio, notaSeguranca, segurancaDaSessao } from "../../_shared/logica/pontuacao.js";
 import { CRITERIOS_COMUNICACAO, CRITERIOS_RACIOCINIO, montarMensagensAvaliador, numerarTurnos, PARAMETROS_AVALIADOR } from "../../_shared/prompts/avaliadorConsulta.ts";
+import { montarMensagensConferir, PARAMETROS_CONFERIR } from "../../_shared/prompts/conferirRevelados.ts";
 import type { Dependencias } from "./tipos.ts";
 
 export interface RegistroAluno {
@@ -41,9 +42,10 @@ function lerAvaliacao(bruto: any) {
 export async function finalizarConsulta(
   userId: string,
   entrada: { sessaoId: string; registro: RegistroAluno },
-  deps: Dependencias & { cota?: () => Promise<void> },
+  // llmConferir: a IA da conferência dos revelados (o index passa a mesma do avaliador; sem ela, só a marcação por turno).
+  deps: Dependencias & { cota?: () => Promise<void>; llmConferir?: Dependencias["llm"] },
 ) {
-  const { repo, llm, cota } = deps;
+  const { repo, llm, cota, llmConferir } = deps;
   const inicio = Date.now();
 
   const sessao = await repo.carregarSessao(entrada.sessaoId, userId);
@@ -67,8 +69,26 @@ export async function finalizarConsulta(
     examesFeitos: entrada.registro.examesFeitos ?? [],
   };
 
-  // ---- Por código ----
-  const revelados = reveladosAteAgora(turnos);
+  // ---- Revelados: marcação turno a turno + conferência pelo sentido (conversa inteira e evolução) ----
+  const marcados = reveladosAteAgora(turnos);
+  let conferidos: string[] = [];
+  try {
+    if (!llmConferir) throw new Error("sem conferência");
+    const r = await llmConferir({
+      mensagens: montarMensagensConferir({ fatos: ficha.fatos, turnos, achados: registro.achados }),
+      json: PARAMETROS_CONFERIR.json,
+      temperatura: PARAMETROS_CONFERIR.temperatura,
+      maxTokens: PARAMETROS_CONFERIR.maxTokens,
+      timeoutMs: PARAMETROS_CONFERIR.timeoutMs,
+    });
+    // deno-lint-ignore no-explicit-any
+    const j: any = extrairJson(r.texto);
+    const ids = new Set(ficha.fatos.map((f: { id: string }) => f.id));
+    conferidos = Array.isArray(j?.revelados) ? j.revelados.filter((id: unknown) => typeof id === "string" && ids.has(id)) : [];
+  } catch (e) {
+    if (llmConferir) logEvento("conferir_revelados_falhou", { tipo: e instanceof Error ? e.name : "Erro" });
+  }
+  const revelados = [...new Set([...marcados, ...conferidos])];
   const reveladosSet = new Set(revelados);
   const descobertos = ficha.fatos.filter((f: { id: string }) => reveladosSet.has(f.id));
   const escondidos = ficha.fatos.filter((f: { id: string }) => !reveladosSet.has(f.id));
@@ -89,7 +109,7 @@ export async function finalizarConsulta(
     descobertos,
     escondidos,
     diagnosticos: dx,
-    registro: { achados: registro.achados, diagnosticos: registro.diagnosticos, intervencoes: registro.intervencoes, indicadores: registro.indicadores },
+    registro: { achados: registro.achados, diagnosticos: registro.diagnosticos, intervencoes: registro.intervencoes, indicadores: registro.indicadores, examesFeitos: registro.examesFeitos },
     nomeDx,
   });
   let avaliacao = null;

@@ -23,7 +23,17 @@ export const EXAMES_ROTULOS = {
   "glicemia-capilar": "Glicemia capilar",
   "escala-glasgow": "Escala de Glasgow",
   "palpacao-abdominal": "Palpação do abdome",
+  "ausculta-cardiaca": "Ausculta cardíaca",
+  "oximetria": "Oximetria de pulso",
+  "avaliar-pupilas": "Avaliação das pupilas",
+  "avaliar-pele": "Pele, mucosas e perfusão",
+  "ausculta-abdominal": "Ausculta abdominal",
+  "avaliar-edema": "Pesquisa de edema",
+  "avaliar-dor": "Escala de dor",
 };
+
+// Todos os exames de beira de leito que o aluno pode pedir em qualquer consulta.
+export const TODOS_EXAMES = Object.keys(EXAMES_ROTULOS);
 
 /** @type {Record<string, string>} */
 export const SETOR_POR_ESPECIALIDADE = {

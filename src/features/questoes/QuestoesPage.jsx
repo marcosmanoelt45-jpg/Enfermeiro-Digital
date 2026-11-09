@@ -4,7 +4,8 @@ import PageShell from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/surface";
 import PlurallQuestionCard from "@/components/simulador/PlurallQuestionCard";
-import { CabecalhoSecao, HistoricoModulo, OpcoesModulo } from "@/components/modulo/InicioModulo.jsx";
+import RevisaoFinalModal from "@/components/simulador/RevisaoFinalModal";
+import { CabecalhoSecao, OpcoesModulo } from "@/components/modulo/InicioModulo.jsx";
 import { useAuth } from "@/lib/AuthContext";
 import { celebrate } from "@/lib/celebrate";
 import { vibrate } from "@/lib/motion";
@@ -12,7 +13,7 @@ import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistory
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import BANCO from "@/data/questoes/banco.json";
 import { TOPICOS_PRATICA } from "@/data/questoes/temas.js";
-import { montarSessao } from "./logica/sessao.js";
+import { embaralharAlternativas, montarSessao, resumoDaSessao, todasRespondidas } from "./logica/sessao.js";
 
 const NOVO = { selectedChoice: null, tentativas: 0, status: "aberta", isFinalizada: false, opcoesFalhadas: [] };
 const MODOS = { rapida: "Rápidas", normal: "Normais", revisao: "Revisão" };
@@ -30,12 +31,33 @@ export default function QuestoesPage() {
   const [estados, setEstados] = useState([]);
   const [dica, setDica] = useState(false);
   const [versao, setVersao] = useState(0);
+  const [revisao, setRevisao] = useState(null); // resumo aberto na Revisão final (fim da sessão ou histórico)
+  const [daSessao, setDaSessao] = useState(false); // confete só no fim de uma sessão, não ao abrir o histórico
   const inicio = useRef(Date.now());
 
   const pendentes = useMemo(() => {
     void versao;
     return clinicalHistoryService.getQuestoesRevisao(userId) || [];
   }, [userId, versao]);
+
+  const sessoes = useMemo(() => {
+    void versao;
+    return clinicalHistoryService.getAllActivities(MODULE_TYPES.VIDEOCHAMADA, userId).filter((a) => Array.isArray(a.details?.questoes) && a.details.questoes.length);
+  }, [userId, versao]);
+
+  // Refazer uma lista (as erradas de uma sessão, ou um filtro do histórico) até acertar.
+  const refazer = (lista) => {
+    const qs = lista.map((q, i) => embaralharAlternativas({ ...q, status: undefined, escolhaAluno: undefined, numQuestao: i + 1 }));
+    if (!qs.length) return;
+    setRevisao(null);
+    setModo("revisao");
+    setSessao(qs);
+    setEstados(qs.map(() => NOVO));
+    setIndice(0);
+    setDica(false);
+    inicio.current = Date.now();
+    setSecao("sessao");
+  };
 
   const comecar = (m, tema = "todos") => {
     const qs = montarSessao(m === "revisao" ? pendentes : BANCO, { modo: m, tema });
@@ -84,9 +106,10 @@ export default function QuestoesPage() {
     );
     if (modo === "revisao") clinicalHistoryService.removerQuestoesRevisao(lista.filter((x) => x.status === "verde" || x.status === "amarela"), userId);
     if (acertos) clinicalGamificationService.recordActivity("case_solved", acertos * 25, userId);
-    if (precisao >= 70) celebrate();
     setVersao((v) => v + 1);
-    setSecao("fim");
+    setDaSessao(true);
+    setRevisao(resumoDaSessao(lista, (Date.now() - inicio.current) / 1000));
+    setSecao("inicio");
   };
 
   const proxima = () => {
@@ -119,22 +142,6 @@ export default function QuestoesPage() {
           hintVisible={dica}
           onToggleHint={() => setDica((v) => !v)}
         />
-      </PageShell>
-    );
-  }
-
-  if (secao === "fim") {
-    const verdes = estados.filter((e) => e.status === "verde").length;
-    return (
-      <PageShell activeTab="questoes">
-        <Panel className="space-y-3 text-center">
-          <p className="text-5xl font-black text-[#20D5B5]">{verdes}/{sessao.length}</p>
-          <p className="text-sm font-semibold text-[#9FB3C6]">certas de primeira. As que você errou foram para a Revisão.</p>
-          <div className="flex flex-col gap-2 sm:flex-row sm:justify-center">
-            <Button variant="primary" onClick={() => comecar(modo === "revisao" ? "rapida" : modo)}>Mais questões</Button>
-            <Button variant="outline" onClick={() => setSecao("inicio")}>Voltar</Button>
-          </div>
-        </Panel>
       </PageShell>
     );
   }
@@ -175,9 +182,49 @@ export default function QuestoesPage() {
       {secao === "historico" && (
         <div className="space-y-3">
           <CabecalhoSecao titulo="Histórico" onVoltar={() => setSecao("inicio")} />
-          <HistoricoModulo moduleType={MODULE_TYPES.VIDEOCHAMADA} userId={userId} />
+          {sessoes.length === 0 ? (
+            <Panel className="text-center text-sm font-semibold text-[#9FB3C6]">Nada por aqui ainda. Resolva uma sessão de questões.</Panel>
+          ) : (
+            <>
+              <Button variant="primary" className="w-full" onClick={() => setDaSessao(false) || setRevisao(resumoDaSessao(todasRespondidas(sessoes), 0))}>
+                Ver todas as questões respondidas
+              </Button>
+              <ul className="divide-y divide-[#27394B] overflow-hidden rounded-2xl border border-[#27394B] bg-[#131F2E]">
+                {sessoes.map((a) => {
+                  const d = a.details;
+                  return (
+                    <li key={a.id}>
+                      <button type="button" onClick={() => setDaSessao(false) || setRevisao(resumoDaSessao(d.questoes, a.durationSeconds))} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[#16222E]">
+                        <span className="min-w-0 flex-1">
+                          <span className="block truncate text-sm font-extrabold">{a.title}</span>
+                          <span className="block text-xs font-semibold text-[#9FB3C6]">{a.dataDisplay} {a.horaDisplay} · {d.totalQuestoes} questões</span>
+                        </span>
+                        <span className="flex shrink-0 gap-1 text-[11px] font-black tabular-nums">
+                          <span className="rounded-full bg-[#20D5B5]/15 px-2 py-0.5 text-[#20D5B5]">{d.acertos}</span>
+                          <span className="rounded-full bg-[#FFC247]/15 px-2 py-0.5 text-[#FFC247]">{d.amarelas}</span>
+                          <span className="rounded-full bg-[#F25F5C]/15 px-2 py-0.5 text-[#F25F5C]">{d.vermelhas}</span>
+                        </span>
+                      </button>
+                    </li>
+                  );
+                })}
+              </ul>
+            </>
+          )}
         </div>
       )}
+
+      <RevisaoFinalModal
+        isOpen={Boolean(revisao)}
+        resumo={revisao}
+        onRefazerErradas={() => refazer((revisao?.questoes ?? []).filter((q) => q.status === "amarela" || q.status === "vermelha"))}
+        onNovaPratica={() => {
+          setRevisao(null);
+          comecar("rapida");
+        }}
+        onVoltarHub={() => setRevisao(null)}
+        celebrar={daSessao}
+      />
     </PageShell>
   );
 }

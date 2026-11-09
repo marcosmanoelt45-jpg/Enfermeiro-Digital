@@ -14,6 +14,8 @@ import BlocoNotas from "./componentes/BlocoNotas.jsx";
 import FolhaEvolucao from "./componentes/FolhaEvolucao.jsx";
 import ProntuarioConsulta from "./componentes/ProntuarioConsulta.jsx";
 import PainelFlutuante from "@/components/prontuario/PainelFlutuante.jsx";
+import PainelExames from "./componentes/PainelExames.jsx";
+import { detectarExame } from "./dados/exames.js";
 
 const AVISO_FIM = 5;
 
@@ -48,6 +50,30 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
   const [turnos, setTurnos] = useState(retomada?.turnos ?? []);
   const [prontuarioAberto, setProntuarioAberto] = useState(false);
   const [aba, setAba] = useState("evolucao"); // painel lateral: evolucao | prontuario
+  // Exames de beira de leito: o aluno pede na conversa ("vamos medir sua glicemia"), o paciente concorda e
+  // aparece o botão; o resultado vem do servidor, coerente com o caso.
+  const [exames, setExames] = useState([]);
+  const [examePedido, setExamePedido] = useState(null);
+  const [fazendoExame, setFazendoExame] = useState(false);
+  const feitosRef = useRef(new Set());
+  const fazerExame = async () => {
+    if (!examePedido) return;
+    setFazendoExame(true);
+    try {
+      let r = await consulta.exame({ sessaoId: sessao.sessaoId, exameId: examePedido });
+      feitosRef.current.add(r.exameId);
+      // "Glicemia capilar 112 mg/dL" -> "112 mg/dL" (o rótulo já aparece ao lado).
+      const bruto = String(r.resultado ?? "");
+      const sem = bruto.toLowerCase().startsWith(r.rotulo.toLowerCase()) ? bruto.slice(r.rotulo.length).replace(/^[:\s-]+/, "") : bruto;
+      r = { ...r, resultado: sem ? sem.charAt(0).toUpperCase() + sem.slice(1) : bruto };
+      setExames((lista) => [...lista.filter((x) => x.exameId !== r.exameId), r]);
+      setExamePedido(null);
+    } catch {
+      // segue com o botão para tentar de novo
+    } finally {
+      setFazendoExame(false);
+    }
+  };
   useEffect(() => {
     try {
       if (notas) localStorage.setItem(chave, notas);
@@ -66,6 +92,9 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
     async (texto, canal, turnoId) => {
       const r = await consulta.turno({ sessaoId: sessao.sessaoId, turnoId, texto, canal });
       setRestantes(r.turnosRestantes);
+      // O exame vem da IA do paciente ou, se ela não marcar, do próprio texto do aluno ("vou medir sua glicemia").
+      const pedido = r.exame ?? detectarExame(texto);
+      if (pedido && !feitosRef.current.has(pedido)) setExamePedido(pedido);
       return [{ texto: r.fala, emocao: r.emocao, origem: "aovivo" }];
     },
     [sessao.sessaoId]
@@ -76,7 +105,8 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       setErro(null);
       setEnviando(true);
       try {
-        const { relatorio: r } = await consulta.finalizar({ sessaoId: sessao.sessaoId, registro });
+        const examesFeitos = exames.map((x) => ({ minijogoId: x.exameId, resultado: `${x.rotulo}: ${x.resultado}` }));
+        const { relatorio: r } = await consulta.finalizar({ sessaoId: sessao.sessaoId, registro: examesFeitos.length ? { ...registro, examesFeitos } : registro });
         // Histórico do Perfil e pontos, uma vez só (o servidor já recusa finalizar de novo).
         const duracao = Math.round((Date.now() - inicio.current) / 1000);
         const resumo = resumoParaHistorico({ briefing: sessao.briefing, tema: sessao.tema, personalidadePublica: sessao.personalidadePublica });
@@ -95,7 +125,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
         setEnviando(false);
       }
     },
-    [sessao, user, onFinalizada]
+    [sessao, user, onFinalizada, exames]
   );
 
   if (fase === "relatorio" && relatorio) {
@@ -135,6 +165,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       onEnviar={onEnviar}
       onEncerrar={onSair}
       onTurnos={setTurnos}
+      slotAbaixoPalco={<PainelExames pedido={examePedido} fazendo={fazendoExame} exames={exames} onFazer={fazerExame} onDispensar={() => setExamePedido(null)} />}
       slotLateral={
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-1 rounded-2xl border border-[#27394B] bg-[#0E1722] p-1" role="tablist" aria-label="Painel">
@@ -144,12 +175,12 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
               </button>
             ))}
           </div>
-          {aba === "evolucao" ? <FolhaEvolucao texto={notas} onMudar={setNotas} briefing={b} turnos={turnos} linhas={15} /> : <ProntuarioConsulta sessao={sessao} compacto />}
+          {aba === "evolucao" ? <FolhaEvolucao texto={notas} onMudar={setNotas} briefing={b} turnos={turnos} linhas={15} /> : <ProntuarioConsulta sessao={sessao} exames={exames} compacto />}
         </div>
       }
     />
     <PainelFlutuante aberto={prontuarioAberto} titulo="Prontuário" onFechar={() => setProntuarioAberto(false)}>
-      <ProntuarioConsulta sessao={sessao} compacto />
+      <ProntuarioConsulta sessao={sessao} exames={exames} compacto />
     </PainelFlutuante>
     <BlocoNotas aberto={notasAbertas} texto={notas} onMudar={setNotas} onFechar={() => setNotasAbertas(false)} briefing={b} turnos={turnos} />
     </>

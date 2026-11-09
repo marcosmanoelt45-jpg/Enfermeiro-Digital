@@ -21,7 +21,7 @@ export async function turnoPlantao(
   _userId: string,
   entrada: { cenarioId: string; perguntaId: string; texto: string; tentativa: number; historico?: Array<{ perguntaId: string; texto: string }> },
   deps: { llm: ChamarLLM; cota?: () => Promise<void> },
-): Promise<{ situacao: SituacaoPlantao; fala: string | null; cobreProxima: boolean }> {
+): Promise<{ situacao: SituacaoPlantao; fala: string | null; cobreProxima: boolean; cobertas: string[]; examinar: string | null }> {
   const inicio = Date.now();
   // deno-lint-ignore no-explicit-any
   const cenario: any = buscarCenarioPlantao(entrada.cenarioId);
@@ -33,6 +33,8 @@ export async function turnoPlantao(
   // deno-lint-ignore no-explicit-any
   const idx = cenario.perguntas.findIndex((p: any) => p.id === entrada.perguntaId);
   const proxima = cenario.perguntas[idx + 1]?.texto ?? null;
+  // deno-lint-ignore no-explicit-any
+  const proximas = cenario.perguntas.slice(idx + 1).map((p: any) => ({ id: p.id, texto: p.texto }));
   const historico = (entrada.historico ?? [])
     .slice(-8)
     // deno-lint-ignore no-explicit-any
@@ -43,7 +45,7 @@ export async function turnoPlantao(
 
   try {
     const r = await deps.llm({
-      mensagens: montarMensagensEnfermeiraPlantao({ cenario, pergunta, resposta: entrada.texto, segundaTentativa, historico, proxima }),
+      mensagens: montarMensagensEnfermeiraPlantao({ cenario, pergunta, resposta: entrada.texto, segundaTentativa, historico, proxima, proximas, exames: (cenario.lacunas ?? []).map((l: { campo: string; rotulo: string }) => ({ campo: l.campo, rotulo: l.rotulo })) }),
       json: PARAMETROS_ENFERMEIRA_PLANTAO.json,
       temperatura: PARAMETROS_ENFERMEIRA_PLANTAO.temperatura,
       maxTokens: PARAMETROS_ENFERMEIRA_PLANTAO.maxTokens,
@@ -54,11 +56,14 @@ export async function turnoPlantao(
     let situacao: SituacaoPlantao = SITUACOES_PLANTAO.includes(j?.situacao) ? j.situacao : "respondeu";
     if (segundaTentativa) situacao = "respondeu";
     const fala = limparFala(j?.fala);
-    const cobreProxima = j?.cobre_proxima === true && Boolean(proxima);
+    const validos = new Set(proximas.map((p: { id: string }) => p.id));
+    const cobertas: string[] = Array.isArray(j?.cobertas) ? j.cobertas.filter((id: unknown) => typeof id === "string" && validos.has(id)) : [];
+    const cobreProxima = (j?.cobre_proxima === true && Boolean(proxima)) || (proximas[0] ? cobertas.includes(proximas[0].id) : false);
+    const examinar = typeof j?.examinar === "string" && (cenario.lacunas ?? []).some((l: { campo: string }) => l.campo === j.examinar) ? j.examinar : null;
     logEvento("turno_plantao", { cenario: cenario.id, situacao, cobreProxima, modelo: r.modelo, ms: Date.now() - inicio });
-    return { situacao, fala, cobreProxima };
+    return { situacao: examinar ? "incompleto" : situacao, fala, cobreProxima: examinar ? false : cobreProxima, cobertas: examinar ? [] : cobertas, examinar };
   } catch (e) {
     logEvento("turno_plantao_ia_falhou", { tipo: e instanceof Error ? e.name : "Erro", ms: Date.now() - inicio });
-    return { situacao: "respondeu", fala: null, cobreProxima: false };
+    return { situacao: "respondeu", fala: null, cobreProxima: false, cobertas: [], examinar: null };
   }
 }

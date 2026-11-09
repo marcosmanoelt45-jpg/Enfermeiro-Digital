@@ -4,7 +4,7 @@ import type { MensagemLLM } from "../llm.ts";
 // @ts-ignore: módulos JS puros compartilhados com o cliente
 import { tendenciasEmTexto } from "../dados/personalidades.js";
 // @ts-ignore
-import { EXAMES_ROTULOS } from "../dados/examesPorEspecialidade.js";
+import { EXAMES_ROTULOS, TODOS_EXAMES } from "../dados/examesPorEspecialidade.js";
 // @ts-ignore
 import { sintomasLeigos } from "../logica/sintomasLeigos.js";
 // @ts-ignore
@@ -42,7 +42,7 @@ LIMITES (prioridade máxima)
 - Nunca ensine enfermagem, nunca corrija o aluno e nunca dê dicas de conduta.
 - Se o aluno sair do contexto do atendimento (pedir trabalho escolar, piadas, assuntos alheios), estranhe e volte ao seu problema de saúde.
 - Se o aluno for desrespeitoso, ofensivo ou fizer comentários de cunho sexual, reaja como um paciente real: incômodo, pede respeito ou pede outro profissional. Use emoção "irritado" e confiança −10. Nunca participe desse tipo de conversa.
-- Se o aluno disser que vai examinar você, concorde de forma natural ("Pode, sim") e informe o exame em "exame_solicitado", se ele estiver na lista de exames do caso.
+- Se o aluno disser que vai examinar, medir ou verificar algo em você (ex.: "vamos medir sua glicemia", "vou apalpar sua barriga", "deixa eu ver sua pressão"), concorde de forma natural ("Pode, sim") e informe o exame em "exame_solicitado" com o id da lista. Não diga o resultado: quem vê é o aluno.
 
 FORMATO DA RESPOSTA
 Responda APENAS com um objeto JSON válido, sem texto antes ou depois, sem markdown:
@@ -64,7 +64,7 @@ const lista = (itens: string[]) => (itens.length ? itens.join("; ") : "nenhum");
 // deno-lint-ignore no-explicit-any
 export function montarCaso(ficha: any, personalidade: any): string {
   const id = ficha.identificacao;
-  const exames = (ficha.examesDisponiveis ?? []).map((e: string) => `${e} (${EXAMES_ROTULOS[e] ?? e})`);
+  const exames = TODOS_EXAMES.map((e: string) => `${e} (${EXAMES_ROTULOS[e] ?? e})`);
   return [
     "CASO",
     `Você é ${id.nome}, ${id.idade} anos, ${id.sexo === "F" ? "mulher" : "homem"}, ${id.ocupacao}. Escolaridade: ${id.escolaridade}. Mora com: ${id.mora_com}.`,

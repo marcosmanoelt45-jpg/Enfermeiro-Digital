@@ -33,7 +33,7 @@ test("turno_plantao: situação desconhecida vira respondeu; IA com erro devolve
   const a = await turnoPlantao("u", entrada(), { llm: llm({ situacao: "outra", fala: "Ok." }) });
   assert.equal(a.situacao, "respondeu");
   const b = await turnoPlantao("u", entrada(), { llm: llm(new Error("x")) });
-  assert.deepEqual(b, { situacao: "respondeu", fala: null, cobreProxima: false });
+  assert.deepEqual(b, { situacao: "respondeu", fala: null, cobreProxima: false, cobertas: [], examinar: null });
 });
 
 test("turno_plantao: manda o que o aluno já disse e a próxima pergunta; cobre_proxima volta como cobreProxima", async () => {
@@ -46,7 +46,7 @@ test("turno_plantao: manda o que o aluno já disse e a próxima pergunta; cobre_
   const r = await turnoPlantao("u", { ...e, historico: [{ perguntaId: e.perguntaId, texto: "Leito 12, 58 anos" }] }, { llm: espiao });
   assert.equal(r.cobreProxima, true);
   assert.match(msgs[1].content, /Leito 12, 58 anos/);
-  assert.match(msgs[1].content, /PRÓXIMA PERGUNTA/);
+  assert.match(msgs[1].content, /PRÓXIMAS PERGUNTAS/);
 });
 
 test("turno_plantao: cenário ou pergunta que não existem são recusados", async () => {

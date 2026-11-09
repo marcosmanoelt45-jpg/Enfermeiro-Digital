@@ -69,7 +69,7 @@ export default function FichaProntuario({
 }) {
   const [semFoto, setSemFoto] = useState(false);
   return (
-    <div className={`relative mx-auto w-full max-w-[760px] pt-8 ${className}`}>
+    <div className={`relative mx-auto w-full pt-8 ${compacto ? "" : "max-w-[1040px]"} ${className}`}>
       <div
         className="relative rounded-[22px] p-3 pb-4 shadow-[0_18px_40px_rgba(0,0,0,0.45)] sm:p-5"
         style={{
@@ -85,10 +85,11 @@ export default function FichaProntuario({
           style={{ boxShadow: "0 6px 0 #3E2C26" }}
           aria-label={`Prontuário de ${nome}`}
         >
-          <div className={compacto ? "grid gap-y-3" : "grid gap-x-6 gap-y-4 sm:grid-cols-[minmax(0,36%)_1fr]"}>
-            {/* Foto e identificação */}
-            <div className="space-y-2">
-              <div className={`aspect-square w-full overflow-hidden border-[3px] border-[#1A1A1A] bg-[#DCE4EB] ${compacto ? "max-w-[150px]" : "max-w-[220px]"}`}>
+          {/* Computador: 3 colunas (identificação e sinais | motivo, histórico e anamnese | alergias e prescrição).
+              Painel lateral (compacto): 1 coluna, 2 quando a tela é larga. */}
+          <div className={compacto ? "grid gap-x-5 gap-y-3 xl:grid-cols-2" : "grid gap-x-6 gap-y-4 sm:grid-cols-2 lg:grid-cols-[minmax(0,0.9fr)_1fr_1fr]"}>
+            <div className="space-y-3">
+              <div className={`aspect-square w-full overflow-hidden border-[3px] border-[#1A1A1A] bg-[#DCE4EB] ${compacto ? "max-w-[150px]" : "max-w-[200px]"}`}>
                 {foto && !semFoto ? (
                   <img src={foto} alt={`Foto de ${nome}`} className="h-full w-full object-cover" loading="lazy" decoding="async" onError={() => setSemFoto(true)} />
                 ) : (
@@ -106,21 +107,7 @@ export default function FichaProntuario({
                   <p className="text-[15px] font-extrabold" style={{ color: TINTA }}>{sexo || "—"}</p>
                 </div>
               </div>
-            </div>
-
-            {/* Cabeçalho, motivo e histórico */}
-            <div className="space-y-3">
-              <h2 className="text-center text-base font-black tracking-wide sm:text-lg">PRONTUÁRIO DO PACIENTE</h2>
-              <p className="text-[13px] font-bold">
-                Leito: <span className="text-[14px]" style={{ color: TINTA }}>{leito || "—"}</span>
-              </p>
-              <Campo rotulo="Motivo de internação:" linhas={3}>{motivo}</Campo>
-              <Campo rotulo="Histórico:" linhas={3}>{historico}</Campo>
-            </div>
-
-            {/* Coluna esquerda */}
-            <div className="space-y-4">
-              <Campo rotulo="Sinais vitais:" linhas={4}>
+              <Campo rotulo="Sinais vitais:" linhas={3}>
                 {sinaisVitais.length > 0 && (
                   <ul>
                     {sinaisVitais.map(([r, v]) => (
@@ -131,13 +118,21 @@ export default function FichaProntuario({
                   </ul>
                 )}
               </Campo>
-              <Campo rotulo="Anamnese prévia (se houver):" linhas={4}>{anamnese}</Campo>
-              <Campo rotulo="Alergias:" linhas={2}>{alergias}</Campo>
             </div>
 
-            {/* Coluna direita */}
-            <div className="space-y-4">
-              <Campo rotulo="Prescrição e pendências:" linhas={6}>{prescricao}</Campo>
+            <div className="space-y-3">
+              <h2 className="text-center text-base font-black tracking-wide sm:text-lg">PRONTUÁRIO DO PACIENTE</h2>
+              <p className="text-[13px] font-bold">
+                Leito: <span className="text-[14px]" style={{ color: TINTA }}>{leito || "—"}</span>
+              </p>
+              <Campo rotulo="Motivo de internação:" linhas={2}>{motivo}</Campo>
+              <Campo rotulo="Histórico:" linhas={2}>{historico}</Campo>
+              <Campo rotulo="Anamnese prévia (se houver):" linhas={2}>{anamnese}</Campo>
+            </div>
+
+            <div className={`space-y-3 ${compacto ? "" : "sm:col-span-2 lg:col-span-1"}`}>
+              <Campo rotulo="Alergias:" linhas={1}>{alergias}</Campo>
+              <Campo rotulo="Prescrição e pendências:" linhas={3}>{prescricao}</Campo>
               {extra}
             </div>
           </div>

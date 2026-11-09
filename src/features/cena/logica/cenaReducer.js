@@ -42,7 +42,8 @@ export function cenaReducer(estado, acao) {
     }
 
     case "ALUNO_SEGUROU": {
-      if (status !== "personagem_falando" && status !== "aguardando_aluno") return estado;
+      // Também revisando o texto: gravar de novo antes de enviar (antes a 2ª gravação era ignorada e a frase sumia).
+      if (status !== "personagem_falando" && status !== "aguardando_aluno" && status !== "revisando_texto") return estado;
       return { ...estado, status: "aluno_falando", falaAtual: null, filaFalas: [] };
     }
 

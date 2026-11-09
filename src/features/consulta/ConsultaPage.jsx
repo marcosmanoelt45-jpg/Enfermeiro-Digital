@@ -189,7 +189,7 @@ export default function ConsultaPage() {
   }
 
   return (
-    <PageShell larguraMax={passo === 3 && sessao ? "4xl" : "xl"}>
+    <PageShell larguraMax={passo === 3 && sessao ? "6xl" : "xl"}>
       <header className="space-y-2">
         <h1 className="text-xl font-extrabold">Consulta ao Vivo</h1>
         <AnimatedProgress value={(passo / 3) * 100} label={`Passo ${passo} de 3`} />

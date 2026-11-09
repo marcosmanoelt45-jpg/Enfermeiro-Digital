@@ -34,8 +34,13 @@ export default function ControleFala({
   const podeEnviar = !desabilitado && (status === "aguardando_aluno" || status === "revisando_texto" || status === "personagem_falando");
 
   // O rascunho da transcrição (ou o texto preservado após um erro) entra na caixa para editar.
+  // Gravou de novo antes de enviar: a fala nova é somada ao que já está na caixa.
+  const ultimoRascunho = useRef("");
   useEffect(() => {
-    if (rascunho && (status === "revisando_texto" || status === "erro_recuperavel")) setTexto(rascunho);
+    if (!rascunho || (status !== "revisando_texto" && status !== "erro_recuperavel")) return;
+    if (rascunho === ultimoRascunho.current) return;
+    ultimoRascunho.current = rascunho;
+    setTexto((atual) => (status === "revisando_texto" && atual.trim() && !atual.includes(rascunho) ? `${atual.trim()} ${rascunho}` : rascunho));
   }, [rascunho, status]);
 
   // Mostra a fala parcial enquanto o aluno segura.
@@ -44,7 +49,7 @@ export default function ControleFala({
   useEffect(() => {
     setEditado(false);
   }, [rascunho]);
-  const valor = textoParcial || (texto === "" && revisando && !editado ? rascunho : texto);
+  const valor = textoParcial ? `${texto.trim() ? `${texto.trim()} ` : ""}${textoParcial}` : texto === "" && revisando && !editado ? rascunho : texto;
 
   useEffect(() => {
     const el = areaTexto.current;
@@ -56,8 +61,13 @@ export default function ControleFala({
   const comecar = useCallback(async () => {
     if (!podeFalar || segurando) return;
     if (permissao === "desconhecido") await onPedirPermissao?.();
+    // Mesma frase dita de novo depois de apagar: o rascunho não muda, então a caixa volta a mostrá-lo.
+    if (!texto.trim()) {
+      ultimoRascunho.current = "";
+      setEditado(false);
+    }
     onSegurar?.();
-  }, [podeFalar, segurando, permissao, onPedirPermissao, onSegurar]);
+  }, [podeFalar, segurando, permissao, onPedirPermissao, onSegurar, texto]);
 
   const terminar = useCallback(() => {
     if (!segurando) return;
@@ -87,6 +97,7 @@ export default function ControleFala({
     if (!t || !podeEnviar) return;
     onEnviar?.(t);
     setTexto("");
+    ultimoRascunho.current = "";
   };
 
   return (

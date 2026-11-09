@@ -8,9 +8,17 @@ function formatarTempo(ms) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, "0")}`;
 }
 
-// Explicações do que importa: distratores colocados na bandeja e o feedback da alternativa escolhida.
+// Explicações do que importa: o que faltou e o que sobrou na bandeja, e o feedback da alternativa escolhida.
 function motivos(definicao, avaliacao) {
-  if (definicao.tipo === "arrastar") return (avaliacao?.detalhes ?? []).filter((d) => d.estado === "errado" && d.explicacao).map((d) => ({ id: d.id, texto: d.explicacao, rotulo: definicao.arrastar.itens.find((i) => i.id === d.id)?.label }));
+  if (definicao.tipo === "arrastar") {
+    const itens = definicao.arrastar.itens;
+    const nome = (id) => itens.find((i) => i.id === id)?.label ?? id;
+    const detalhes = avaliacao?.detalhes ?? [];
+    // O que faltou (item certo que ficou fora) e o que sobrou (item a mais na bandeja), cada um com o porquê.
+    const faltou = detalhes.filter((d) => d.estado === "fora" && itens.find((i) => i.id === d.id)?.alvoCorreto).map((d) => ({ id: d.id, rotulo: `Faltou: ${nome(d.id)}`, texto: d.explicacao ?? "" }));
+    const sobrou = detalhes.filter((d) => d.estado === "errado").map((d) => ({ id: d.id, rotulo: `Não vai: ${nome(d.id)}`, texto: d.explicacao ?? "" }));
+    return [...faltou, ...sobrou];
+  }
   if (definicao.tipo === "escolher") return (avaliacao?.detalhes ?? []).filter((d) => d.feedback).map((d) => ({ id: d.id, texto: d.feedback }));
   return [];
 }

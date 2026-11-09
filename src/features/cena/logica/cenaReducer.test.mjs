@@ -145,7 +145,6 @@ test("transições inválidas devolvem o mesmo estado (RESPOSTA fora de processa
     ["processando", "REENVIAR"],
     ["erro_recuperavel", "RESPOSTA"],
     ["revisando_texto", "RESPOSTA"],
-    ["revisando_texto", "ALUNO_SEGUROU"],
   ];
   for (const [s, tipo] of invalidas) {
     const base = emStatus(s);
@@ -173,4 +172,12 @@ test("conversa completa: abertura, voz, revisão, envio, falha, nova tentativa e
   e = cenaReducer(e, { tipo: "RESPOSTA", falas: [{ texto: "Tô meio cansado.", origem: "aovivo" }] });
   assert.equal(e.status, "personagem_falando");
   assert.deepEqual(e.turnos.map((t) => t.autor), ["personagem", "aluno", "personagem"]);
+});
+
+test("gravar de novo enquanto revisa o texto: ALUNO_SEGUROU e SOLTOU funcionam (2ª gravação antes de enviar)", () => {
+  const revisando = rodar(criarEstado({ status: "aguardando_aluno" }), { tipo: "ALUNO_SEGUROU" }, { tipo: "SOLTOU", texto: "primeira" });
+  assert.equal(revisando.status, "revisando_texto");
+  const de_novo = rodar(revisando, { tipo: "ALUNO_SEGUROU" }, { tipo: "SOLTOU", texto: "segunda" });
+  assert.equal(de_novo.status, "revisando_texto");
+  assert.equal(de_novo.rascunhoAluno, "segunda");
 });

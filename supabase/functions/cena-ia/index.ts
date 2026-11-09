@@ -15,6 +15,7 @@ import { retomarConsulta } from "./acoes/retomarConsulta.ts";
 import { finalizarConsulta } from "./acoes/finalizarConsulta.ts";
 import { avaliarPlantao } from "./acoes/avaliarPlantao.ts";
 import { turnoPlantao } from "./acoes/turnoPlantao.ts";
+import { exameConsulta } from "./acoes/exameConsulta.ts";
 import { montarResposta } from "./acoes/resposta.ts";
 import { criarRepositorio } from "./repositorio.ts";
 
@@ -39,6 +40,7 @@ const Entrada = z.discriminatedUnion("acao", [
     canal: z.enum(["voz", "texto"]),
   }),
   z.object({ acao: z.literal("retomar_consulta"), sessaoId: z.string().uuid() }),
+  z.object({ acao: z.literal("exame_consulta"), sessaoId: z.string().uuid(), exameId: z.string().min(3).max(40) }),
   z.object({
     acao: z.literal("finalizar_consulta"),
     sessaoId: z.string().uuid(),
@@ -50,7 +52,7 @@ const Entrada = z.discriminatedUnion("acao", [
         .array(z.object({ codigo: z.string().regex(/^\d{5}$/), fatores: z.array(z.string().trim().min(1).max(200)).max(12), caracteristicas: z.array(z.string().trim().min(1).max(200)).max(12) }))
         .max(6)
         .optional(),
-      examesFeitos: z.array(z.object({ minijogoId: z.string().max(60), resultado: z.unknown().optional() })).max(6).optional(),
+      examesFeitos: z.array(z.object({ minijogoId: z.string().max(60), resultado: z.unknown().optional() })).max(12).optional(),
     }),
   }),
   z.object({
@@ -108,9 +110,11 @@ Deno.serve(async (req) => {
       }
       case "retomar_consulta":
         return ok(await retomarConsulta(usuario.userId, dados, deps));
+      case "exame_consulta":
+        return ok(await exameConsulta(usuario.userId, dados, deps));
       case "finalizar_consulta": {
         const cota = () => consumirCota(usuario.supabaseUsuario, "avaliacao", limiteDe("avaliacao"));
-        return ok(await finalizarConsulta(usuario.userId, dados, { ...deps, cota }));
+        return ok(await finalizarConsulta(usuario.userId, dados, { ...deps, cota, llmConferir: deps.llm }));
       }
       case "avaliar_plantao": {
         const cota = () => consumirCota(usuario.supabaseUsuario, "avaliacao", limiteDe("avaliacao"));

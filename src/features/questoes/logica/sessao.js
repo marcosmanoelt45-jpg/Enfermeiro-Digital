@@ -42,3 +42,28 @@ export function montarSessao(banco, { modo = "rapida", tema = "todos", rng = Mat
     return embaralharAlternativas(limpa, rng);
   });
 }
+
+// Resumo no formato da Revisão final (contagens por cor e a lista com o status de cada questão).
+export function resumoDaSessao(questoes, tempoSeg = 0) {
+  const lista = questoes.map((q, i) => ({ ...q, numQuestao: i + 1 }));
+  const conta = (st) => lista.filter((q) => q.status === st).length;
+  const acertos = conta("verde");
+  const amarelas = conta("amarela");
+  const vermelhas = conta("vermelha");
+  return {
+    totalQuestoes: lista.length,
+    acertos,
+    amarelas,
+    vermelhas,
+    aproveitamento: Math.round(((acertos + amarelas * 0.5) / (lista.length || 1)) * 100),
+    tempoTotal: tempoSeg,
+    questoes: lista,
+  };
+}
+
+// Todas as questões já respondidas, com o status da vez mais recente (as sessões vêm da mais nova para a mais velha).
+export function todasRespondidas(sessoes) {
+  const vistas = new Map();
+  for (const s of sessoes) for (const q of s.details?.questoes ?? []) if (q.status && q.status !== "pulada" && !vistas.has(q.pergunta)) vistas.set(q.pergunta, q);
+  return [...vistas.values()];
+}

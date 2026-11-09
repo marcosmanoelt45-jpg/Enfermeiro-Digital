@@ -154,7 +154,7 @@ export default function CenaAoVivo({
 
   return (
     <PageShell semDock larguraMax={slotLateral ? "6xl" : "xl"}>
-      <div className={slotLateral ? "lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,440px)] lg:items-start lg:gap-6" : ""}>
+      <div className={slotLateral ? "lg:grid lg:grid-cols-[minmax(0,1fr)_minmax(360px,440px)] xl:grid-cols-[minmax(0,1fr)_minmax(420px,560px)] lg:items-start lg:gap-6" : ""}>
       <div className="space-y-5">
       <BarraCena titulo={titulo} progresso={progresso} slotTopo={slotTopo} onSair={sair} rodando={estado.status !== "ocioso" && estado.status !== "encerrada"} />
 

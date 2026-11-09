@@ -7,7 +7,7 @@ const SEXO = { M: "Masculino", F: "Feminino" };
 
 // O que a equipe já sabe, no papel: identificação, setor, queixa e sinais vitais. Histórico, alergias e medicações
 // ficam em branco de propósito (é o que a consulta vai descobrir).
-export default function ProntuarioConsulta({ sessao, compacto = false }) {
+export default function ProntuarioConsulta({ sessao, compacto = false, exames = [] }) {
   const b = sessao.briefing ?? {};
   const v = b.sinaisVitais;
   return (
@@ -34,8 +34,22 @@ export default function ProntuarioConsulta({ sessao, compacto = false }) {
       alergias={A_INVESTIGAR}
       prescricao={A_INVESTIGAR}
       compacto={compacto}
+      extra={
+        exames.length > 0 ? (
+          <section>
+            <h3 className="text-[13px] font-bold text-[#2B2F2E]">Exames feitos na consulta:</h3>
+            <ul className="text-[14px] font-semibold text-[#1F3A5F]">
+              {exames.map((x) => (
+                <li key={x.exameId}>
+                  <span className="text-[#2B2F2E]">{x.rotulo}:</span> {x.resultado}
+                </li>
+              ))}
+            </ul>
+          </section>
+        ) : null
+      }
     />
   );
 }
 
-ProntuarioConsulta.propTypes = { sessao: PropTypes.object.isRequired, compacto: PropTypes.bool };
+ProntuarioConsulta.propTypes = { sessao: PropTypes.object.isRequired, compacto: PropTypes.bool, exames: PropTypes.array };

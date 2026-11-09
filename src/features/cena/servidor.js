@@ -102,6 +102,8 @@ export const consulta = {
   turno: ({ sessaoId, turnoId, texto, canal }) => invocarFuncao(invoke, "cena-ia", { acao: "turno_consulta", sessaoId, turnoId, texto, canal }, { timeoutMs: 15000, tentativas: 2 }),
   finalizar: ({ sessaoId, registro }) => invocarFuncao(invoke, "cena-ia", { acao: "finalizar_consulta", sessaoId, registro }, { timeoutMs: 30000, tentativas: 1 }),
   retomar: (sessaoId) => invocarFuncao(invoke, "cena-ia", { acao: "retomar_consulta", sessaoId }, { timeoutMs: 15000, tentativas: 2 }),
+  // Exame de beira de leito pedido na conversa: { exameId, rotulo, resultado }.
+  exame: ({ sessaoId, exameId }) => invocarFuncao(invoke, "cena-ia", { acao: "exame_consulta", sessaoId, exameId }, { timeoutMs: 14000, tentativas: 1 }),
 };
 
 // Plantão com a Enfermeira: o servidor avalia as respostas (texto pela IA, números e lacunas por código).

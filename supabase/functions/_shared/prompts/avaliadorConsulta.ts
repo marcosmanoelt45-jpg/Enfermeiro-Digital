@@ -9,6 +9,7 @@ export const CRITERIOS_COMUNICACAO = ["apresentacao", "perguntas_abertas", "escu
 export const CRITERIOS_RACIOCINIO = ["achados_coerentes", "diagnosticos_sustentados", "intervencoes_seguras"] as const;
 
 export const SYSTEM_AVALIADOR = `Você é preceptor(a) de enfermagem e avalia a COMUNICAÇÃO e o RACIOCÍNIO de um aluno numa anamnese simulada. Seja justo, específico e construtivo. Avalie apenas o que está nos turnos; nunca suponha falas que não existem.
+Julgue pelo SENTIDO, não por palavras exatas: aceite as palavras do próprio aluno, sinônimos, abreviações e frases livres, sem exigir termos técnicos. Dê 1 quando a ideia aparece, mesmo incompleta; 2 quando está clara e consistente; 0 só quando está ausente ou errada. Não dê 2 sem evidência.
 
 COMUNICAÇÃO: dê 0, 1 ou 2 para cada critério:
 1. apresentacao: apresentou-se (nome e função) e confirmou a identificação do paciente.
@@ -22,7 +23,7 @@ COMUNICAÇÃO: dê 0, 1 ou 2 para cada critério:
 0 = ausente; 1 = parcial ou inconsistente; 2 = claro e consistente.
 
 RACIOCÍNIO: dê 0, 1 ou 2:
-1. achados_coerentes: os achados registrados batem com o que foi dito na conversa.
+1. achados_coerentes: a evolução (achados) que o aluno escreveu bate com o que foi dito na conversa, mesmo escrita do jeito dele.
 2. diagnosticos_sustentados: os diagnósticos escolhidos têm evidência no que foi descoberto.
 3. intervencoes_seguras: as intervenções são coerentes, seguras e específicas para o caso.
 
@@ -47,7 +48,7 @@ export interface EntradaAvaliador {
   descobertos: Array<{ id: string; texto: string }>;
   escondidos: Array<{ id: string; texto: string }>;
   diagnosticos: { certos: string[]; faltando: string[]; extras: string[] };
-  registro: { achados: string; diagnosticos: string[]; intervencoes: string[]; indicadores?: Array<{ codigo: string; fatores: string[]; caracteristicas: string[] }> };
+  registro: { achados: string; diagnosticos: string[]; intervencoes: string[]; examesFeitos?: Array<{ minijogoId: string; resultado?: unknown }>; indicadores?: Array<{ codigo: string; fatores: string[]; caracteristicas: string[] }> };
   nomeDx: (codigo: string) => string;
 }
 
@@ -87,6 +88,7 @@ export function montarMensagensAvaliador(e: EntradaAvaliador): MensagemLLM[] {
     `- diagnósticos: ${dx(e.registro.diagnosticos)}`,
     ...(e.registro.indicadores ?? []).map((i) => `  - ${i.codigo}: fatores ${i.fatores.length ? i.fatores.join("; ") : "(nenhum)"} | características ${i.caracteristicas.length ? i.caracteristicas.join("; ") : "(nenhuma)"}`),
     `- intervenções: ${e.registro.intervencoes.length ? e.registro.intervencoes.join("; ") : "(nenhuma)"}`,
+    `- exames feitos à beira do leito: ${e.registro.examesFeitos?.length ? e.registro.examesFeitos.map((x) => `${x.minijogoId}: ${typeof x.resultado === "string" ? x.resultado : JSON.stringify(x.resultado ?? "")}`).join("; ") : "(nenhum)"}`,
   ].join("\n");
   return [
     { role: "system", content: SYSTEM_AVALIADOR },
