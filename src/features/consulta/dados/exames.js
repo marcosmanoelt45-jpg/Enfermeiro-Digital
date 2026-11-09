@@ -17,29 +17,34 @@ export const ROTULO_EXAME = {
   "avaliar-dor": "Escala de dor",
 };
 
-// O aluno disse que vai fazer um exame? (reserva sem IA: verbo de exame + palavra do exame)
+// O aluno disse que vai fazer (ou pediu para fazer) um exame? Reserva sem IA, para quando a IA do paciente
+// não marca o exame: palavra do exame + verbo de exame + intenção ("vou", "posso", "deixa eu"…). Sem a intenção,
+// "você costuma medir a pressão em casa?" é anamnese, não pedido de exame. O texto é comparado sem acentos.
+const ESCUTAR = "(auscult|escut|ouv)\\w*";
 const PALAVRAS = [
-  ["glicemia-capilar", /(glicemia|hgt|glicose|dextro|ponta do dedo|furar o dedo|açúcar no sangue|acucar no sangue)/],
-  ["palpacao-abdominal", /(palp\w*|apalp\w*).*(barriga|abd[oô]me|abdomen|est[oô]mago)|(barriga|abd[oô]me|abdomen).*(palp\w*|apalp\w*)/],
-  ["ausculta-abdominal", /auscult\w*.*(barriga|abd[oô]me|abdomen|intestino)|ru[ií]dos? (hidroa[eé]reos?|intestina)/],
-  ["ausculta-cardiaca", /auscult\w*.*(cora[cç][aã]o|card[ií]ac)|bulhas?/],
-  ["ausculta-pulmonar", /auscult\w*.*(pulm[aã]o|pulm[oõ]es|peito|costas|respira)|ouvir (seu|o) (pulm|peito)/],
-  ["medir-pa", /(press[aã]o|\bpa\b)/],
-  ["contar-pulso", /(pulso|frequ[eê]ncia card[ií]aca|batimentos)/],
-  ["contar-fr", /(frequ[eê]ncia respirat[oó]ria|contar (a |sua )?respira)/],
-  ["medir-temperatura", /(temperatura|febre|term[oô]metro)/],
-  ["oximetria", /(satura[cç][aã]o|ox[ií]metro|oximetria)/],
+  ["glicemia-capilar", /(glicemia|\bhgt\b|glicose|dextro|ponta do dedo|furar (o |seu )?dedo|furadinha|acucar no sangue|diabete)/],
+  ["palpacao-abdominal", /(palp|apalp|examin|sentir|toc)\w*.{0,30}(barriga|abdome|abdomen|estomago)|(barriga|abdome|abdomen).{0,30}(palp|apalp)\w*/],
+  ["ausculta-abdominal", new RegExp(`${ESCUTAR}.{0,30}(barriga|abdome|abdomen|intestino)|ruidos? (hidroaereos?|intestina)`)],
+  ["ausculta-cardiaca", new RegExp(`${ESCUTAR}.{0,30}(coracao|cardiac)|bulhas?`)],
+  ["ausculta-pulmonar", new RegExp(`${ESCUTAR}.{0,30}(pulmao|pulmoes|peito|costas|respira)|ausculta pulmonar`)],
+  ["oximetria", /(saturacao|oximetro|oximetria|\bsat\b|oxigenio no sangue)/],
+  ["medir-pa", /(pressao|\bpa\b)/],
+  ["contar-pulso", /(pulso|frequencia cardiaca|batimentos|\bfc\b)/],
+  ["contar-fr", /(frequencia respiratoria|contar (a |sua )?respira|\bfr\b)/],
+  ["medir-temperatura", /(temperatura|febre|termometro)/],
   ["avaliar-pupilas", /pupila/],
   ["escala-glasgow", /glasgow/],
-  ["avaliar-edema", /(edema|incha[cç]o|inchad[oa])/],
-  ["avaliar-pele", /(pele|mucosas?|turgor|perfus[aã]o|enchimento capilar)/],
+  ["avaliar-edema", /(edema|inchaco|inchad[oa])/],
+  ["avaliar-pele", /(\bpele\b|mucosas?|turgor|perfusao|enchimento capilar)/],
   ["avaliar-dor", /(escala de dor|nota (para|da|pra) (a |sua )?dor|de 0 a 10|de zero a dez)/],
 ];
-const VERBO = /(vou|vamos|deixa eu|posso|preciso|irei|agora|me deixa|permit)\b.*\b(medir|verificar|ver|avaliar|examinar|auscultar|palpar|apalpar|checar|conferir|olhar|fazer|furar|colocar|testar)/;
+const VERBO = /\b(medir|meco|mede|aferir|afiro|afere|verificar|verifico|ver|vejo|avaliar|avalio|examinar|examino|auscultar|ausculto|escutar|escuto|ouvir|palpar|apalpar|checar|conferir|olhar|olho|fazer|faco|furar|colocar|coloco|testar|tirar|tiro|sentir|contar|conto|pegar|dar uma olhada)\b/;
+const PEDIDO = /\b(vou|vamos|deixa|deixar|deixe|posso|pode|podemos|poderia|preciso|precisamos|quero|gostaria|irei|agora|permite|permitir|autoriza|consigo|tudo bem se|bora|me deixa)\b/;
 
 export function detectarExame(texto) {
-  const t = String(texto ?? "").toLowerCase();
-  if (!VERBO.test(t) && !/\b(auscult|palp|apalp|me[cç]o|afiro|aferir)/.test(t)) return null;
+  const t = String(texto ?? "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "");
+  const intencao = (VERBO.test(t) && PEDIDO.test(t)) || /\b(ausculto|palpo|apalpo|meco|afiro|vou examinar)\b/.test(t);
+  if (!intencao) return null;
   for (const [id, re] of PALAVRAS) if (re.test(t)) return id;
   return null;
 }

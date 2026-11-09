@@ -14,7 +14,7 @@ import BlocoNotas from "./componentes/BlocoNotas.jsx";
 import FolhaEvolucao from "./componentes/FolhaEvolucao.jsx";
 import ProntuarioConsulta from "./componentes/ProntuarioConsulta.jsx";
 import PainelFlutuante from "@/components/prontuario/PainelFlutuante.jsx";
-import PainelExames from "./componentes/PainelExames.jsx";
+import PainelExames, { PopupExame } from "./componentes/PainelExames.jsx";
 import { detectarExame } from "./dados/exames.js";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
 import { dadosDaAusculta } from "@/features/minijogos/dados/ausculta-pulmonar-pov.js";
@@ -58,18 +58,21 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
   const [exames, setExames] = useState([]);
   const [examePedido, setExamePedido] = useState(null);
   const [fazendoExame, setFazendoExame] = useState(false);
+  const [resultadoNovo, setResultadoNovo] = useState(null); // resultado mostrado no pop-up logo após o exame
+  const [erroExame, setErroExame] = useState(null);
   const feitosRef = useRef(new Set());
   // Ausculta pulmonar vira o minijogo em primeira pessoa (com o achado do caso); os outros exames dão o resultado direto.
   const [ausculta, setAusculta] = useState(null); // { definicao, resultado }
   const fazerExame = async () => {
     if (!examePedido) return;
+    setErroExame(null);
     setFazendoExame(true);
     try {
       let r = await consulta.exame({ sessaoId: sessao.sessaoId, exameId: examePedido });
       feitosRef.current.add(r.exameId);
       // "Glicemia capilar 112 mg/dL" -> "112 mg/dL" (o rótulo já aparece ao lado).
       const bruto = String(r.resultado ?? "");
-      const sem = bruto.toLowerCase().startsWith(r.rotulo.toLowerCase()) ? bruto.slice(r.rotulo.length).replace(/^[:\s-]+/, "") : bruto;
+      const sem = (bruto.toLowerCase().startsWith(r.rotulo.toLowerCase()) ? bruto.slice(r.rotulo.length).replace(/^[:\s-]+/, "") : bruto).replace(/\.\s*$/, "");
       r = { ...r, resultado: sem ? sem.charAt(0).toUpperCase() + sem.slice(1) : bruto };
       setExamePedido(null);
       if (r.exameId === "ausculta-pulmonar") {
@@ -78,12 +81,18 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
         return;
       }
       setExames((lista) => [...lista.filter((x) => x.exameId !== r.exameId), r]);
+      setResultadoNovo(r);
     } catch {
-      // segue com o botão para tentar de novo
+      setErroExame("Não deu para fazer o exame agora. Tente de novo.");
     } finally {
       setFazendoExame(false);
     }
   };
+  const dispensarExame = useCallback(() => {
+    setExamePedido(null);
+    setErroExame(null);
+  }, []);
+  const fecharResultado = useCallback(() => setResultadoNovo(null), []);
   useEffect(() => {
     try {
       if (notas) localStorage.setItem(chave, notas);
@@ -175,7 +184,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       onEnviar={onEnviar}
       onEncerrar={onSair}
       onTurnos={setTurnos}
-      slotAbaixoPalco={<PainelExames pedido={examePedido} fazendo={fazendoExame} exames={exames} onFazer={fazerExame} onDispensar={() => setExamePedido(null)} />}
+      slotAbaixoPalco={<PainelExames exames={exames} />}
       slotLateral={
         <div className="space-y-3">
           <div className="grid grid-cols-2 gap-1 rounded-2xl border border-[#27394B] bg-[#0E1722] p-1" role="tablist" aria-label="Painel">
@@ -188,6 +197,20 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
           {aba === "evolucao" ? <FolhaEvolucao texto={notas} onMudar={setNotas} briefing={b} turnos={turnos} linhas={15} /> : <ProntuarioConsulta sessao={sessao} exames={exames} compacto />}
         </div>
       }
+    />
+    <PopupExame
+      pedido={ausculta ? null : examePedido}
+      resultado={resultadoNovo}
+      fazendo={fazendoExame}
+      erro={erroExame}
+      onFazer={fazerExame}
+      onDispensar={dispensarExame}
+      onAnotar={() => {
+        const r = resultadoNovo;
+        if (r) setNotas((n) => `${n.trim() ? `${n.trimEnd()}\n` : ""}${r.rotulo}: ${r.resultado}`);
+        setResultadoNovo(null);
+      }}
+      onFechar={fecharResultado}
     />
     {ausculta && (
       <MinijogoRunner
