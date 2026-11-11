@@ -5,17 +5,18 @@ import { m as motion, useReducedMotion } from "framer-motion";
 import { novoSorteio, sortearSalto } from "./sorteioSalto.js";
 
 /**
- * Comemoração do acerto, no estilo do Duolingo: às vezes o Goti sobe pela base da tela, comemora e desce.
+ * Comemoração do acerto, no estilo do Duolingo: às vezes o Goti salta de baixo da tela e cai de volta, num arco só.
  * Os pulos são vídeos feitos no Flow com fundo verde e recortados por scripts/assets/processar-pulo-goti.py:
- * - giro-punho: pula com o punho para cima e piscando (cerca de 1,6 s);
- * - giro: aperta os olhos e pula com o punho erguido (cerca de 1,3 s).
+ * - giro-punho: pula com o punho para cima e piscando (cerca de 0,7 s);
+ * - giro: aperta os olhos e pula com o punho erguido (cerca de 0,65 s).
  * O sorteio (quando pula e qual) fica em sorteioSalto.js. Não bloqueia toques.
  * `disparo` é um contador: cada valor novo é um acerto, que pode ou não virar pulo.
  * Com "reduzir movimento" ligado, não pula.
  */
 const PULOS = {
-  "giro-punho": { nome: "goti-pulo-giro-punho", largura: 360, altura: 494, duracao: 1580 },
-  giro: { nome: "goti-pulo-giro", largura: 360, altura: 464, duracao: 1330 },
+  // duracao: tempo do arco na tela (o vídeo da pose tem a mesma duração, ~0,7 s)
+  "giro-punho": { nome: "goti-pulo-giro-punho", largura: 360, altura: 402, duracao: 700 },
+  giro: { nome: "goti-pulo-giro", largura: 360, altura: 400, duracao: 640 },
 };
 const LARGURA_NA_TELA = 210; // px
 
@@ -61,8 +62,9 @@ export default function SaltoMascote({ disparo }) {
 }
 SaltoMascote.propTypes = { disparo: PropTypes.number.isRequired };
 
+// Um movimento só: o Goti sobe de baixo da tela até perto do meio (desacelerando) e cai para fora (acelerando),
+// sem pousar em lugar nenhum. O vídeo só troca a pose (o corpo está estabilizado no arquivo).
 function Pulo({ pulo, onFim }) {
-  const [saindo, setSaindo] = useState(false);
   const [src, setSrc] = useState(null);
   const webp = useRef(usaWebp()).current;
   const altura = Math.round((pulo.altura * LARGURA_NA_TELA) / pulo.largura);
@@ -85,31 +87,20 @@ function Pulo({ pulo, onFim }) {
     };
   }, [pulo.nome, webp, onFim]);
 
-  // O WebP não avisa quando acaba: sai pela duração. O vídeo sai no `ended` (com a mesma duração de reserva).
-  useEffect(() => {
-    if (!src) return undefined;
-    const t = setTimeout(() => setSaindo(true), pulo.duracao + (webp ? 0 : 400));
-    return () => clearTimeout(t);
-  }, [src, pulo.duracao, webp]);
-
   if (!src) return null;
   const estilo = { width: LARGURA_NA_TELA, height: altura };
+  const fora = altura + 40; // px abaixo da borda: o Goti inteiro escondido
+  const topo = -Math.round(window.innerHeight * 0.34);
+  const t = (y, r) => `translateY(${y}px) rotate(${r}deg)`;
   return (
     <motion.div
-      className="absolute bottom-[max(4.5rem,env(safe-area-inset-bottom))] left-1/2 -ml-[105px] will-change-transform"
-      initial={{ opacity: 0, transform: "translateY(45%) scale(0.92)" }}
-      animate={
-        saindo
-          ? { opacity: 0, transform: "translateY(60%) scale(0.96)", transition: { duration: 0.22, ease: [0.5, 0, 0.75, 0] } }
-          : { opacity: 1, transform: "translateY(0%) scale(1)", transition: { type: "spring", duration: 0.35, bounce: 0.3 } }
-      }
-      onAnimationComplete={() => saindo && onFim()}
+      className="absolute bottom-0 left-1/2 -ml-[105px] will-change-transform"
+      initial={{ transform: t(fora, -6) }}
+      animate={{ transform: [t(fora, -6), t(topo, 0), t(fora, 8)] }}
+      transition={{ duration: pulo.duracao / 1000, times: [0, 0.48, 1], ease: [[0.3, 0.75, 0.45, 1], [0.55, 0, 0.7, 0.25]] }}
+      onAnimationComplete={onFim}
     >
-      {webp ? (
-        <img src={src} alt="" style={estilo} />
-      ) : (
-        <video src={src} style={estilo} autoPlay muted playsInline preload="auto" onEnded={() => setSaindo(true)} onError={onFim} />
-      )}
+      {webp ? <img src={src} alt="" style={estilo} /> : <video src={src} style={estilo} autoPlay muted playsInline preload="auto" onError={onFim} />}
     </motion.div>
   );
 }
