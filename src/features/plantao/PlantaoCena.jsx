@@ -19,6 +19,7 @@ const RETORNO = {
   faltou_numero: { titulo: "Faltou o número.", texto: "Diga o valor com a unidade, como no prontuário." },
 };
 import { minijogoDaLacuna } from "./logica/lacunaMinijogo.js";
+import { exameDoTexto } from "./logica/exameDoTexto.js";
 import { sexoDoCenario } from "./dados/prontuarioPlantao.js";
 import { criarRoteiro, falaDaEnfermeira, lacunasAbertas, lacunasParaAvaliacao, perguntaAtual, preencherLacuna, responder, respostasParaAvaliacao } from "./logica/roteiro.js";
 
@@ -28,13 +29,6 @@ const perguntaFala = (p) => ({ id: p.id, texto: TEXTO.get(p.id) ?? p.texto, orig
 
 const PERSONAGEM = "enfermeira-ana";
 
-// Reserva sem IA: "vou avaliar o dreno" -> lacuna cujo rótulo tem uma palavra dita junto de um verbo de exame.
-const normal = (t) => String(t ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
-export function exameDoTexto(texto, lacunas = []) {
-  const t = normal(texto);
-  if (!/(examin|aval|medi|verific|olh|palp|auscult|confer|checar|ver o|ver a)/.test(t)) return null;
-  return lacunas.find((l) => normal(l.rotulo).split(/[^a-z]+/).filter((p) => p.length >= 5).some((p) => t.includes(p))) ?? null;
-}
 
 // Cena do Plantão: a enfermeira pergunta em ordem SBAR (falas fixas), o aluno responde consultando o prontuário.
 // A cada resposta de texto, a IA da Ana entende o que o aluno disse (turno_plantao): se ele não soube ou fugiu do
