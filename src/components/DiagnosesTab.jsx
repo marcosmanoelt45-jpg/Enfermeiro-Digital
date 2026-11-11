@@ -99,7 +99,7 @@ export default function DiagnosesTab({ patientId }) {
   return (
     <div className="space-y-3">
       <div className="flex items-center justify-between">
-        <p className="text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">
+        <p className="text-xs font-semibold text-[#9FB3C6]">
           Diagnósticos ({diagnoses.length})
         </p>
         <Button size="sm" onClick={() => { setEditing(null); setOpen(true); }} className="rounded-xl">
@@ -166,7 +166,7 @@ export default function DiagnosesTab({ patientId }) {
                   )}
                   {d.defining_characteristics?.length > 0 && (
                     <div>
-                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">Características Definidoras</p>
+                      <p className="mb-1 text-xs font-semibold text-[#9FB3C6]">Características Definidoras</p>
                       <ul className="space-y-0.5">
                         {d.defining_characteristics.map((c, i) => <li key={i} className="text-[#EAF2F8]">• {c}</li>)}
                       </ul>
@@ -174,7 +174,7 @@ export default function DiagnosesTab({ patientId }) {
                   )}
                   {d.related_factors?.length > 0 && (
                     <div>
-                      <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">Fatores Relacionados</p>
+                      <p className="mb-1 text-xs font-semibold text-[#9FB3C6]">Fatores Relacionados</p>
                       <ul className="space-y-0.5">
                         {d.related_factors.map((c, i) => <li key={i} className="text-[#EAF2F8]">• {c}</li>)}
                       </ul>

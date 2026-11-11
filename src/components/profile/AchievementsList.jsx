@@ -14,7 +14,7 @@ export default function AchievementsList({ achievements = [] }) {
     <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-colors">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 uppercase tracking-wider flex items-center gap-1.5">
+          <h4 className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
             <Award className="h-4 w-4 text-amber-500" />
             Distintivos & Conquistas de Honra
           </h4>
@@ -90,7 +90,7 @@ export default function AchievementsList({ achievements = [] }) {
                 {/* Barra de progresso */}
                 <div className="mt-2 h-2 w-full overflow-hidden rounded-full bg-slate-200 dark:bg-slate-800">
                   <div
-                    className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-300"
+                    className="h-full rounded-full bg-[#20D5B5] transition-all duration-300"
                     style={{ width: `${percent}%` }}
                   />
                 </div>

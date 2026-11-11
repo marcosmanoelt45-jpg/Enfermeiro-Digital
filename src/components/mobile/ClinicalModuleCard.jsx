@@ -32,7 +32,7 @@ export default function ClinicalModuleCard({
         {/* Content */}
         <div className="flex-1 min-w-0">
           <div className="flex items-center justify-between gap-1 mb-1">
-            <span className="text-[11px] font-extrabold uppercase tracking-wider text-emerald-700 dark:text-emerald-400">
+            <span className="text-[11px] font-extrabold text-emerald-700 dark:text-emerald-400">
               {tag}
             </span>
             {badgeText && (
@@ -59,7 +59,7 @@ export default function ClinicalModuleCard({
               </div>
               <div className="w-full h-2 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden relative shadow-inner">
                 <div
-                  className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500 relative"
+                  className="h-full rounded-full bg-[#20D5B5] transition-all duration-500 relative"
                   style={{ width: `${progress}%` }}
                 >
                   <div className="absolute top-0.5 left-1 right-1 h-[2px] bg-white/40 rounded-full" />

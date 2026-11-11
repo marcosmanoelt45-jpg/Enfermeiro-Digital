@@ -43,7 +43,7 @@ function Anel({ valor }) {
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
         <AnimatedNumber value={valor} className="text-3xl font-black" />
-        <span className="text-[10px] font-bold uppercase tracking-wide text-[#6F859A]">nota</span>
+        <span className="text-[10px] font-bold text-[#6F859A]">nota</span>
       </div>
     </div>
   );

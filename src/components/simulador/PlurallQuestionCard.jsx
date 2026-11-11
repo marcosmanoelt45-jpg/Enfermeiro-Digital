@@ -146,7 +146,7 @@ export default function PlurallQuestionCard({
       {/* Banner de Dica Clínica sob Demanda (somente se hintVisible for true) */}
       {isPrimeiroErro && hintVisible && (
         <div className="rounded-2xl border border-[#FFC247]/50 bg-[#FFC247]/10 p-3.5 sm:p-4 animate-in fade-in duration-200">
-          <div className="flex items-center gap-2 text-xs font-bold text-[#FFC247] uppercase tracking-wide mb-1">
+          <div className="flex items-center gap-2 text-xs font-bold text-[#FFC247] mb-1">
             <Lightbulb className="w-4 h-4 fill-[#FFC247]" />
             Dica do Preceptor Goti
           </div>
@@ -261,7 +261,7 @@ export default function PlurallQuestionCard({
 
             {revisaoAberta && (
               <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-3 animate-in fade-in duration-200">
-                <div className="text-xs font-bold text-white uppercase tracking-wider border-b border-[#1F3045] pb-2 flex items-center gap-1.5">
+                <div className="text-xs font-bold text-white border-b border-[#1F3045] pb-2 flex items-center gap-1.5">
                   <Sparkles className="w-4 h-4 text-[#20D5B5]" />
                   Comentário Clínico Alternativa por Alternativa
                 </div>

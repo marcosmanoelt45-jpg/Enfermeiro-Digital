@@ -45,7 +45,7 @@ export default function RelatorioPlantao({ relatorio, onNova, onSair }) {
             )}
             {d.faltou && <p className="text-sm font-bold text-[#FFC247]">{d.faltou}</p>}
             <Inset className="space-y-1">
-              <p className="text-xs font-extrabold uppercase tracking-wide text-[#9FB3C6]">Como ficaria</p>
+              <p className="text-xs font-extrabold text-[#9FB3C6]">Como ficaria</p>
               <p className="text-sm font-semibold">{d.referencia}</p>
             </Inset>
             <p className="text-sm font-semibold text-[#9FB3C6]">Dica: {d.dica}</p>

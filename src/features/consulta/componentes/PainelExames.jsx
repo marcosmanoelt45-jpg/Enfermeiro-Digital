@@ -89,7 +89,7 @@ export function PopupExame({ pedido, resultado, fazendo, erro, onFazer, onDispen
                 <span className="mx-auto mb-3 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#20D5B5]/15 text-[#20D5B5]">
                   <Stethoscope size={30} aria-hidden="true" />
                 </span>
-                <p className="text-xs font-extrabold uppercase tracking-wide text-[#20D5B5]">Exame liberado</p>
+                <p className="text-xs font-extrabold text-[#20D5B5]">Exame liberado</p>
                 <p id="popup-exame-titulo" className="mt-1 text-xl font-extrabold text-[#EAF2F8]">{ROTULO_EXAME[pedido] ?? "Exame"}</p>
                 <p className="mt-1 text-sm text-[#9FB3C6]">O paciente concordou. Quer fazer agora?</p>
                 {erro && (

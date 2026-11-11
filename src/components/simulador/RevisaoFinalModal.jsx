@@ -243,7 +243,7 @@ export default function RevisaoFinalModal({
                 {/* Acordeão de Revisão da Questão */}
                 {isExpanded && (
                   <div className="mt-3 pt-3 border-t border-[#1F3045] space-y-3 animate-in fade-in duration-200">
-                    <div className="text-[11px] font-bold text-[#9FB3C6] uppercase tracking-wider">
+                    <div className="text-[11px] font-bold text-[#9FB3C6]">
                       Análise Alternativa por Alternativa
                     </div>
                     <div className="space-y-2">

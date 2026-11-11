@@ -50,7 +50,7 @@ export default function DiagnosisCard({ diagnosis, index }) {
             <div className="space-y-4 border-t border-[#1F3045] bg-[#0E1722] p-4">
               {defining.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">Características Definidoras</p>
+                  <p className="mb-1.5 text-xs font-semibold text-[#9FB3C6]">Características Definidoras</p>
                   <ul className="space-y-1">
                     {defining.map((c, i) => (
                       <li key={i} className="flex gap-2 text-sm text-[#EAF2F8]">
@@ -63,7 +63,7 @@ export default function DiagnosisCard({ diagnosis, index }) {
               )}
               {related.length > 0 && (
                 <div>
-                  <p className="mb-1.5 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">Fatores Relacionados</p>
+                  <p className="mb-1.5 text-xs font-semibold text-[#9FB3C6]">Fatores Relacionados</p>
                   <ul className="space-y-1">
                     {related.map((c, i) => (
                       <li key={i} className="flex gap-2 text-sm text-[#EAF2F8]">
@@ -77,7 +77,7 @@ export default function DiagnosisCard({ diagnosis, index }) {
 
               {interventions.length > 0 && (
                 <div>
-                  <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">
+                  <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#9FB3C6]">
                     <Activity className="h-3 w-3" /> Intervenções (NIC)
                   </p>
                   <div className="space-y-2">
@@ -100,7 +100,7 @@ export default function DiagnosisCard({ diagnosis, index }) {
 
               {outcomes.length > 0 && (
                 <div>
-                  <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">
+                  <p className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-[#9FB3C6]">
                     <Target className="h-3 w-3" /> Resultados Esperados (NOC)
                   </p>
                   <div className="space-y-2">

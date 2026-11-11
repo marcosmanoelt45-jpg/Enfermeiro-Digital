@@ -110,7 +110,7 @@ export default function ClinicalGuideTabs({ onSelectSnippet: _onSelectSnippet = 
   return (
     <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 shadow-sm">
       <div className="flex items-center justify-between pb-2 border-b border-[#1F3045]">
-        <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-100 uppercase tracking-wide">
+        <p className="flex items-center gap-1.5 text-xs font-semibold text-slate-100">
           <Sparkles className="h-4 w-4 text-teal-600" /> Guia Rápido: O que Falar no Relato
         </p>
         <span className="text-[11px] text-teal-300 bg-teal-950/60 px-2 py-0.5 rounded-full font-medium">

@@ -10,30 +10,29 @@ export default function StudentFooter({ showDock = true }) {
 
   return (
     <>
-      <footer className={`mt-auto border-t border-slate-100 dark:border-slate-800/80 bg-white dark:bg-slate-950 pt-6 ${showDock ? "pb-24" : "pb-6"} md:py-6 text-slate-500 dark:text-slate-400 transition-colors`}>
+      <footer className={`mt-auto border-t border-[#1F3045] bg-[#0B131D] pt-6 ${showDock ? "pb-24" : "pb-6"} md:py-6 text-[#9FB3C6]`}>
         <div className="mx-auto max-w-7xl px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between gap-4 text-xs">
           <div className="flex items-center gap-2">
             <img
               src={gotiLogoOficial}
               alt="Goti"
-              className="w-8 h-8 object-contain shrink-0 filter drop-shadow-sm"
+              className="w-8 h-8 object-contain shrink-0"
             />
-            <span className="font-bold text-slate-800 dark:text-slate-200">Enfere</span>
-            <span className="text-slate-300 dark:text-slate-600">•</span>
-            <span className="text-emerald-700 dark:text-emerald-400 font-medium">Raciocínio Clínico & Simulação de Enfermagem</span>
+            <span className="font-extrabold text-[#EAF2F8]">Enfere</span>
+            <span className="text-[#27394B]">•</span>
+            <span className="text-[#20D5B5] font-medium">Raciocínio Clínico & Simulação de Enfermagem</span>
           </div>
 
           <div className="flex items-center gap-6">
             <button
               onClick={() => navigate("/privacidade-lgpd")}
-              className="hover:text-emerald-700 dark:hover:text-emerald-400 flex items-center gap-1.5 transition-colors font-medium"
+              className="hover:text-[#20D5B5] flex items-center gap-1.5 transition-colors font-medium rounded-lg focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
             >
-              <ShieldCheck className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <ShieldCheck className="h-4 w-4 text-[#20D5B5]" />
               <span>Ajuda, FAQ & LGPD</span>
             </button>
-            <span className="text-slate-200 dark:text-slate-700">|</span>
-            <span className="text-slate-500 dark:text-slate-400 font-medium">
-              Criador & Detentor dos Direitos: <strong className="text-slate-700 dark:text-slate-200">Marcos Manoel Tavares Neumann</strong>
+            <span className="font-medium">
+              Criador & Detentor dos Direitos: <strong className="text-[#EAF2F8]">Marcos Manoel Tavares Neumann</strong>
             </span>
           </div>
         </div>

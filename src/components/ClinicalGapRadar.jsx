@@ -122,7 +122,7 @@ export default function ClinicalGapRadar({
       {/* Sinais Coletados */}
       {detectedItems.length > 0 && (
         <div className="space-y-1.5">
-          <span className="text-[11px] font-semibold text-[#9FB3C6] flex items-center gap-1 uppercase tracking-wide">
+          <span className="text-[11px] font-semibold text-[#9FB3C6] flex items-center gap-1">
             <CheckCircle2 className="h-3.5 w-3.5 text-[#20D5B5]" /> Parâmetros Registrados ({detectedItems.length})
           </span>
           <div className="flex flex-wrap gap-1.5">
@@ -160,7 +160,7 @@ export default function ClinicalGapRadar({
       {/* Parâmetros Faltantes (Exame Físico Interativo) */}
       <div className="space-y-2">
         <div className="flex items-center justify-between">
-          <span className="text-[11px] font-bold text-[#FFC247] flex items-center gap-1 uppercase tracking-wide">
+          <span className="text-[11px] font-bold text-[#FFC247] flex items-center gap-1">
             <AlertCircle className="h-3.5 w-3.5" /> Parâmetros Complementares Recomendados ({missingGaps.length})
           </span>
         </div>

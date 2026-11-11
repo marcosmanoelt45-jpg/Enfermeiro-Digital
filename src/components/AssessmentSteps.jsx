@@ -239,7 +239,7 @@ export function AssessmentRiskBanner({ data }) {
   return (
     <div className={`mb-4 flex items-center justify-between rounded-2xl border p-4 ${meta.surface || meta.bg} ${meta.border}`}>
       <div>
-        <p className="text-xs uppercase tracking-wide text-[#9FB3C6]">Status Global Preliminar</p>
+        <p className="text-xs text-[#9FB3C6]">Status Global Preliminar</p>
         <p className={`text-base font-semibold ${meta.text || meta.color}`}>{meta.title}</p>
         <p className="text-xs text-[#9FB3C6]">{meta.description}</p>
       </div>
@@ -272,7 +272,7 @@ export function AssessmentStepContent({ data, set, step }) {
           <VitalSlider key={it.key} label={it.label} value={data[it.key]} min={it.min} max={it.max} step={1} onChange={(v) => set(it.key, v)} accentColor={it.color} />
         ))}
         <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-[#9FB3C6] font-bold">Escore Total BRADEN</p>
+          <p className="text-xs text-[#9FB3C6] font-bold">Escore Total BRADEN</p>
           <p className="text-4xl font-bold tabular-nums text-[#EAF2F8]">{bradenTotal}</p>
           <p className="mt-1 text-xs text-[#20D5B5] font-medium">
             {bradenTotal <= 9 ? "Risco muito alto" : bradenTotal <= 12 ? "Risco alto" : bradenTotal <= 14 ? "Risco moderado" : bradenTotal <= 18 ? "Risco brando" : "Sem risco"}
@@ -306,7 +306,7 @@ export function AssessmentStepContent({ data, set, step }) {
           </button>
         ))}
         <div className={`rounded-2xl border p-4 text-center ${camPositive ? "border-[#FFC247]/40 bg-[#FFC247]/10" : "border-[#20D5B5]/40 bg-[#20D5B5]/10"}`}>
-          <p className="text-xs uppercase tracking-wide text-[#9FB3C6] font-bold">CAM</p>
+          <p className="text-xs text-[#9FB3C6] font-bold">CAM</p>
           <p className="text-2xl font-bold text-[#EAF2F8]">{camPositive ? "Positivo (Confusão)" : "Negativo"}</p>
           <div className="mt-2"><SourceLink srcKey="cam" /></div>
         </div>
@@ -348,7 +348,7 @@ export function AssessmentStepContent({ data, set, step }) {
           </div>
         ))}
         <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-[#9FB3C6] font-bold">Escore Total AUDIT</p>
+          <p className="text-xs text-[#9FB3C6] font-bold">Escore Total AUDIT</p>
           <p className="text-4xl font-bold tabular-nums text-[#EAF2F8]">{auditTotal}</p>
           <p className="mt-1 text-xs text-[#20D5B5] font-medium">{auditZone}</p>
           <div className="mt-2"><SourceLink srcKey="audit" /></div>
@@ -377,7 +377,7 @@ export function AssessmentStepContent({ data, set, step }) {
         ))}
         <VitalSlider label="Nº de medicamentos administrados (últimas 24h)" value={data.sak_meds} min={0} max={15} step={1} onChange={(v) => set("sak_meds", v)} accentColor="amber" />
         <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-[#9FB3C6] font-bold">Escore de Risco SAK</p>
+          <p className="text-xs text-[#9FB3C6] font-bold">Escore de Risco SAK</p>
           <p className="text-4xl font-bold tabular-nums text-[#EAF2F8]">{sakTotal}</p>
           <p className="mt-1 text-xs text-[#FFC247] font-medium">{sakTotal >= 10.5 ? "Alto risco" : sakTotal >= 6.5 ? "Risco moderado" : "Baixo risco"}</p>
           <div className="mt-2"><SourceLink srcKey="sak" /></div>
@@ -420,7 +420,7 @@ export function AssessmentStepContent({ data, set, step }) {
           </div>
         </div>
         <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 text-center shadow-sm">
-          <p className="text-xs uppercase tracking-wide text-[#9FB3C6] font-bold">Escore de Dor CALOI</p>
+          <p className="text-xs text-[#9FB3C6] font-bold">Escore de Dor CALOI</p>
           <p className="text-4xl font-bold tabular-nums text-[#EAF2F8]">{caloiTotal}/10</p>
           <p className="mt-1 text-xs text-[#FF6B6B] font-medium">{caloiTotal >= 7 ? "Dor severa" : caloiTotal >= 4 ? "Dor moderada" : caloiTotal > 0 ? "Dor leve" : "Sem dor"}</p>
         </div>
@@ -440,7 +440,7 @@ export function AssessmentStepContent({ data, set, step }) {
 
         <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <label className="text-xs font-semibold uppercase tracking-wide text-[#9FB3C6] flex items-center gap-1.5">
+            <label className="text-xs font-semibold text-[#9FB3C6] flex items-center gap-1.5">
               <FileText className="h-3.5 w-3.5 text-[#20D5B5]" />
               Observações Clínicas à Beira-Leito
             </label>
@@ -457,7 +457,7 @@ export function AssessmentStepContent({ data, set, step }) {
         </div>
 
         <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-4">
-          <p className="text-xs font-semibold uppercase tracking-wide text-[#9FB3C6] mb-2.5">
+          <p className="text-xs font-semibold text-[#9FB3C6] mb-2.5">
             Resumo Consolidado dos Parâmetros das Escalas
           </p>
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 text-xs">

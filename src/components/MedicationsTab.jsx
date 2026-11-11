@@ -371,7 +371,7 @@ export default function MedicationsTab({ patientId }) {
 
           {result && (
             <div className="rounded-xl border border-[#20D5B5]/30 bg-[#20D5B5]/10 p-3 text-center">
-              <p className="text-xs uppercase tracking-wide text-[#20D5B5]">{result.label}</p>
+              <p className="text-xs text-[#20D5B5]">{result.label}</p>
               <p className="text-2xl font-semibold text-[#EAF2F8]">{result.value}</p>
               {result.formula && <p className="mt-1 text-[11px] text-[#20D5B5]">{result.formula}</p>}
             </div>
@@ -380,7 +380,7 @@ export default function MedicationsTab({ patientId }) {
       </div>
 
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">Cálculos salvos ({records.length})</p>
+        <p className="mb-2 text-xs font-semibold text-[#9FB3C6]">Cálculos salvos ({records.length})</p>
         {loading ? (
           <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-[#20D5B5]" /></div>
         ) : records.length === 0 ? (

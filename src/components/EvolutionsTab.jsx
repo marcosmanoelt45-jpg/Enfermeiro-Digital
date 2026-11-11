@@ -172,7 +172,7 @@ export default function EvolutionsTab({ patientId }) {
 
       <div>
         <div className="mb-2 flex items-center justify-between">
-          <p className="text-xs font-semibold uppercase tracking-wider text-[#9FB3C6]">
+          <p className="text-xs font-semibold text-[#9FB3C6]">
             Evoluções Registradas ({evolutions.length})
           </p>
           <div className="flex items-center gap-1.5 text-[11px] text-[#9FB3C6]">

@@ -110,7 +110,7 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
                     <Icon className={`h-4 w-4 ${isActive ? "text-[#20D5B5]" : "text-[#8A9DB1]"}`} />
                     <span>{link.label}</span>
                     {link.isNew && (
-                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#20D5B5] text-[#0A1118] uppercase tracking-wider">
+                      <span className="text-[9px] font-black px-1.5 py-0.5 rounded-full bg-[#20D5B5] text-[#0A1118]">
                         NOVO
                       </span>
                     )}

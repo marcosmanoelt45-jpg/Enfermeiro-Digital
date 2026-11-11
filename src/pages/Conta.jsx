@@ -412,7 +412,7 @@ export default function Conta() {
               {/* Card de Nível do Estudante com AnimatedProgress (profile-16) */}
               <motion.div variants={fadeUp} className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4 space-y-2.5">
                 <div className="flex items-center justify-between gap-2">
-                  <div className="text-xs font-black text-[#20D5B5] uppercase tracking-wide">
+                  <div className="text-xs font-black text-[#20D5B5]">
                     NÍVEL {levelInfo.current.level} · {levelInfo.current.title}
                   </div>
                   <span className="text-[11px] font-bold text-[#9FB3C6]">

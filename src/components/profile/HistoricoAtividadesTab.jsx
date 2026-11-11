@@ -277,7 +277,7 @@ export default function HistoricoAtividadesTab({ userId = null }) {
                 >
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1 flex-wrap">
-                      <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#131F2E] border border-[#27394B] text-[#20D5B5]">
+                      <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#131F2E] border border-[#27394B] text-[#20D5B5]">
                         {item.moduleLabel || "Clínica"}
                       </span>
                       <span className="text-xs text-[#9FB3C6] flex items-center gap-1 font-mono">

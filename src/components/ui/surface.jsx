@@ -61,7 +61,7 @@ export function Chip({ tone = "brand", className, children, ...props }) {
   return (
     <span
       className={cn(
-        "inline-flex items-center gap-1 text-[10px] font-bold uppercase tracking-wider px-2.5 py-0.5 rounded-full border",
+        "inline-flex items-center gap-1 text-xs font-bold px-2.5 py-0.5 rounded-full border",
         chipTones[tone] || chipTones.brand,
         className
       )}

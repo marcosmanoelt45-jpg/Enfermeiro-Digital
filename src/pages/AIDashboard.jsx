@@ -177,7 +177,7 @@ export default function AIDashboard() {
             return (
               <div key={v.label} className="rounded-xl border border-[#1F3045] bg-[#131F2E] p-2 text-center">
                 <Icon className="mx-auto h-3.5 w-3.5 text-[#9FB3C6]" />
-                <p className="mt-0.5 text-[10px] uppercase tracking-wide text-[#9FB3C6]">{v.label}</p>
+                <p className="mt-0.5 text-[10px] text-[#9FB3C6]">{v.label}</p>
                 <p className="text-sm font-semibold text-slate-100">{v.value}</p>
               </div>
             );
@@ -233,7 +233,7 @@ export default function AIDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <Sparkles className="h-4 w-4 text-teal-400" />
-                  <p className="text-xs font-semibold uppercase tracking-wide text-teal-300">Síntese Diagnóstica</p>
+                  <p className="text-xs font-semibold text-teal-300">Síntese Diagnóstica</p>
                 </div>
                 <div className="flex items-center gap-1.5">
                   {plan.ai_engine && (
@@ -290,7 +290,7 @@ export default function AIDashboard() {
             </div>
 
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">
+              <p className="mb-2 text-xs font-semibold text-[#9FB3C6]">
                 Diagnósticos de Enfermagem Propostos ({diagnoses.length})
               </p>
               <div className="space-y-3">

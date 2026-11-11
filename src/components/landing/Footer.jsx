@@ -34,7 +34,7 @@ export default function Footer() {
 
           {/* Coluna 2: Navegação Rápida */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white">
               Navegação
             </h4>
             <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
@@ -63,7 +63,7 @@ export default function Footer() {
 
           {/* Coluna 3: Institucional & Conformidade */}
           <div className="space-y-3">
-            <h4 className="text-xs font-bold uppercase tracking-wider text-slate-900 dark:text-white">
+            <h4 className="text-xs font-bold text-slate-900 dark:text-white">
               Legal & Ética
             </h4>
             <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">

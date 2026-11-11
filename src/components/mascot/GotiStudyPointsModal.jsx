@@ -126,7 +126,7 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
         {/* Saldo Atual de PE e Nível */}
         <div className="p-5 bg-slate-950/60 border-b border-slate-800/80 flex items-center justify-between">
           <div>
-            <span className="text-[11px] font-bold uppercase tracking-wider text-[#9FB3C6] block">
+            <span className="text-[11px] font-bold text-[#9FB3C6] block">
               Seu Saldo Acumulado
             </span>
             <div className="flex items-baseline gap-2">
@@ -140,7 +140,7 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
           </div>
 
           <div className="text-right">
-            <span className="text-[10px] font-bold uppercase tracking-wider text-[#9FB3C6] block">
+            <span className="text-[10px] font-bold text-[#9FB3C6] block">
               Nível Clínico
             </span>
             <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-teal-950 text-teal-300 border border-teal-800 text-xs font-black">
@@ -187,7 +187,7 @@ export default function GotiStudyPointsModal({ isOpen, onClose }) {
           </div>
 
           <div>
-            <h4 className="text-xs font-bold uppercase tracking-wider text-[#9FB3C6] flex items-center gap-1.5">
+            <h4 className="text-xs font-bold text-[#9FB3C6] flex items-center gap-1.5">
               <CheckCircle2 className="w-4 h-4 text-emerald-400" />
               Como Ganhar Pontos de Estudo
             </h4>

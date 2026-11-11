@@ -144,7 +144,7 @@ export default function PrivacyPolicyLGPD() {
         {activeTab === "lgpd" && (
           <div className="space-y-5 animate-in fade-in">
             <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-6 shadow-sm space-y-2">
-              <span className="text-xs font-bold text-teal-400 uppercase tracking-wider block">
+              <span className="text-xs font-bold text-teal-400 block">
                 Privacidade & Proteção de Dados
               </span>
               <h2 className="text-base sm:text-lg font-bold text-slate-100">
@@ -206,7 +206,7 @@ export default function PrivacyPolicyLGPD() {
         {activeTab === "cofen" && (
           <div className="space-y-4 animate-in fade-in">
             <div className="bg-[#131F2E] rounded-2xl p-6 border border-[#1F3045] shadow-sm space-y-2">
-              <span className="text-xs font-bold text-teal-400 uppercase tracking-wider block">
+              <span className="text-xs font-bold text-teal-400 block">
                 Regulamentação Profissional
               </span>
               <h2 className="text-base sm:text-lg font-bold text-slate-100">
@@ -256,7 +256,7 @@ export default function PrivacyPolicyLGPD() {
         {activeTab === "autoria" && (
           <div className="space-y-4 animate-in fade-in">
             <div className="bg-[#131F2E] rounded-2xl p-6 border border-[#1F3045] shadow-sm space-y-2">
-              <span className="text-xs font-bold text-emerald-400 uppercase tracking-wider block">
+              <span className="text-xs font-bold text-emerald-400 block">
                 Titularidade e Direitos Exclusivos
               </span>
               <h2 className="text-xl font-bold text-slate-100">
@@ -281,7 +281,7 @@ export default function PrivacyPolicyLGPD() {
               </div>
 
               <div className="space-y-3">
-                <h4 className="font-bold text-slate-100 text-xs uppercase tracking-wide">
+                <h4 className="font-bold text-slate-100 text-xs">
                   Proteção Legal (Lei Federal nº 9.610/1998 e Lei nº 9.609/1998):
                 </h4>
                 <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-300">

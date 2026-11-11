@@ -9,7 +9,7 @@ export default function StatusCard({ title, subtitle, detail }) {
       {subtitle && <p className="mt-1 text-xs text-[#9FB3C6]">{subtitle}</p>}
       {detail && (
         <div className="mt-5 rounded-xl border border-[#1F3045] bg-slate-800/80 p-4 text-left">
-          <p className="mb-1 text-xs font-semibold uppercase tracking-wide text-slate-300">Relato</p>
+          <p className="mb-1 text-xs font-semibold text-slate-300">Relato</p>
           <p className="max-h-32 overflow-y-auto text-sm text-slate-200">{detail}</p>
         </div>
       )}

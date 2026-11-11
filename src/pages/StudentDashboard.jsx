@@ -102,9 +102,7 @@ export default function StudentDashboard() {
         {isDesktop && (
         <div className="hidden md:block space-y-6">
           {/* Header Superior do Painel PC: Saudação, Mascote Goti Ampliado, Ofensiva e PE */}
-          <div className="flex items-center justify-between gap-6 bg-[#131F2E] border border-[#1F3045] rounded-3xl p-6 shadow-xl relative overflow-hidden">
-            {/* Brilho de fundo sutil */}
-            <div className="absolute -top-16 -right-16 w-64 h-64 bg-[#20D5B5]/10 rounded-full blur-3xl pointer-events-none" />
+          <div className="flex items-center justify-between gap-6 bg-[#131F2E] border border-[#1F3045] rounded-3xl p-6 relative overflow-hidden">
 
             <div className="flex items-center gap-6 z-10">
               {/* Mascote Goti Animado em Proporção Destaque Ampliado */}
@@ -121,14 +119,11 @@ export default function StudentDashboard() {
                 <GotiAnimated
                   animation="wave"
                   size="lg"
-                  className="w-24 h-24 lg:w-28 lg:h-28 shrink-0 drop-shadow-[0_4px_20px_rgba(32,213,181,0.35)]"
+                  className="w-24 h-24 lg:w-28 lg:h-28 shrink-0"
                 />
               </button>
 
               <div className="space-y-1.5">
-                <div className="inline-block text-[10.5px] font-black uppercase tracking-wider text-[#20D5B5] bg-[#20D5B5]/10 px-2.5 py-0.5 rounded-md">
-                  Preceptoria Clínica
-                </div>
                 <h1 className="text-2xl lg:text-3xl font-black text-[#EAF2F8] tracking-tight">
                   Olá, {cleanUserName}
                 </h1>
@@ -147,11 +142,11 @@ export default function StudentDashboard() {
 
             {/* Badges de Ofensiva e Pontos de Estudo (PE) */}
             <div className="flex items-center gap-3 z-10">
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-sm font-black shadow-sm">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-sm font-black">
                 <Flame className={`w-5 h-5 fill-current text-[#FFC247] ${gameState.streak ? "animate-flame-subtle" : ""}`} />
                 <span><AnimatedNumber value={gameState.streak || 0} /> {gameState.streak === 1 ? "dia seguido" : "dias seguidos"}</span>
               </div>
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-sm font-black shadow-sm">
+              <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-sm font-black">
                 <Zap className="w-5 h-5 fill-current text-[#20D5B5]" />
                 <span><AnimatedNumber value={gameState.studyPoints ?? 0} /> PE</span>
               </div>
@@ -160,28 +155,19 @@ export default function StudentDashboard() {
 
           {/* Card "Continuar de Onde Parou" Dinâmico / Boas-Vindas */}
           {hasInProgressCase ? (
-            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-xl space-y-4 relative overflow-hidden">
-              <div className="flex items-center justify-between">
-                <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#1E2640] border border-[#2F3E66] text-[#A5B4FC] text-xs font-black tracking-wide">
-                  {latestActivity.moduleLabel || "Simulador de Casos Clínicos (PE)"}
-                </div>
-                <span className="text-xs font-bold text-[#9FB3C6]">
-                  Etapa {latestActivity.step || 1} · {latestActivity.progressPercentage || 0}% concluído
-                </span>
-              </div>
-
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 space-y-4 relative overflow-hidden">
               <div className="space-y-1">
-                <span className="text-xs font-black text-[#20D5B5] uppercase tracking-wider block">
-                  CONTINUAR DE ONDE PAROU
-                </span>
                 <h2 className="text-xl font-black text-[#EAF2F8] leading-snug">
-                  {latestActivity.title}
+                  Continue de onde parou
                 </h2>
-                {latestActivity.patientInfo && (
-                  <p className="text-xs font-medium text-[#9FB3C6]">
-                    {latestActivity.patientInfo}
-                  </p>
-                )}
+                <p className="text-base font-semibold text-[#EAF2F8] leading-snug">
+                  {latestActivity.title}
+                </p>
+                <p className="text-sm font-medium text-[#9FB3C6]">
+                  {latestActivity.moduleLabel || "Casos clínicos"}
+                  {latestActivity.patientInfo ? ` · ${latestActivity.patientInfo}` : ""}
+                  {` · etapa ${latestActivity.step || 1}, ${latestActivity.progressPercentage || 0}% concluído`}
+                </p>
               </div>
 
               {/* Barra de Progresso Real */}
@@ -217,18 +203,10 @@ export default function StudentDashboard() {
             </div>
           ) : (
             // Boas-Vindas para novo aluno / sem histórico prévio
-            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 shadow-xl space-y-4 relative overflow-hidden">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-[#20D5B5]/15 border border-[#20D5B5]/30 text-[#20D5B5] text-xs font-black tracking-wide">
-                <BookOpen className="w-4 h-4" />
-                <span>COMECE POR AQUI</span>
-              </div>
-
+            <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-6 space-y-4 relative overflow-hidden">
               <div className="space-y-1">
-                <span className="text-xs font-black text-[#20D5B5] uppercase tracking-wider block">
-                  BOAS-VINDAS AO ENFERE
-                </span>
                 <h2 className="text-xl font-black text-[#EAF2F8] leading-snug">
-                  Inicie sua Prática Clínica
+                  Comece pela consulta
                 </h2>
                 <p className="text-sm font-medium text-[#9FB3C6] leading-relaxed max-w-2xl">
                   Converse com um paciente na Consulta ao Vivo, receba o plantão da enfermeira Ana ou treine doses com o Dr. Rui.
@@ -264,11 +242,8 @@ export default function StudentDashboard() {
           <div className="space-y-4">
             <div>
               <h3 className="text-lg font-black text-[#EAF2F8] tracking-tight">
-                Sugestões de hoje
+                Para hoje
               </h3>
-              <p className="text-xs font-semibold text-[#9FB3C6]">
-                Módulos clínicos recomendados para sua formação prática orientada por evidências
-              </p>
             </div>
 
             <motion.div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4" variants={listStagger} initial="hidden" animate="show">
@@ -278,36 +253,24 @@ export default function StudentDashboard() {
                   <motion.button
                     key={item.id}
                     variants={fadeUp}
-                    whileHover={{ y: -3 }}
                     whileTap={{ scale: 0.98 }}
                     onClick={item.action}
-                    className={`flex flex-col justify-between p-5 min-h-[160px] rounded-2xl border text-left transition-colors group cursor-pointer shadow-md ${
+                    className={`flex flex-col justify-between p-5 min-h-[150px] rounded-2xl border text-left transition-colors group cursor-pointer ${
                       item.highlight
-                        ? "bg-gradient-to-br from-[#162838] to-[#131F2E] border-[#20D5B5]/60 hover:border-[#20D5B5]"
-                        : "bg-[#131F2E] border-[#1F3045] hover:border-[#20D5B5]"
+                        ? "bg-[#131F2E] border-[#20D5B5]/60 hover:border-[#20D5B5]"
+                        : "bg-[#131F2E] border-[#1F3045] hover:border-[#20D5B5]/70"
                     }`}
                   >
                     <div className="flex items-center justify-between w-full mb-3">
                       <div
-                        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
+                        className={`w-11 h-11 rounded-xl flex items-center justify-center shrink-0 ${
                           item.highlight
-                            ? "bg-[#20D5B5] text-[#06302E] shadow-sm"
-                            : "bg-[#162838] border border-[#20D5B5]/30 text-[#20D5B5]"
+                            ? "bg-[#20D5B5] text-[#06302E]"
+                            : "bg-[#16222E] border border-[#27394B] text-[#20D5B5]"
                         }`}
                       >
                         <Icon className="w-[22px] h-[22px] stroke-[2.2]" />
                       </div>
-                      {item.badge && (
-                        <span
-                          className={`text-[10px] font-black px-2.5 py-0.5 rounded-lg ${
-                            item.highlight
-                              ? "bg-[#20D5B5] text-[#06302E]"
-                              : "bg-[#20D5B5]/10 text-[#20D5B5] border border-[#20D5B5]/20"
-                          }`}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
                     </div>
 
                     <div className="space-y-1.5">
@@ -326,10 +289,6 @@ export default function StudentDashboard() {
         </div>
         )}
 
-        {/* Rodapé com Direitos Autorais Oficiais */}
-        <div className="text-center pt-6 pb-2 text-[11px] text-[#8A9DB1] font-medium">
-          Criado e desenvolvido por <strong className="text-[#9FB3C6]">Marcos Manoel Tavares Neumann</strong>
-        </div>
       </main>
 
       {/* Footer Unificado com Bottom Dock no Mobile */}

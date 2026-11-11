@@ -118,7 +118,7 @@ export default function PatientProfileTab({ patient, onSaved }) {
           <div key={f.key} className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-3">
             <div className="flex items-center gap-2">
               <Icon className="h-4 w-4 text-[#20D5B5]" />
-              <p className="text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">{f.label}</p>
+              <p className="text-xs font-semibold text-[#9FB3C6]">{f.label}</p>
             </div>
             {value ? (
               f.catalog ? (

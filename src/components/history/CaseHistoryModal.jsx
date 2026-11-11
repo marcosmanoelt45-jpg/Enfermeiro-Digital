@@ -244,7 +244,7 @@ export default function CaseHistoryModal({
                     >
                       <div className="space-y-2 flex-1 min-w-0">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full bg-[#0E1722] border border-[#27394B] text-[#20D5B5]">
+                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#0E1722] border border-[#27394B] text-[#20D5B5]">
                             {act.moduleLabel || "Clínica"}
                           </span>
 

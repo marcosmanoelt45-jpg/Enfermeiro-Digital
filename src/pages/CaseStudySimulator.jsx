@@ -554,7 +554,7 @@ export default function CaseStudySimulator() {
               <h1 className="text-lg sm:text-xl font-black tracking-tight text-white">
                 Simulador de Casos Clínicos
               </h1>
-              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30 uppercase tracking-wide">
+              <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                 COFEN 736/2024
               </span>
               {/* Cronômetro */}
@@ -663,7 +663,7 @@ export default function CaseStudySimulator() {
             </div>
             <div className="space-y-1">
               <div className="flex items-center gap-2 flex-wrap">
-                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30 uppercase tracking-wide">
+                <span className="text-[10px] font-bold px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                   {viewingDebriefing ? currentCase.category : (currentCase.category || "Cardiologia")}
                 </span>
                 <span className="text-xs text-[#9FB3C6] font-medium">
@@ -760,7 +760,7 @@ export default function CaseStudySimulator() {
                 {/* Cabeçalho da Conclusão (Página 7 do PDF) */}
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b border-[#1F3045] pb-4 gap-4">
                   <div className="space-y-1">
-                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30 uppercase tracking-wide">
+                    <span className="text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                       CONCLUSÃO · AVALIAÇÃO FORMATIVA
                     </span>
                     <h2 className="text-xl font-black text-white mt-1">
@@ -784,7 +784,7 @@ export default function CaseStudySimulator() {
                       />
                     </div>
                     <div className="text-right">
-                      <span className="text-[10px] font-bold text-[#9FB3C6] uppercase tracking-wider block">Acurácia Diagnóstica</span>
+                      <span className="text-[10px] font-bold text-[#9FB3C6] block">Acurácia Diagnóstica</span>
                       <span className="text-3xl font-black text-[#FFC247] leading-none"><AnimatedNumber value={Number(tutorEvaluation.score) || 0} duration={0.8} />%</span>
                     </div>
                   </div>
@@ -793,7 +793,7 @@ export default function CaseStudySimulator() {
                 {/* Resumo Transparente das Respostas Submetidas pelo Estudante (Página 7 do PDF) */}
                 <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-3 text-xs">
                   <div className="flex items-center justify-between">
-                    <span className="font-bold text-[#20D5B5] flex items-center gap-1.5 uppercase tracking-wide text-[11px]">
+                    <span className="font-bold text-[#20D5B5] flex items-center gap-1.5 text-[11px]">
                       <ClipboardList className="h-3.5 w-3.5 text-[#20D5B5]" />
                       RESPOSTAS ENVIADAS PARA AUDITORIA DO GOTI
                     </span>
@@ -819,7 +819,7 @@ export default function CaseStudySimulator() {
 
                 {/* Fase 1: Análise da Decisão Clínica */}
                 <div className="space-y-2">
-                  <span className="text-xs font-bold text-white uppercase tracking-wide flex items-center gap-1.5">
+                  <span className="text-xs font-bold text-white flex items-center gap-1.5">
                     <ClipboardList className="h-4 w-4 text-[#20D5B5]" />
                     Análise do Julgamento Clínico
                   </span>
@@ -831,7 +831,7 @@ export default function CaseStudySimulator() {
                 {/* Fase 2: Provocação Socrática */}
                 {tutorEvaluation.reflectiveQuestion && (
                   <div className="space-y-2">
-                    <span className="text-xs font-bold text-[#FFC247] uppercase tracking-wide flex items-center gap-1.5">
+                    <span className="text-xs font-bold text-[#FFC247] flex items-center gap-1.5">
                       <MessageSquareQuote className="h-4 w-4 text-[#FFC247]" />
                       Pergunta do Goti para Reflexão
                     </span>
@@ -961,7 +961,7 @@ export default function CaseStudySimulator() {
                   {/* Ações de Exame Físico à Beira-leito (Página 4 do PDF) */}
                   <div className="space-y-2.5 pt-2 border-t border-[#1F3045]">
                     <div className="flex items-center justify-between">
-                      <span className="text-[11px] font-black text-[#20D5B5] uppercase tracking-wider">
+                      <span className="text-[11px] font-black text-[#20D5B5]">
                         EXAME FÍSICO · TOQUE PARA COLETAR ACHADOS
                       </span>
                     </div>
@@ -1494,7 +1494,7 @@ export default function CaseStudySimulator() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[11px] font-black text-[#20D5B5] uppercase tracking-wider block">
+                    <label className="text-[11px] font-black text-[#20D5B5] block">
                       REGISTRO DA EVOLUÇÃO DE ENFERMAGEM (ANOTAÇÃO DE PRONTUÁRIO)
                     </label>
                     <Textarea

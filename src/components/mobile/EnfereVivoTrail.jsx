@@ -6,7 +6,6 @@ import {
   Zap,
   Stethoscope,
   ChevronRight,
-  BookOpen
 } from "lucide-react";
 import { useTheme } from "@/lib/ThemeContext";
 import { useAuth } from "@/lib/AuthContext";
@@ -99,7 +98,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
       </div>
 
       {/* 2. Saudação com Mascote Goti em Destaque Ampliado */}
-      <div className="flex items-center gap-3.5 bg-[#131F2E]/80 border border-[#1F3045] rounded-3xl p-3.5 shadow-sm">
+      <div className="flex items-center gap-3.5 bg-[#131F2E] border border-[#1F3045] rounded-3xl p-3.5">
         <div
           onClick={() => {
             triggerHaptic(20);
@@ -123,13 +122,10 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
           <GotiAnimated
             animation="wave"
             size="md"
-            className="w-20 h-20 shrink-0 drop-shadow-[0_4px_16px_rgba(32,213,181,0.35)]"
+            className="w-20 h-20 shrink-0"
           />
         </div>
         <div className="min-w-0 flex-1">
-          <div className="inline-block text-[10px] font-black uppercase tracking-wider text-[#20D5B5] bg-[#20D5B5]/10 px-2 py-0.5 rounded-md mb-1">
-            Preceptor Clínico
-          </div>
           <h1 className="text-lg font-black text-[#EAF2F8] tracking-tight leading-tight">
             Olá, {userName}
           </h1>
@@ -153,21 +149,18 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
       {/* 4. Card "Continuar de Onde Parou" Inteligente e Individual */}
       {hasInProgressCase ? (
         // Caso em andamento recuperado do histórico do estudante
-        <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-4 sm:p-5 shadow-lg space-y-3.5 relative overflow-hidden">
-          <div className="inline-flex items-center px-3 py-1 rounded-full bg-[#1E2640] border border-[#2F3E66] text-[#A5B4FC] text-[11px] font-black tracking-wide">
-            {latestActivity.moduleLabel || "Simulador de Casos Clínicos (PE)"}
-          </div>
-
+        <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-4 sm:p-5 space-y-3.5 relative overflow-hidden">
           <div className="space-y-1">
-            <span className="text-[11px] font-extrabold text-[#20D5B5] uppercase tracking-wider block">
-              CONTINUAR DE ONDE PAROU
-            </span>
             <h2 className="text-base font-black text-[#EAF2F8] leading-snug">
-              {latestActivity.title}
+              Continue de onde parou
             </h2>
+            <p className="text-sm font-semibold text-[#EAF2F8] leading-snug">
+              {latestActivity.title}
+            </p>
             <p className="text-xs font-medium text-[#9FB3C6]">
-              {latestActivity.patientInfo ? `${latestActivity.patientInfo} · ` : ""}
-              Etapa {latestActivity.step || 1} · {latestActivity.progressPercentage || 0}% concluído
+              {latestActivity.moduleLabel || "Casos clínicos"}
+              {latestActivity.patientInfo ? ` · ${latestActivity.patientInfo}` : ""}
+              {` · etapa ${latestActivity.step || 1}, ${latestActivity.progressPercentage || 0}% concluído`}
             </p>
           </div>
 
@@ -192,18 +185,10 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
         </div>
       ) : (
         // Boas-vindas para primeiro acesso / usuário sem casos em andamento
-        <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-4 sm:p-5 shadow-lg space-y-3.5 relative overflow-hidden">
-          <div className="inline-flex items-center gap-1.5 px-3 py-1 rounded-full bg-[#20D5B5]/15 border border-[#20D5B5]/30 text-[#20D5B5] text-[11px] font-black tracking-wide">
-            <BookOpen className="w-3.5 h-3.5" />
-            <span>COMECE POR AQUI</span>
-          </div>
-
+        <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-4 sm:p-5 space-y-3.5 relative overflow-hidden">
           <div className="space-y-1">
-            <span className="text-[11px] font-extrabold text-[#20D5B5] uppercase tracking-wider block">
-              BOAS-VINDAS AO ENFERE
-            </span>
             <h2 className="text-base font-black text-[#EAF2F8] leading-snug">
-              Inicie sua Prática Clínica
+              Comece pela consulta
             </h2>
             <p className="text-xs font-medium text-[#9FB3C6] leading-relaxed">
               Converse com um paciente por voz ou texto, anote o que ele contar e receba nota e comentários.
@@ -228,12 +213,9 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
       <div className="space-y-2.5 pt-1">
         <div className="flex items-center justify-between px-0.5">
           <div>
-            <h3 className="text-sm font-black text-[#EAF2F8] tracking-tight">
-              Sugestões de hoje
+            <h3 className="text-base font-black text-[#EAF2F8] tracking-tight">
+              Para hoje
             </h3>
-            <p className="text-[11px] font-medium text-[#9FB3C6]">
-              Módulos recomendados para sua formação prática
-            </p>
           </div>
         </div>
 
@@ -248,38 +230,27 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
                 onClick={item.action}
                 className={`w-full flex items-center justify-between p-3.5 rounded-2xl border text-left transition-colors group cursor-pointer ${
                   item.highlight
-                    ? "bg-gradient-to-r from-[#162838] to-[#131F2E] border-[#20D5B5]/50 shadow-md"
+                    ? "bg-[#131F2E] border-[#20D5B5]/60"
                     : "bg-[#131F2E] border-[#1F3045] hover:border-[#20D5B5]/60"
                 }`}
               >
                 <div className="flex items-center gap-3 min-w-0 pr-2">
                   <div
-                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform ${
+                    className={`w-10 h-10 rounded-xl flex items-center justify-center shrink-0 ${
                       item.highlight
-                        ? "bg-[#20D5B5] text-[#06302E] shadow-sm"
-                        : "bg-[#162838] border border-[#20D5B5]/30 text-[#20D5B5]"
+                        ? "bg-[#20D5B5] text-[#06302E]"
+                        : "bg-[#16222E] border border-[#27394B] text-[#20D5B5]"
                     }`}
                   >
                     <Icon className="w-5 h-5 stroke-[2.2]" />
                   </div>
                   <div className="min-w-0">
-                    <div className="flex items-center gap-2">
-                      <strong className="block text-xs font-black text-[#EAF2F8] truncate group-hover:text-[#20D5B5] transition-colors">
+                    <div>
+                      <strong className="block text-sm font-black text-[#EAF2F8] truncate group-hover:text-[#20D5B5] transition-colors">
                         {item.title}
                       </strong>
-                      {item.badge && (
-                        <span
-                          className={`text-[9.5px] font-black px-1.5 py-0.5 rounded-md ${
-                            item.highlight
-                              ? "bg-[#20D5B5] text-[#06302E]"
-                              : "bg-[#20D5B5]/10 text-[#20D5B5] border border-[#20D5B5]/20"
-                          }`}
-                        >
-                          {item.badge}
-                        </span>
-                      )}
                     </div>
-                    <span className="block text-[11px] font-medium text-[#9FB3C6] truncate mt-0.5">
+                    <span className="block text-xs font-medium text-[#9FB3C6] truncate mt-0.5">
                       {item.subtitle}
                     </span>
                   </div>
@@ -291,10 +262,6 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
         </motion.div>
       </div>
 
-      {/* 6. Rodapé com Autoria Oficial */}
-      <div className="text-center pt-3 pb-2 text-[10px] text-[#8A9DB1] font-medium">
-        Criado e desenvolvido por <strong className="text-[#9FB3C6]">Marcos Manoel Tavares Neumann</strong>
-      </div>
     </div>
   );
 }

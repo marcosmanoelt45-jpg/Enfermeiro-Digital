@@ -300,7 +300,7 @@ export default function DischargeTab({ patientId }) {
       </Button>
 
       <div>
-        <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">Planos de Alta ({plans.length})</p>
+        <p className="mb-2 text-xs font-semibold text-[#9FB3C6]">Planos de Alta ({plans.length})</p>
         {loading ? (
           <div className="flex justify-center py-6"><Loader2 className="h-5 w-5 animate-spin text-[#8A9DB1]" /></div>
         ) : plans.length === 0 ? (

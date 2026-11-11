@@ -143,7 +143,7 @@ export default function PatientDetail() {
             </Button>
 
             <div>
-              <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-300">Avaliações</p>
+              <p className="mb-2 text-xs font-semibold text-slate-300">Avaliações</p>
               {assessments.length === 0 ? (
                 <div className="rounded-2xl border border-dashed border-[#1F3045] bg-[#131F2E] p-6 text-center text-sm text-[#9FB3C6]">
                   Nenhuma avaliação registrada.

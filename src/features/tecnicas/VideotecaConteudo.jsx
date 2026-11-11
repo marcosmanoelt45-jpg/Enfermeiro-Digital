@@ -231,7 +231,7 @@ export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos
           <div className="space-y-5">
             {/* Cabeçalho da Videoteca */}
             <div className="space-y-1.5 pt-1">
-              <span className="inline-block text-[10px] font-black uppercase tracking-wider px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
+              <span className="inline-block text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
                 Skills Lab · Acervo LabEnf UFSM & Hospitais de Excelência
               </span>
               <h1 className="text-xl sm:text-2xl font-black text-white">

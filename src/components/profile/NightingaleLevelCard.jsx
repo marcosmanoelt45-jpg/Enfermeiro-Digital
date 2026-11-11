@@ -9,12 +9,12 @@ export default function NightingaleLevelCard({ xp = 0 }) {
     <div className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-5 shadow-sm transition-colors">
       <div className="flex items-start justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-emerald-600 to-teal-500 text-white shadow-md shadow-emerald-500/20">
+          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-[#20D5B5] text-[#06302E]">
             <Award className="h-6 w-6" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="text-xs font-bold uppercase tracking-wider text-emerald-800 dark:text-emerald-400">
+              <span className="text-xs font-bold text-emerald-800 dark:text-emerald-400">
                 Nível {current.level} · Patente Clínica
               </span>
             </div>
@@ -53,7 +53,7 @@ export default function NightingaleLevelCard({ xp = 0 }) {
 
         <div className="h-3 w-full overflow-hidden rounded-full bg-slate-100 dark:bg-slate-800">
           <div
-            className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-teal-500 transition-all duration-500 ease-out"
+            className="h-full rounded-full bg-[#20D5B5] transition-all duration-500 ease-out"
             style={{ width: `${progressPercent}%` }}
           />
         </div>

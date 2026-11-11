@@ -52,7 +52,7 @@ export default function ResultadoMinijogo({ definicao, resultado, avaliacao, onT
           ["Tempo", formatarTempo(resultado.tempoMs), ""],
         ].map(([rotulo, valor, cor]) => (
           <div key={rotulo} className="rounded-2xl border-2 border-[#27394B] bg-[#16222E] py-2.5 shadow-[0_4px_0_#0A1118]">
-            <dt className="text-[11px] font-extrabold uppercase tracking-wide text-[#9FB3C6]">{rotulo}</dt>
+            <dt className="text-[11px] font-extrabold text-[#9FB3C6]">{rotulo}</dt>
             <dd className={`text-2xl font-black ${cor}`}>{valor}</dd>
           </div>
         ))}

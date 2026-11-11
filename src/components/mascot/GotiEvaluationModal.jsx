@@ -142,7 +142,7 @@ export default function GotiEvaluationModal({
             <div className="mx-auto my-4 inline-flex items-center gap-3 rounded-2xl border-2 border-[#27394B] bg-[#0E1722] px-6 py-3">
               <Trophy className="h-6 w-6 shrink-0 text-[#FFC247]" aria-hidden="true" />
               <div className="text-left">
-                <span className="block text-[10px] font-bold uppercase tracking-wider text-[#9FB3C6]">{scoreLabel}</span>
+                <span className="block text-[10px] font-bold text-[#9FB3C6]">{scoreLabel}</span>
                 <span className="text-3xl font-black leading-none text-white">
                   <AnimatedNumber value={shownScore} duration={0.8} />%
                 </span>

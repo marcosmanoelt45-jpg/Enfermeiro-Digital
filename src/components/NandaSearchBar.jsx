@@ -145,11 +145,11 @@ export default function NandaSearchBar() {
             </div>
             <dl className="mt-4 space-y-2 text-sm">
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-[#9FB3C6]">Domínio</dt>
+                <dt className="text-xs font-medium text-[#9FB3C6]">Domínio</dt>
                 <dd className="text-[#EAF2F8]">{selected.domain}</dd>
               </div>
               <div>
-                <dt className="text-xs font-medium uppercase tracking-wide text-[#9FB3C6]">Classe</dt>
+                <dt className="text-xs font-medium text-[#9FB3C6]">Classe</dt>
                 <dd className="text-[#EAF2F8]">{selected.class}</dd>
               </div>
             </dl>

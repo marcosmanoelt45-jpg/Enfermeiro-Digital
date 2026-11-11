@@ -14,7 +14,7 @@ export default function ProcedureSafetyAlerts({ safetyAlerts = [], cofenNorm = '
               <AlertOctagon className="h-4 w-4" />
             </span>
             <div>
-              <h4 className="text-sm font-black text-rose-200 uppercase tracking-wider">
+              <h4 className="text-sm font-black text-rose-200">
                 O Que NÃO Fazer · Erros Críticos & Iatrogenias
               </h4>
               <p className="text-[11px] text-[#9FB3C6]">

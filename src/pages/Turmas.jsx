@@ -304,7 +304,7 @@ export default function Turmas() {
               </div>
               <div>
                 <div className="flex flex-wrap items-center gap-2">
-                  <span className="text-[10px] font-bold uppercase tracking-wider text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-800">
+                  <span className="text-[10px] font-bold text-teal-800 dark:text-teal-300 bg-teal-100 dark:bg-teal-950/60 px-2 py-0.5 rounded-full border border-teal-200 dark:border-teal-800">
                     Turma Modelo / Demonstração
                   </span>
                   <span className="text-[11px] font-bold text-slate-500 dark:text-slate-400">
@@ -335,7 +335,7 @@ export default function Turmas() {
 
         {/* LISTA DE TURMAS DO USUÁRIO */}
         <div className="pt-2">
-          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 uppercase tracking-wide block mb-2 px-1">
+          <span className="text-xs font-bold text-slate-500 dark:text-slate-400 block mb-2 px-1">
             Suas Turmas ({memberships.length})
           </span>
 

@@ -12,7 +12,7 @@ export default function VitalsChips({ vitals, text = "", onInsertMissing }) {
       {items.length > 0 ? (
         <div className="rounded-xl border border-teal-900 bg-teal-950/40 p-3 shadow-sm">
           <div className="flex items-center justify-between">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-teal-300">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-teal-300">
               <CheckCircle2 className="h-4 w-4 text-teal-400" /> Sinais Vitais Identificados no Relato
             </p>
             <span className="rounded-full bg-teal-900/60 px-2 py-0.5 text-[10px] font-bold text-teal-300">
@@ -47,7 +47,7 @@ export default function VitalsChips({ vitals, text = "", onInsertMissing }) {
       {missing.length > 0 && (
         <div className="rounded-xl border border-amber-900/60 bg-amber-950/40 p-3.5 shadow-sm">
           <div className="flex items-center justify-between">
-            <p className="flex items-center gap-1.5 text-[11px] font-semibold uppercase tracking-wide text-amber-200">
+            <p className="flex items-center gap-1.5 text-[11px] font-semibold text-amber-200">
               <AlertCircle className="h-4 w-4 text-amber-400" /> Parâmetros Faltantes no Relato ({missing.length})
             </p>
             <span className="rounded-full bg-amber-900/60 px-2 py-0.5 text-[10px] font-semibold text-amber-200">

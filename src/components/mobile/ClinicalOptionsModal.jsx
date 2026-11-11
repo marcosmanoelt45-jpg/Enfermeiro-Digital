@@ -105,7 +105,7 @@ export default function ClinicalOptionsModal({ isOpen, onClose }) {
           {/* Seção 3: Acessibilidade e Tamanho da Fonte */}
           <div className="space-y-2.5">
             <div className="flex items-center justify-between">
-              <label className="text-xs font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1.5">
+              <label className="text-xs font-bold text-emerald-400 flex items-center gap-1.5">
                 <Type className="w-3.5 h-3.5" /> Tamanho da Fonte de Leitura
               </label>
               <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-emerald-950/80 text-[#3DD68C] border border-emerald-800">

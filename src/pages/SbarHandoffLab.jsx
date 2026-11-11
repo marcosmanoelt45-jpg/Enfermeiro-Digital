@@ -767,7 +767,7 @@ export default function SbarHandoffLab() {
 
               {/* DIRETRIZES DO GOTI (Página 14 do PDF) */}
               <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-2">
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#20D5B5] block">
+                <span className="text-[10px] font-black text-[#20D5B5] block">
                   DIRETRIZES DO GOTI
                 </span>
                 <div className="flex items-start gap-3">
@@ -782,7 +782,7 @@ export default function SbarHandoffLab() {
 
               {/* SELECIONE COMO DESEJA PRATICAR */}
               <div className="space-y-3">
-                <span className="text-[10px] font-black uppercase tracking-wider text-[#9FB3C6] block">
+                <span className="text-[10px] font-black text-[#9FB3C6] block">
                   SELECIONE COMO DESEJA PRATICAR:
                 </span>
 
@@ -967,7 +967,7 @@ export default function SbarHandoffLab() {
             <div className="bg-[#131F2E] rounded-3xl border border-[#1F3045] p-5 sm:p-6 shadow-sm space-y-4">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-[#1F3045]">
                 <div className="flex items-center gap-2">
-                  <span className="text-[10px] font-black text-[#20D5B5] uppercase tracking-wider">
+                  <span className="text-[10px] font-black text-[#20D5B5]">
                     CASO SIMULADO À BEIRA-LEITO · {currentCase.sector || "Clínica Cirúrgica"} · {currentCase.bed || "Leito 12-A"}
                   </span>
                 </div>
@@ -1159,7 +1159,7 @@ export default function SbarHandoffLab() {
                   {/* ❌ Como NÃO falar */}
                   <div className="p-4 rounded-2xl bg-[#F0645F]/10 border border-[#F0645F]/30 text-white space-y-2 flex flex-col justify-between">
                     <div className="space-y-1.5">
-                      <div className="flex items-center gap-1.5 font-bold text-[#F0645F] text-[10px] uppercase tracking-wide">
+                      <div className="flex items-center gap-1.5 font-bold text-[#F0645F] text-[10px]">
                         <AlertOctagon className="h-3.5 w-3.5 shrink-0" />
                         <span>Comunicação Ineficaz (Causa de Erros Clínicos)</span>
                       </div>
@@ -1176,7 +1176,7 @@ export default function SbarHandoffLab() {
                   <div className="p-4 rounded-2xl bg-[#20D5B5]/10 border border-[#20D5B5]/30 text-white space-y-2 flex flex-col justify-between">
                     <div className="space-y-1.5">
                       <div className="flex items-center justify-between">
-                        <div className="flex items-center gap-1.5 font-bold text-[#20D5B5] text-[10px] uppercase tracking-wide">
+                        <div className="flex items-center gap-1.5 font-bold text-[#20D5B5] text-[10px]">
                           <CheckCircle2 className="h-3.5 w-3.5 shrink-0" />
                           <span>Comunicação Efetiva (Padrão Ouro COFEN/OMS)</span>
                         </div>
@@ -1202,7 +1202,7 @@ export default function SbarHandoffLab() {
               {/* CHECKLIST DINÂMICO DE SEGURANÇA (Página 15 do PDF) */}
               <div className="p-4 rounded-2xl bg-[#0E1722] border border-[#1F3045] space-y-3">
                 <div className="flex items-center justify-between">
-                  <span className="text-[10px] font-black uppercase tracking-wider text-[#20D5B5] flex items-center gap-1.5">
+                  <span className="text-[10px] font-black text-[#20D5B5] flex items-center gap-1.5">
                     CHECKLIST DINÂMICO DE SEGURANÇA · {currentCheckedCount} DE 3
                   </span>
                   <span className="text-[10px] font-bold text-[#9FB3C6]">
@@ -1538,7 +1538,7 @@ export default function SbarHandoffLab() {
                 <div className="p-4 rounded-2xl bg-emerald-950/60 border border-emerald-800 text-emerald-200 flex items-start gap-3">
                   <CheckCircle2 className="h-5 w-5 text-emerald-400 shrink-0 mt-0.5" />
                   <div>
-                    <h4 className="font-bold text-xs uppercase tracking-wider">Passagem de Plantão 100% Concluída</h4>
+                    <h4 className="font-bold text-xs">Passagem de Plantão 100% Concluída</h4>
                     <p className="text-xs text-[#3DD68C] mt-0.5">
                       Esta atividade foi finalizada e registrada no seu histórico com sucesso. Você pode consultar debriefings e métricas a qualquer momento no menu de Histórico.
                     </p>
@@ -1683,7 +1683,7 @@ export default function SbarHandoffLab() {
               <div className="space-y-1">
                 <div className="flex items-center gap-2">
                   <ShieldCheck className="h-5 w-5 text-teal-400" />
-                  <span className="text-xs font-bold text-teal-300 uppercase tracking-wider block">
+                  <span className="text-xs font-bold text-teal-300 block">
                     Parecer de Comunicação • Goti IA
                   </span>
                 </div>
@@ -1723,7 +1723,7 @@ export default function SbarHandoffLab() {
             {/* SIMULADOR DE CONSEQUÊNCIA DE EVENTO SENTINELA (APRENDIZAGEM VIVA) */}
             {tutorEvaluation.sentinelConsequence && (
               <div className="p-4 rounded-xl bg-amber-950/40 border border-amber-800 space-y-1.5">
-                <div className="flex items-center gap-2 text-amber-300 font-bold text-xs uppercase tracking-wide">
+                <div className="flex items-center gap-2 text-amber-300 font-bold text-xs">
                   <AlertTriangle className="h-4 w-4 text-amber-400 shrink-0" />
                   <span>Simulador de Consequências no Hospital Real (O que aconteceria se você omitisse esses dados?):</span>
                 </div>
@@ -1735,7 +1735,7 @@ export default function SbarHandoffLab() {
 
             {/* Desdobramento dos 4 Pilares SBAR */}
             <div className="space-y-2">
-              <h4 className="text-xs font-bold text-slate-300 uppercase tracking-wide">
+              <h4 className="text-xs font-bold text-slate-300">
                 Desempenho por Eixo da Metodologia:
               </h4>
 

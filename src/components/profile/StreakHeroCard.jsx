@@ -41,11 +41,11 @@ export default function StreakHeroCard({ streakData, onUpdate }) {
   }
 
   return (
-    <div className="relative overflow-hidden rounded-3xl border-2 border-amber-300/80 dark:border-amber-900/60 border-b-4 border-b-amber-400 dark:border-b-amber-950 bg-gradient-to-br from-amber-500/10 via-orange-500/5 to-transparent dark:from-amber-950/40 dark:via-orange-950/20 dark:to-slate-900 p-5 sm:p-6 shadow-sm transition-colors">
+    <div className="relative overflow-hidden rounded-3xl border border-[#1F3045] bg-[#131F2E] p-5 sm:p-6">
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         {/* Lado Esquerdo: Fogo & Contador da Ofensiva Clínica (#FF9600) */}
         <div className="flex items-center gap-3.5">
-          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-gradient-to-tr from-[#FF9600] to-amber-400 text-white shadow-md border-2 border-amber-200 border-b-4 border-b-[#CC7900] select-none">
+          <div className="relative flex h-14 w-14 shrink-0 items-center justify-center rounded-2xl bg-[#FFC247] text-[#2B1700] select-none">
             <Flame className="h-8 w-8 fill-white stroke-none drop-shadow-sm animate-flame-subtle" />
           </div>
           <div>
@@ -86,7 +86,7 @@ export default function StreakHeroCard({ streakData, onUpdate }) {
       {/* Mini-Calendário Semanal (7 dias) com Botões Táteis 3D */}
       <div className="mt-5 pt-4 border-t border-amber-200/60 dark:border-amber-900/50">
         <div className="flex items-center justify-between mb-3">
-          <span className="text-[11px] font-extrabold uppercase tracking-wider text-amber-950 dark:text-amber-300">
+          <span className="text-[11px] font-extrabold text-amber-950 dark:text-amber-300">
             Frequência desta semana
           </span>
           <span className="text-[11px] text-slate-500 dark:text-slate-400 font-medium">

@@ -113,7 +113,7 @@ export default function AssignmentAnswer() {
 
       <main className="mx-auto max-w-2xl px-4 py-4 space-y-4">
         <section className="rounded-2xl border border-slate-200 dark:border-slate-800 bg-white dark:bg-slate-900 p-4">
-          <h2 className="text-xs font-semibold uppercase tracking-wide text-teal-600 dark:text-teal-400">
+          <h2 className="text-xs font-semibold text-teal-600 dark:text-teal-400">
             Caso clínico
           </h2>
           <p className="mt-2 whitespace-pre-wrap text-sm leading-relaxed text-slate-700 dark:text-slate-300">

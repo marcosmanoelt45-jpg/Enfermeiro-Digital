@@ -68,7 +68,7 @@ export default function PreviousAnamnesisTab({ patient, onSaved }) {
         <div className="rounded-2xl border border-[#1F3045] bg-[#131F2E] p-4">
           <div className="flex items-center gap-2">
             <FileText className="h-4 w-4 text-[#20D5B5]" />
-            <p className="text-xs font-semibold uppercase tracking-wide text-[#9FB3C6]">Repasse de outro serviço</p>
+            <p className="text-xs font-semibold text-[#9FB3C6]">Repasse de outro serviço</p>
           </div>
           <p className="mt-2 whitespace-pre-wrap text-sm text-[#EAF2F8] leading-relaxed">{patient.previous_anamnesis}</p>
         </div>

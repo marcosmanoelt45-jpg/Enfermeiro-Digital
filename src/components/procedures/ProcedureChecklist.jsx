@@ -66,7 +66,7 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
       {/* Cabeçalho do Checklist & Barra de Progresso */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
         <div>
-          <h4 className="text-sm font-black text-slate-100 flex items-center gap-1.5 uppercase tracking-wide">
+          <h4 className="text-sm font-black text-slate-100 flex items-center gap-1.5">
             <PackageCheck className="h-4 w-4 text-teal-400" />
             O Que Fazer · Roteiro de Habilidade Prática
           </h4>

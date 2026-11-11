@@ -11,7 +11,7 @@ export default function Receita({ item }) {
   return (
     <Inset className="space-y-3 border-dashed" role="group" aria-label="Receita">
       <div className="flex items-center justify-between gap-2">
-        <span className="text-xs font-extrabold uppercase tracking-wide text-[#9FB3C6]">Prescrição</span>
+        <span className="text-xs font-extrabold text-[#9FB3C6]">Prescrição</span>
         {item.altaVigilancia && <Chip tone="warning">Alta vigilância</Chip>}
       </div>
       <p className="text-lg font-black leading-tight">{p.farmaco}</p>
