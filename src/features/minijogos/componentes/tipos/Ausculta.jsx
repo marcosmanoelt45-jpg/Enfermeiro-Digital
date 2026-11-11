@@ -33,7 +33,7 @@ const noPaciente = (p, encostado) => {
 export default function Ausculta({ definicao, conferir }) {
   const { achado, paciente = "marcus", vistas: vistasPedidas = ["costas"] } = definicao.ausculta;
   // Na frente só o Sr. Marcus; a Dona Teresinha é auscultada pelas costas.
-  const vistas = useMemo(() => (paciente === "teresinha" || paciente === "mulher" ? ["costas"] : vistasPedidas), [paciente, vistasPedidas]);
+  const vistas = useMemo(() => (paciente === "marcus" ? vistasPedidas : ["costas"]), [paciente, vistasPedidas]);
   // Anatomia e pontos do caso: estáveis durante a rodada.
   const caso = useMemo(() => montarCaso(achado, { rng: gerador(Math.floor(Math.random() * 1e9)), vistas, paciente }), [achado, vistas]);
   const [vista, setVista] = useState(vistas.includes("costas") ? "costas" : vistas[0]);

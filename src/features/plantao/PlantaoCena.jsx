@@ -10,6 +10,8 @@ import falasAna from "@/data/falas/enfermeira-ana.json";
 import Prontuario from "./componentes/Prontuario.jsx";
 import FolhaResposta from "@/components/feedback/FolhaResposta.jsx";
 
+const CORPO_DA_AUSCULTA = { dpoc: "dpoc", choque_anafilatico: "mulher" };
+
 const RETORNO = {
   incompleto: { titulo: "Faltou um pedaço.", texto: "Responda de novo completando o que a Ana pediu." },
   nao_sabe: { titulo: "Sem problema.", texto: "Olhe o prontuário e tente responder com o que encontrar." },
@@ -59,8 +61,9 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
   // Retorno visual quando a resposta não fecha (a Ana também fala; aqui fica escrito para o aluno completar).
   const [retorno, setRetorno] = useState(null);
   // Paciente do minijogo de ausculta: o do mesmo sexo do caso.
-  // Corpo do paciente no minijogo de ausculta: mulher jovem, Dona Teresinha (idosa) ou Sr. Marcus.
-  const pacienteDoCaso = sexoDoCenario(cenario.id) === "F" ? (cenario.age < 60 ? "mulher" : "teresinha") : "marcus";
+  // Corpo do paciente no minijogo de ausculta, igual à foto do prontuário: casos com desenho próprio (DPOC e
+  // choque anafilático); nos outros, mulher jovem, Dona Teresinha (idosa) ou Sr. Marcus.
+  const pacienteDoCaso = CORPO_DA_AUSCULTA[cenario.id] ?? (sexoDoCenario(cenario.id) === "F" ? (cenario.age < 60 ? "mulher" : "teresinha") : "marcus");
   const [avaliando, setAvaliando] = useState(false);
   const [erro, setErro] = useState(null);
 

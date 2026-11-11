@@ -13,6 +13,8 @@ export const IMAGENS = {
   "teresinha-costas": "/minijogos/ausculta/teresinha-costas.webp",
   // Mulher adulta jovem (38 anos, choque anafilático do Plantão): antes aparecia o corpo da Dona Teresinha.
   "mulher-costas": "/minijogos/ausculta/mulher-costas.webp",
+  // Homem de 64 anos do DPOC do Plantão, igual à foto do prontuário (grisalho, cateter de oxigênio).
+  "dpoc-costas": "/minijogos/ausculta/dpoc-costas.webp",
 };
 
 // Campos pulmonares (elipses) medidos em cada ilustração, antes da variação de anatomia de cada rodada.
@@ -30,8 +32,12 @@ const PULMOES = {
     { lado: "direito", cx: 532, cy: 536, rx: 72, ry: 104 },
   ],
   "mulher-costas": [
-    { lado: "esquerdo", cx: 394, cy: 572, rx: 48, ry: 86 },
-    { lado: "direito", cx: 502, cy: 572, rx: 48, ry: 86 },
+    { lado: "esquerdo", cx: 396, cy: 470, rx: 44, ry: 84 },
+    { lado: "direito", cx: 500, cy: 470, rx: 44, ry: 84 },
+  ],
+  "dpoc-costas": [
+    { lado: "esquerdo", cx: 372, cy: 490, rx: 66, ry: 82 },
+    { lado: "direito", cx: 524, cy: 490, rx: 66, ry: 82 },
   ],
 };
 const ESCALA = 2.24; // 896 / 400 (as distâncias abaixo foram pensadas numa cena de 400 de largura)
