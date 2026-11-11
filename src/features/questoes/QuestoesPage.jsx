@@ -11,6 +11,7 @@ import { celebrate } from "@/lib/celebrate";
 import { vibrate } from "@/lib/motion";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
+import { registrarResposta } from "@/components/feedback/comemoracoes.js";
 import BANCO from "@/data/questoes/banco.json";
 import { TOPICOS_PRATICA } from "@/data/questoes/temas.js";
 import { embaralharAlternativas, montarSessao, resumoDaSessao, todasRespondidas } from "./logica/sessao.js";
@@ -115,16 +116,17 @@ export default function QuestoesPage() {
     if (escolha === null || escolha === undefined || est.isFinalizada) return;
     if (Number(escolha) === Number(q.correta)) {
       vibrate(15);
-      clinicalGamificationService.registrarAcertoQuestao?.(userId);
+      registrarResposta({ userId, resultado: "acerto" });
       if (est.tentativas === 0 && indice === 0) celebrate({ count: 40, y: 0.6 });
       mudar((e) => ({ ...e, status: e.tentativas === 0 ? "verde" : "amarela", tentativas: 2, isFinalizada: true, selectedChoice: escolha }));
     } else if (est.tentativas === 0) {
       vibrate([30, 40, 30]);
+      registrarResposta({ userId, resultado: "primeiro_erro" });
       mudar((e) => ({ ...e, status: "amarela", tentativas: 1, selectedChoice: null, opcoesFalhadas: [...e.opcoesFalhadas, escolha] }));
       setDica(false); // a dica só aparece quando a pessoa pedir em "Ver dica"
     } else {
       vibrate([30, 40, 30]);
-      clinicalGamificationService.registrarErroVermelhoQuestao?.(userId);
+      registrarResposta({ userId, resultado: "erro" });
       mudar((e) => ({ ...e, status: "vermelha", tentativas: 2, isFinalizada: true, selectedChoice: escolha, opcoesFalhadas: [...e.opcoesFalhadas, escolha] }));
     }
   };

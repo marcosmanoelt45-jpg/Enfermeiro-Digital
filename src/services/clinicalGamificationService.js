@@ -268,6 +268,12 @@ function getPast7Days(dailyXpMap = {}, includeDemoMock = false) {
   return result;
 }
 
+// Dias que contam para a ofensiva além dos que têm PE: os congelados e os dias em que a pessoa começou a
+// estudar (a 1ª resposta do dia já acende o foguinho, antes de terminar a sessão e ganhar PE).
+function diasDaOfensiva(state) {
+  return [...(Array.isArray(state.frozenDates) ? state.frozenDates : []), ...(Array.isArray(state.diasAtivos) ? state.diasAtivos : [])];
+}
+
 function computeStreakFromDailyMap(dailyXpMap = {}, frozenDates = []) {
   const frozenSet = new Set(Array.isArray(frozenDates) ? frozenDates : []);
   const activeDates = new Set([
@@ -500,7 +506,7 @@ function syncWithRealHistory(state, userId = null) {
     state.lastFreezeUsedDate = yesterdayStr;
   }
 
-  const computedStreak = computeStreakFromDailyMap(dailyXpMap, state.frozenDates);
+  const computedStreak = computeStreakFromDailyMap(dailyXpMap, diasDaOfensiva(state));
   state.streak = computedStreak;
   state.bestStreak = Math.max(state.bestStreak || 0, computedStreak);
 
@@ -582,6 +588,27 @@ export const clinicalGamificationService = {
   /**
    * Incrementa a sequência ininterrupta de acertos da conta (+1).
    */
+  /**
+   * 1ª atividade do dia: acende o dia na ofensiva. Devolve { novo, de, para }; `novo` só é true na primeira
+   * chamada do dia (é quando o app mostra a animação do foguinho subindo de `de` para `para`).
+   */
+  iniciarDiaDeEstudo(userId = null) {
+    const resolvedId = resolveCurrentUserId(userId);
+    const state = this.getState(resolvedId);
+    const hoje = getTodayString();
+    const dias = Array.isArray(state.diasAtivos) ? state.diasAtivos : [];
+    if ((Number(state.dailyXpMap?.[hoje]) || 0) > 0 || dias.includes(hoje)) {
+      return { novo: false, de: state.streak || 0, para: state.streak || 0 };
+    }
+    const de = state.streak || 0;
+    state.diasAtivos = [...dias.slice(-120), hoje];
+    state.streak = computeStreakFromDailyMap(state.dailyXpMap, diasDaOfensiva(state));
+    state.bestStreak = Math.max(state.bestStreak || 0, state.streak);
+    state.lastActiveDate = hoje;
+    this.saveState(state, resolvedId);
+    return { novo: true, de, para: state.streak };
+  },
+
   registrarAcertoQuestao(userId = null) {
     const resolvedId = resolveCurrentUserId(userId);
     const state = this.getState(resolvedId);
@@ -704,7 +731,7 @@ export const clinicalGamificationService = {
 
     // Atualiza o gráfico semanal e ofensiva real a partir do mapa diário da conta
     state.weeklyDays = getPast7Days(state.dailyXpMap, isDemoUser(resolvedId));
-    state.streak = computeStreakFromDailyMap(state.dailyXpMap);
+    state.streak = computeStreakFromDailyMap(state.dailyXpMap, diasDaOfensiva(state));
     state.bestStreak = Math.max(state.bestStreak || 0, state.streak);
 
     // Se estiver em missão em dupla, avança a meta compartilhada

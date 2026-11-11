@@ -11,6 +11,7 @@ import TecladoCalculo from "./componentes/TecladoCalculo.jsx";
 import FolhaMotivos from "./componentes/FolhaMotivos.jsx";
 import MemoriaCalculo from "./componentes/MemoriaCalculo.jsx";
 import FolhaResposta from "@/components/feedback/FolhaResposta.jsx";
+import { registrarResposta } from "@/components/feedback/comemoracoes.js";
 import { lerNumeroFalado } from "./logica/numerosFalados.js";
 import { aplicar, falaDaReacao, novoEstadoItem, resumirRodada, sequenciaDePrimeira } from "./logica/rodada.js";
 
@@ -199,6 +200,7 @@ export default function CalculoCena({ rodada, modo, onFinalizar, onSair, onProgr
       if (novo.finalizado) {
         r.finalizados.push(novo);
         r.tempos.push(Date.now() - r.inicioItem);
+        registrarResposta({ resultado: novo.resultado === "acerto" ? "acerto" : "erro" });
         if (novo.resultado === "acerto") {
           vibrate(15);
           if (!r.confeteFeito && novo.primeira && sequenciaDePrimeira(r.finalizados) >= 5) {
@@ -211,6 +213,7 @@ export default function CalculoCena({ rodada, modo, onFinalizar, onSair, onProgr
         }
       } else if (reacao === "erro1") {
         vibrate([30, 40, 30]);
+        registrarResposta({ resultado: "primeiro_erro" });
         setErroTick((n) => n + 1);
       }
 

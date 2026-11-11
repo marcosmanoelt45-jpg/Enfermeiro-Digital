@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import PlurallQuestionCard from "@/components/simulador/PlurallQuestionCard";
 import { useAuth } from "@/lib/AuthContext";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
-import { clinicalGamificationService } from "@/services/clinicalGamificationService";
+import { registrarResposta } from "@/components/feedback/comemoracoes.js";
 import { vibrate } from "@/lib/motion";
 
 const NOVO = { selectedChoice: null, tentativas: 0, status: "aberta", isFinalizada: false, opcoesFalhadas: [] };
@@ -34,16 +34,17 @@ export default function RevisaoPage() {
     if (escolha === null || escolha === undefined || estado.isFinalizada) return;
     if (Number(escolha) === Number(questao?.correta ?? 0)) {
       vibrate(15);
-      clinicalGamificationService.registrarAcertoQuestao(user?.id);
+      registrarResposta({ userId: user?.id, resultado: "acerto" });
       clinicalHistoryService.removerQuestoesRevisao([questao], user?.id);
       setResolvidas((n) => n + 1);
       setEstado((e) => ({ ...e, status: e.tentativas === 0 ? "verde" : "amarela", tentativas: 2, isFinalizada: true, selectedChoice: escolha }));
     } else if (estado.tentativas === 0) {
       vibrate([30, 40, 30]);
+      registrarResposta({ userId: user?.id, resultado: "primeiro_erro" });
       setEstado((e) => ({ ...e, status: "amarela", tentativas: 1, selectedChoice: null, opcoesFalhadas: [...e.opcoesFalhadas, escolha] }));
     } else {
       vibrate([30, 40, 30]);
-      clinicalGamificationService.registrarErroVermelhoQuestao(user?.id);
+      registrarResposta({ userId: user?.id, resultado: "erro" });
       setEstado((e) => ({ ...e, status: "vermelha", tentativas: 2, isFinalizada: true, selectedChoice: escolha, opcoesFalhadas: [...e.opcoesFalhadas, escolha] }));
     }
   };
