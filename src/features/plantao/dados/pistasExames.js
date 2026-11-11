@@ -91,7 +91,10 @@ export const PISTAS_EXAMES = {
     imagem: img("delirium.acesso_venoso"),
     notas: ["O soro goteja bem.", "A pele ao redor está sem vermelhidão, sem inchaço e sem dor ao toque."],
   },
-  "delirium.seguranca_leito": { imagem: img("delirium.seguranca_leito") },
+  "delirium.seguranca_leito": {
+    imagem: img("delirium.seguranca_leito"),
+    notas: ["Você confere o outro lado da cama: a grade também está levantada.", "A campainha está presa no lençol, ao alcance da mão dele."],
+  },
   "dpoc.esforco_resp": {
     notas: [
       "Os espaços entre as costelas afundam um pouco ao inspirar.",

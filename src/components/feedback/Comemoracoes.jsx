@@ -56,7 +56,7 @@ function SeloSequencia({ n, onFim }) {
       animate={{ opacity: 1, transform: "translateY(0px) scale(1)", transition: MOLA_POP }}
       exit={{ opacity: 0, transform: "translateY(-16px) scale(0.98)", transition: { duration: 0.2, ease: EASE_OUT } }}
     >
-      <div className="flex items-center gap-3 rounded-full border-2 border-[#20D5B5]/60 bg-[#131F2E] py-2 pl-2 pr-5 shadow-[0_10px_30px_rgba(0,0,0,0.45)]">
+      <div className="flex items-center gap-3 rounded-full border-2 border-[#20D5B5]/60 bg-[#131F2E] py-2 pl-2 pr-5 shadow-[0_4px_0_#0A1118]">
         <motion.img
           src="/feedback/selo-sequencia.webp"
           alt=""

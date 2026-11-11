@@ -10,14 +10,14 @@ export default function PistaExame({ pista }) {
   return (
     <section aria-label="O que você encontra" className="space-y-3">
       {imagem && (
-        <img src={imagem} alt="Achado do exame físico" width={768} height={576} loading="lazy" className="aspect-[4/3] w-full rounded-2xl border-2 border-[#27394B] object-cover" />
+        <img src={imagem} alt="Achado do exame físico" width={768} height={576} loading="lazy" className="aspect-[4/3] max-h-[38vh] w-full rounded-2xl border-2 border-[#27394B] bg-[#16222E] object-cover" />
       )}
       {monitor && <Monitor {...monitor} />}
       {medidas?.length > 0 && (
         <div className="grid grid-cols-2 gap-2">
           {medidas.map(([rotulo, valor]) => (
-            <div key={rotulo} className="rounded-2xl border-2 border-[#27394B] bg-[#131F2E] p-3">
-              <p className="flex items-center gap-1.5 text-[11px] font-bold leading-tight text-[#9FB3C6]">
+            <div key={rotulo} className="rounded-2xl border-2 border-[#1F3045] bg-[#0E1722] p-3">
+              <p className="flex items-center gap-1.5 text-xs font-bold leading-tight text-[#9FB3C6]">
                 <Ruler size={13} aria-hidden="true" className="shrink-0" />
                 {rotulo}
               </p>
@@ -27,26 +27,26 @@ export default function PistaExame({ pista }) {
         </div>
       )}
       {laudo?.length > 0 && (
-        <div className="rounded-2xl border-2 border-[#27394B] bg-[#F4F7FA] p-3 text-[#16222E]">
-          <p className="flex items-center gap-1.5 text-xs font-black uppercase tracking-wide text-[#41566B]">
+        <div className="rounded-2xl border-2 border-[#1F3045] bg-[#0E1722] p-3">
+          <p className="flex items-center gap-1.5 text-xs font-bold text-[#9FB3C6]">
             <FlaskConical size={14} aria-hidden="true" />
             Resultado de exame
           </p>
           {laudo.map(([exame, valor, ref]) => (
-            <div key={exame} className="mt-2 flex items-baseline justify-between gap-3 border-t border-[#D5DEE7] pt-2">
-              <span className="text-sm font-bold">{exame}</span>
+            <div key={exame} className="mt-2 flex items-baseline justify-between gap-3 border-t border-[#1F3045] pt-2">
+              <span className="text-sm font-bold text-[#EAF2F8]">{exame}</span>
               <span className="text-right">
-                <span className="block text-lg font-black tabular-nums">{valor}</span>
-                {ref && <span className="block text-[11px] font-semibold text-[#5B7086]">ref.: {ref}</span>}
+                <span className="block text-lg font-black tabular-nums text-[#EAF2F8]">{valor}</span>
+                {ref && <span className="block text-xs font-semibold text-[#9FB3C6]">ref.: {ref}</span>}
               </span>
             </div>
           ))}
         </div>
       )}
       {notas?.length > 0 && (
-        <ul className="space-y-1.5 rounded-2xl border-2 border-[#27394B] bg-[#131F2E] p-3">
+        <ul className="space-y-1.5 rounded-2xl border-2 border-[#1F3045] bg-[#0E1722] p-3">
           {notas.map((n) => (
-            <li key={n} className="flex gap-2 text-sm font-semibold leading-snug text-[#D6E2EC]">
+            <li key={n} className="flex gap-2 text-sm font-semibold leading-snug text-[#EAF2F8]">
               <Eye size={15} aria-hidden="true" className="mt-0.5 shrink-0 text-[#20D5B5]" />
               <span>{n}</span>
             </li>
@@ -74,8 +74,8 @@ function tracado(fc, largura = 300, altura = 60) {
 
 function Monitor({ titulo = "Monitor multiparamétrico", fc, ritmo, spo2, o2, bcf }) {
   return (
-    <div className="rounded-2xl border-2 border-[#27394B] bg-[#05090D] p-3 font-mono">
-      <p className="flex items-center gap-1.5 font-sans text-[11px] font-bold uppercase tracking-wide text-[#6F8599]">
+    <div className="rounded-2xl border-2 border-[#1F3045] bg-[#0E1722] p-3">
+      <p className="flex items-center gap-1.5 text-xs font-bold text-[#9FB3C6]">
         <HeartPulse size={13} aria-hidden="true" />
         {titulo}
       </p>
@@ -97,12 +97,12 @@ function Monitor({ titulo = "Monitor multiparamétrico", fc, ritmo, spo2, o2, bc
         </p>
       )}
       {spo2 && (
-        <p className="mt-2 flex items-baseline justify-between text-[#4FC3F7]">
+        <p className="mt-2 flex items-baseline justify-between text-[#38BDF8]">
           <span className="text-xs font-bold">SpO2 %</span>
           <span className="text-3xl font-black tabular-nums">{spo2}</span>
         </p>
       )}
-      {o2 && <p className="mt-2 border-t border-[#1B2A38] pt-2 font-sans text-sm font-bold text-[#D6E2EC]">{o2}</p>}
+      {o2 && <p className="mt-2 border-t border-[#1F3045] pt-2 text-sm font-bold text-[#EAF2F8]">{o2}</p>}
     </div>
   );
 }
