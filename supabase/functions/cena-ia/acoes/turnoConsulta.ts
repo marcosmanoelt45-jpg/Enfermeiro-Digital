@@ -7,7 +7,7 @@ import { sanitizeClinicalText } from "../../_shared/dlp.ts";
 // @ts-ignore: módulos JS puros compartilhados
 import { buscarPersonalidade } from "../../_shared/dados/personalidades.js";
 // @ts-ignore
-import { aplicarResposta, estadoDosFatos } from "../../_shared/logica/regras.js";
+import { aplicarResposta, CHAVE_FONTE_EXTERNA, estadoDosFatos, pedeFonteExterna } from "../../_shared/logica/regras.js";
 // @ts-ignore
 import { rapportDe } from "../../_shared/logica/rapport.js";
 // @ts-ignore
@@ -128,17 +128,22 @@ export async function turnoConsulta(userId: string, entrada: EntradaTurno, deps:
 
   const turnos = await repo.carregarTurnos(entrada.sessaoId);
   const textoAluno = sanitizeClinicalText(entrada.texto);
+  // Pediu para conferir em outra fonte (receita, família, registro): libera o que o paciente esqueceu.
+  const contagemTemas: Record<string, number> = { ...(sessao.contagem_temas ?? {}) };
+  const pediuFonte = pedeFonteExterna(textoAluno);
+  if (pediuFonte) contagemTemas[CHAVE_FONTE_EXTERNA] = (contagemTemas[CHAVE_FONTE_EXTERNA] ?? 0) + 1;
   const turnosRestantes = MAX_TURNOS_ALUNO - sessao.turnos_aluno - 1;
   const mensagens: MensagemLLM[] = montarMensagensTurno({
     ficha,
     personalidade,
     confianca: sessao.confianca,
-    contagemTemas: sessao.contagem_temas ?? {},
+    contagemTemas,
     reveladosIds: reveladosAteAgora(turnos),
     notas: sessao.notas_memoria ?? [],
     turnosRestantes,
     turnos,
     textoAluno,
+    pediuFonte,
   });
 
   // IA -> formato válido; se não vier, uma tentativa de reparo; se falhar de novo, a fala de reserva.
@@ -175,11 +180,11 @@ export async function turnoConsulta(userId: string, entrada: EntradaTurno, deps:
   }
 
   // Só o que estava liberado neste turno conta como revelado.
-  const liberadosIds = estadoDosFatos(ficha, { confianca: sessao.confianca, contagemTemas: sessao.contagem_temas ?? {} })
+  const liberadosIds = estadoDosFatos(ficha, { confianca: sessao.confianca, contagemTemas })
     .filter((f: { liberado: boolean }) => f.liberado)
     .map((f: { id: string }) => f.id);
   const novo = aplicarResposta(
-    { ficha, confianca: sessao.confianca, contagemTemas: sessao.contagem_temas ?? {}, notas: sessao.notas_memoria ?? [], liberadosIds },
+    { ficha, confianca: sessao.confianca, contagemTemas, notas: sessao.notas_memoria ?? [], liberadosIds },
     resposta,
   );
 

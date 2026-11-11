@@ -80,3 +80,20 @@ test("nomeFicticio respeita o sexo e o sorteio", () => {
   assert.equal(nomeFicticio("M", 0, 0), "João Silva");
   assert.equal(nomeBloqueado(nomeFicticio("M", 0.5, 0.5)), false);
 });
+
+test("assunto x paciente: gestação nunca para o Sr. Marcus nem para a Dona Teresinha; idade sempre plausível", async () => {
+  const { temasDoPaciente, arquetiposDoPaciente, idadeParaCaso, PACIENTES_CONSULTA, faixaCompativel } = await import("./compatibilidade.js");
+  for (const id of ["marcus", "teresinha"]) {
+    const temas = temasDoPaciente(id).map((t) => t.id);
+    assert.ok(!temas.includes("obstetricia"), id);
+    assert.ok(temas.length >= 5, `${id}: ${temas}`);
+    const p = PACIENTES_CONSULTA[id];
+    for (const arq of arquetiposDoPaciente(p)) {
+      const [min, max] = faixaCompativel(arq, p);
+      for (const s of [0, 0.5, 0.999]) {
+        const idade = idadeParaCaso(arq, p, () => s);
+        assert.ok(idade >= min && idade <= max && idade >= p.idadeMin && idade <= p.idadeMax, `${id} ${arq.id} ${idade}`);
+      }
+    }
+  }
+});

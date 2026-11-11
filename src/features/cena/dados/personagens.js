@@ -34,7 +34,8 @@ export const PERSONAGENS = [
     papel: "medico",
     faixa: "adulto",
     sexo: "M",
-    voz: { voiceboxPerfil: "Rui", navegador: { pitch: 0.85, rate: 1 } },
+    // Todas as falas do Rui são fixas e têm mp3: ele usa sempre o mp3, para a voz nunca trocar no meio.
+    voz: { voiceboxPerfil: "Rui", modo: "mp3", navegador: { pitch: 0.85, rate: 1 } },
     clipes: ["parado", "falando", "pensando"],
     pasta: "/personagens/medico-rui",
     poster: "/personagens/medico-rui/poster.png",

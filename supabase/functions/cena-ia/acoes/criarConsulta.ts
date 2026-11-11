@@ -4,7 +4,7 @@ import { extrairJson } from "../../_shared/llm.ts";
 import { logEvento } from "../../_shared/log.ts";
 import { ErroApp } from "../../_shared/erros.ts";
 // @ts-ignore: módulos JS puros compartilhados
-import { ARQUETIPOS, buscarArquetipo } from "../../_shared/dados/arquetipos.js";
+import { buscarArquetipo } from "../../_shared/dados/arquetipos.js";
 // @ts-ignore
 import { buscarTema } from "../../_shared/dados/temas.js";
 // @ts-ignore
@@ -17,6 +17,8 @@ import { examesCandidatos, setorDe } from "../../_shared/dados/examesPorEspecial
 import { nomeBloqueado } from "../../_shared/dados/bloqueioNomes.js";
 // @ts-ignore
 import { nomeFicticio } from "../../_shared/dados/nomes.js";
+// @ts-ignore
+import { arquetipoCompativel, arquetiposDoPaciente, idadeParaCaso, pacienteDaConsulta } from "../../_shared/dados/compatibilidade.js";
 // @ts-ignore
 import { validarFicha } from "../../_shared/logica/validarFicha.js";
 // @ts-ignore
@@ -32,6 +34,7 @@ export interface EntradaCriar {
   personagemId: string;
   personalidadeId: string;
   dificuldade: Dificuldade;
+  nome?: string | null;
 }
 
 // Sinais vitais do arquétipo com variação de ±5%, arredondados. A IA nunca define sinais vitais.
@@ -51,6 +54,7 @@ export function completarFicha(bruta: any, { arq, entrada, personalidadeId, sina
   const id = bruta?.identificacao ?? {};
   let nome = String(id.nome ?? "").trim();
   if (nomeBloqueado(nome)) nome = nomeFicticio(entrada.sexo, sorteio(), sorteio());
+  nome = nomeDoPaciente(entrada.nome, nome, entrada.sexo, sorteio);
   return {
     origem: "ia",
     arquetipoId: arq.id,
@@ -74,23 +78,42 @@ export function completarFicha(bruta: any, { arq, entrada, personalidadeId, sina
   };
 }
 
+// O rosto e a voz do paciente são fixos (Sr. Marcus, Dona Teresinha): o primeiro nome é sempre o dele e só o
+// sobrenome vem da IA (ou do sorteio). Sem isso, a foto do Marcus aparecia com o nome "Antonio".
+export function nomeDoPaciente(primeiro: string | null | undefined, nomeIA: string, sexo: "M" | "F", sorteio: () => number): string {
+  if (!primeiro) return nomeIA;
+  const partes = String(nomeIA ?? "").trim().split(/\s+/).filter(Boolean);
+  let sobrenome = partes.length > 1 ? partes.slice(1).join(" ") : "";
+  if (!sobrenome || nomeBloqueado(`${primeiro} ${sobrenome}`)) sobrenome = nomeFicticio(sexo, sorteio(), sorteio()).split(/\s+/).slice(1).join(" ");
+  return `${primeiro} ${sobrenome}`.trim();
+}
+
 // Prazo total da IA para montar a ficha; depois disso vale o modelo pronto do caso.
-export const PRAZO_FICHA_MS = 12000;
+// 20 s: o Gemini leva de 10 a 15 s para a ficha inteira e o app espera até 30 s. Com 12 s a ficha da IA
+// quase sempre estourava e a consulta saía do modelo pronto, mais pobre.
+export const PRAZO_FICHA_MS = 20000;
 
-export async function criarConsulta(userId: string, entrada: EntradaCriar, { repo, llm, sorteio = Math.random, prazoFichaMs }: Dependencias) {
+export async function criarConsulta(userId: string, entradaOriginal: EntradaCriar, { repo, llm, sorteio = Math.random, prazoFichaMs }: Dependencias) {
   const inicio = Date.now();
+  let entrada = entradaOriginal;
 
-  // 1. Escolhe o arquétipo: pedido, sorteado pelo tema, ou qualquer um.
+  // 1. Escolhe o arquétipo (pedido, sorteado pelo tema, ou qualquer um), sempre entre os que cabem no paciente
+  // (sexo e idade). Sem isso dava para escolher "Gestação" para o Sr. Marcus.
+  const paciente = pacienteDaConsulta(entrada.personagemId) ?? { nome: null, sexo: entrada.sexo, idadeMin: 18, idadeMax: 95 };
   // deno-lint-ignore no-explicit-any
   let arq: any = entrada.arquetipoId ? buscarArquetipo(entrada.arquetipoId) : null;
   if (entrada.arquetipoId && !arq) throw new ErroApp("ENTRADA_INVALIDA", "Caso clínico desconhecido.");
+  if (arq && !arquetipoCompativel(arq, paciente)) throw new ErroApp("ENTRADA_INVALIDA", "Este caso não combina com este paciente.");
   if (!arq) {
     const tema = entrada.tema ? buscarTema(entrada.tema) : null;
     if (entrada.tema && !tema) throw new ErroApp("ENTRADA_INVALIDA", "Tema desconhecido.");
-    const ids: string[] = tema ? tema.arquetipos : ARQUETIPOS.map((a: { id: string }) => a.id);
-    arq = buscarArquetipo(ids[Math.floor(sorteio() * ids.length)]);
+    const candidatos = arquetiposDoPaciente(paciente, tema);
+    if (!candidatos.length) throw new ErroApp("ENTRADA_INVALIDA", "Este assunto não combina com este paciente. Escolha outro.");
+    arq = candidatos[Math.floor(sorteio() * candidatos.length)];
   }
   if (!arq) throw new ErroApp("ERRO_INTERNO", "Nenhum caso clínico disponível.");
+  // A idade e o sexo vêm do paciente e do caso, não do que o app mandou.
+  entrada = { ...entrada, sexo: paciente.sexo, idade: idadeParaCaso(arq, paciente, sorteio), nome: paciente.nome };
 
   // 2. "surpresa" vira uma personalidade real, que só o servidor conhece.
   const personalidade = resolverPersonalidade(entrada.personalidadeId, sorteio());
@@ -98,7 +121,7 @@ export async function criarConsulta(userId: string, entrada: EntradaCriar, { rep
 
   const sinais = variarSinais(arq.vitals, sorteio);
   const exames = examesCandidatos(arq.specialty);
-  const mensagens = montarMensagensFicha({ arquetipo: arq, idade: entrada.idade, sexo: entrada.sexo, personalidade, dificuldade: entrada.dificuldade, examesCandidatos: exames });
+  const mensagens = montarMensagensFicha({ arquetipo: arq, idade: entrada.idade, sexo: entrada.sexo, nome: entrada.nome, personalidade, dificuldade: entrada.dificuldade, examesCandidatos: exames });
   const opcoesValidacao = { arquetipo: arq, dificuldade: entrada.dificuldade, personalidadeId: personalidade.id, codigosNanda: CODIGOS_NANDA };
 
   // 3. IA -> validação -> uma nova tentativa com os erros -> template.
@@ -134,6 +157,9 @@ export async function criarConsulta(userId: string, entrada: EntradaCriar, { rep
   }
   if (!ficha) {
     ficha = fichaDeTemplate(arq, { idade: entrada.idade, sexo: entrada.sexo, personalidadeId: personalidade.id, dificuldade: entrada.dificuldade, sorteio1: sorteio(), sorteio2: sorteio() });
+    // deno-lint-ignore no-explicit-any
+    const fi = (ficha as any).identificacao;
+    fi.nome = nomeDoPaciente(entrada.nome, fi.nome, entrada.sexo, sorteio);
   }
 
   // 4. Grava (service role) e devolve só o briefing.

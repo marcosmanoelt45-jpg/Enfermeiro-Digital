@@ -12,7 +12,7 @@ import EstadoBloqueado from "@/features/cena/componentes/EstadoBloqueado.jsx";
 import { PERSONAGENS } from "@/features/cena/dados/personagens.js";
 import { consulta, ErroServidor } from "@/features/cena/servidor.js";
 import { desbloquearAudio } from "@/features/cena/voz/reprodutor.js";
-import { PERSONALIDADES, TEMAS } from "./dados/index.js";
+import { PERSONALIDADES, TEMAS, temasDoPaciente } from "./dados/index.js";
 import ConsultaCena from "./ConsultaCena.jsx";
 import ProntuarioConsulta from "./componentes/ProntuarioConsulta.jsx";
 
@@ -105,7 +105,7 @@ export default function ConsultaPage() {
       const r = await consulta.criar({
         arquetipoId: null,
         tema,
-        idade: 62 + Math.floor(Math.random() * 19),
+        idade: 70,
         sexo: p.sexo,
         personagemId: p.id,
         personalidadeId,
@@ -199,28 +199,32 @@ export default function ConsultaPage() {
         <Panel className="space-y-5">
           <section className="space-y-2">
             <h2 className="text-base font-extrabold">Quem é o paciente?</h2>
-            <p className="text-sm font-semibold text-[#9FB3C6]">Escolha o assunto da consulta.</p>
-            <div className="flex flex-wrap gap-2">
-              <Chip ativo={tema === null} onClick={() => setTema(null)}>Aleatório</Chip>
-              {TEMAS.map((t) => (
-                <Chip key={t.id} ativo={tema === t.id} onClick={() => setTema(t.id)}>{t.rotulo}</Chip>
-              ))}
-            </div>
-          </section>
-          <section className="space-y-2">
-            <p className="text-sm font-bold">Paciente</p>
             <div className="grid grid-cols-2 gap-3">
               {PACIENTES.map((p) => (
                 <button
                   key={p.id}
                   type="button"
                   aria-pressed={personagemId === p.id}
-                  onClick={() => setPersonagemId(p.id)}
+                  onClick={() => {
+                    setPersonagemId(p.id);
+                    // Assunto que não serve para este paciente (ex.: Gestação) volta para Aleatório.
+                    if (tema && !temasDoPaciente(p.id).some((t) => t.id === tema)) setTema(null);
+                  }}
                   className={`rounded-2xl border p-3 text-left transition-colors ${personagemId === p.id ? "border-[#20D5B5] bg-[#20D5B5]/10" : "border-[#27394B]"}`}
                 >
                   <p className="font-extrabold">{p.nome}</p>
-                  <p className="text-xs font-semibold text-[#9FB3C6]">{p.sexo === "M" ? "Homem" : "Mulher"}, idoso</p>
+                  <p className="text-xs font-semibold text-[#9FB3C6]">{p.sexo === "M" ? "Homem, idoso" : "Mulher, idosa"}</p>
                 </button>
+              ))}
+            </div>
+          </section>
+          <section className="space-y-2">
+            <p className="text-sm font-bold">Assunto da consulta</p>
+            <p className="text-xs font-semibold text-[#9FB3C6]">Só aparecem os assuntos que fazem sentido para este paciente.</p>
+            <div className="flex flex-wrap gap-2">
+              <Chip ativo={tema === null} onClick={() => setTema(null)}>Aleatório</Chip>
+              {temasDoPaciente(personagemId).map((t) => (
+                <Chip key={t.id} ativo={tema === t.id} onClick={() => setTema(t.id)}>{t.rotulo}</Chip>
               ))}
             </div>
           </section>

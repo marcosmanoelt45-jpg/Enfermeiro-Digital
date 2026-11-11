@@ -43,6 +43,8 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
   const ultimas = useRef({});
   const tentativas = useRef({}); // perguntaId -> respostas já recusadas pela Ana
   const recusadas = useRef([]); // respostas que a Ana pediu para completar: também contam como "já dito"
+  // A conversa inteira (falas da Ana e do aluno), mandada à IA a cada resposta: ela relê tudo antes de falar.
+  const conversa = useRef(null);
 
   // A próxima pergunta já é conhecida: pede a voz dela enquanto o aluno responde, para não esperar a geração.
   useEffect(() => {
@@ -90,6 +92,12 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
       const pergunta = perguntaAtual(roteiro.current);
       if (!pergunta || !String(texto ?? "").trim()) return [];
       setRetorno(null);
+      if (!conversa.current) conversa.current = abertura.map((f) => ({ autor: "ana", texto: f.texto }));
+      conversa.current.push({ autor: "aluno", texto: String(texto).trim() });
+      const anotar = (lista) => {
+        for (const f of lista) if (f?.texto) conversa.current.push({ autor: "ana", texto: f.texto });
+        return lista;
+      };
       // Qualquer fala já conta para o histórico (salva sozinho em andamento).
       onProgresso?.({ respondidas: roteiro.current.indice, total: cenario.perguntas.length });
 
@@ -99,19 +107,19 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
         const tentativa = tentativas.current[pergunta.id] ?? 0;
         // O que o aluno já disse (respostas aceitas e as que ela pediu para completar): a Ana não pede de novo.
         const historico = [...roteiro.current.respostas.map((r) => ({ perguntaId: r.perguntaId, texto: r.texto })), ...recusadas.current].slice(-10);
-        ia = await servidor.turno({ cenarioId: cenario.id, perguntaId: pergunta.id, texto, tentativa, historico }).catch(() => null);
+        ia = await servidor.turno({ cenarioId: cenario.id, perguntaId: pergunta.id, texto, tentativa, historico, conversa: conversa.current.slice(-80, -1) }).catch(() => null);
         const pedido = ia?.examinar ? cenario.lacunas.find((l) => l.campo === ia.examinar) : exameDoTexto(texto, cenario.lacunas);
         if (pedido && !roteiro.current.lacunas[pedido.campo]) {
           // Disse que vai examinar: não conta como tentativa; a Ana concorda e aparece o botão.
           setExamePendente(pedido);
-          return [{ id: `${pergunta.id}.ex.${Date.now()}`, texto: ia?.fala || "Pode examinar, eu espero. Depois me conta o que achou.", origem: ia?.fala ? "aovivo" : "fixa" }];
+          return anotar([{ id: `${pergunta.id}.ex.${Date.now()}`, texto: ia?.fala || "Pode examinar, eu espero. Depois me conta o que achou.", origem: ia?.fala ? "aovivo" : "fixa" }]);
         }
         if (ia?.fala && ia.situacao !== "respondeu" && tentativa === 0) {
           // Não soube, fugiu do assunto ou ficou incompleto: a Ana orienta e pergunta de novo, sem avançar.
           tentativas.current[pergunta.id] = 1;
           recusadas.current.push({ perguntaId: pergunta.id, texto });
           setRetorno(RETORNO[ia.situacao] ?? RETORNO.incompleto);
-          return [{ id: `${pergunta.id}.ia.${Date.now()}`, texto: ia.fala, origem: "aovivo" }];
+          return anotar([{ id: `${pergunta.id}.ia.${Date.now()}`, texto: ia.fala, origem: "aovivo" }]);
         }
       }
 
@@ -150,9 +158,9 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
         const seguinte = r.estado.cenario.perguntas[r.estado.indice + 1];
         if (seguinte) preCarregarVoz({ texto: perguntaFala(seguinte).texto, personagemId: PERSONAGEM });
       }
-      return falas;
+      return anotar(falas);
     },
-    [avaliar, cenario.id, cenario.perguntas.length, onProgresso]
+    [abertura, avaliar, cenario.id, cenario.perguntas.length, onProgresso]
   );
 
   const preencher = (lacuna, resultado) => {

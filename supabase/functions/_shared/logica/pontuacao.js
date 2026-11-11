@@ -94,7 +94,9 @@ export function motivoNaoRevelado(fato, { confiancaFinal, contagemTemas = {} }) 
     return perguntou ? `A confiança já bastava, mas a pergunta sobre ${rotulo} não foi específica o bastante.` : `Você não perguntou sobre ${rotulo}.`;
   }
   if (fato.revelacao === "esquecido") {
-    return perguntou >= 2 ? `O paciente já lembraria, mas faltou perguntar de novo sobre ${rotulo}.` : `Ele não lembrava de primeira: era preciso insistir mais de uma vez sobre ${rotulo} (você perguntou ${perguntou}).`;
+    return perguntou >= 2
+      ? `O paciente já lembraria, mas faltou perguntar de novo sobre ${rotulo}.`
+      : `Ele não lembrava sozinho. Dava para insistir no assunto (${rotulo}) ou conferir em outra fonte: a receita ou o papel que ele trouxe, o registro do hospital ou um familiar por telefone.`;
   }
   return `Você não perguntou sobre ${rotulo}.`;
 }

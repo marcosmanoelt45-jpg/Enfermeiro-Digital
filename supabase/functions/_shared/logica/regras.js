@@ -10,6 +10,16 @@ export const EMOCOES_VALIDAS = ["parado", "falando", "pensando", "feliz", "dor",
 
 const LIMITE_ESQUECIDO = 2;
 
+// O aluno pediu para conferir em outra fonte: receita, papel do posto, caixinha do remédio, pulseira, registro de
+// internação anterior ou um familiar por telefone. Daí o que o paciente esqueceu pode ser confirmado.
+// Fica guardado na contagem de temas da sessão como "fonte_externa" (vale até o fim da consulta).
+export const CHAVE_FONTE_EXTERNA = "fonte_externa";
+const FONTE_EXTERNA = /(receita|documento|papel|papelzinho|carteirinha|cartao do (posto|sus)|caderneta|pulseira|caixa(inha)? (do|de) remedio|embalage|bula|bolsa|sacola|prontuario|registro|internac(ao|oes) anterior|exames? antigos?|familia|filh[oa]s?|espos[ao]|marido|neta?o?s?|irma[os]?|acompanhante|cuidador|vizinh|ligar|ligacao|telefon|celular|whats|posto de saude|farmacia|ubs)/;
+const semAcento = (t) => String(t ?? "").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+export function pedeFonteExterna(texto) {
+  return FONTE_EXTERNA.test(semAcento(texto));
+}
+
 // Para cada fato: { id, tema, regra, liberado, texto (só se liberado), instrucao }.
 export function estadoDosFatos(ficha, { confianca, contagemTemas = {} }) {
   return ficha.fatos.map((f) => {
@@ -25,10 +35,13 @@ export function estadoDosFatos(ficha, { confianca, contagemTemas = {} }) {
         }
         return { ...base, liberado: false, instrucao: `se perguntarem sobre ${f.tema}, conte a versão: "${f.versaoFalsa}".` };
       case "esquecido":
+        if ((contagemTemas[CHAVE_FONTE_EXTERNA] ?? 0) > 0) {
+          return { ...base, liberado: true, texto: f.texto, instrucao: `você não lembrava sozinho, mas a informação aparece na fonte que o aluno sugeriu (a receita ou o papel que você trouxe, a caixinha do remédio, o registro do hospital ou um familiar ao telefone): se o assunto for ${f.tema}, conte e diga de onde veio.` };
+        }
         if ((contagemTemas[f.tema] ?? 0) >= LIMITE_ESQUECIDO) {
           return { ...base, liberado: true, texto: f.texto, instrucao: `agora você lembrou: se perguntarem sobre ${f.tema}, conte.` };
         }
-        return { ...base, liberado: false, instrucao: "você não lembra direito disso." };
+        return { ...base, liberado: false, instrucao: "você não lembra direito disso. Se o aluno perguntar, diga que não lembra e, se fizer sentido, comente onde ele poderia ver (a receita na sua bolsa, o papel do posto, alguém da família)." };
       default:
         return { ...base, liberado: false, instrucao: "você não sabe sobre isso." };
     }
@@ -37,9 +50,9 @@ export function estadoDosFatos(ficha, { confianca, contagemTemas = {} }) {
 
 // Texto do bloco ESTADO DO TURNO. Fato bloqueado entra só com tema e instrução (versão falsa ou "não lembra").
 /**
- * @param {{ ficha: any, confianca: number, contagemTemas: Record<string, number>, reveladosIds?: string[], notas?: string[], turnosRestantes?: number }} p
+ * @param {{ ficha: any, confianca: number, contagemTemas: Record<string, number>, reveladosIds?: string[], notas?: string[], turnosRestantes?: number, pediuFonte?: boolean }} p
  */
-export function montarEstadoDoTurno({ ficha, confianca, contagemTemas, reveladosIds = [], notas = [], turnosRestantes = 99 }) {
+export function montarEstadoDoTurno({ ficha, confianca, contagemTemas, reveladosIds = [], notas = [], turnosRestantes = 99, pediuFonte = false }) {
   const fatos = estadoDosFatos(ficha, { confianca, contagemTemas });
   const linhasFatos = fatos.map((f) =>
     f.liberado ? `- [${f.id}] tema ${f.tema}: "${f.texto}". Instrução: ${f.instrucao}` : `- [${f.id}] tema ${f.tema}: ${f.instrucao}`
@@ -54,6 +67,14 @@ export function montarEstadoDoTurno({ ficha, confianca, contagemTemas, revelados
     "MEMÓRIA (o que você já contou ou disse e precisa manter):",
     blocoMemoria({ ficha, reveladosIds, notas }),
   ];
+  if (pediuFonte) {
+    partes.push(
+      "",
+      "PEDIDO DO ALUNO AGORA: ele pediu para ver a sua receita, papéis, caixinha de remédio ou registro, ou para falar com alguém da família. " +
+        "Responda a ISSO diretamente e colabore: diga o que você trouxe (a receita e o papel do posto estão na sua bolsa) ou dê o contato de um familiar, " +
+        "e conte o que aparece lá entre os fatos liberados (alergias, nomes e doses de remédio). Não mude de assunto."
+    );
+  }
   if (turnosRestantes <= 3) {
     partes.push("", "O atendimento está chegando ao fim; se fizer sentido, demonstre cansaço ou pergunte o que vai acontecer agora.");
   }

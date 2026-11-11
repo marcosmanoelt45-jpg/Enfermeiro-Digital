@@ -109,7 +109,7 @@ export const consulta = {
 // Plantão com a Enfermeira: o servidor avalia as respostas (texto pela IA, números e lacunas por código).
 export const plantao = {
   // A enfermeira reage à resposta com IA: { situacao: "respondeu"|"incompleto"|"nao_sabe"|"fora_do_tema", fala|null }.
-  turno: ({ cenarioId, perguntaId, texto, tentativa, historico = [] }) => invocarFuncao(invoke, "cena-ia", { acao: "turno_plantao", cenarioId, perguntaId, texto, tentativa, historico }, { timeoutMs: 12000, tentativas: 1 }),
+  turno: ({ cenarioId, perguntaId, texto, tentativa, historico = [], conversa = [] }) => invocarFuncao(invoke, "cena-ia", { acao: "turno_plantao", cenarioId, perguntaId, texto, tentativa, historico, conversa }, { timeoutMs: 12000, tentativas: 1 }),
   avaliar: ({ cenarioId, respostas, lacunas }) => invocarFuncao(invoke, "cena-ia", { acao: "avaliar_plantao", cenarioId, respostas, lacunas }, { timeoutMs: 30000, tentativas: 1 }),
 };
 

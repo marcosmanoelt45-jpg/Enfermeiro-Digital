@@ -202,7 +202,7 @@ test("aplicarResposta: emoção inválida vira falando; exame só passa se estiv
   assert.equal(aplicarResposta(e, { exame_solicitado: null }).exame, null);
 });
 
-test("memória: notas de até 12 palavras, no máximo 12 notas, e histórico dos últimos 10 turnos só com a fala", () => {
+test("memória: notas de até 12 palavras, no máximo 12 notas, e histórico da conversa inteira (até 80 turnos) só com a fala", () => {
   assert.deepEqual(acrescentarNota([], "  "), []);
   assert.equal(acrescentarNota([], "um dois três quatro cinco seis sete oito nove dez onze doze treze quatorze")[0].split(" ").length, 12);
   let notas = [];
@@ -212,9 +212,10 @@ test("memória: notas de até 12 palavras, no máximo 12 notas, e histórico dos
 
   const turnos = Array.from({ length: 14 }, (_, i) => ({ autor: i % 2 ? "paciente" : "aluno", texto: `t${i}`, revelados: i === 3 ? ["f1"] : [] }));
   const h = ultimosTurnos(turnos);
-  assert.equal(h.length, 10);
-  assert.deepEqual(h[0], { role: "user", content: "t4" });
-  assert.deepEqual(h[1], { role: "assistant", content: "t5" });
+  assert.equal(h.length, 14);
+  assert.deepEqual(h[0], { role: "user", content: "t0" });
+  assert.deepEqual(h[1], { role: "assistant", content: "t1" });
+  assert.equal(ultimosTurnos(turnos, 10).length, 10);
   assert.deepEqual(reveladosAteAgora(turnos), ["f1"]);
 });
 
@@ -269,4 +270,13 @@ test("cortarEmFrases não corta números nem abreviações", () => {
 
 test("personalidades listadas nos testes existem", () => {
   assert.equal(PERSONALIDADES.length, 8);
+});
+
+test("pedir outra fonte (receita, família, registro) libera o que o paciente esqueceu", async () => {
+  const { pedeFonteExterna, CHAVE_FONTE_EXTERNA } = await import("./regras.js");
+  for (const t of ["Você trouxe a receita?", "Posso ligar para sua filha?", "Tem algum papel do posto na bolsa?", "Vou olhar o registro da internação anterior"]) assert.ok(pedeFonteExterna(t), t);
+  for (const t of ["Você tem alergia?", "Como está a dor?"]) assert.ok(!pedeFonteExterna(t), t);
+  const ficha = { fatos: [{ id: "f1", tema: "alergias", texto: "alergia a dipirona", revelacao: "esquecido" }] };
+  assert.equal(estadoDosFatos(ficha, { confianca: 50, contagemTemas: {} })[0].liberado, false);
+  assert.equal(estadoDosFatos(ficha, { confianca: 50, contagemTemas: { [CHAVE_FONTE_EXTERNA]: 1 } })[0].liberado, true);
 });

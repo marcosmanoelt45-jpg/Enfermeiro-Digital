@@ -10,7 +10,7 @@
  * @property {'paciente'|'medico'|'enfermeira'|'preceptor'} papel
  * @property {'crianca'|'jovem'|'adulto'|'idoso'} faixa
  * @property {'M'|'F'} sexo
- * @property {{ voiceboxPerfil: string, navegador: { pitch: number, rate: number } }} voz
+ * @property {{ voiceboxPerfil: string, modo?: "mp3", navegador: { pitch: number, rate: number } }} voz
  * @property {Emocao[]} clipes Emoções que existem em disco.
  * @property {string} poster
  * @property {string} [pasta] Pasta pública dos clipes (padrão: /personagens/<id>).

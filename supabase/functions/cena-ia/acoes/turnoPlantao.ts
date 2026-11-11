@@ -19,7 +19,7 @@ export function limparFala(fala: unknown): string | null {
 
 export async function turnoPlantao(
   _userId: string,
-  entrada: { cenarioId: string; perguntaId: string; texto: string; tentativa: number; historico?: Array<{ perguntaId: string; texto: string }> },
+  entrada: { cenarioId: string; perguntaId: string; texto: string; tentativa: number; historico?: Array<{ perguntaId: string; texto: string }>; conversa?: Array<{ autor: "ana" | "aluno"; texto: string }> },
   deps: { llm: ChamarLLM; cota?: () => Promise<void> },
 ): Promise<{ situacao: SituacaoPlantao; fala: string | null; cobreProxima: boolean; cobertas: string[]; examinar: string | null }> {
   const inicio = Date.now();
@@ -45,7 +45,7 @@ export async function turnoPlantao(
 
   try {
     const r = await deps.llm({
-      mensagens: montarMensagensEnfermeiraPlantao({ cenario, pergunta, resposta: entrada.texto, segundaTentativa, historico, proxima, proximas, exames: (cenario.lacunas ?? []).map((l: { campo: string; rotulo: string }) => ({ campo: l.campo, rotulo: l.rotulo })) }),
+      mensagens: montarMensagensEnfermeiraPlantao({ cenario, pergunta, resposta: entrada.texto, segundaTentativa, historico, conversa: (entrada.conversa ?? []).slice(-80), proxima, proximas, exames: (cenario.lacunas ?? []).map((l: { campo: string; rotulo: string }) => ({ campo: l.campo, rotulo: l.rotulo })) }),
       json: PARAMETROS_ENFERMEIRA_PLANTAO.json,
       temperatura: PARAMETROS_ENFERMEIRA_PLANTAO.temperatura,
       maxTokens: PARAMETROS_ENFERMEIRA_PLANTAO.maxTokens,

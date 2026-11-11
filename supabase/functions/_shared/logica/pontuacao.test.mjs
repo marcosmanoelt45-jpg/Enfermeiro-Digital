@@ -73,7 +73,7 @@ test("motivo de um fato escondido, gerado por código", () => {
   assert.match(motivoNaoRevelado(conf, { confiancaFinal: 70, contagemTemas: {} }), /Você não perguntou sobre como toma os remédios/);
   assert.match(motivoNaoRevelado(conf, { confiancaFinal: 70, contagemTemas: { adesao: 1 } }), /não foi específica/);
   const esq = { tema: "alergias", revelacao: "esquecido" };
-  assert.match(motivoNaoRevelado(esq, { confiancaFinal: 50, contagemTemas: { alergias: 1 } }), /insistir.*você perguntou 1/);
+  assert.match(motivoNaoRevelado(esq, { confiancaFinal: 50, contagemTemas: { alergias: 1 } }), /insistir.*outra fonte/);
   assert.match(motivoNaoRevelado(esq, { confiancaFinal: 50, contagemTemas: { alergias: 2 } }), /faltou perguntar de novo/);
   assert.match(motivoNaoRevelado({ tema: "medicacoes", revelacao: "pergunta_direta" }, { confiancaFinal: 50 }), /Você não perguntou sobre medicações/);
 });

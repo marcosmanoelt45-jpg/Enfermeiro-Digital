@@ -74,6 +74,7 @@ const Entrada = z.discriminatedUnion("acao", [
     texto: z.string().trim().min(1).max(600),
     tentativa: z.number().int().min(0).max(3),
     historico: z.array(z.object({ perguntaId: z.string().max(80), texto: z.string().trim().min(1).max(600) })).max(12).optional(),
+    conversa: z.array(z.object({ autor: z.enum(["ana", "aluno"]), texto: z.string().trim().min(1).max(600) })).max(80).optional(),
   }),
 ]);
 

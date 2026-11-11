@@ -1,6 +1,7 @@
 // Memória e histórico enviados à IA: só os últimos 10 turnos + fatos já revelados + notas curtas (controle de custo).
 export const MAX_NOTAS = 12;
-export const MAX_TURNOS_HISTORICO = 10;
+// A consulta tem no máximo 40 falas do aluno (80 turnos): o paciente lembra da conversa inteira.
+export const MAX_TURNOS_HISTORICO = 80;
 
 // Notas curtas devolvidas pela IA (até 12 palavras, no máximo 12 notas; a mais antiga sai primeiro).
 export function acrescentarNota(notas, nota) {

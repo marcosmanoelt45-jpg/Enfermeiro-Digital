@@ -1,5 +1,11 @@
 // Fila de falas de um personagem: resolve a origem do áudio (mp3 fixo, voz ao vivo ou navegador),
 // toca em sequência e expõe a palavra atual para o karaokê. Falha de voz nunca aparece como erro.
+//
+// Uma voz só por cena: antes cada fala escolhia a sua origem (Gemini em cache, mp3 do VoiceBox ou navegador) e a
+// voz do personagem trocava de uma fala para a outra. Agora o modo é decidido para a cena inteira:
+// - "mp3": personagem só de falas fixas com mp3 (o Dr. Rui) usa sempre o mp3.
+// - "gemini": tenta a voz do Gemini; na primeira falha (cota do dia acabou), passa para "navegador" e fica nele
+//   até o fim da cena. A voz troca no máximo uma vez, e nunca volta.
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buscarPersonagem } from "./dados/personagens.js";
 import { dividirEmFrases, resolverFala } from "./logica/falas.js";
@@ -7,9 +13,14 @@ import { carregarManifesto } from "./voz/manifestos.js";
 import { obterReprodutor } from "./voz/reprodutor.js";
 import { gerarVoz } from "./servidor.js";
 
+export function modoInicialDaVoz(personagem) {
+  return personagem?.voz?.modo === "mp3" ? "mp3" : "gemini";
+}
+
 export default function useVozPersonagem(personagemId) {
   const reprodutorRef = useRef(null);
   const geracaoRef = useRef(0);
+  const modoRef = useRef(null); // "mp3" | "gemini" | "navegador", para a cena inteira
   const [falando, setFalando] = useState(false);
   const [falaAtual, setFalaAtual] = useState(null);
   const [palavraAtual, setPalavraAtual] = useState(-1);
@@ -34,51 +45,49 @@ export default function useVozPersonagem(personagemId) {
     async (falas) => {
       const gen = ++geracaoRef.current;
       const personagem = buscarPersonagem(personagemId);
+      if (!modoRef.current) modoRef.current = modoInicialDaVoz(personagem);
       const manifesto = await carregarManifesto(personagemId);
       const player = reprodutor();
       // "falando" (a animação) liga quando o áudio começa a sair, não quando a voz é pedida.
       const comecou = () => gen === geracaoRef.current && setFalando(true);
+      const palavra = (base) => (i) => gen === geracaoRef.current && setPalavraAtual(base + i);
       try {
         for (const fala of falas) {
           if (gen !== geracaoRef.current) return false;
           setFalaAtual(fala);
           setPalavraAtual(-1);
           const resolvida = resolverFala(fala, manifesto, `/vozes/${personagemId}`);
-          // Falas fixas também usam a voz do Gemini (a mesma do resto da conversa; o servidor guarda em cache,
-          // então cada frase fixa é gerada uma vez só). O mp3 antigo vira reserva.
-          if (resolvida.tipo === "aovivo" || fala.origem === "fixa") {
-            // Voz ao vivo frase a frase: pede todas ao mesmo tempo e toca a 1ª assim que chega
-            // (a resposta inteira de uma vez levava mais de 10 s para começar a tocar).
-            // No máximo 2 pedidos por fala: a 1ª frase sozinha (começa rápido) e o resto junto. Uma por frase
-            // estourava o limite de pedidos por minuto do Gemini (429) e a frase caía na voz do navegador.
+
+          if (modoRef.current === "mp3") {
+            await player.tocar(resolvida.tipo === "mp3" ? resolvida : { tipo: "navegador" }, { texto: fala.texto, personagem, onInicio: comecou, onPalavra: palavra(0) });
+            continue;
+          }
+
+          if (modoRef.current === "gemini") {
+            // Frase a frase: no máximo 2 pedidos por fala (a 1ª frase sozinha, que começa rápido, e o resto junto).
             // Fala fixa vai inteira num pedido só: é o mesmo texto que o lote diário guarda no servidor.
             const todas = fala.origem === "fixa" ? [fala.texto] : dividirEmFrases(fala.texto);
             const frases = todas.length > 1 ? [todas[0], todas.slice(1).join(" ")] : todas;
             const pedidos = frases.map((frase) => gerarVoz({ texto: frase, personagemId }).catch(() => null));
             const primeira = await pedidos[0];
             if (gen !== geracaoRef.current) return false;
-            if (!primeira && resolvida.tipo === "mp3") {
-              await player.tocar(resolvida, { texto: fala.texto, personagem, onInicio: comecou, onPalavra: (i) => gen === geracaoRef.current && setPalavraAtual(i) });
+            if (primeira) {
+              let deslocamento = 0;
+              for (let i = 0; i < frases.length; i++) {
+                const blob = i === 0 ? primeira : await pedidos[i];
+                if (gen !== geracaoRef.current) return false;
+                if (!blob) modoRef.current = "navegador";
+                await player.tocar(blob ? { tipo: "blob", blob } : { tipo: "navegador" }, { texto: frases[i], personagem, onInicio: comecou, onPalavra: palavra(deslocamento) });
+                deslocamento += frases[i].split(/\s+/).filter(Boolean).length;
+              }
               continue;
             }
-            let deslocamento = 0;
-            for (let i = 0; i < frases.length; i++) {
-              const blob = i === 0 ? primeira : await pedidos[i];
-              if (gen !== geracaoRef.current) return false;
-              const base = deslocamento;
-              await player.tocar(blob ? { tipo: "blob", blob } : { tipo: "navegador" }, {
-                texto: frases[i],
-                personagem,
-                onInicio: comecou,
-                onPalavra: (p) => gen === geracaoRef.current && setPalavraAtual(base + p),
-              });
-              deslocamento += frases[i].split(/\s+/).filter(Boolean).length;
-            }
-            continue;
+            // Sem voz do Gemini: o resto da cena fica na voz do navegador.
+            modoRef.current = "navegador";
           }
-          const fonte = resolvida.tipo === "mp3" ? resolvida : { tipo: "navegador" };
+
           if (gen !== geracaoRef.current) return false;
-          await player.tocar(fonte, { texto: fala.texto, personagem, onInicio: comecou, onPalavra: (i) => gen === geracaoRef.current && setPalavraAtual(i) });
+          await player.tocar({ tipo: "navegador" }, { texto: fala.texto, personagem, onInicio: comecou, onPalavra: palavra(0) });
         }
         return gen === geracaoRef.current;
       } finally {

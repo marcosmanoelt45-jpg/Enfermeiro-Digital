@@ -151,12 +151,18 @@ test("criar: nome bloqueado é trocado por um nome comum", async () => {
   assert.notEqual(repo.db.fichas.get(sessaoId).identificacao.nome, "Neymar da Silva");
 });
 
-test("criar: idade e sexo são os pedidos (não os da IA); tema sorteia caso do tema; ids inválidos dão ENTRADA_INVALIDA", async () => {
+test("criar: idade e sexo vêm do paciente e do caso (nem do app, nem da IA); tema sorteia caso do tema; ids inválidos dão ENTRADA_INVALIDA", async () => {
+  const { faixaCompativel, PACIENTES_CONSULTA } = await import("../../_shared/dados/compatibilidade.js");
   const repo = repoEmMemoria();
-  const { sessaoId } = await novaConsulta(repo, { sexo: "F", idade: 71 }, llmFalso(fichaDaIa({ identificacao: { ...fichaDaIa().identificacao, idade: 20, sexo: "M" } })));
+  const { sessaoId } = await novaConsulta(repo, { sexo: "F", idade: 20 }, llmFalso(fichaDaIa({ identificacao: { ...fichaDaIa().identificacao, idade: 20, sexo: "F" } })));
   const f = repo.db.fichas.get(sessaoId);
-  assert.equal(f.identificacao.idade, 71);
-  assert.equal(f.identificacao.sexo, "F");
+  const [min, max] = faixaCompativel(ARQ, PACIENTES_CONSULTA.marcus);
+  assert.ok(f.identificacao.idade >= min && f.identificacao.idade <= max, String(f.identificacao.idade));
+  assert.equal(f.identificacao.sexo, "M");
+  assert.match(f.identificacao.nome, /^Marcus /);
+  // Gestação não serve para o Sr. Marcus.
+  await assert.rejects(criarConsulta(USER, entradaCriar({ arquetipoId: null, tema: "obstetricia" }), { repo, llm: llmFalso("x") }), (e) => e.codigo === "ENTRADA_INVALIDA");
+  await assert.rejects(criarConsulta(USER, entradaCriar({ arquetipoId: "sc_preeclampsia", personagemId: "teresinha" }), { repo, llm: llmFalso("x") }), (e) => e.codigo === "ENTRADA_INVALIDA");
 
   const r2 = await criarConsulta(USER, entradaCriar({ arquetipoId: null, tema: "respiratorio" }), { repo, llm: llmFalso("lixo"), sorteio: () => 0 });
   assert.equal(repo.db.fichas.get(r2.sessaoId).arquetipoId, "sc_dpoc");
@@ -226,15 +232,15 @@ test("turno: o prompt vai na ordem certa e as REGRAS FIXAS são idênticas entre
   assert.ok(!ma[0].content.includes("Antônio"), "REGRAS FIXAS não pode ter nome nem dado da sessão");
 });
 
-test("turno: o histórico enviado tem no máximo os últimos 10 turnos, com o paciente só pela fala", async () => {
+test("turno: o paciente recebe a conversa inteira, com ele só pela fala", async () => {
   const { repo, sessaoId } = await preparar();
   for (let i = 1; i <= 8; i++) await turno(repo, sessaoId, llmFalso(respostaIA({ fala: `fala ${i}` })), { n: i, texto: `pergunta ${i}` });
   const llm = llmFalso(respostaIA());
   await turno(repo, sessaoId, llm, { n: 9, texto: "pergunta 9" });
   const m = llm.chamadas[0].mensagens;
   const historico = m.slice(3, -1);
-  assert.equal(historico.length, 10);
-  assert.deepEqual(historico[0], { role: "user", content: "pergunta 4" });
+  assert.equal(historico.length, 16);
+  assert.deepEqual(historico[0], { role: "user", content: "pergunta 1" });
   assert.deepEqual(historico.at(-1), { role: "assistant", content: "fala 8" });
 });
 
@@ -408,7 +414,7 @@ test("retomar: devolve a conversa e o briefing de uma sessão ativa; encerrada o
   const r = await retomarConsulta(USER, { sessaoId }, { repo });
   assert.deepEqual(r.turnos.map((t) => t.autor), ["aluno", "paciente"]);
   assert.equal(r.turnosRestantes, 39);
-  assert.equal(r.briefing.nome, "Antônio Pereira");
+  assert.equal(r.briefing.nome, "Marcus Pereira");
   assert.ok(["baixo", "medio", "alto"].includes(r.rapport));
   await assert.rejects(retomarConsulta(OUTRO, { sessaoId }, { repo }), (e) => e.codigo === "ENTRADA_INVALIDA");
   repo.db.sessoes.get(sessaoId).status = "encerrada";
