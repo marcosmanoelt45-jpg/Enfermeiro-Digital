@@ -10,7 +10,6 @@ import {
   Loader2,
   Camera,
   Check,
-  Sparkles,
   Flame,
   Snowflake,
   ChevronDown,
@@ -117,11 +116,6 @@ export default function Conta() {
       setBusy(false);
       setShowLogoutConfirm(false);
     }
-  }
-
-  function handleViewSplash() {
-    triggerHaptic(20);
-    navigate("/splash");
   }
 
   async function saveName() {
@@ -491,7 +485,7 @@ export default function Conta() {
           )}
         </div>
 
-        {/* Ações da Conta: Rever Splash & Sair com Button do design system (profile-16) */}
+        {/* Ações da Conta: Ajustes e Sair */}
         <div className="space-y-3 pt-3">
           {/* Ajustes de leitura, plantão noturno e toque: antes só existiam numa gaveta que nunca abria. */}
           <Button
@@ -503,17 +497,6 @@ export default function Conta() {
           >
             <SlidersHorizontal className="h-4 w-4 text-[#20D5B5]" />
             <span>Ajustes (leitura, plantão noturno e toque)</span>
-          </Button>
-
-          <Button
-            type="button"
-            variant="secondary"
-            size="lg"
-            onClick={handleViewSplash}
-            className="w-full text-xs sm:text-sm font-bold flex items-center justify-center gap-2"
-          >
-            <Sparkles className="h-4 w-4 text-[#20D5B5]" />
-            <span>Rever Tela de Abertura (Splash / Boas-Vindas)</span>
           </Button>
 
           <Button

@@ -38,7 +38,7 @@ export function exameDoTexto(texto, lacunas = []) {
 // A cada resposta de texto, a IA da Ana entende o que o aluno disse (turno_plantao): se ele não soube ou fugiu do
 // assunto, ela orienta e pergunta de novo (uma vez); se respondeu, ela reage ao conteúdo e segue. Sem servidor,
 // cai nas reações fixas de antes. Perguntas de números seguem conferidas só por código.
-export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
+export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso }) {
   const roteiro = useRef(criarRoteiro(cenario));
   const ultimas = useRef({});
   const tentativas = useRef({}); // perguntaId -> respostas já recusadas pela Ana
@@ -90,6 +90,8 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
       const pergunta = perguntaAtual(roteiro.current);
       if (!pergunta || !String(texto ?? "").trim()) return [];
       setRetorno(null);
+      // Qualquer fala já conta para o histórico (salva sozinho em andamento).
+      onProgresso?.({ respondidas: roteiro.current.indice, total: cenario.perguntas.length });
 
       // IA da Ana (só nas perguntas de texto; números são conferidos por código).
       let ia = null;
@@ -150,7 +152,7 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
       }
       return falas;
     },
-    [avaliar, cenario.id]
+    [avaliar, cenario.id, cenario.perguntas.length, onProgresso]
   );
 
   const preencher = (lacuna, resultado) => {
@@ -222,4 +224,5 @@ PlantaoCena.propTypes = {
   cenario: PropTypes.object.isRequired,
   onFinalizado: PropTypes.func.isRequired,
   onSair: PropTypes.func.isRequired,
+  onProgresso: PropTypes.func,
 };

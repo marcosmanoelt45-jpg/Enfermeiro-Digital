@@ -57,7 +57,8 @@ test("menus finais (D2): header, dock, gaveta Prática e trilha", () => {
       ["consulta", "Consulta ao Vivo", "/consulta", "consulta"],
       ["sbar", "Plantão", "/passagem-plantao", "sbar"],
       ["calculos", "Cálculo", "/laboratorio-calculos", "calculos"],
-      ["tecnicas", "Técnicas", "/tecnicas", "tecnicas"],
+      ["tecnicas", "Vídeos", "/tecnicas", "tecnicas"],
+      ["minijogos", "Minijogos", "/minijogos", null],
       ["questoes", "Questões", "/questoes", null],
       ["casos", "Casos Clínicos", "/simulador-casos", "casos"],
     ]
@@ -66,19 +67,23 @@ test("menus finais (D2): header, dock, gaveta Prática e trilha", () => {
     itensDoDock(nenhuma).map((m) => [m.rotulo, m.rota, m.gaveta]),
     [
       ["Início", "/", false],
-      ["Prática", "/simulador-casos", true],
+      ["Menu", "/simulador-casos", true],
       ["Cálculo", "/laboratorio-calculos", false],
-      ["Técnicas", "/tecnicas", false],
+      ["Vídeos", "/tecnicas", false],
       ["Perfil", "/conta", false],
     ]
   );
   assert.deepEqual(
-    opcoesDaGavetaPratica(nenhuma).slice(0, 4).map((o) => o.id),
-    ["consulta", "plantao", "questoes", "pe_simulator"]
+    opcoesDaGavetaPratica(nenhuma).map((o) => o.id),
+    ["consulta", "plantao", "questoes", "minijogos", "pe_simulator", "continue", "history"]
   );
+  // Plantão aparece uma vez só no Menu e traz as duas maneiras de fazer; Semiologia saiu.
+  const plantao = opcoesDaGavetaPratica(nenhuma).find((o) => o.id === "plantao");
+  assert.deepEqual(plantao.escolhas.map((e) => e.rota), ["/passagem-plantao", "/plantao/gravacao"]);
+  assert.ok(!opcoesDaGavetaPratica(nenhuma).some((o) => /semiolog|gravacao/i.test(o.id + o.rota)));
   assert.deepEqual(
     modulosDaTrilha(nenhuma).map((m) => [m.id, m.destaque]),
-    [["consulta", true], ["sbar", false], ["calculos", false], ["tecnicas", false], ["questoes", false]]
+    [["consulta", true], ["sbar", false], ["calculos", false], ["tecnicas", false], ["minijogos", false], ["questoes", false]]
   );
 });
 

@@ -172,7 +172,7 @@ export const clinicalHistoryService = {
   /**
    * Salva ou atualiza um rascunho de atividade em andamento.
    */
-  saveDraft({ id, moduleType, title, patientInfo, progress = 0, durationSeconds = 0, formData = {}, step = 0, userId = null }) {
+  saveDraft({ id, moduleType, title, patientInfo, progress = 0, durationSeconds = 0, formData = {}, step = 0, userId = null, extra = {} }) {
     const list = getStorage(userId);
     const now = new Date().toISOString();
     const existingIndex = id ? list.findIndex((it) => it.id === id) : -1;
@@ -192,7 +192,8 @@ export const clinicalHistoryService = {
       formData,
       score: null,
       evaluation: null,
-      userId: userId || null
+      userId: userId || null,
+      ...extra
     };
 
     if (existingIndex >= 0) {
@@ -203,6 +204,34 @@ export const clinicalHistoryService = {
 
     setStorage(list, userId);
     return activityItem;
+  },
+
+  /**
+   * Salvamento automático: grava (ou atualiza) a atividade como "em andamento" a cada resposta ou fala,
+   * para ela aparecer nos históricos antes de a pessoa terminar. Nunca desfaz uma atividade já concluída.
+   */
+  autoSalvar({ id, ...dados }) {
+    if (!id) return null;
+    const existente = getStorage(dados.userId ?? null).find((it) => it.id === id);
+    if (existente?.status === 'concluido') return existente;
+    return this.saveDraft({ id, ...dados });
+  },
+
+  /**
+   * Para onde "continuar" leva, conforme o módulo da atividade.
+   */
+  rotaDeRetomada(moduleType) {
+    switch (moduleType) {
+      case MODULE_TYPES.CONSULTA: return '/consulta';
+      case MODULE_TYPES.VIDEOCHAMADA: return '/questoes';
+      case MODULE_TYPES.CALCULO_MEDICO:
+      case MODULE_TYPES.DOSAGE: return '/laboratorio-calculos';
+      case MODULE_TYPES.PLANTAO_VIVO:
+      case MODULE_TYPES.SBAR: return '/passagem-plantao';
+      case MODULE_TYPES.TECNICA: return '/minijogos';
+      case MODULE_TYPES.PROCEDURES: return '/tecnicas';
+      default: return '/simulador-casos';
+    }
   },
 
   /**
@@ -267,7 +296,9 @@ export const clinicalHistoryService = {
     const list = getStorage(userId);
     const now = new Date().toISOString();
 
-    const id = `act_vid_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    // Com `id`, fecha o rascunho que o salvamento automático já criou para esta sessão.
+    const id = sessionData.id || `act_vid_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+    const jaExiste = list.findIndex((it) => it.id === id);
     const novoItem = {
       id,
       moduleType: MODULE_TYPES.VIDEOCHAMADA,
@@ -297,7 +328,8 @@ export const clinicalHistoryService = {
       userId: userId || null
     };
 
-    list.unshift(novoItem);
+    if (jaExiste >= 0) list[jaExiste] = novoItem;
+    else list.unshift(novoItem);
     setStorage(list, userId);
 
     // Também atualiza o banco de questões de revisão pendentes (Amarelas e Vermelhas)

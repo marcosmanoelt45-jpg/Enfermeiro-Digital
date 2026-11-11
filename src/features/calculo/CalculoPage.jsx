@@ -44,6 +44,24 @@ export default function CalculoPage() {
     setFase("rodada");
   };
 
+  // Salva sozinho a cada resposta: a rodada aparece no histórico em andamento.
+  const progresso = useCallback(
+    ({ feitos, total }) => {
+      const modo = MODOS[modoId];
+      clinicalHistoryService.autoSalvar({
+        id: `calculo-${inicio.current}`,
+        moduleType: MODULE_TYPES.CALCULO_MEDICO,
+        title: `Cálculo com o médico · ${modo.rotulo}`,
+        patientInfo: `${feitos} de ${total} prescrições`,
+        progress: Math.round((feitos / (total || 1)) * 100),
+        durationSeconds: (Date.now() - inicio.current) / 1000,
+        formData: { modoId, ids: rodada?.map((i) => i.id) ?? [] },
+        userId,
+      });
+    },
+    [modoId, userId, rodada]
+  );
+
   const finalizar = useCallback(
     (r) => {
       const modo = MODOS[modoId];
@@ -68,7 +86,7 @@ export default function CalculoPage() {
   );
 
   if (fase === "rodada" && rodada) {
-    return <CalculoCena key={numero} rodada={rodada} modo={MODOS[modoId]} onFinalizar={finalizar} onSair={() => setFase("escolha")} />;
+    return <CalculoCena key={numero} rodada={rodada} modo={MODOS[modoId]} onFinalizar={finalizar} onProgresso={progresso} onSair={() => setFase("escolha")} />;
   }
 
   if (fase === "resultado" && resumo) {

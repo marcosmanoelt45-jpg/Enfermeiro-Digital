@@ -3,7 +3,6 @@ import PropTypes from "prop-types";
 import { Button } from "@/components/ui/button";
 import PageShell from "@/components/layout/PageShell";
 import PersonagemStage from "./componentes/PersonagemStage.jsx";
-import LegendaFala from "./componentes/LegendaFala.jsx";
 import HistoricoFalas from "./componentes/HistoricoFalas.jsx";
 import ControleFala from "./componentes/ControleFala.jsx";
 import BarraCena from "./componentes/BarraCena.jsx";
@@ -144,9 +143,6 @@ export default function CenaAoVivo({
   }, [voz, aluno, onEncerrar]);
 
   const emocao = reacao ?? (estado.status === "processando" ? "pensando" : estado.falaAtual?.emocao ?? "parado");
-  const ultimoPersonagem = [...estado.turnos].reverse().find((t) => t.autor === "personagem");
-  // A última fala do personagem fica na tela o tempo todo (também enquanto o aluno fala ou espera a resposta).
-  const textoLegenda = estado.falaAtual?.texto ?? ultimoPersonagem?.texto ?? "";
   const ouvirDeNovo = (turno) => {
     if (!turno?.texto) return;
     voz.falar([{ texto: turno.texto, id: turno.id, origem: turno.origem, emocao: turno.emocao }]);
@@ -178,7 +174,6 @@ export default function CenaAoVivo({
         </Button>
       ) : (
         <>
-          <LegendaFala texto={textoLegenda} palavraAtual={voz.palavraAtual} falando={voz.falando} onOuvir={ultimoPersonagem ? () => ouvirDeNovo(ultimoPersonagem) : undefined} />
           <HistoricoFalas turnos={estado.turnos} className="max-h-[45vh] min-h-[8rem] rounded-2xl border border-[#1F3045] bg-[#0E1722] p-3" onOuvir={ouvirDeNovo} />
           {estado.status === "processando" && <p className="text-center text-sm font-bold text-[#9FB3C6]" role="status">Aguardando resposta…</p>}
           {estado.status === "erro_recuperavel" && (

@@ -90,7 +90,9 @@ export default function HistoricoAtividadesTab({ userId = null }) {
   const handleResumeActivity = (item, e) => {
     e.stopPropagation();
     const t = item.moduleType;
-    if (t === MODULE_TYPES.CONSULTA) navigate(`/consulta/relatorio/${item.id}`);
+    // Em andamento: volta para o módulo (ainda não há relatório nem revisão).
+    if (item.status === "em_andamento") navigate(clinicalHistoryService.rotaDeRetomada(t));
+    else if (t === MODULE_TYPES.CONSULTA) navigate(`/consulta/relatorio/${item.id}`);
     else if (t === MODULE_TYPES.VIDEOCHAMADA) navigate("/revisao");
     else if (t === MODULE_TYPES.DOSAGE || t === MODULE_TYPES.CALCULO_MEDICO) navigate("/laboratorio-calculos");
     else if (t === MODULE_TYPES.SBAR || t === MODULE_TYPES.PLANTAO_VIVO) navigate("/passagem-plantao");

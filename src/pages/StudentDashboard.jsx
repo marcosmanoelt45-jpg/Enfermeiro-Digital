@@ -4,6 +4,7 @@ import { m as motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
   Calculator,
+  Gamepad2,
   Video,
   ArrowRightLeft,
   ChevronRight,
@@ -65,7 +66,8 @@ export default function StudentDashboard() {
     { id: "consulta", title: "Consulta ao Vivo", subtitle: "10 min · Converse com um paciente por voz ou texto", badge: "Voz", highlight: true, icon: Stethoscope, rota: "/consulta" },
     { id: "sbar", title: "Plantão ao Vivo", subtitle: "8 min · Receba a passagem SBAR da enfermeira Ana", badge: "SBAR", highlight: false, icon: ArrowRightLeft, rota: "/passagem-plantao" },
     { id: "doses", title: "Cálculo com o Dr. Rui", subtitle: "5 min · Gotejamento, diluição e BIC", badge: "Doses", highlight: false, icon: Calculator, rota: "/laboratorio-calculos" },
-    { id: "tecnicas", title: "Técnicas: minijogos, POPs e vídeos", subtitle: "5 min · Pratique com as mãos", badge: "Minijogos", highlight: false, icon: Video, rota: "/tecnicas" },
+    { id: "minijogos", title: "Minijogos", subtitle: "Pratique com as mãos: bandeja, ausculta e mais", badge: "Jogos", highlight: false, icon: Gamepad2, rota: "/minijogos" },
+    { id: "tecnicas", title: "Vídeos e POPs", subtitle: "Passo a passo com vídeo e checklist", badge: "POPs", highlight: false, icon: Video, rota: "/tecnicas" },
     { id: "casos", title: "Casos Clínicos", subtitle: "Processo de Enfermagem · 5 etapas", badge: "NANDA-I", highlight: false, icon: BookOpen, rota: "/simulador-casos" },
   ].map((s) => ({
     ...s,
@@ -178,11 +180,7 @@ export default function StudentDashboard() {
                 <button
                   onClick={() => {
                     triggerHaptic(20);
-                    if (latestActivity.moduleType === "sbar") {
-                      navigate("/passagem-plantao");
-                    } else {
-                      navigate("/simulador-casos");
-                    }
+                    navigate(clinicalHistoryService.rotaDeRetomada(latestActivity.moduleType));
                   }}
                   className="btn-3d-teal flex-1 h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
                 >

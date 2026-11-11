@@ -41,6 +41,24 @@ export default function PlantaoPage() {
     setFase("cena");
   };
 
+  // Salva sozinho a cada fala do aluno: o plantão aparece no histórico em andamento.
+  const progresso = useCallback(
+    ({ respondidas, total }) => {
+      if (!cenario) return;
+      clinicalHistoryService.autoSalvar({
+        id: `plantao-${cenario.id}-${inicio.current}`,
+        moduleType: MODULE_TYPES.PLANTAO_VIVO,
+        title: `Plantão: ${cenario.title}`,
+        patientInfo: `${cenario.sector} · ${cenario.name}`,
+        progress: Math.round((respondidas / (total || 1)) * 100),
+        durationSeconds: (Date.now() - inicio.current) / 1000,
+        formData: { cenarioId: cenario.id },
+        userId,
+      });
+    },
+    [cenario, userId]
+  );
+
   const finalizado = useCallback(
     (r, lacunas) => {
       const id = `plantao-${cenario.id}-${inicio.current}`;
@@ -64,7 +82,7 @@ export default function PlantaoPage() {
     [cenario, userId]
   );
 
-  if (fase === "cena" && cenario) return <PlantaoCena key={numero} cenario={cenario} onFinalizado={finalizado} onSair={() => setFase("escolha")} />;
+  if (fase === "cena" && cenario) return <PlantaoCena key={numero} cenario={cenario} onFinalizado={finalizado} onProgresso={progresso} onSair={() => setFase("escolha")} />;
 
   if (fase === "relatorio" && relatorio) {
     return (

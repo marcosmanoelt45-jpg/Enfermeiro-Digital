@@ -191,7 +191,8 @@ const AuthenticatedApp = () => {
           <Route path="/turma/:id/nova-atividade" element={<Navigate to="/" replace />} />
           <Route path="/assignment/:id" element={<Navigate to="/" replace />} />
           {DevCenaPage && <Route path="/dev/cena" element={<DevCenaPage />} />}
-          <Route path="/tecnicas" element={<TecnicasPage />} />
+          <Route path="/tecnicas" element={<TecnicasPage secao="videos" />} />
+          <Route path="/minijogos" element={<TecnicasPage secao="minijogos" />} />
           <Route path="/questoes" element={<QuestoesPage />} />
           <Route path="/consulta" element={<ConsultaPage />} />
           <Route path="/consulta/relatorio/:sessaoId" element={<RelatorioPage />} />
@@ -200,10 +201,10 @@ const AuthenticatedApp = () => {
           <Route path="/passagem-plantao-sbar" element={<Redirecionar para="/passagem-plantao" />} />
           <Route path="/sbar" element={<Redirecionar para="/passagem-plantao" />} />
           <Route path="/sbar-lab" element={<Redirecionar para="/passagem-plantao" />} />
-          <Route path="/procedimentos" element={<Redirecionar para="/tecnicas" aba="pops" />} />
-          <Route path="/procedimentos-lab" element={<Redirecionar para="/tecnicas" aba="pops" />} />
-          <Route path="/skills-lab" element={<Redirecionar para="/tecnicas" aba="pops" />} />
-          <Route path="/videoteca" element={<Redirecionar para="/tecnicas" aba="pops" />} />
+          <Route path="/procedimentos" element={<Redirecionar para="/tecnicas" />} />
+          <Route path="/procedimentos-lab" element={<Redirecionar para="/tecnicas" />} />
+          <Route path="/skills-lab" element={<Redirecionar para="/tecnicas" />} />
+          <Route path="/videoteca" element={<Redirecionar para="/tecnicas" />} />
           <Route path="/videochamada" element={<Redirecionar para="/consulta" />} />
           <Route path="/atendimento-voz" element={<Redirecionar para="/consulta" />} />
           <Route path="/revisao" element={<RevisaoPage />} />

@@ -138,10 +138,14 @@ ControleItem.propTypes = {
   onAbrirFolha: PropTypes.func.isRequired,
 };
 
-export default function CalculoCena({ rodada, modo, onFinalizar, onSair }) {
+export default function CalculoCena({ rodada, modo, onFinalizar, onSair, onProgresso }) {
   const [indice, setIndice] = useState(0);
   const [estado, setEstado] = useState(() => novoEstadoItem(rodada[0]));
   const [aviso, setAviso] = useState(null);
+  // Qualquer resposta (certa ou errada) já conta para o histórico: salva sozinho em andamento.
+  useEffect(() => {
+    if (estado.finalizado || estado.erros > 0) onProgresso?.({ feitos: estado.finalizado ? indice + 1 : indice, total: rodada.length });
+  }, [estado.finalizado, estado.erros, indice, rodada.length, onProgresso]);
   const [folha, setFolha] = useState(false);
   const [erroTick, setErroTick] = useState(0);
   const acaoRef = useRef(null);
@@ -270,4 +274,5 @@ CalculoCena.propTypes = {
   modo: PropTypes.object.isRequired,
   onFinalizar: PropTypes.func.isRequired,
   onSair: PropTypes.func.isRequired,
+  onProgresso: PropTypes.func,
 };

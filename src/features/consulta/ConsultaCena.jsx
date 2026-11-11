@@ -111,12 +111,21 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
     async (texto, canal, turnoId) => {
       const r = await consulta.turno({ sessaoId: sessao.sessaoId, turnoId, texto, canal });
       setRestantes(r.turnosRestantes);
+      // Salva sozinho a cada fala: a consulta aparece no histórico antes de o aluno encerrar e registrar.
+      clinicalHistoryService.autoSalvar({
+        id: sessao.sessaoId,
+        moduleType: MODULE_TYPES.CONSULTA,
+        ...resumoParaHistorico({ briefing: sessao.briefing, tema: sessao.tema, personalidadePublica: sessao.personalidadePublica }),
+        progress: Math.round(((40 - r.turnosRestantes) / 40) * 100),
+        durationSeconds: (Date.now() - inicio.current) / 1000,
+        userId: user?.id ?? null,
+      });
       // O exame vem da IA do paciente ou, se ela não marcar, do próprio texto do aluno ("vou medir sua glicemia").
       const pedido = r.exame ?? detectarExame(texto);
       if (pedido && !feitosRef.current.has(pedido)) setExamePedido(pedido);
       return [{ texto: r.fala, emocao: r.emocao, origem: "aovivo" }];
     },
-    [sessao.sessaoId]
+    [sessao.sessaoId, sessao.briefing, sessao.tema, sessao.personalidadePublica, user?.id]
   );
 
   const finalizar = useCallback(

@@ -171,11 +171,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
           <button
             onClick={() => {
               triggerHaptic(20);
-              if (latestActivity.moduleType === "sbar") {
-                navigate("/passagem-plantao");
-              } else {
-                navigate("/simulador-casos");
-              }
+              navigate(clinicalHistoryService.rotaDeRetomada(latestActivity.moduleType));
             }}
             className="btn-3d-teal w-full h-12 text-sm flex items-center justify-center gap-2 cursor-pointer"
           >

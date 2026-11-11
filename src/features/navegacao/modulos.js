@@ -11,6 +11,7 @@ export const ROTAS_CONHECIDAS = [
   "/plantao/gravacao",
   "/laboratorio-calculos",
   "/tecnicas",
+  "/minijogos",
   "/questoes",
   "/simulador-casos",
   "/conta",
@@ -18,7 +19,7 @@ export const ROTAS_CONHECIDAS = [
 
 // Cada módulo tem uma rota e, opcionalmente, um lugar em cada superfície (header, dock, trilha).
 // `flag: null` quer dizer que o módulo está sempre disponível. Desenho final (D2 do plano Cenas ao Vivo):
-// dock Início · Prática · Cálculo · Técnicas · Perfil; "Prática" abre a gaveta.
+// dock Início · Menu · Cálculo · Vídeos · Perfil; "Menu" abre a gaveta. Minijogos ficam só no Menu.
 export const MODULOS = [
   {
     id: "hub",
@@ -77,14 +78,28 @@ export const MODULOS = [
     rota: "/tecnicas",
     grupo: "principal",
     flag: null,
-    header: { rotulo: "Técnicas", icone: "Video", ordem: 50, briefingId: "tecnicas" },
-    dock: { rotulo: "Técnicas", icone: "Video", ordem: 40 },
+    header: { rotulo: "Vídeos", icone: "Video", ordem: 50, briefingId: "tecnicas" },
+    dock: { rotulo: "Vídeos", icone: "Video", ordem: 40 },
     trilha: {
-      titulo: "Técnicas: minijogos e POPs",
-      subtitulo: "5 min · Pratique com as mãos",
-      selo: "Minijogos",
+      titulo: "Vídeos e POPs",
+      subtitulo: "Passo a passo com vídeo e checklist",
+      selo: "POPs",
       icone: "Video",
       ordem: 40,
+    },
+  },
+  {
+    id: "minijogos",
+    rota: "/minijogos",
+    grupo: "pratica",
+    flag: null,
+    header: { rotulo: "Minijogos", icone: "Gamepad2", ordem: 52 },
+    trilha: {
+      titulo: "Minijogos",
+      subtitulo: "Pratique com as mãos: bandeja, ausculta e mais",
+      selo: "Jogos",
+      icone: "Gamepad2",
+      ordem: 42,
     },
   },
   {
@@ -107,7 +122,7 @@ export const MODULOS = [
     grupo: "pratica",
     flag: null,
     header: { rotulo: "Casos Clínicos", icone: "BookOpen", ordem: 60, briefingId: "casos" },
-    dock: { rotulo: "Prática", icone: "ClipboardList", ordem: 20, gaveta: true },
+    dock: { rotulo: "Menu", icone: "Menu", ordem: 20, gaveta: true },
   },
   {
     id: "perfil",
@@ -118,7 +133,7 @@ export const MODULOS = [
   },
 ];
 
-// Opções da gaveta "Prática" do menu de baixo. `modulo` diz de qual módulo vem a flag.
+// Opções da gaveta "Menu" do menu de baixo. `modulo` diz de qual módulo vem a flag.
 export const GAVETA_PRATICA = [
   {
     id: "consulta",
@@ -126,18 +141,22 @@ export const GAVETA_PRATICA = [
     rota: "/consulta",
     titulo: "Consulta ao Vivo",
     subtitulo: "Converse com um paciente por voz ou texto",
-    selo: "Voz",
     icone: "Stethoscope",
     ordem: 10,
   },
   {
+    // Uma entrada só: ao tocar, a gaveta pergunta como a pessoa quer fazer o plantão.
     id: "plantao",
     modulo: "sbar",
     rota: "/passagem-plantao",
-    titulo: "Plantão ao Vivo",
-    subtitulo: "Passagem SBAR com a enfermeira Ana",
+    titulo: "Plantão",
+    subtitulo: "Com a enfermeira Ana ou por voz e preenchimento",
     icone: "ArrowRightLeft",
     ordem: 20,
+    escolhas: [
+      { id: "ana", rota: "/passagem-plantao", titulo: "Com a enfermeira Ana", subtitulo: "Ela pergunta e você responde por voz ou texto", icone: "ArrowRightLeft" },
+      { id: "gravacao", rota: "/plantao/gravacao", titulo: "Por voz ou preenchimento", subtitulo: "Grave a passagem completa ou preencha o SBAR", icone: "Mic" },
+    ],
   },
   {
     id: "questoes",
@@ -147,6 +166,15 @@ export const GAVETA_PRATICA = [
     subtitulo: "Múltipla escolha com 2 chances",
     icone: "ListChecks",
     ordem: 25,
+  },
+  {
+    id: "minijogos",
+    modulo: "minijogos",
+    rota: "/minijogos",
+    titulo: "Minijogos",
+    subtitulo: "Bandeja do curativo, ausculta e mais",
+    icone: "Gamepad2",
+    ordem: 28,
   },
   {
     id: "pe_simulator",
@@ -167,29 +195,11 @@ export const GAVETA_PRATICA = [
     ordem: 40,
   },
   {
-    id: "semiology",
-    modulo: "casos",
-    rota: "/simulador-casos?mode=semiology",
-    titulo: "Semiologia por Sistemas",
-    subtitulo: "Neuro, Resp, Cardio e Pele",
-    icone: "Stethoscope",
-    ordem: 50,
-  },
-  {
-    id: "gravacao",
-    modulo: "sbar",
-    rota: "/plantao/gravacao",
-    titulo: "Plantão · Modo gravação",
-    subtitulo: "Grave a passagem completa ou faça a simulação rápida",
-    icone: "Mic",
-    ordem: 60,
-  },
-  {
     id: "history",
     modulo: "casos",
     rota: "/simulador-casos?action=history",
     titulo: "Histórico e rascunhos",
-    subtitulo: "Casos, SBAR e cálculos",
+    subtitulo: "Casos, plantões, consultas e cálculos",
     icone: "History",
     ordem: 70,
   },

@@ -5,35 +5,69 @@ import {
   ShieldCheck,
   FileText,
   CheckCircle2,
-  Building2
+  Building2,
+  ExternalLink,
+  MessageCircle
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import StudentFooter from "@/components/StudentFooter";
 
 export default function PrivacyPolicyLGPD() {
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState("faq"); // "faq" | "lgpd" | "cofen"
+  const [activeTab, setActiveTab] = useState("faq"); // "faq" | "quem" | "lgpd" | "cofen" | "autoria"
+
+  const LINKEDIN_URL = "https://www.linkedin.com/in/marcos-manoel-958345435/";
+  // O número fica só no link do botão; na tela aparece apenas "Fale conosco".
+  const FALE_CONOSCO_URL = `https://wa.me/5551992187301?text=${encodeURIComponent("Olá! Vim pelo Enfere.")}`;
 
   const faqItems = [
     {
-      q: "O que é o Enfere e qual o seu objetivo?",
-      a: "O Enfere é um ambiente educacional e simulador clínico projetado para estudantes de enfermagem. O objetivo é desenvolver o raciocínio diagnóstico, o exame clínico e a segurança na administração de medicamentos com base em cenários práticos e na Resolução COFEN nº 736/2024."
+      q: "O que é o Enfere?",
+      a: "O Enfere é um simulador de prática clínica para estudantes de enfermagem. Você conversa com pacientes, recebe plantão, faz cálculos de dose, treina técnicas e responde questões, e recebe nota e comentários no fim de cada atividade."
     },
     {
-      q: "Os casos clínicos utilizam dados de pacientes reais?",
-      a: "Não. Todos os casos clínicos são 100% sintéticos e simulados. Nenhum dado de paciente real é utilizado na plataforma, em estrita conformidade com a Lei Geral de Proteção de Dados (LGPD - Lei nº 13.709/2018) e com o Código de Ética dos Profissionais de Enfermagem."
+      q: "Os pacientes e os casos são reais?",
+      a: "Não. Todos os pacientes e casos são sintéticos e simulados. Nenhum dado de paciente real é usado na plataforma, em conformidade com a Lei Geral de Proteção de Dados (Lei nº 13.709/2018) e com o Código de Ética dos Profissionais de Enfermagem."
     },
     {
-      q: "Como funciona a navegação pelas 5 etapas do Processo de Enfermagem?",
-      a: "No Simulador de Casos Clínicos, você progride sequencialmente pelas etapas estabelecidas pelo COFEN: 1. Avaliação (coleta de dados e sinais vitais), 2. Diagnóstico (formulação da resposta humana e etiologia), 3. Planejamento (metas mensuráveis), 4. Implementação (prescrição de cuidados) e 5. Evolução (resposta fisiológica após intervenções)."
+      q: "Como funciona a Consulta ao Vivo?",
+      a: "Você escolhe o assunto e o paciente, conversa por voz ou texto (são até 40 falas) e anota o que descobriu na folha de evolução. Quando quiser examinar, diga na conversa (por exemplo, \"vou medir sua glicemia\"): se o paciente concordar, aparece uma janela para fazer o exame. Ao encerrar, você registra os achados, os diagnósticos e as intervenções e recebe o relatório."
     },
     {
-      q: "O que é o Radar de Parâmetros Clínicos?",
-      a: "É uma ferramenta pedagógica que indica quais dados essenciais do paciente já foram coletados e quais parâmetros complementares ainda não foram investigados, prevenindo o fechamento prematuro do diagnóstico e permitindo adicionar novos achados com 1 clique."
+      q: "Como funciona o Plantão?",
+      a: "No Menu, ao tocar em Plantão você escolhe como fazer. Com a enfermeira Ana, ela pergunta e você responde por voz ou texto, e pode examinar o paciente pelo prontuário. Por voz ou preenchimento, você grava a passagem completa ou preenche o SBAR (Situação, Histórico, Avaliação e Recomendação)."
     },
     {
-      q: "Como o sistema protege contra a inserção acidental de dados sensíveis?",
-      a: "A plataforma possui um sistema ativo de DLP (Data Loss Prevention) no navegador. Se qualquer usuário tentar digitar dados identificadores (como CPF, CNS, RG ou nomes completos), o sistema detecta o padrão e mascara a informação antes de qualquer processamento."
+      q: "Como funciona o Cálculo com o Dr. Rui?",
+      a: "O Dr. Rui passa prescrições e você responde o valor pelo teclado ou por voz. Em algumas prescrições o erro está na própria receita: nesses casos o certo é questionar a prescrição antes de preparar. No fim de cada item você vê a conta passo a passo."
+    },
+    {
+      q: "Como funcionam as Questões?",
+      a: "Cada questão dá duas chances. Se você errar a primeira, pode tocar em \"Ver dica\" quando quiser, e a dica não aparece sozinha. Se errar a segunda, o app mostra a resposta certa e explica cada alternativa. As questões erradas vão para a Revisão."
+    },
+    {
+      q: "Onde ficam os minijogos e os vídeos?",
+      a: "Os minijogos ficam no Menu (ícone de baixo, à esquerda do Cálculo), separados dos vídeos. A aba Vídeos reúne os procedimentos com vídeo, checklist e fonte indicada."
+    },
+    {
+      q: "O que são PE e ofensiva?",
+      a: "PE são os pontos de estudo que você ganha ao concluir atividades. Todo mundo começa com 0. A ofensiva conta os dias seguidos em que você concluiu pelo menos uma atividade."
+    },
+    {
+      q: "Meu progresso fica salvo?",
+      a: "Sim. Questões, consultas, plantões e cálculos são salvos sozinhos a cada resposta ou fala e aparecem nos históricos como \"em andamento\" até você terminar. O histórico fica salvo neste aparelho, na sua conta."
+    },
+    {
+      q: "Como falo por voz?",
+      a: "Toque no microfone para começar a falar e toque de novo para enviar (no computador, também vale a tecla Espaço). Se o navegador bloquear o microfone, libere no cadeado ao lado do endereço ou escreva a resposta."
+    },
+    {
+      q: "O sistema protege dados sensíveis que eu digitar sem querer?",
+      a: "Sim. O app tem uma proteção que procura padrões de dados que identificam pessoas, como CPF, CNS, RG e nomes completos, e mascara a informação antes de qualquer processamento."
+    },
+    {
+      q: "Não achei a resposta. E agora?",
+      a: "Toque em \"Quem somos?\" aqui em cima e use o botão \"Fale conosco\"."
     }
   ];
 
@@ -72,17 +106,27 @@ export default function PrivacyPolicyLGPD() {
             onClick={() => setActiveTab("faq")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "faq"
-                ? "bg-[#20D5B5] text-[#06302E] shadow-sm"
+                ? "bg-[#20D5B5] text-[#06302E]"
                 : "text-[#9FB3C6] hover:bg-slate-800 hover:text-slate-100"
             }`}
           >
             Perguntas Frequentes (FAQ)
           </button>
           <button
+            onClick={() => setActiveTab("quem")}
+            className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
+              activeTab === "quem"
+                ? "bg-[#20D5B5] text-[#06302E]"
+                : "text-[#9FB3C6] hover:bg-slate-800 hover:text-slate-100"
+            }`}
+          >
+            Quem somos?
+          </button>
+          <button
             onClick={() => setActiveTab("lgpd")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "lgpd"
-                ? "bg-[#20D5B5] text-[#06302E] shadow-sm"
+                ? "bg-[#20D5B5] text-[#06302E]"
                 : "text-[#9FB3C6] hover:bg-slate-800 hover:text-slate-100"
             }`}
           >
@@ -92,7 +136,7 @@ export default function PrivacyPolicyLGPD() {
             onClick={() => setActiveTab("cofen")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "cofen"
-                ? "bg-[#20D5B5] text-[#06302E] shadow-sm"
+                ? "bg-[#20D5B5] text-[#06302E]"
                 : "text-[#9FB3C6] hover:bg-slate-800 hover:text-slate-100"
             }`}
           >
@@ -102,7 +146,7 @@ export default function PrivacyPolicyLGPD() {
             onClick={() => setActiveTab("autoria")}
             className={`px-4 py-2 rounded-xl text-xs font-bold transition-all shrink-0 ${
               activeTab === "autoria"
-                ? "bg-emerald-700 text-white shadow-sm"
+                ? "bg-[#20D5B5] text-[#06302E]"
                 : "text-[#9FB3C6] hover:bg-slate-800 hover:text-slate-100"
             }`}
           >
@@ -136,6 +180,41 @@ export default function PrivacyPolicyLGPD() {
                   </p>
                 </div>
               ))}
+            </div>
+          </div>
+        )}
+
+        {/* ABA: QUEM SOMOS */}
+        {activeTab === "quem" && (
+          <div className="space-y-4 animate-in fade-in">
+            <div className="bg-[#131F2E] rounded-2xl p-6 border border-[#1F3045] space-y-4">
+              <h2 className="text-xl font-bold text-slate-100">Quem somos</h2>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                O Enfere é uma plataforma de simulação clínica para estudantes de enfermagem, criada por <strong className="text-slate-100">Marcos Manoel Tavares Neumann</strong>.
+              </p>
+              <p className="text-sm text-slate-300 leading-relaxed">
+                Se você achou um erro, tem uma ideia ou quer conversar sobre o projeto, fale com a gente.
+              </p>
+              <div className="flex flex-col sm:flex-row gap-3 pt-1">
+                <a
+                  href={FALE_CONOSCO_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-3d-teal inline-flex items-center justify-center gap-2 px-5 h-12 text-sm"
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  <span>Fale conosco</span>
+                </a>
+                <a
+                  href={LINKEDIN_URL}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="btn-3d-outline inline-flex items-center justify-center gap-2 px-5 h-12 text-sm"
+                >
+                  <ExternalLink className="h-4 w-4 text-[#20D5B5]" />
+                  <span>LinkedIn</span>
+                </a>
+              </div>
             </div>
           </div>
         )}

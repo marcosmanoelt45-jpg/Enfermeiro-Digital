@@ -412,6 +412,9 @@ function getDefaultState() {
   };
 }
 
+// Módulos que chamam recordActivity quando a pessoa conclui (ver as páginas de cada um).
+const PE_JA_REGISTRADO = new Set(['consulta', 'tecnica', 'calculo_medico', 'plantao_vivo', 'videochamada', 'procedures']);
+
 function syncWithRealHistory(state, userId = null) {
   if (isDemoUser(userId)) {
     return state;
@@ -447,18 +450,19 @@ function syncWithRealHistory(state, userId = null) {
           // profile-2: Usa data real de conclusao (finishedAt ou updatedAt), nunca completedAt que nao existe
           const finishedTime = act.finishedAt || act.updatedAt;
           const dateStr = getLocalDateString(finishedTime ? new Date(finishedTime) : new Date());
-          const xpForAct =
-            act.moduleType === 'videochamada'
-              ? Math.max(20, (Number(act.details?.acertos || 0) * 15) + (Number(act.details?.amarelas || 0) * 10))
-              : act.moduleType === 'dosage'
-              ? 25
-              : act.moduleType === 'sbar'
-              ? 35
-              : act.moduleType === 'procedures'
-              ? 30
-              : 40;
-          dailyXpMap[dateStr] = (dailyXpMap[dateStr] || 0) + xpForAct;
-          addedXpFromHistory += xpForAct;
+          // Os módulos que já registram o próprio PE (recordActivity) não somam de novo aqui: antes cada atividade
+          // concluída valia duas vezes (o PE do módulo mais o do histórico) e a conta nova nunca começava limpa.
+          const xpForAct = PE_JA_REGISTRADO.has(act.moduleType)
+            ? 0
+            : act.moduleType === 'dosage'
+            ? 25
+            : act.moduleType === 'sbar'
+            ? 35
+            : 40;
+          if (xpForAct > 0) {
+            dailyXpMap[dateStr] = (dailyXpMap[dateStr] || 0) + xpForAct;
+            addedXpFromHistory += xpForAct;
+          }
         }
       });
 

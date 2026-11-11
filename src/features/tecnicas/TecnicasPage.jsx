@@ -1,5 +1,5 @@
 import React, { useCallback, useMemo, useState } from "react";
-import { useSearchParams } from "react-router-dom";
+import PropTypes from "prop-types";
 import { Button } from "@/components/ui/button";
 import { Chip, Tile } from "@/components/ui/surface";
 import PageShell from "@/components/layout/PageShell";
@@ -12,11 +12,6 @@ import VideotecaConteudo from "@/features/tecnicas/VideotecaConteudo.jsx";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
 import MaoEstetoscopio from "@/features/minijogos/componentes/ausculta/MaoEstetoscopio.jsx";
 
-// POPs e Vídeos eram a mesma tela (cada POP já traz o vídeo, o checklist e a referência): ficou uma aba só.
-const ABAS = [
-  { id: "minijogos", rotulo: "Minijogos" },
-  { id: "pops", rotulo: "POPs" },
-];
 
 function estimarTempo(m) {
   if (m.tipo === "medir") return `${(m.medir.duracaoSeg ?? 20) + 10} s`;
@@ -26,13 +21,11 @@ function estimarTempo(m) {
   return "2 min";
 }
 
-// Aba Técnicas: minijogos prontos (só os interativos no nível da bandeja; o resto está na reserva) e os POPs com vídeo.
-export default function TecnicasPage() {
+// Duas páginas separadas: "Vídeos" (POPs com vídeo e checklist, em /tecnicas) e "Minijogos" (em /minijogos, só no Menu).
+export default function TecnicasPage({ secao = "videos" }) {
+  const minijogos = secao === "minijogos";
   const { user } = useAuth();
   const userId = user?.id ?? null;
-  // ?aba=pops abre direto nos POPs; ?aba=videos (rotas antigas da videoteca) também cai neles.
-  const [busca] = useSearchParams();
-  const [aba, setAba] = useState(() => (["pops", "videos"].includes(busca.get("aba")) ? "pops" : "minijogos"));
   const [categoria, setCategoria] = useState("todas");
   const [aberto, setAberto] = useState(null);
   const [versao, setVersao] = useState(0);
@@ -74,19 +67,13 @@ export default function TecnicasPage() {
   }
 
   return (
-    <PageShell activeTab="tecnicas" larguraMax="4xl">
-      <header className="space-y-3">
-        <h1 className="text-xl font-extrabold">Técnicas</h1>
-        <div className="mx-auto grid w-full max-w-md grid-cols-2 gap-2" role="tablist" aria-label="Seções">
-          {ABAS.map((a) => (
-            <button key={a.id} type="button" role="tab" aria-selected={aba === a.id} onClick={() => setAba(a.id)} className={`rounded-full border px-3 py-1.5 text-sm font-bold ${aba === a.id ? "border-[#20D5B5] bg-[#20D5B5]/15 text-[#20D5B5]" : "border-[#27394B]"}`}>
-              {a.rotulo}
-            </button>
-          ))}
-        </div>
+    <PageShell activeTab={minijogos ? "minijogos" : "tecnicas"} larguraMax="4xl">
+      <header className="space-y-1">
+        <h1 className="text-xl font-extrabold">{minijogos ? "Minijogos" : "Vídeos"}</h1>
+        <p className="text-sm font-semibold text-[#9FB3C6]">{minijogos ? "Pratique com as mãos, no seu ritmo." : "Procedimentos passo a passo, com vídeo e checklist."}</p>
       </header>
 
-      {aba === "minijogos" && (
+      {minijogos && (
         <>
           {categorias.length > 1 && (
           <div className="flex flex-wrap gap-2">
@@ -128,7 +115,9 @@ export default function TecnicasPage() {
         </>
       )}
 
-      {aba === "pops" && <VideotecaConteudo titulo="POPs com vídeo e checklist" embutido />}
+      {!minijogos && <VideotecaConteudo titulo="POPs com vídeo e checklist" embutido />}
     </PageShell>
   );
 }
+
+TecnicasPage.propTypes = { secao: PropTypes.oneOf(["videos", "minijogos"]) };

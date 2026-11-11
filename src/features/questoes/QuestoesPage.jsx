@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { History, Layers, RotateCcw, Timer, Zap } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
@@ -34,6 +34,7 @@ export default function QuestoesPage() {
   const [revisao, setRevisao] = useState(null); // resumo aberto na Revisão final (fim da sessão ou histórico)
   const [daSessao, setDaSessao] = useState(false); // confete só no fim de uma sessão, não ao abrir o histórico
   const inicio = useRef(Date.now());
+  const idHistorico = useRef(null); // id da sessão no histórico: o salvamento automático e o fim usam o mesmo
 
   const pendentes = useMemo(() => {
     void versao;
@@ -44,6 +45,38 @@ export default function QuestoesPage() {
     void versao;
     return clinicalHistoryService.getAllActivities(MODULE_TYPES.VIDEOCHAMADA, userId).filter((a) => Array.isArray(a.details?.questoes) && a.details.questoes.length);
   }, [userId, versao]);
+
+  // Salva sozinho a cada resposta: a sessão aparece nos históricos mesmo antes de a pessoa terminar.
+  useEffect(() => {
+    if (secao !== "sessao" || !sessao.length || !idHistorico.current) return;
+    if (!estados.some((e) => e.tentativas > 0 || e.isFinalizada)) return;
+    const lista = sessao.map((qq, i) => ({ ...qq, status: estados[i]?.isFinalizada ? estados[i].status : estados[i]?.tentativas > 0 ? "amarela" : "pulada", escolhaAluno: estados[i]?.selectedChoice }));
+    const finalizadas = estados.filter((e) => e.isFinalizada).length;
+    const agora = new Date();
+    clinicalHistoryService.autoSalvar({
+      id: idHistorico.current,
+      moduleType: MODULE_TYPES.VIDEOCHAMADA,
+      title: `Questões · ${MODOS[modo]}`,
+      patientInfo: `Questões · ${MODOS[modo]} (${sessao.length} questões)`,
+      progress: Math.round((finalizadas / sessao.length) * 100),
+      durationSeconds: (Date.now() - inicio.current) / 1000,
+      formData: { modo },
+      userId,
+      extra: {
+        dataDisplay: agora.toLocaleDateString("pt-BR"),
+        horaDisplay: agora.toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" }),
+        details: {
+          modalidade: MODOS[modo],
+          totalQuestoes: sessao.length,
+          acertos: lista.filter((x) => x.status === "verde").length,
+          amarelas: lista.filter((x) => x.status === "amarela").length,
+          vermelhas: lista.filter((x) => x.status === "vermelha").length,
+          questoes: lista.filter((x) => x.status !== "pulada"),
+        },
+      },
+    });
+    setVersao((v) => v + 1);
+  }, [estados, secao, sessao, modo, userId]);
 
   // Refazer uma lista (as erradas de uma sessão, ou um filtro do histórico) até acertar.
   const refazer = (lista) => {
@@ -56,6 +89,7 @@ export default function QuestoesPage() {
     setIndice(0);
     setDica(false);
     inicio.current = Date.now();
+    idHistorico.current = `act_vid_${inicio.current}`;
     setSecao("sessao");
   };
 
@@ -68,6 +102,7 @@ export default function QuestoesPage() {
     setIndice(0);
     setDica(false);
     inicio.current = Date.now();
+    idHistorico.current = `act_vid_${inicio.current}`;
     setSecao("sessao");
   };
 
@@ -86,7 +121,7 @@ export default function QuestoesPage() {
     } else if (est.tentativas === 0) {
       vibrate([30, 40, 30]);
       mudar((e) => ({ ...e, status: "amarela", tentativas: 1, selectedChoice: null, opcoesFalhadas: [...e.opcoesFalhadas, escolha] }));
-      setDica(true);
+      setDica(false); // a dica só aparece quando a pessoa pedir em "Ver dica"
     } else {
       vibrate([30, 40, 30]);
       clinicalGamificationService.registrarErroVermelhoQuestao?.(userId);
@@ -101,7 +136,7 @@ export default function QuestoesPage() {
     const vermelhas = lista.filter((x) => x.status === "vermelha").length;
     const precisao = Math.round(((acertos + amarelas * 0.5) / (lista.length || 1)) * 100);
     clinicalHistoryService.saveVideochamadaSession(
-      { titulo: `Questões · ${MODOS[modo]}`, pacienteNome: "Questões", modalidade: MODOS[modo], modo, totalQuestoes: lista.length, acertos, amarelas, vermelhas, precisao, tempoSegundos: (Date.now() - inicio.current) / 1000, questoes: lista },
+      { id: idHistorico.current, titulo: `Questões · ${MODOS[modo]}`, pacienteNome: "Questões", modalidade: MODOS[modo], modo, totalQuestoes: lista.length, acertos, amarelas, vermelhas, precisao, tempoSegundos: (Date.now() - inicio.current) / 1000, questoes: lista },
       userId
     );
     if (modo === "revisao") clinicalHistoryService.removerQuestoesRevisao(lista.filter((x) => x.status === "verde" || x.status === "amarela"), userId);
@@ -197,7 +232,7 @@ export default function QuestoesPage() {
                       <button type="button" onClick={() => setDaSessao(false) || setRevisao(resumoDaSessao(d.questoes, a.durationSeconds))} className="flex w-full items-center gap-3 px-4 py-3 text-left hover:bg-[#16222E]">
                         <span className="min-w-0 flex-1">
                           <span className="block truncate text-sm font-extrabold">{a.title}</span>
-                          <span className="block text-xs font-semibold text-[#9FB3C6]">{a.dataDisplay} {a.horaDisplay} · {d.totalQuestoes} questões</span>
+                          <span className="block text-xs font-semibold text-[#9FB3C6]">{a.dataDisplay} {a.horaDisplay} · {d.totalQuestoes} questões{a.status === "em_andamento" ? " · em andamento" : ""}</span>
                         </span>
                         <span className="flex shrink-0 gap-1 text-[11px] font-black tabular-nums">
                           <span className="rounded-full bg-[#20D5B5]/15 px-2 py-0.5 text-[#20D5B5]">{d.acertos}</span>
