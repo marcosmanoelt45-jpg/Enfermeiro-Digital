@@ -12,6 +12,8 @@ import {
   ArrowRight
 } from "lucide-react";
 
+import FolhaResposta from "@/components/feedback/FolhaResposta.jsx";
+
 const LETRAS = ["A", "B", "C", "D", "E"];
 
 export default function PlurallQuestionCard({
@@ -54,6 +56,20 @@ export default function PlurallQuestionCard({
   // A questão é finalizada se a prop for true, se acertou/errou de vez (verde/vermelha), se completou 2 tentativas ou está em leitura
   const isFinalizada = Boolean(propIsFinalizada || status === "verde" || status === "vermelha" || tentativas >= 2 || isReadOnly);
   const isPrimeiroErro = status === "amarela" && !isFinalizada;
+
+  // Folha de retorno (acerto, erro, ou "tente outra" no 1º erro). Fecha por questão e estado.
+  const chaveFolha = `${numQuestao}:${status}:${tentativas}`;
+  const [folhaFechada, setFolhaFechada] = useState(null);
+  const folhaAberta = !isReadOnly && status !== "aberta" && folhaFechada !== chaveFolha;
+  const fecharFolha = () => setFolhaFechada(chaveFolha);
+  const explicacaoCerta = (questao.explicacaoAlternativas || []).find((a) => a.isCorreta)?.explicacao?.replace(/^\s*correta[^:]*:\s*/i, "");
+  const folha = isPrimeiroErro
+    ? { tom: "alerta", titulo: "Quase! Tente outra.", texto: "Essa não é a certa. Você ainda tem mais uma chance." }
+    : status === "verde"
+    ? { tom: "ok", titulo: "Isso aí!", texto: explicacaoCerta, pe: 25 }
+    : status === "amarela"
+    ? { tom: "ok", titulo: "Agora sim!", texto: explicacaoCerta }
+    : { tom: "erro", titulo: "Não foi dessa vez", texto: <>A certa é a <b className="text-[#EAF2F8]">letra {LETRAS[questao.correta]}</b>.{explicacaoCerta ? ` ${explicacaoCerta}` : ""}</> };
 
   const letras = LETRAS;
 
@@ -152,11 +168,11 @@ export default function PlurallQuestionCard({
 
           if (isFinalizada) {
             if (isGabarito) {
-              optStyle = "bg-[#20D5B5]/15 border-[#20D5B5] text-white shadow-sm";
-              letterStyle = "bg-[#20D5B5] border-[#20D5B5] text-[#0E1722] font-black";
+              optStyle = "bg-[#12301F] border-[#3DD68C] border-b-[#1E9A5E] text-white";
+              letterStyle = "bg-[#3DD68C] border-[#3DD68C] text-[#062819] font-black";
             } else if (isSelected && !isGabarito) {
-              optStyle = "bg-[#F25F5C]/15 border-[#F25F5C] text-white";
-              letterStyle = "bg-[#F25F5C] border-[#F25F5C] text-white font-black";
+              optStyle = "bg-[#341A1E] border-[#FF6B6B] border-b-[#C24848] text-white";
+              letterStyle = "bg-[#FF6B6B] border-[#FF6B6B] text-[#2B1619] font-black";
             } else {
               optStyle = "bg-[#131F2E]/60 border-[#1F3045]/60 text-[#9FB3C6] opacity-60";
             }
@@ -214,7 +230,7 @@ export default function PlurallQuestionCard({
         )}
 
         {/* Caso já tenha finalizado a questão */}
-        {isFinalizada && (
+        {isFinalizada && !folhaAberta && (
           <div className="space-y-3">
             <div className="flex items-center justify-between gap-2 pt-1 border-t border-[#1F3045]/60">
               <button
@@ -292,6 +308,25 @@ export default function PlurallQuestionCard({
           </div>
         )}
       </div>
+      {folhaAberta && <div className="h-48" aria-hidden="true" />}
+      <FolhaResposta
+        aberta={folhaAberta}
+        tom={folha.tom}
+        quem="goti"
+        titulo={folha.titulo}
+        texto={folha.texto ? <span className="line-clamp-4">{folha.texto}</span> : null}
+        pe={folha.pe}
+        secundaria={
+          isPrimeiroErro
+            ? onToggleHint && { rotulo: "Ver dica", onClick: () => { if (!hintVisible) onToggleHint(); fecharFolha(); } }
+            : { rotulo: "Resolução", onClick: () => { setRevisaoAberta(true); fecharFolha(); } }
+        }
+        acao={
+          isPrimeiroErro
+            ? { rotulo: "Tentar de novo", onClick: fecharFolha }
+            : { rotulo: isLastQuestion ? "Ver resumo" : "Próxima", onClick: () => { fecharFolha(); onProxima?.(); } }
+        }
+      />
     </motion.article>
   );
 }

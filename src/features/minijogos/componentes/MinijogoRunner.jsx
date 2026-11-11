@@ -15,8 +15,21 @@ import Medir from "./tipos/Medir.jsx";
 import Escolher from "./tipos/Escolher.jsx";
 import Ausculta from "./tipos/Ausculta.jsx";
 import ResultadoMinijogo from "./ResultadoMinijogo.jsx";
+import FolhaResposta from "@/components/feedback/FolhaResposta.jsx";
 
 const TIPOS = { arrastar: Arrastar, "tocar-regiao": TocarRegiao, ordenar: Ordenar, medir: Medir, escolher: Escolher, ausculta: Ausculta };
+
+// Texto da folha no fim do minijogo: na escolha, o porquê da alternativa; nos outros, um resumo curto.
+function folhaDoFim(definicao, r, acertou, erros = 0) {
+  if (definicao.tipo === "escolher") {
+    const certa = definicao.escolher.opcoes.find((o) => o.correta);
+    const porque = r.detalhes?.[0]?.feedback || "";
+    if (acertou) return { tom: "ok", titulo: erros === 0 ? "Isso aí!" : "Agora sim!", texto: porque || null, pe: 10 };
+    return { tom: "erro", titulo: "Não foi dessa vez", texto: <>A certa é <b className="text-[#EAF2F8]">{certa?.texto}</b>.{porque ? ` ${porque}` : ""}</> };
+  }
+  if (acertou) return { tom: "ok", titulo: erros === 0 ? "Perfeito!" : "Concluído!", texto: erros === 0 ? "Tudo certo de primeira." : "Você corrigiu e chegou lá.", pe: 10 };
+  return { tom: "erro", titulo: "Não foi dessa vez", texto: "Veja no resumo o que faltou e tente de novo." };
+}
 
 /**
  * Motor de minijogos movido a dados (C11). `modo`: "livre" ocupa a tela; "plantao" e "consulta" abrem numa
@@ -31,6 +44,8 @@ export default function MinijogoRunner({ definicao: original, onConcluir, modo =
   const [resultado, setResultado] = useState(null);
   const [tremer, setTremer] = useState(0);
   const [aviso, setAviso] = useState(null); // aviso do 1º erro (ou da entrega vazia)
+  // Folha de retorno (acerto, erro final ou última chance). No fim, "Continuar" leva ao resumo.
+  const [folha, setFolha] = useState(null);
   const chancesRef = useRef(0);
   // Tremida no erro sem remontar o jogo (antes a key mudava e apagava o que o aluno já tinha montado).
   const controles = useAnimationControls();
@@ -58,12 +73,14 @@ export default function MinijogoRunner({ definicao: original, onConcluir, modo =
         }
         chancesRef.current += 1;
         if (chancesRef.current < CHANCES) {
-          setAviso({ texto: a.mensagem, tom: "alerta" });
+          setAviso(null);
+          setFolha({ tom: "alerta", titulo: "Quase!", texto: a.mensagem, ultimaChance: true });
           setFeedback(null); // destrava: o aluno corrige sem perder o que já montou
           return { ...r, aviso: a.mensagem };
         }
         setFeedback(r);
         setAviso(null);
+        setFolha(folhaDoFim(definicao, r, false));
         setResultado({ minijogoId: definicao.id, acertos: r.acertos, erros: errosRef.current, tempoMs: Date.now() - inicio.current, concluido: false });
         return r;
       }
@@ -71,6 +88,7 @@ export default function MinijogoRunner({ definicao: original, onConcluir, modo =
       setFeedback(r);
       if (r.concluido) {
         vibrate(15);
+        setFolha(folhaDoFim(definicao, r, true, errosRef.current));
         setResultado({
           minijogoId: definicao.id,
           acertos: r.acertos,
@@ -92,6 +110,7 @@ export default function MinijogoRunner({ definicao: original, onConcluir, modo =
     errosRef.current = 0;
     chancesRef.current = 0;
     setAviso(null);
+    setFolha(null);
     inicio.current = Date.now();
     setFeedback(null);
     setResultado(null);
@@ -112,21 +131,38 @@ export default function MinijogoRunner({ definicao: original, onConcluir, modo =
           </Button>
         )}
       </header>
-      {resultado ? (
+      {resultado && !folha ? (
         <ResultadoMinijogo definicao={definicao} resultado={resultado} avaliacao={feedback} onTentarDeNovo={reiniciar} onContinuar={() => onConcluir?.(resultado)} />
       ) : (
         <>
           {aviso && (
-            <p role="status" aria-live="polite" className={`rounded-xl border px-3 py-2 text-sm font-bold ${aviso.tom === "info" ? "border-[#27394B] bg-[#131F2E] text-[#EAF2F8]" : "border-[#FFC247]/50 bg-[#FFC247]/10 text-[#FFE2A3]"}`}>
+            <p role="status" aria-live="polite" className="rounded-xl border border-[#27394B] bg-[#131F2E] px-3 py-2 text-sm font-bold text-[#EAF2F8]">
               {aviso.texto}
-              {aviso.tom === "alerta" && <span className="mt-0.5 block text-xs font-semibold text-[#9FB3C6]">Última chance: corrija e confira de novo.</span>}
             </p>
           )}
-          <motion.div animate={controles}>
+          <motion.div animate={controles} className={folha ? "pb-56" : undefined}>
             <Jogo key={rodada} definicao={definicao} conferir={conferir} feedback={feedback} />
           </motion.div>
         </>
       )}
+      <FolhaResposta
+        aberta={Boolean(folha)}
+        tom={folha?.tom ?? "ok"}
+        quem="goti"
+        titulo={folha?.titulo ?? ""}
+        texto={
+          folha?.ultimaChance ? (
+            <>
+              {folha.texto}
+              <span className="mt-1 block text-xs font-bold text-[#9FB3C6]">Última chance: corrija e confira de novo.</span>
+            </>
+          ) : (
+            folha?.texto
+          )
+        }
+        pe={folha?.pe}
+        acao={{ rotulo: folha?.ultimaChance ? "Corrigir" : folha?.tom === "erro" ? "Entendi" : "Continuar", onClick: () => setFolha(null) }}
+      />
     </div>
   );
 

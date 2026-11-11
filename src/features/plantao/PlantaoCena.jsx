@@ -8,6 +8,14 @@ import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx"
 import { MINIJOGOS_ESTATICOS } from "@/features/minijogos/dados/index.js";
 import falasAna from "@/data/falas/enfermeira-ana.json";
 import Prontuario from "./componentes/Prontuario.jsx";
+import FolhaResposta from "@/components/feedback/FolhaResposta.jsx";
+
+const RETORNO = {
+  incompleto: { titulo: "Faltou um pedaço.", texto: "Responda de novo completando o que a Ana pediu." },
+  nao_sabe: { titulo: "Sem problema.", texto: "Olhe o prontuário e tente responder com o que encontrar." },
+  fora_do_tema: { titulo: "Vamos voltar ao paciente.", texto: "Responda o que a Ana perguntou." },
+  faltou_numero: { titulo: "Faltou o número.", texto: "Diga o valor com a unidade, como no prontuário." },
+};
 import { minijogoDaLacuna } from "./logica/lacunaMinijogo.js";
 import { sexoDoCenario } from "./dados/prontuarioPlantao.js";
 import { criarRoteiro, falaDaEnfermeira, lacunasAbertas, lacunasParaAvaliacao, perguntaAtual, preencherLacuna, responder, respostasParaAvaliacao } from "./logica/roteiro.js";
@@ -46,6 +54,8 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
   const [lacunaAberta, setLacunaAberta] = useState(null);
   // Exame pedido na conversa ("vou avaliar o dreno"): aparece o botão para examinar.
   const [examePendente, setExamePendente] = useState(null);
+  // Retorno visual quando a resposta não fecha (a Ana também fala; aqui fica escrito para o aluno completar).
+  const [retorno, setRetorno] = useState(null);
   // Paciente do minijogo de ausculta: o do mesmo sexo do caso.
   const pacienteDoCaso = sexoDoCenario(cenario.id) === "F" ? "teresinha" : "marcus";
   const [avaliando, setAvaliando] = useState(false);
@@ -79,6 +89,7 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
     async (texto) => {
       const pergunta = perguntaAtual(roteiro.current);
       if (!pergunta || !String(texto ?? "").trim()) return [];
+      setRetorno(null);
 
       // IA da Ana (só nas perguntas de texto; números são conferidos por código).
       let ia = null;
@@ -97,6 +108,7 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
           // Não soube, fugiu do assunto ou ficou incompleto: a Ana orienta e pergunta de novo, sem avançar.
           tentativas.current[pergunta.id] = 1;
           recusadas.current.push({ perguntaId: pergunta.id, texto });
+          setRetorno(RETORNO[ia.situacao] ?? RETORNO.incompleto);
           return [{ id: `${pergunta.id}.ia.${Date.now()}`, texto: ia.fala, origem: "aovivo" }];
         }
       }
@@ -128,6 +140,7 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
           falas.push(reacao);
         }
       }
+      if (r.reacao === "faltou_numero") setRetorno(RETORNO.faltou_numero);
       if (r.concluida) setTimeout(avaliar, 0);
       else if (r.reacao !== "faltou_numero") {
         falas.push(perguntaFala(perguntaAtual(r.estado)));
@@ -177,6 +190,8 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair }) {
               <button type="button" onClick={() => setExamePendente(null)} className="rounded-xl px-2 py-1.5 text-xs font-bold text-[#9FB3C6]">Agora não</button>
               <button type="button" onClick={() => examinar(examePendente)} className="btn-3d-teal rounded-xl px-3 py-1.5 text-xs font-extrabold">Examinar</button>
             </div>
+          ) : retorno ? (
+            <FolhaResposta embutida tom="alerta" quem="ana" titulo={retorno.titulo} texto={retorno.texto} />
           ) : null
         }
       />

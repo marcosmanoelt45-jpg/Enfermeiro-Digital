@@ -1,7 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { m as motion } from "framer-motion";
-import { Button } from "@/components/ui/button";
 import { shake, vibrate } from "@/lib/motion";
 import { celebrate } from "@/lib/celebrate";
 import CenaAoVivo from "@/features/cena/CenaAoVivo.jsx";
@@ -11,6 +10,7 @@ import Receita from "./componentes/Receita.jsx";
 import TecladoCalculo from "./componentes/TecladoCalculo.jsx";
 import FolhaMotivos from "./componentes/FolhaMotivos.jsx";
 import MemoriaCalculo from "./componentes/MemoriaCalculo.jsx";
+import FolhaResposta from "@/components/feedback/FolhaResposta.jsx";
 import { lerNumeroFalado } from "./logica/numerosFalados.js";
 import { aplicar, falaDaReacao, novoEstadoItem, resumirRodada, sequenciaDePrimeira } from "./logica/rodada.js";
 
@@ -61,6 +61,8 @@ Temporizador.propTypes = { modo: PropTypes.object.isRequired, ativo: PropTypes.b
 
 // Controle de um item: teclado (e voz, pelo controle da cena) enquanto não fecha; depois a memória e "Próxima".
 function ControleItem({ item, estado, aviso, modo, ultimo, enviar, podeEnviar, acaoRef, onAbrirFolha }) {
+  const [verConta, setVerConta] = useState(false);
+  useEffect(() => setVerConta(false), [item.id]);
   const proxima = () => {
     acaoRef.current = { tipo: "proxima" };
     enviar(ultimo ? "Terminei." : "Pode passar a próxima.");
@@ -72,18 +74,36 @@ function ControleItem({ item, estado, aviso, modo, ultimo, enviar, podeEnviar, a
 
   if (estado.finalizado) {
     const acertou = estado.resultado === "acerto";
+    const resposta = item.resposta === null || item.resposta === undefined ? null : `${Number(item.resposta).toLocaleString("pt-BR", { maximumFractionDigits: 3 })} ${item.unidade ?? "mL"}`;
+    const titulo = acertou
+      ? item.erroProposital
+        ? "Bem visto!"
+        : resposta
+        ? `Exato, ${resposta}.`
+        : "Isso aí!"
+      : estado.grave
+      ? "Cuidado: erro grave."
+      : resposta
+      ? `O certo é ${resposta}.`
+      : "Não foi dessa vez.";
+    const texto = acertou
+      ? item.erroProposital
+        ? "Você pegou o erro da prescrição antes de preparar."
+        : "Conta certa. Vamos para a próxima."
+      : item.erroProposital ? "Veja acima o que estava errado na prescrição." : "Veja a conta acima, passo a passo.";
     return (
       <div className="space-y-3">
-        {(estado.mostrarMemoria || item.erroProposital) && <MemoriaCalculo item={item} />}
-        {acertou && !item.erroProposital && (
-          <details className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-3">
-            <summary className="cursor-pointer text-sm font-bold">Ver a conta</summary>
-            <div className="pt-2"><MemoriaCalculo item={item} /></div>
-          </details>
-        )}
-        <Button variant={acertou ? "success" : "danger"} size="xl" className="w-full" onClick={proxima} disabled={!podeEnviar}>
-          {ultimo ? "Ver resultado" : "Próxima prescrição"}
-        </Button>
+        {(estado.mostrarMemoria || item.erroProposital || verConta) && <MemoriaCalculo item={item} />}
+        <FolhaResposta
+          embutida
+          tom={acertou ? "ok" : "erro"}
+          quem="rui"
+          titulo={titulo}
+          texto={texto}
+          pe={acertou && estado.primeira ? 10 : undefined}
+          secundaria={acertou && !item.erroProposital && !verConta ? { rotulo: "Ver a conta", onClick: () => setVerConta(true) } : undefined}
+          acao={{ rotulo: ultimo ? "Ver resultado" : "Próxima", onClick: proxima, desabilitado: !podeEnviar }}
+        />
       </div>
     );
   }

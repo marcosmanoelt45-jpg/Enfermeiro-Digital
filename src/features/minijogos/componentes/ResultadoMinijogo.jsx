@@ -28,7 +28,8 @@ export default function ResultadoMinijogo({ definicao, resultado, avaliacao, onT
   const porques = motivos(definicao, avaliacao);
   return (
     <Panel className="space-y-4 text-center" role="status">
-      <h2 className="text-lg font-extrabold">{resultado.concluido === false ? "Não foi dessa vez" : resultado.erros === 0 ? "Perfeito!" : "Concluído!"}</h2>
+      <img src={resultado.concluido === false ? "/goti/goti-thinking.webp" : "/goti/goti-jumping.webp"} alt="" width={112} height={112} className="mx-auto h-28 w-28 object-contain" />
+      <h2 className="text-xl font-black">{resultado.concluido === false ? "Não foi dessa vez" : resultado.erros === 0 ? "Perfeito!" : "Concluído!"}</h2>
       {definicao.tipo === "ausculta" ? (
         <ul className="space-y-2 text-left text-sm font-semibold">
           <li className="flex items-center justify-between gap-2 rounded-xl border border-[#27394B] px-3 py-2">
@@ -46,9 +47,16 @@ export default function ResultadoMinijogo({ definicao, resultado, avaliacao, onT
         </ul>
       ) : (
       <dl className="grid grid-cols-3 gap-2 text-center">
-        <div><dt className="text-xs font-bold text-[#9FB3C6]">Acertos</dt><dd className="text-xl font-black text-[#3DD68C]">{resultado.acertos}</dd></div>
-        <div><dt className="text-xs font-bold text-[#9FB3C6]">Erros</dt><dd className="text-xl font-black text-[#FF6B6B]">{resultado.erros}</dd></div>
-        <div><dt className="text-xs font-bold text-[#9FB3C6]">Tempo</dt><dd className="text-xl font-black">{formatarTempo(resultado.tempoMs)}</dd></div>
+        {[
+          ["Acertos", resultado.acertos, "text-[#3DD68C]"],
+          ["Erros", resultado.erros, "text-[#FF6B6B]"],
+          ["Tempo", formatarTempo(resultado.tempoMs), ""],
+        ].map(([rotulo, valor, cor]) => (
+          <div key={rotulo} className="rounded-2xl border-2 border-[#27394B] bg-[#16222E] py-2.5 shadow-[0_4px_0_#0A1118]">
+            <dt className="text-[11px] font-extrabold uppercase tracking-wide text-[#9FB3C6]">{rotulo}</dt>
+            <dd className={`text-2xl font-black ${cor}`}>{valor}</dd>
+          </div>
+        ))}
       </dl>
       )}
       {resultado.achado && <p className="rounded-xl border border-[#27394B] p-2 text-sm font-semibold">{resultado.achado.texto}: <b>{resultado.achado.valor}</b></p>}
