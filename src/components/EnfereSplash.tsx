@@ -2,10 +2,12 @@
 
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
+import logoEnfere from "@/assets/goti-icone-oficial.png";
 
 /**
  * Enfere · tela de abertura (splash / onboarding)
- * 1. Abertura: vídeo da logo com o nome "Enfere" (feito no Flow), sobre o fundo escuro.
+ * 1. Abertura (~1 s, desenhada em código para rodar na taxa da tela): a logo salta com mola e o nome
+ *    "Enfere" sobe logo abaixo. Curta de propósito: a pessoa abre o app várias vezes por dia.
  * 2. Tela dos botões: o Goti de costas, de óculos, lendo um prontuário (loop).
  *    Tocar nele: leva um susto, derruba a prancheta e os óculos, vira de frente e passa a acenar ("Oi").
  * Vídeos WebM com transparência no Chrome/Android; WebP animado no Safari/iOS (que não mostra WebM transparente).
@@ -28,17 +30,16 @@ export interface EnfereSplashProps {
 }
 
 const FONT = '"Nunito Variable","Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif';
-const ABERTURA = "/abertura/enfere-abertura.mp4";
-const ABERTURA_FUNDO = "#08121C"; // cor do fundo do vídeo da abertura
 const LENDO = "/goti/goti-lendo";
 const SUSTO = "/goti/goti-susto";
-const SUSTO_MS = 3000;
+const SUSTO_MS = 2450; // duração do susto (3 s do Flow tocados a 1,25x)
 
 const CSS = `
 .enfere-splash{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#0B131D;font-family:${FONT};user-select:none;-webkit-user-select:none;touch-action:manipulation;box-sizing:border-box}
 .enfere-splash *{box-sizing:border-box;margin:0}
-.enfere-splash .es-intro{position:absolute;inset:0;z-index:5;display:grid;place-items:center;background:${ABERTURA_FUNDO}}
-.enfere-splash .es-abertura{display:block;width:min(92vw,440px,62vh);aspect-ratio:1/1;object-fit:cover;background:${ABERTURA_FUNDO}}
+.enfere-splash .es-intro{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#0B131D}
+.enfere-splash .es-logo{width:min(34vw,148px);height:auto;opacity:0;will-change:transform,opacity}
+.enfere-splash .es-nome{font-size:2.6rem;font-weight:900;color:#20D5B5;letter-spacing:-0.02em;line-height:1;opacity:0;will-change:transform,opacity}
 .enfere-splash .es-c2{position:absolute;left:0;right:0;top:32%;transform:translateY(-50%);display:flex;justify-content:center}
 .enfere-splash .es-g2{position:relative;width:min(70vw,290px,38vh);aspect-ratio:1/1;opacity:0;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transform-origin:50% 92%}
 .enfere-splash .es-g2:focus-visible{outline:3px solid #20D5B5;outline-offset:6px;border-radius:24px}
@@ -68,7 +69,7 @@ const CSS = `
 `;
 
 const MARKUP = `
-<div class="es-intro"><video class="es-abertura" muted playsinline preload="auto" aria-label="Enfere"></video></div>
+<div class="es-intro"><img class="es-logo" alt="" draggable="false"><p class="es-nome" aria-label="Enfere">Enfere</p></div>
 <div class="es-c2">
   <button type="button" class="es-g2" aria-label="Goti lendo um prontuário. Toque para chamar a atenção dele.">
     <i class="es-sh" aria-hidden="true"></i>
@@ -101,7 +102,9 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   root.innerHTML = MARKUP;
   const $ = <T extends HTMLElement = HTMLElement>(sel: string) => root.querySelector(sel) as T;
   const intro = $(".es-intro");
-  const abertura = $<HTMLVideoElement>(".es-abertura");
+  const logo = $<HTMLImageElement>(".es-logo");
+  const nome = $(".es-nome");
+  logo.src = logoEnfere;
   const g2 = $<HTMLButtonElement>(".es-g2");
   const vLendo = $<HTMLVideoElement>(".es-v-lendo"), vSusto = $<HTMLVideoElement>(".es-v-susto"), vOi = $<HTMLVideoElement>(".es-v-oi");
   const iLendo = $<HTMLImageElement>(".es-i-lendo"), iSusto = $<HTMLImageElement>(".es-i-susto"), iOi = $<HTMLImageElement>(".es-i-oi");
@@ -255,12 +258,12 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   const palco = (comAnimacao: boolean) => {
     ficarLendo();
     if (comAnimacao) {
-      A(intro, [{ opacity: 1 }, { opacity: 0 }], { duration: 320 });
-      at(320, () => { intro.style.display = "none"; });
+      A(intro, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 });
+      at(220, () => { intro.style.display = "none"; });
       A(g2, [
-        { opacity: 0, transform: "translateY(24px) scale(.96)" },
+        { opacity: 0, transform: "translateY(20px) scale(.96)" },
         { opacity: 1, transform: "none" },
-      ], { duration: 500, easing: SPR });
+      ], { duration: 380, easing: SPR });
     } else {
       intro.style.display = "none";
       g2.style.opacity = "1";
@@ -271,7 +274,6 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   const toEnd = () => {
     if (fase !== "abertura") return;
     clearAll();
-    try { abertura.pause(); } catch { /* nada */ }
     palco(false);
   };
 
@@ -281,15 +283,17 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
       return;
     }
     root.classList.add("es-playing");
-    abertura.muted = true;
-    abertura.playsInline = true;
-    abertura.src = ABERTURA;
-    abertura.addEventListener("ended", () => fase === "abertura" && palco(true), { once: true });
-    abertura.addEventListener("error", toEnd, { once: true });
-    const p = abertura.play();
-    if (p && typeof p.catch === "function") p.catch(toEnd);
-    // Reserva: se o vídeo travar, a tela dos botões aparece mesmo assim.
-    at(5000, () => fase === "abertura" && palco(true));
+    // Logo: salta de 0,6 com mola (passa um pouco de 1 e assenta). Nome: sobe 14 px logo depois.
+    A(logo, [
+      { opacity: 0, transform: "scale(.6)" },
+      { opacity: 1, transform: "scale(1.06)", offset: 0.6 },
+      { opacity: 1, transform: "scale(1)" },
+    ], { duration: 420, easing: "cubic-bezier(.23,1,.32,1)" });
+    A(nome, [
+      { opacity: 0, transform: "translateY(14px)" },
+      { opacity: 1, transform: "none" },
+    ], { duration: 320, delay: 180 });
+    at(950, () => fase === "abertura" && palco(true));
   };
 
   const onPointerDown = () => {
@@ -318,7 +322,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
 
   return () => {
     clearAll();
-    [abertura, vLendo, vSusto, vOi].forEach((v) => { try { v.pause(); } catch { /* nada */ } });
+    [vLendo, vSusto, vOi].forEach((v) => { try { v.pause(); } catch { /* nada */ } });
     urls.forEach((u) => URL.revokeObjectURL(u));
     root.removeEventListener("pointerdown", onPointerDown as EventListener);
     skipHint.removeEventListener("click", onSkip);
