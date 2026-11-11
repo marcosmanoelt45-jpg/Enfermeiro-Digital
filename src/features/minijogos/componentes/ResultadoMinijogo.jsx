@@ -28,7 +28,6 @@ export default function ResultadoMinijogo({ definicao, resultado, avaliacao, onT
   const porques = motivos(definicao, avaliacao);
   return (
     <Panel className="space-y-4 text-center" role="status">
-      <img src={resultado.concluido === false ? "/goti/goti-thinking.webp" : "/goti/goti-jumping.webp"} alt="" width={112} height={112} className="mx-auto h-28 w-28 object-contain" />
       <h2 className="text-xl font-black">{resultado.concluido === false ? "Não foi dessa vez" : resultado.erros === 0 ? "Perfeito!" : "Concluído!"}</h2>
       {definicao.tipo === "ausculta" ? (
         <ul className="space-y-2 text-left text-sm font-semibold">

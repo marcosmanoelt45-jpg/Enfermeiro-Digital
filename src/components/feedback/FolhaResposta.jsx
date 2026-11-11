@@ -1,4 +1,5 @@
-import React, { useEffect, useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
+import SaltoMascote from "./SaltoMascote.jsx";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { AnimatePresence, m as motion } from "framer-motion";
@@ -6,9 +7,9 @@ import { Check, Lightbulb, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { sheetVariants } from "@/lib/motion";
 
-// Rostos de quem dá o retorno. O Goti é o padrão (minijogos, questões); a Ana e o Rui falam nas cenas deles.
+// Rostos de quem dá o retorno nas cenas com personagem. O Goti não fica na mensagem: no acerto ele salta
+// pelo meio da tela (SaltoMascote); nas outras folhas entra o ícone.
 export const ROSTOS = {
-  goti: { ok: "/goti/goti-jumping.webp", erro: "/goti/goti-thinking.webp", alerta: "/goti/goti-thinking.webp", nome: "Goti" },
   rui: { ok: "/personagens/medico-rui/poster.webp", erro: "/personagens/medico-rui/poster.webp", alerta: "/personagens/medico-rui/poster.webp", nome: "Dr. Rui" },
   ana: { ok: "/personagens/enfermeira-ana/poster.webp", erro: "/personagens/enfermeira-ana/poster.webp", alerta: "/personagens/enfermeira-ana/poster.webp", nome: "Enfermeira Ana" },
 };
@@ -22,7 +23,6 @@ const TOM = {
 function Rosto({ quem, tom }) {
   const r = ROSTOS[quem];
   if (!r) return null;
-  if (quem === "goti") return <img src={r[tom]} alt="" width={56} height={56} className="h-14 w-14 shrink-0 object-contain" />;
   return <img src={r[tom]} alt={r.nome} width={48} height={48} className="h-12 w-12 shrink-0 rounded-full border-2 border-[#27394B] bg-[#0E1722] object-cover object-top" />;
 }
 Rosto.propTypes = { quem: PropTypes.string, tom: PropTypes.string.isRequired };
@@ -36,7 +36,7 @@ function Conteudo({ tom, quem, titulo, texto, pe, acao, secundaria, focoRef }) {
         <span className="absolute -top-4 right-4 rounded-full bg-[#20D5B5] px-2.5 py-1 text-xs font-black text-[#06302E] shadow-[0_3px_0_#149F86]">+{pe} PE</span>
       ) : null}
       <div className="flex items-center gap-3">
-        {quem ? (
+        {ROSTOS[quem] ? (
           <Rosto quem={quem} tom={tom} />
         ) : (
           <span className={`flex h-11 w-11 shrink-0 items-center justify-center rounded-full ${t.icone}`}>
@@ -87,10 +87,19 @@ export default function FolhaResposta({ aberta = true, embutida = false, ...prop
     return () => clearTimeout(t);
   }, [aberta, embutida]);
 
+  // Acerto: o Goti salta pelo meio da tela, uma vez por folha aberta.
+  const [salto, setSalto] = useState(0);
+  const acertou = aberta && props.tom === "ok";
+  useEffect(() => {
+    if (acertou) setSalto((n) => n + 1);
+  }, [acertou]);
+
   const papel = props.tom === "ok" ? "status" : "alert";
   if (embutida) {
     if (!aberta) return null;
     return (
+      <>
+      <SaltoMascote disparo={salto} />
       <motion.div
         role={papel}
         className={`relative rounded-3xl border-2 p-4 ${TOM[props.tom].fundo}`}
@@ -100,11 +109,15 @@ export default function FolhaResposta({ aberta = true, embutida = false, ...prop
       >
         <Conteudo {...props} />
       </motion.div>
+      </>
     );
   }
 
   if (typeof document === "undefined") return null;
-  return createPortal(
+  return (
+    <>
+    <SaltoMascote disparo={salto} />
+    {createPortal(
     <AnimatePresence>
       {aberta && (
         <motion.div
@@ -121,6 +134,8 @@ export default function FolhaResposta({ aberta = true, embutida = false, ...prop
       )}
     </AnimatePresence>,
     document.body
+    )}
+    </>
   );
 }
 
