@@ -4,6 +4,7 @@
 import { validarDefinicao } from "../../minijogos/logica/validarDefinicao.js";
 import { achadoDoTexto } from "../../minijogos/logica/ausculta.js";
 import { dadosDaAusculta } from "../../minijogos/dados/ausculta-pulmonar-pov.js";
+import { pistaDoExame } from "../dados/pistasExames.js";
 
 export function minijogoDaLacuna(lacuna, cenarioId, estaticos = [], { paciente = "marcus" } = {}) {
   // Ausculta pulmonar: o minijogo em primeira pessoa, com o achado do caso (lido do valor esperado).
@@ -23,6 +24,8 @@ export function minijogoDaLacuna(lacuna, cenarioId, estaticos = [], { paciente =
     achado: { campo: lacuna.campo, valor: lacuna.valorEsperado, texto: lacuna.rotulo },
     escolher: {
       pergunta: lacuna.exame.pergunta,
+      // O que o aluno vê ao examinar (imagem, monitor, medidas, observações): sem isso não há de onde tirar a resposta.
+      pista: pistaDoExame(cenarioId, lacuna.campo),
       opcoes: lacuna.exame.opcoes.map((o, i) => ({ id: `o${i + 1}`, texto: o.texto, correta: o.correta, feedback: o.feedback })),
     },
   };

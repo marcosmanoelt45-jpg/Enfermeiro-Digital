@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { m as motion } from "framer-motion";
 import { Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import PistaExame from "../PistaExame.jsx";
 
 const LETRAS = ["A", "B", "C", "D", "E"];
 // Cartão com lábio 3D (box-shadow, como os botões): neutro, marcado, certo, errado e apagado.
@@ -23,7 +24,7 @@ const LETRA = {
 
 // Cartões A–D; o feedback de cada opção aparece depois de confirmar.
 export default function Escolher({ definicao, conferir, feedback }) {
-  const { pergunta, opcoes, imagem } = definicao.escolher;
+  const { pergunta, opcoes, imagem, pista } = definicao.escolher;
   const [escolhida, setEscolhida] = useState(null);
   const [embaralhadas] = useState(() => [...opcoes].sort(() => Math.random() - 0.5));
   const confirmada = Boolean(feedback);
@@ -31,6 +32,7 @@ export default function Escolher({ definicao, conferir, feedback }) {
   return (
     <div className="space-y-4">
       {imagem && <img src={imagem} alt="" width={400} height={250} loading="lazy" className="w-full rounded-2xl" />}
+      <PistaExame pista={pista} />
       <p className="text-base font-extrabold">{pergunta}</p>
       <div className="space-y-2" role="radiogroup" aria-label="Alternativas">
         {embaralhadas.map((o, i) => {
