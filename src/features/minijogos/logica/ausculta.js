@@ -11,6 +11,8 @@ export const IMAGENS = {
   "marcus-costas": "/minijogos/ausculta/marcus-costas.webp",
   "marcus-frente": "/minijogos/ausculta/marcus-frente.webp",
   "teresinha-costas": "/minijogos/ausculta/teresinha-costas.webp",
+  // Mulher adulta jovem (38 anos, choque anafilático do Plantão): antes aparecia o corpo da Dona Teresinha.
+  "mulher-costas": "/minijogos/ausculta/mulher-costas.webp",
 };
 
 // Campos pulmonares (elipses) medidos em cada ilustração, antes da variação de anatomia de cada rodada.
@@ -26,6 +28,10 @@ const PULMOES = {
   "teresinha-costas": [
     { lado: "esquerdo", cx: 364, cy: 536, rx: 72, ry: 104 },
     { lado: "direito", cx: 532, cy: 536, rx: 72, ry: 104 },
+  ],
+  "mulher-costas": [
+    { lado: "esquerdo", cx: 394, cy: 572, rx: 48, ry: 86 },
+    { lado: "direito", cx: 502, cy: 572, rx: 48, ry: 86 },
   ],
 };
 const ESCALA = 2.24; // 896 / 400 (as distâncias abaixo foram pensadas numa cena de 400 de largura)

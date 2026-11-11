@@ -59,7 +59,8 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
   // Retorno visual quando a resposta não fecha (a Ana também fala; aqui fica escrito para o aluno completar).
   const [retorno, setRetorno] = useState(null);
   // Paciente do minijogo de ausculta: o do mesmo sexo do caso.
-  const pacienteDoCaso = sexoDoCenario(cenario.id) === "F" ? "teresinha" : "marcus";
+  // Corpo do paciente no minijogo de ausculta: mulher jovem, Dona Teresinha (idosa) ou Sr. Marcus.
+  const pacienteDoCaso = sexoDoCenario(cenario.id) === "F" ? (cenario.age < 60 ? "mulher" : "teresinha") : "marcus";
   const [avaliando, setAvaliando] = useState(false);
   const [erro, setErro] = useState(null);
 
