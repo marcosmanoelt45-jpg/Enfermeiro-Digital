@@ -160,11 +160,28 @@ export default function CenaAoVivo({
 
       {acoes.length > 0 && (
         <div className="flex flex-wrap gap-2">
-          {acoes.map((a) => (
-            <Button key={a.id} variant="outline" size="sm" onClick={a.onClick} className={a.soCelular && slotLateral ? "lg:hidden" : undefined}>
-              {a.rotulo}
-            </Button>
-          ))}
+          {acoes.map((a) =>
+            a.icone ? (
+              // Folhas (prontuário, anotação): botão grande com ícone e cor própria, fácil de achar
+              <button
+                key={a.id}
+                type="button"
+                onClick={a.onClick}
+                aria-pressed={a.ativo ?? undefined}
+                className="group flex min-h-12 flex-1 basis-[9.5rem] items-center gap-2.5 rounded-2xl border-2 bg-[#131F2E] px-3 py-2 text-left transition-[transform,box-shadow] duration-100 active:translate-y-[3px]"
+                style={{ borderColor: a.ativo ? a.cor : "#27394B", boxShadow: `0 3px 0 ${a.ativo ? a.cor : "#0A1118"}` }}
+              >
+                <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl" style={{ backgroundColor: a.cor }}>
+                  {a.imagem ? <img src={a.imagem} alt="" className="h-9 w-9 object-contain" /> : <a.icone className="h-5 w-5 text-[#0B131D]" aria-hidden="true" />}
+                </span>
+                <span className="text-sm font-black text-[#EAF2F8]">{a.rotulo}</span>
+              </button>
+            ) : (
+              <Button key={a.id} variant="outline" size="sm" onClick={a.onClick} className={a.soCelular && slotLateral ? "lg:hidden" : undefined}>
+                {a.rotulo}
+              </Button>
+            )
+          )}
         </div>
       )}
 
@@ -219,7 +236,7 @@ CenaAoVivo.propTypes = {
   titulo: PropTypes.string.isRequired,
   progresso: PropTypes.shape({ atual: PropTypes.number, total: PropTypes.number }),
   slotTopo: PropTypes.node,
-  acoes: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.string, rotulo: PropTypes.string, onClick: PropTypes.func })),
+  acoes: PropTypes.arrayOf(PropTypes.shape({ id: PropTypes.string, rotulo: PropTypes.string, onClick: PropTypes.func, icone: PropTypes.elementType, imagem: PropTypes.string, cor: PropTypes.string, ativo: PropTypes.bool })),
   onEnviar: PropTypes.func.isRequired,
   falasIniciais: PropTypes.array,
   onEncerrar: PropTypes.func,

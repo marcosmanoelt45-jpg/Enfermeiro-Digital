@@ -137,7 +137,7 @@ manifesto = {}
 ALFA_CABELO = {}
 
 # Que classes de tingimento cada categoria pode ter (ex.: estampa não tem pele, senão confete rosa vira pele).
-PELE_OK = {'base', 'olhos', 'boca', 'barba', 'cabelo', 'cabeca', 'oculos', 'jaleco', 'colete'}
+PELE_OK = {'base', 'olhos', 'boca', 'barba', 'cabelo', 'oculos', 'jaleco', 'colete'}
 ROUPA_OK = {'base', 'estampa', 'jaleco', 'colete', 'cordao', 'estetoscopio', 'cracha', 'cabelo'}
 
 def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0):
@@ -154,8 +154,12 @@ def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0
         if cat == 'boca':
             hh, ss, _ = hsv(img)
             pele &= ~((dif_hue(hh, 22) > 14) & (ss > 0.15))  # língua rosa não é pele  # quase pele: fica lisa (some rastro); lábio/traço mantém o tom
-    if cor_mask is not None and cat == 'cabeca':
-        pele &= ~cor_mask  # parte interna das orelhinhas é rosa claro: é do acessório, não pele
+    if cat == 'cabeca':
+        # acessório não leva pele: a cabeça careca em volta dele seria pintada por cima do cabelo escolhido
+        sem_cor = ~(cor_mask if cor_mask is not None else np.zeros_like(vale))
+        careca = (classe_pele(img) | (np.sqrt(((img - PELE_REF) ** 2).sum(2)) < 40)) & sem_cor
+        alfa = np.where(careca, 0, alfa)
+        vale = alfa > 0.02
     roupa = classe_roupa(img) & vale & ~pele if cat in ROUPA_OK else np.zeros_like(vale)
     cor = (cor_mask & vale & ~pele) if cor_mask is not None else np.zeros_like(vale)
     roupa &= ~cor

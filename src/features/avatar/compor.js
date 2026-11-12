@@ -88,6 +88,7 @@ const PLACAS = {
   goti: { x: 293, y: 463, l: 53, a: 25, fundo: "#1D9B95", texto: "#FFFFFF" },
   arcoiris: { x: 289, y: 447, l: 56, a: 19, fundo: "#FEFDFC", texto: "#3A2C36" },
 };
+const SUBIDA_TIARA = { cacheado: 0.6, topete: 0.4 };
 const FONTE = (tam) => `900 ${tam}px Nunito, "Nunito Fallback", system-ui, sans-serif`;
 
 async function fonteCarregada() {
@@ -173,7 +174,10 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
         const esc = touca ? ajusteCabeca.st ?? ajusteCabeca.s : 1 + (ajusteCabeca.s - 1) * 0.45;
         const topo = CAMADAS[`cabeca-${a.cabeca}`]?.topo ?? ay;
         // sem deixar o acessório sair por cima da imagem
-        const dy = Math.max(ajusteCabeca.dy * (touca ? 1 : 0.6), 3 - ay - esc * (topo - ay));
+        // quanto a tiara sobe: cabelo rente (curto, raspado, liso) = em cima do cabelo; volume grande = um pouco
+        // dentro dele (só as orelhinhas por cima); topete = atrás do topete, perto da raiz
+        const sobe = touca ? 1 : SUBIDA_TIARA[a.cabelo] ?? 1;
+        const dy = Math.max(ajusteCabeca.dy * sobe, 3 - ay - esc * (topo - ay));
         ctx.translate(ax, ay + dy);
         ctx.scale(esc, esc);
         ctx.translate(-ax, -ay);

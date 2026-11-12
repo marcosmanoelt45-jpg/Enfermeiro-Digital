@@ -10,10 +10,12 @@ import { abertura } from "./dados/aberturas.js";
 import { resumoParaHistorico } from "./logica/relatorioView.js";
 import RegistroConsulta from "./componentes/RegistroConsulta.jsx";
 import RelatorioConsulta from "./componentes/RelatorioConsulta.jsx";
-import BlocoNotas from "./componentes/BlocoNotas.jsx";
+import { ClipboardList, NotebookPen } from "lucide-react";
 import FolhaEvolucao from "./componentes/FolhaEvolucao.jsx";
-import ProntuarioConsulta from "./componentes/ProntuarioConsulta.jsx";
-import PainelFlutuante from "@/components/prontuario/PainelFlutuante.jsx";
+import { paginasConsulta } from "./componentes/ProntuarioConsulta.jsx";
+import JanelaFolha from "@/components/prontuario/JanelaFolha.jsx";
+import { MODELO_SOAP, anotarNoObjetivo, semModeloVazio } from "@/components/prontuario/modelosAnotacao.js";
+import { ICONE_ANOTACAO, ICONE_PRONTUARIO } from "@/components/prontuario/icones.js";
 import PainelExames, { PopupExame } from "./componentes/PainelExames.jsx";
 import { detectarExame } from "./dados/exames.js";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
@@ -22,13 +24,15 @@ import { achadoDoTexto } from "@/features/minijogos/logica/ausculta.js";
 
 const AVISO_FIM = 5;
 
+
 // Anotações por aluno e por consulta (sobrevivem a recarregar a página).
 const chaveNotas = (userId, sessaoId) => `enfere_notas_${userId ?? "anon"}_${sessaoId}`;
+// Folha nova já vem com o modelo SOAP escrito (o aluno preenche ou apaga).
 function lerNotas(chave) {
   try {
-    return localStorage.getItem(chave) ?? "";
+    return localStorage.getItem(chave) ?? MODELO_SOAP;
   } catch {
-    return "";
+    return MODELO_SOAP;
   }
 }
 
@@ -52,7 +56,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
   const [notasAbertas, setNotasAbertas] = useState(false);
   const [turnos, setTurnos] = useState(retomada?.turnos ?? []);
   const [prontuarioAberto, setProntuarioAberto] = useState(false);
-  const [aba, setAba] = useState("evolucao"); // painel lateral: evolucao | prontuario
+  const [paginaProntuario, setPaginaProntuario] = useState(0);
   // Exames de beira de leito: o aluno pede na conversa ("vamos medir sua glicemia"), o paciente concorda e
   // aparece o botão; o resultado vem do servidor, coerente com o caso.
   const [exames, setExames] = useState([]);
@@ -160,7 +164,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
     return <RelatorioConsulta relatorio={relatorio} turnos={turnosDoRelatorio} onNova={onNova} onInicio={onSair} />;
   }
   if (fase === "registro") {
-    return <RegistroConsulta achadosIniciais={notas} briefing={sessao.briefing} turnos={turnos} onEnviar={finalizar} enviando={enviando} erro={erro} onVoltar={() => setFase("cena")} />;
+    return <RegistroConsulta achadosIniciais={semModeloVazio(notas, MODELO_SOAP)} briefing={sessao.briefing} turnos={turnos} onEnviar={finalizar} enviando={enviando} erro={erro} onVoltar={() => setFase("cena")} />;
   }
 
   const slotTopo = (
@@ -183,8 +187,8 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       progresso={{ atual: 40 - restantes, total: 40 }}
       slotTopo={slotTopo}
       acoes={[
-        { id: "prontuario", rotulo: "Prontuário", onClick: () => setProntuarioAberto((v) => !v), soCelular: true },
-        { id: "notas", rotulo: notas.trim() ? "Evolução ✓" : "Evolução", onClick: () => setNotasAbertas(true), soCelular: true },
+        { id: "prontuario", rotulo: "Prontuário", icone: ClipboardList, imagem: ICONE_PRONTUARIO, cor: "#20D5B5", ativo: prontuarioAberto, onClick: () => setProntuarioAberto((v) => !v) },
+        { id: "notas", rotulo: "Anotação", icone: NotebookPen, imagem: ICONE_ANOTACAO, cor: "#FFC247", ativo: notasAbertas, onClick: () => setNotasAbertas((v) => !v) },
         { id: "encerrar", rotulo: "Encerrar e registrar", onClick: () => setFase("registro") },
       ]}
       falasIniciais={falasIniciais}
@@ -194,18 +198,6 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       onEncerrar={onSair}
       onTurnos={setTurnos}
       slotAbaixoPalco={<PainelExames exames={exames} />}
-      slotLateral={
-        <div className="space-y-3">
-          <div className="grid grid-cols-2 gap-1 rounded-2xl border border-[#27394B] bg-[#0E1722] p-1" role="tablist" aria-label="Painel">
-            {[["evolucao", "Evolução"], ["prontuario", "Prontuário"]].map(([id, rotulo]) => (
-              <button key={id} type="button" role="tab" aria-selected={aba === id} onClick={() => setAba(id)} className={`rounded-xl py-2 text-sm font-bold transition-colors ${aba === id ? "bg-[#20D5B5] text-[#0B131D]" : "text-[#9FB3C6]"}`}>
-                {rotulo}
-              </button>
-            ))}
-          </div>
-          {aba === "evolucao" ? <FolhaEvolucao texto={notas} onMudar={setNotas} briefing={b} turnos={turnos} linhas={15} /> : <ProntuarioConsulta sessao={sessao} exames={exames} compacto />}
-        </div>
-      }
     />
     <PopupExame
       pedido={ausculta ? null : examePedido}
@@ -237,10 +229,49 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
         }}
       />
     )}
-    <PainelFlutuante aberto={prontuarioAberto} titulo="Prontuário" onFechar={() => setProntuarioAberto(false)}>
-      <ProntuarioConsulta sessao={sessao} exames={exames} compacto />
-    </PainelFlutuante>
-    <BlocoNotas aberto={notasAbertas} texto={notas} onMudar={setNotas} onFechar={() => setNotasAbertas(false)} briefing={b} turnos={turnos} />
+    <JanelaFolha
+      id="consulta-prontuario"
+      aberta={prontuarioAberto}
+      titulo="Prontuário"
+      icone={ClipboardList}
+      cor="#20D5B5"
+      lado="esquerda"
+      paginas={paginasConsulta({ sessao, exames })}
+      pagina={paginaProntuario}
+      onPagina={setPaginaProntuario}
+      onFechar={() => setProntuarioAberto(false)}
+    />
+    <JanelaFolha
+      id="consulta-anotacao"
+      aberta={notasAbertas}
+      titulo="Anotação"
+      icone={NotebookPen}
+      cor="#FFC247"
+      lado="direita"
+      paginas={[
+        { titulo: "Evolução (SOAP)", conteudo: <div className="h-full min-h-[420px]"><FolhaEvolucao texto={notas} onMudar={setNotas} briefing={b} turnos={turnos} modelo={MODELO_SOAP} preencher idCampo="folha-evolucao-janela" /></div> },
+        {
+          titulo: "Exames e sinais",
+          conteudo: (
+            <div className="space-y-2 rounded-md bg-[#E5E8E3] p-3 text-[#2B2F2E]">
+              <p className="text-[12px] font-black">EXAMES E SINAIS PARA A EVOLUÇÃO</p>
+              {exames.length === 0 ? (
+                <p className="text-[13px] font-semibold text-[#4A5550]">Os exames que você fizer na consulta aparecem aqui, com um botão para levar o resultado para a evolução.</p>
+              ) : (
+                exames.map((x) => (
+                  <div key={x.exameId} className="flex items-center justify-between gap-2 rounded-md border border-[#9AA5A0] px-2 py-1.5">
+                    <p className="text-[14px] font-semibold text-[#1F3A5F]"><span className="text-[#2B2F2E]">{x.rotulo}:</span> {x.resultado}</p>
+                    <button type="button" onClick={() => setNotas((n) => anotarNoObjetivo(n, `${x.rotulo}: ${x.resultado}`))} className="btn-3d-amber shrink-0 rounded-lg px-2 py-1 text-xs font-extrabold">Anotar</button>
+                  </div>
+                ))
+              )}
+              <p className="text-[11px] font-bold text-[#5E6B66]">O resultado entra na linha "O (Objetivo)" da folha.</p>
+            </div>
+          ),
+        },
+      ]}
+      onFechar={() => setNotasAbertas(false)}
+    />
     </>
   );
 }

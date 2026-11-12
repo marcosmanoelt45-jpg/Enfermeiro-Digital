@@ -39,6 +39,7 @@ const SocialPage = lazy(() => import('@/features/social/SocialPage.jsx'));
 const ConvitePage = lazy(() => import('@/features/social/ConvitePage.jsx'));
 const PerfilAmigoPage = lazy(() => import('@/features/social/PerfilAmigoPage.jsx'));
 const VitrineAvatar = import.meta.env.DEV ? lazy(() => import('@/features/avatar/VitrineAvatar.jsx')) : null;
+const VitrineFolhas = import.meta.env.DEV ? lazy(() => import('@/features/cena/VitrineFolhas.jsx')) : null;
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
@@ -179,6 +180,7 @@ const AuthenticatedApp = () => {
         <Route path="/convite/:codigo" element={<ConvitePage />} />
         {VitrineOfensivas && <Route path="/dev/ofensivas" element={<VitrineOfensivas />} />}
         {VitrineAvatar && <Route path="/dev/avatar" element={<VitrineAvatar />} />}
+        {VitrineFolhas && <Route path="/dev/folhas" element={<VitrineFolhas />} />}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

@@ -1,13 +1,18 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import PropTypes from "prop-types";
 import { Button } from "@/components/ui/button";
-import PainelFlutuante from "@/components/prontuario/PainelFlutuante.jsx";
+import { ClipboardList, NotebookPen } from "lucide-react";
+import JanelaFolha from "@/components/prontuario/JanelaFolha.jsx";
+import { MODELO_SBAR } from "@/components/prontuario/modelosAnotacao.js";
+import { ICONE_ANOTACAO, ICONE_PRONTUARIO } from "@/components/prontuario/icones.js";
+import FolhaEvolucao from "@/features/consulta/componentes/FolhaEvolucao.jsx";
+import { useAuth } from "@/lib/AuthContext";
 import CenaAoVivo from "@/features/cena/CenaAoVivo.jsx";
 import { ErroServidor, plantao as servidor, preCarregarVoz } from "@/features/cena/servidor.js";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
 import { MINIJOGOS_ESTATICOS } from "@/features/minijogos/dados/index.js";
 import falasAna from "@/data/falas/enfermeira-ana.json";
-import Prontuario from "./componentes/Prontuario.jsx";
+import { paginasPlantao } from "./componentes/Prontuario.jsx";
 import FolhaResposta from "@/components/feedback/FolhaResposta.jsx";
 
 const CORPO_DA_AUSCULTA = { dpoc: "dpoc", choque_anafilatico: "mulher" };
@@ -21,7 +26,7 @@ const RETORNO = {
 import { minijogoDaLacuna } from "./logica/lacunaMinijogo.js";
 import { exameDoTexto } from "./logica/exameDoTexto.js";
 import { sexoDoCenario } from "./dados/prontuarioPlantao.js";
-import { criarRoteiro, falaDaEnfermeira, lacunasAbertas, lacunasParaAvaliacao, perguntaAtual, preencherLacuna, responder, respostasParaAvaliacao } from "./logica/roteiro.js";
+import { criarRoteiro, falaDaEnfermeira, lacunasParaAvaliacao, perguntaAtual, preencherLacuna, responder, respostasParaAvaliacao } from "./logica/roteiro.js";
 
 const FALAS = falasAna.falas;
 const TEXTO = new Map(FALAS.map((f) => [f.id, f.texto]));
@@ -49,6 +54,25 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
   }, []);
   const [lacunas, setLacunas] = useState({});
   const [prontuario, setProntuario] = useState(false);
+  const [paginaProntuario, setPaginaProntuario] = useState(0);
+  // Anotação da passagem (rascunho do aluno): já vem com o modelo SBAR e fica guardada por caso.
+  const { user } = useAuth();
+  const chaveNotas = `enfere_notas_plantao_${user?.id ?? "anon"}_${cenario.id}`;
+  const [notas, setNotas] = useState(() => {
+    try {
+      return localStorage.getItem(chaveNotas) ?? MODELO_SBAR;
+    } catch {
+      return MODELO_SBAR;
+    }
+  });
+  const [notasAbertas, setNotasAbertas] = useState(false);
+  useEffect(() => {
+    try {
+      localStorage.setItem(chaveNotas, notas);
+    } catch {
+      /* sem armazenamento: vale só nesta tela */
+    }
+  }, [chaveNotas, notas]);
   const [lacunaAberta, setLacunaAberta] = useState(null);
   // Exame pedido na conversa ("vou avaliar o dreno"): aparece o botão para examinar.
   const [examePendente, setExamePendente] = useState(null);
@@ -176,7 +200,6 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
     else preencher(lacuna, null);
   };
 
-  const abertas = lacunasAbertas({ ...roteiro.current, lacunas }).length;
   const definicao = lacunaAberta ? minijogoDaLacuna(lacunaAberta, cenario.id, MINIJOGOS_ESTATICOS, { paciente: pacienteDoCaso }) : null;
 
   return (
@@ -189,8 +212,10 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
         onEnviar={onEnviar}
         onEncerrar={onSair}
         placeholderFala="Responda por voz ou texto"
-        acoes={[{ id: "prontuario", rotulo: abertas ? `Prontuário (${abertas} para examinar)` : "Prontuário", onClick: () => setProntuario((v) => !v), soCelular: true }]}
-        slotLateral={<Prontuario cenario={cenario} lacunasPreenchidas={lacunas} onAbrirLacuna={examinar} compacto />}
+        acoes={[
+          { id: "prontuario", rotulo: "Prontuário", icone: ClipboardList, imagem: ICONE_PRONTUARIO, cor: "#20D5B5", ativo: prontuario, onClick: () => setProntuario((v) => !v) },
+          { id: "notas", rotulo: "Anotação", icone: NotebookPen, imagem: ICONE_ANOTACAO, cor: "#FFC247", ativo: notasAbertas, onClick: () => setNotasAbertas((v) => !v) },
+        ]}
         slotAbaixoPalco={
           examePendente ? (
             <div className="flex items-center gap-2 rounded-2xl border border-[#20D5B5]/40 bg-[#20D5B5]/10 p-2 pl-3">
@@ -204,9 +229,47 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
         }
       />
 
-      <PainelFlutuante aberto={prontuario} titulo="Prontuário" onFechar={() => setProntuario(false)}>
-        <Prontuario cenario={cenario} lacunasPreenchidas={lacunas} onAbrirLacuna={examinar} compacto />
-      </PainelFlutuante>
+      <JanelaFolha
+        id="plantao-prontuario"
+        aberta={prontuario}
+        titulo="Prontuário"
+        icone={ClipboardList}
+        cor="#20D5B5"
+        lado="esquerda"
+        paginas={paginasPlantao({ cenario, lacunasPreenchidas: lacunas })}
+        pagina={paginaProntuario}
+        onPagina={setPaginaProntuario}
+        onFechar={() => setProntuario(false)}
+      />
+      <JanelaFolha
+        id="plantao-anotacao"
+        aberta={notasAbertas}
+        titulo="Anotação"
+        icone={NotebookPen}
+        cor="#FFC247"
+        lado="direita"
+        paginas={[
+          {
+            titulo: "Passagem (SBAR)",
+            conteudo: (
+              <div className="h-full min-h-[420px]">
+                <FolhaEvolucao
+                  titulo="ANOTAÇÃO DA PASSAGEM DE PLANTÃO"
+                  texto={notas}
+                  onMudar={setNotas}
+                  briefing={{ nome: cenario.name, idade: cenario.age, setor: cenario.sector }}
+                  modelo={MODELO_SBAR}
+                  preencher
+                  idCampo="folha-plantao"
+                  semAjuda
+                  placeholder="Organize aqui o que vai passar para a Ana."
+                />
+              </div>
+            ),
+          },
+        ]}
+        onFechar={() => setNotasAbertas(false)}
+      />
 
       {definicao && <MinijogoRunner key={definicao.id} definicao={definicao} modo="plantao" onConcluir={(res) => preencher(lacunaAberta, res)} onFechar={() => setLacunaAberta(null)} />}
 

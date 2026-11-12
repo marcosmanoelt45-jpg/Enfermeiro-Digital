@@ -89,44 +89,36 @@
 },
 "cabeca-antenas": {
 "fixo": true,
-"pele": true,
 "topo": 20.5
 },
 "cabeca-coelho": {
 "cor": true,
-"pele": true,
 "topo": 9.5
 },
 "cabeca-flores": {
 "fixo": true,
-"pele": true,
 "topo": 106.0
 },
 "cabeca-gato": {
 "cor": true,
-"pele": true,
 "topo": 52.0
 },
 "cabeca-laco": {
 "cor": true,
-"pele": true,
 "topo": 37.0
 },
 "cabeca-quepe": {
 "fixo": true,
-"pele": true,
 "topo": 27.5
 },
 "cabeca-touca": {
 "apaga": true,
 "cor": true,
 "fixo": true,
-"pele": true,
 "topo": 57.0
 },
 "cabeca-urso": {
 "cor": true,
-"pele": true,
 "topo": 54.0
 },
 "cabelo-cacheado": {

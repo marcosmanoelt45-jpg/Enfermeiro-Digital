@@ -33,6 +33,9 @@ export default function FolhaEvolucao({
   linhas = 12,
   placeholder = "Escreva aqui o que o paciente contou, o que você observou e o que fez ou orientou.",
   idCampo = "folha-evolucao",
+  modelo = null, // texto que já vem escrito (SOAP/SBAR); com a folha vazia aparece o botão de usar de novo
+  preencher = false, // a folha ocupa a altura toda do lugar onde está (janela)
+  semAjuda = false, // sem o botão do Goti (o Goti lê o caso da consulta)
 }) {
   const [ajuda, setAjuda] = useState(null);
   const [pedindo, setPedindo] = useState(false);
@@ -46,8 +49,8 @@ export default function FolhaEvolucao({
   };
 
   return (
-    <div className="overflow-hidden rounded-2xl border-4 border-[#6B4A3A] shadow-[0_10px_28px_rgba(0,0,0,0.4)]" style={{ backgroundColor: "#8A5E45" }}>
-      <div className="m-2 rounded-sm bg-[#E5E8E3] text-[#2B2F2E]" style={{ boxShadow: "0 4px 0 #3E2C26" }}>
+    <div className={`overflow-hidden rounded-2xl border-4 border-[#6B4A3A] shadow-[0_10px_28px_rgba(0,0,0,0.4)] ${preencher ? "flex h-full flex-col" : ""}`} style={{ backgroundColor: "#8A5E45" }}>
+      <div className={`m-2 rounded-sm bg-[#E5E8E3] text-[#2B2F2E] ${preencher ? "flex min-h-0 flex-1 flex-col" : ""}`} style={{ boxShadow: "0 4px 0 #3E2C26" }}>
         <header className="space-y-1 border-b-2 border-[#2B2F2E]/70 px-4 pb-2 pt-3">
           <h2 className="text-center text-sm font-black tracking-wide">{titulo}</h2>
           <div className="flex flex-wrap justify-between gap-x-3 text-[12px] font-bold">
@@ -72,11 +75,11 @@ export default function FolhaEvolucao({
           onChange={(e) => onMudar(e.target.value.slice(0, MAX_NOTAS))}
           placeholder={placeholder}
           spellCheck
-          className="block w-full resize-none border-0 bg-transparent py-0 pl-12 pr-4 text-[15px] font-semibold placeholder:text-[#7D8A85] focus:outline-none focus:ring-0"
-          style={{ ...papelPautado, height: LINHA * linhas, paddingTop: 2 }}
+          className={`block w-full resize-none border-0 bg-transparent py-0 pl-12 pr-4 text-[15px] font-semibold placeholder:text-[#7D8A85] focus:outline-none focus:ring-0 ${preencher ? "min-h-[200px] flex-1" : ""}`}
+          style={{ ...papelPautado, height: preencher ? undefined : LINHA * linhas, paddingTop: 2 }}
         />
         <footer className="flex items-center justify-between gap-2 border-t border-[#2B2F2E]/30 px-3 py-2">
-          <button
+          {semAjuda ? <span /> : <button
             type="button"
             onClick={pedir}
             disabled={pedindo}
@@ -84,8 +87,14 @@ export default function FolhaEvolucao({
           >
             {pedindo ? <Loader2 size={15} className="animate-spin" aria-hidden="true" /> : <Sparkles size={15} aria-hidden="true" />}
             {pedindo ? "O Goti está lendo o caso…" : "Pedir ajuda ao Goti"}
-          </button>
-          <span className="text-[11px] font-bold tabular-nums text-[#5E6B66]">{texto.length}/{MAX_NOTAS}</span>
+          </button>}
+          {modelo && !texto.trim() ? (
+            <button type="button" onClick={() => onMudar(modelo)} className="text-[12px] font-extrabold text-[#1F6F5F] underline">
+              Usar o modelo de novo
+            </button>
+          ) : (
+            <span className="text-[11px] font-bold tabular-nums text-[#5E6B66]">{texto.length}/{MAX_NOTAS}</span>
+          )}
         </footer>
       </div>
       {ajuda && (
@@ -115,4 +124,7 @@ FolhaEvolucao.propTypes = {
   linhas: PropTypes.number,
   placeholder: PropTypes.string,
   idCampo: PropTypes.string,
+  modelo: PropTypes.string,
+  preencher: PropTypes.bool,
+  semAjuda: PropTypes.bool,
 };
