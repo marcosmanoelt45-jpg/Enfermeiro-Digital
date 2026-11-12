@@ -97,7 +97,7 @@ function Chama({ lado, aceso, tamanho, atraso }) {
             ? { opacity: 1, transform: ["scale(1.3, 0.55)", "scale(0.65, 1.45)", "scale(1.12, 0.9)", "scale(0.97, 1.03)", "scale(1, 1)"] }
             : { opacity: 0, transform: "scale(1.3, 0.55)" }
         }
-        transition={{ opacity: { duration: 0.1, delay: atraso }, transform: { duration: 0.65, ease: EASE_OUT, times: [0, 0.35, 0.6, 0.8, 1], delay: atraso } }}
+        transition={{ opacity: { duration: 0.1, delay: atraso }, transform: { duration: 0.65, ease: ["easeOut", "easeInOut", "easeInOut", "easeOut"], times: [0, 0.35, 0.6, 0.8, 1], delay: atraso } }}
       />
     </div>
   );

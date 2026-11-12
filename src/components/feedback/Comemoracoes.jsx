@@ -7,7 +7,7 @@ import { vibrate } from "@/lib/motion";
 import { celebrate } from "@/lib/celebrate";
 import { EVENTO_COMEMORACAO, MARCOS_DA_OFENSIVA, semanaDaOfensiva } from "./comemoracoes.js";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
-import ChamaAcendendo, { POUSO_DA_CHAMA } from "./ofensiva/ChamaAcendendo.jsx";
+import ChamaAcendendo, { pousoDoFogo } from "./ofensiva/ChamaAcendendo.jsx";
 import Odometro from "./ofensiva/Odometro.jsx";
 import SemanaOfensiva from "./ofensiva/SemanaOfensiva.jsx";
 import TelaOfensivaAmigo from "@/features/amigos/TelaOfensivaAmigo.jsx";
@@ -102,7 +102,7 @@ SeloSequencia.propTypes = { n: PropTypes.number.isRequired, onFim: PropTypes.fun
 /**
  * Tela da ofensiva, como no Duolingo:
  * 1. entra a chama apagada (cinza) com o número de ontem e a semana, com hoje ainda vazio;
- * 2. ~0,5 s depois a chama acende (achata, sobe girando, bate no chão, estica e assenta);
+ * 2. ~0,5 s depois a chama acende: agacha e cresce colorida da base, estica e assenta;
  * 3. no pouso da chama o número rola, o dia de hoje acende e chegam título e botão.
  * Marcos (7, 14, 30, 50, 100…) ganham ondas em volta da chama, um selo de marco e confete.
  */
@@ -116,7 +116,7 @@ function TelaOfensiva({ de, para, semana = [], onFechar }) {
 
   useEffect(() => {
     const inicio = reduzir ? 0 : 500;
-    const pouso = reduzir ? 0 : inicio + POUSO_DA_CHAMA * 1000;
+    const pouso = reduzir ? 0 : inicio + pousoDoFogo() * 1000;
     const t1 = setTimeout(() => setIgnicao(true), inicio);
     const t2 = setTimeout(() => {
       setAcesa(true);

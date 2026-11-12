@@ -32,19 +32,19 @@ export interface EnfereSplashProps {
 const FONT = '"Nunito Variable","Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif';
 const LENDO = "/goti/goti-lendo";
 const SUSTO = "/goti/goti-susto";
-const SUSTO_MS = 2450; // duração do susto (3 s do Flow tocados a 1,25x)
+const SUSTO_MS = 1530; // duração do susto (trecho de 1,9 s do Flow tocado a 1,25x)
 
 const CSS = `
 .enfere-splash{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#0B131D;font-family:${FONT};user-select:none;-webkit-user-select:none;touch-action:manipulation;box-sizing:border-box}
 .enfere-splash *{box-sizing:border-box;margin:0}
 .enfere-splash .es-intro{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding-bottom:12vh;background:#0B131D}
 .enfere-splash .es-logo{width:min(34vw,148px);aspect-ratio:1/1;height:auto;opacity:0;will-change:transform,opacity}
-.enfere-splash .es-c2{position:absolute;left:0;right:0;top:29%;transform:translateY(-50%);display:flex;justify-content:center}
+.enfere-splash .es-c2{position:absolute;left:0;right:0;top:29%;transform:translateY(-44%);display:flex;justify-content:center}
 .enfere-splash .es-g2{position:relative;width:min(100vw,414px,54vh);aspect-ratio:1/1;opacity:0;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transform-origin:50% 92%}
 .enfere-splash .es-g2:focus-visible{outline:3px solid #20D5B5;outline-offset:6px;border-radius:24px}
 .enfere-splash .es-g2 video,.enfere-splash .es-g2 img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none}
 .enfere-splash .es-g2 .on{opacity:1}
-.enfere-splash .es-sh{position:absolute;left:31%;right:31%;bottom:11%;height:5%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),rgba(0,0,0,0))}
+.enfere-splash .es-sh{position:absolute;left:31%;right:31%;bottom:17.5%;height:5%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),rgba(0,0,0,0))}
 .enfere-splash .es-ttl{position:absolute;left:0;right:0;top:55%;text-align:center;font-size:3.2rem;font-weight:900;color:#20D5B5;letter-spacing:-0.03em;line-height:1;opacity:0;z-index:6;will-change:transform,opacity}
 .enfere-splash .es-tag{position:absolute;left:0;right:0;top:55%;margin-top:3.6rem;text-align:center;font-size:1.05rem;font-weight:600;color:#9FB3C6;opacity:0;padding:0 20px}
 .enfere-splash .es-btns{position:absolute;left:0;right:0;bottom:0;max-width:440px;margin:0 auto;padding:0 22px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;opacity:0;pointer-events:none}
@@ -200,8 +200,12 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     g2.setAttribute("aria-label", "Goti acenando");
     if (reduzir || safari) mostrar(iOi);
     else {
+      // O último quadro do susto e o 1º do oi são o mesmo desenho: o susto fica parado na tela até o oi já estar
+      // rodando, e só então troca (sem piscar nem "pular" de lugar).
       tocar(vOi);
-      mostrar(vOi);
+      const trocar = () => mostrar(vOi);
+      if (vOi.readyState >= 3) trocar();
+      else vOi.addEventListener("playing", trocar, { once: true });
     }
   };
 

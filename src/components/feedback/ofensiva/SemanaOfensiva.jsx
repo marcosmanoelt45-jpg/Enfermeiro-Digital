@@ -68,7 +68,7 @@ function Dia({ d, acesa, ordem }) {
         initial={{ opacity: 0, transform: "scale(0.85)" }}
         animate={
           d.hoje && acesa
-            ? { opacity: 1, transform: ["scale(0.8)", "scale(1.18)", "scale(1)"], transition: { duration: 0.42, ease: EASE_OUT, delay: 0.05 } }
+            ? { opacity: 1, transform: ["scale(0.8)", "scale(1.18)", "scale(1)"], transition: { duration: 0.42, ease: ["easeOut", "easeOut"], delay: 0.05 } }
             : { opacity: 1, transform: "scale(1)", transition: { ...MOLA_POP, delay: 0.12 + ordem * 0.04 } }
         }
       >
