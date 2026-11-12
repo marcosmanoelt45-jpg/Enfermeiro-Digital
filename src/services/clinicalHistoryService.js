@@ -267,6 +267,9 @@ export const clinicalHistoryService = {
     }
 
     setStorage(list, userId);
+    // Atividade concluída acende a ofensiva do dia: <Comemoracoes /> ouve e chama concluirAtividadeDoDia
+    // (evento em vez de import para não criar ciclo entre os serviços).
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent('enfere:atividade-concluida', { detail: { userId } }));
     return completedItem;
   },
 

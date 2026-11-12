@@ -142,7 +142,9 @@ export default function QuestoesPage() {
       userId
     );
     if (modo === "revisao") clinicalHistoryService.removerQuestoesRevisao(lista.filter((x) => x.status === "verde" || x.status === "amarela"), userId);
+    // Sessão terminada acende a ofensiva do dia (com acertos vem junto o PE; sem acertos, só o dia).
     if (acertos) clinicalGamificationService.recordActivity("case_solved", acertos * 25, userId);
+    else if (lista.some((x) => x.status !== "pulada")) clinicalGamificationService.concluirAtividadeDoDia(userId);
     setVersao((v) => v + 1);
     setDaSessao(true);
     setRevisao(resumoDaSessao(lista, (Date.now() - inicio.current) / 1000));

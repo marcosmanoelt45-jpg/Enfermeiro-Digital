@@ -268,44 +268,43 @@ function getPast7Days(dailyXpMap = {}, includeDemoMock = false) {
   return result;
 }
 
-// Dias que contam para a ofensiva além dos que têm PE: os congelados e os dias em que a pessoa começou a
-// estudar (a 1ª resposta do dia já acende o foguinho, antes de terminar a sessão e ganhar PE).
-function diasDaOfensiva(state) {
-  return [...(Array.isArray(state.frozenDates) ? state.frozenDates : []), ...(Array.isArray(state.diasAtivos) ? state.diasAtivos : [])];
-}
-
-function computeStreakFromDailyMap(dailyXpMap = {}, frozenDates = []) {
-  const frozenSet = new Set(Array.isArray(frozenDates) ? frozenDates : []);
-  const activeDates = new Set([
-    ...Object.entries(dailyXpMap || {})
+// Dias em que a pessoa estudou de verdade: com PE no mapa diário ou com uma atividade concluída no dia
+// (diasAtivos, marcado ao terminar uma sessão mesmo sem PE).
+function diasEstudados(state) {
+  return new Set([
+    ...Object.entries(state?.dailyXpMap || {})
       .filter(([, xp]) => Number(xp) > 0)
       .map(([dt]) => dt),
-    ...frozenSet,
+    ...(Array.isArray(state?.diasAtivos) ? state.diasAtivos : []),
   ]);
-  if (activeDates.size === 0) return 0;
+}
 
-  const now = new Date();
-  const todayStr = getLocalDateString(now);
-  const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
-  const yesterdayStr = getLocalDateString(yesterday);
+// Avisa o componente <Comemoracoes /> (o mesmo evento de src/components/feedback/comemoracoes.js, escrito aqui
+// para não criar import circular com o serviço).
+function avisarOfensiva(de, para) {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new CustomEvent('enfere:comemoracao', { detail: { tipo: 'ofensiva', de, para } }));
+}
 
-  if (!activeDates.has(todayStr) && !activeDates.has(yesterdayStr)) {
-    return 0;
+const diaComOffset =(now, offset) => getLocalDateString(new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset));
+
+/**
+ * Ofensiva = dias seguidos até hoje (ou até ontem, se hoje ainda não estudou). Dia congelado mantém a corrente,
+ * mas não a começa: congelados na ponta mais antiga não contam, e uma corrente só de congelados vale 0
+ * (antes, a conta nova ganhava um congelamento "de ontem" no 1º acesso e já nascia com 1 dia).
+ */
+export function computeStreak(state, now = new Date()) {
+  const estudados = diasEstudados(state);
+  const congelados = new Set(Array.isArray(state?.frozenDates) ? state.frozenDates : []);
+  const conta = (d) => estudados.has(d) || congelados.has(d);
+  let offset = conta(diaComOffset(now, 0)) ? 0 : 1;
+  const corrente = [];
+  while (conta(diaComOffset(now, offset))) {
+    corrente.push(diaComOffset(now, offset));
+    offset += 1;
   }
-
-  let streakCount = 0;
-  let offset = activeDates.has(todayStr) ? 0 : 1;
-  while (true) {
-    const cursor = new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset);
-    const cursorStr = getLocalDateString(cursor);
-    if (activeDates.has(cursorStr)) {
-      streakCount += 1;
-      offset += 1;
-    } else {
-      break;
-    }
-  }
-  return streakCount;
+  while (corrente.length && !estudados.has(corrente[corrente.length - 1])) corrente.pop();
+  return corrente.length;
 }
 
 // Catálogo de Utilidades Pedagógicas para Pontos de Estudo (PE)
@@ -494,19 +493,32 @@ function syncWithRealHistory(state, userId = null) {
   const now = new Date();
   const yesterday = new Date(now.getFullYear(), now.getMonth(), now.getDate() - 1);
   const yesterdayStr = getLocalDateString(yesterday);
-  const todayStr = getLocalDateString(now);
 
-  const hasActivityYesterday = (Number(dailyXpMap[yesterdayStr]) || 0) > 0 || state.frozenDates.includes(yesterdayStr);
-  const hasActivityToday = (Number(dailyXpMap[todayStr]) || 0) > 0;
+  const estudados = diasEstudados(state);
+  const hasActivityYesterday = estudados.has(yesterdayStr) || state.frozenDates.includes(yesterdayStr);
 
-  // Se nao houve atividade ontem e ha congelamento disponivel, consome freeze para proteger
-  if (!hasActivityYesterday && (state.streakFreezeAvailable || 0) > 0 && !state.frozenDates.includes(yesterdayStr)) {
+  // Congelamento órfão: um "ontem" congelado sem ofensiva viva até anteontem não protegia nada (era o 1º acesso
+  // da conta). Remove e devolve o congelamento.
+  const anteontem = diaComOffset(now, 2);
+  const temOfensivaAteAnteontem =
+    (estudados.has(anteontem) || state.frozenDates.includes(anteontem)) &&
+    computeStreak(state, new Date(now.getFullYear(), now.getMonth(), now.getDate() - 2)) > 0;
+  if (state.frozenDates.includes(yesterdayStr) && !estudados.has(yesterdayStr) && !temOfensivaAteAnteontem) {
+    state.frozenDates = state.frozenDates.filter((d) => d !== yesterdayStr);
+    if (state.lastFreezeUsedDate === yesterdayStr) {
+      state.streakFreezeAvailable = Math.max(1, state.streakFreezeAvailable || 0);
+      state.lastFreezeUsedDate = null;
+    }
+  }
+
+  // Sem estudo ontem: o congelamento protege a ofensiva, mas só se havia uma ofensiva para proteger.
+  if (!hasActivityYesterday && temOfensivaAteAnteontem && (state.streakFreezeAvailable || 0) > 0 && !state.frozenDates.includes(yesterdayStr)) {
     state.frozenDates.push(yesterdayStr);
     state.streakFreezeAvailable = Math.max(0, (state.streakFreezeAvailable || 1) - 1);
     state.lastFreezeUsedDate = yesterdayStr;
   }
 
-  const computedStreak = computeStreakFromDailyMap(dailyXpMap, diasDaOfensiva(state));
+  const computedStreak = computeStreak(state);
   state.streak = computedStreak;
   state.bestStreak = Math.max(state.bestStreak || 0, computedStreak);
 
@@ -589,23 +601,25 @@ export const clinicalGamificationService = {
    * Incrementa a sequência ininterrupta de acertos da conta (+1).
    */
   /**
-   * 1ª atividade do dia: acende o dia na ofensiva. Devolve { novo, de, para }; `novo` só é true na primeira
-   * chamada do dia (é quando o app mostra a animação do foguinho subindo de `de` para `para`).
+   * Fim de uma atividade (sessão de questões, revisão, caso, cálculo…): acende o dia na ofensiva. Como no
+   * Duolingo, o dia só conta ao TERMINAR uma atividade, não na 1ª resposta. Na primeira conclusão do dia avisa
+   * o app (evento de comemoração) para mostrar o foguinho subindo. Devolve { novo, de, para }.
    */
-  iniciarDiaDeEstudo(userId = null) {
+  concluirAtividadeDoDia(userId = null) {
     const resolvedId = resolveCurrentUserId(userId);
     const state = this.getState(resolvedId);
     const hoje = getTodayString();
     const dias = Array.isArray(state.diasAtivos) ? state.diasAtivos : [];
-    if ((Number(state.dailyXpMap?.[hoje]) || 0) > 0 || dias.includes(hoje)) {
-      return { novo: false, de: state.streak || 0, para: state.streak || 0 };
-    }
-    const de = state.streak || 0;
+    if (dias.includes(hoje)) return { novo: false, de: state.streak || 0, para: state.streak || 0 };
+    // `de` = ofensiva até ontem. Não dá para usar o estado atual: o getState acima já somou ao dia de hoje o PE
+    // da própria atividade que acabou de terminar (vindo do histórico).
+    const de = computeStreak({ ...state, dailyXpMap: { ...state.dailyXpMap, [hoje]: 0 } });
     state.diasAtivos = [...dias.slice(-120), hoje];
-    state.streak = computeStreakFromDailyMap(state.dailyXpMap, diasDaOfensiva(state));
+    state.streak = computeStreak(state);
     state.bestStreak = Math.max(state.bestStreak || 0, state.streak);
     state.lastActiveDate = hoje;
     this.saveState(state, resolvedId);
+    avisarOfensiva(de, state.streak);
     return { novo: true, de, para: state.streak };
   },
 
@@ -682,6 +696,10 @@ export const clinicalGamificationService = {
     const resolvedId = resolveCurrentUserId(userId);
     const state = this.getState(resolvedId);
     const today = getTodayString();
+    // Para a comemoração: a ofensiva antes desta atividade e se o dia já tinha sido aceso.
+    const diaJaAceso = diasEstudados(state).has(today);
+    const ofensivaAntes = diaJaAceso ? state.streak || 0 : computeStreak(state);
+    const ehEstudo = type !== 'send_support';
 
     let earnedXp = customXp || 20;
 
@@ -731,7 +749,8 @@ export const clinicalGamificationService = {
 
     // Atualiza o gráfico semanal e ofensiva real a partir do mapa diário da conta
     state.weeklyDays = getPast7Days(state.dailyXpMap, isDemoUser(resolvedId));
-    state.streak = computeStreakFromDailyMap(state.dailyXpMap, diasDaOfensiva(state));
+    if (ehEstudo && !(state.diasAtivos || []).includes(today)) state.diasAtivos = [...(state.diasAtivos || []).slice(-120), today];
+    state.streak = computeStreak(state);
     state.bestStreak = Math.max(state.bestStreak || 0, state.streak);
 
     // Se estiver em missão em dupla, avança a meta compartilhada
@@ -779,6 +798,7 @@ export const clinicalGamificationService = {
       .map((item, idx) => ({ ...item, rank: idx + 1 }));
 
     this.saveState(state, resolvedId);
+    if (ehEstudo && !diaJaAceso) avisarOfensiva(ofensivaAntes, state.streak);
     return {
       state,
       earnedXp,

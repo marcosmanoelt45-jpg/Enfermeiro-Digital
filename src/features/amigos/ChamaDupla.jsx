@@ -90,9 +90,14 @@ function Chama({ lado, aceso, tamanho, atraso }) {
         alt=""
         className="absolute inset-0 h-full w-full"
         style={{ transformOrigin: "50% 90%" }}
-        initial={{ opacity: 0, transform: "scale(0.7)" }}
-        animate={aceso ? { opacity: 1, transform: ["scale(0.7)", "scale(1.15)", "scale(1)"] } : { opacity: 0, transform: "scale(0.7)" }}
-        transition={{ opacity: { duration: 0.12, delay: atraso }, transform: { duration: 0.5, ease: EASE_OUT, times: [0, 0.45, 1], delay: atraso } }}
+        // Acende como a chama da ofensiva: nasce achatada, estica alta e fina e assenta com um quique.
+        initial={{ opacity: 0, transform: "scale(1.3, 0.55)" }}
+        animate={
+          aceso
+            ? { opacity: 1, transform: ["scale(1.3, 0.55)", "scale(0.65, 1.45)", "scale(1.12, 0.9)", "scale(0.97, 1.03)", "scale(1, 1)"] }
+            : { opacity: 0, transform: "scale(1.3, 0.55)" }
+        }
+        transition={{ opacity: { duration: 0.1, delay: atraso }, transform: { duration: 0.65, ease: EASE_OUT, times: [0, 0.35, 0.6, 0.8, 1], delay: atraso } }}
       />
     </div>
   );

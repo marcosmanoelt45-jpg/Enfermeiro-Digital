@@ -5,8 +5,9 @@ import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { vibrate } from "@/lib/motion";
 import { celebrate } from "@/lib/celebrate";
-import { EVENTO_COMEMORACAO, MARCOS_DA_OFENSIVA } from "./comemoracoes.js";
-import ChamaAcendendo from "./ofensiva/ChamaAcendendo.jsx";
+import { EVENTO_COMEMORACAO, MARCOS_DA_OFENSIVA, semanaDaOfensiva } from "./comemoracoes.js";
+import { clinicalGamificationService } from "@/services/clinicalGamificationService";
+import ChamaAcendendo, { POUSO_DA_CHAMA } from "./ofensiva/ChamaAcendendo.jsx";
 import Odometro from "./ofensiva/Odometro.jsx";
 import SemanaOfensiva from "./ofensiva/SemanaOfensiva.jsx";
 import TelaOfensivaAmigo from "@/features/amigos/TelaOfensivaAmigo.jsx";
@@ -26,9 +27,19 @@ const MOLA_POP = { type: "spring", duration: 0.5, bounce: 0.3 };
 export default function Comemoracoes() {
   const [fila, setFila] = useState([]);
   useEffect(() => {
-    const ouvir = (e) => setFila((f) => [...f, { ...e.detail, chave: `${Date.now()}-${Math.random()}` }]);
+    const ouvir = (e) => {
+      const d = { ...e.detail };
+      // O serviço avisa só { de, para }; a semana é montada aqui, já com o dia de hoje aceso.
+      if (d.tipo === "ofensiva" && !d.semana) d.semana = semanaDaOfensiva(clinicalGamificationService.getState());
+      setFila((f) => [...f, { ...d, chave: `${Date.now()}-${Math.random()}` }]);
+    };
+    const concluida = (e) => clinicalGamificationService.concluirAtividadeDoDia(e.detail?.userId ?? null);
     window.addEventListener(EVENTO_COMEMORACAO, ouvir);
-    return () => window.removeEventListener(EVENTO_COMEMORACAO, ouvir);
+    window.addEventListener("enfere:atividade-concluida", concluida);
+    return () => {
+      window.removeEventListener(EVENTO_COMEMORACAO, ouvir);
+      window.removeEventListener("enfere:atividade-concluida", concluida);
+    };
   }, []);
   const atual = fila[0] ?? null;
   const proxima = useCallback(() => setFila((f) => f.slice(1)), []);
@@ -89,31 +100,36 @@ function SeloSequencia({ n, onFim }) {
 SeloSequencia.propTypes = { n: PropTypes.number.isRequired, onFim: PropTypes.func.isRequired };
 
 /**
- * Tela da ofensiva, em três tempos:
+ * Tela da ofensiva, como no Duolingo:
  * 1. entra a chama apagada (cinza) com o número de ontem e a semana, com hoje ainda vazio;
- * 2. ~0,6 s depois a chama acende (brilho + fagulhas), o número rola e o dia de hoje acende com um anel;
- * 3. título e botão chegam por último, para o toque de "Continuar" não pular a virada.
+ * 2. ~0,5 s depois a chama acende (achata, sobe girando, bate no chão, estica e assenta);
+ * 3. no pouso da chama o número rola, o dia de hoje acende e chegam título e botão.
  * Marcos (7, 14, 30, 50, 100…) ganham ondas em volta da chama, um selo de marco e confete.
  */
 function TelaOfensiva({ de, para, semana = [], onFechar }) {
   const reduzir = useReducedMotion();
+  const [ignicao, setIgnicao] = useState(false);
   const [acesa, setAcesa] = useState(false);
   const botaoRef = useRef(null);
   const marco = MARCOS_DA_OFENSIVA.has(para);
   const perfeita = semana.length === 7 && semana.every((d) => d.ativo && !d.congelado);
 
   useEffect(() => {
-    const t = setTimeout(() => {
+    const inicio = reduzir ? 0 : 500;
+    const pouso = reduzir ? 0 : inicio + POUSO_DA_CHAMA * 1000;
+    const t1 = setTimeout(() => setIgnicao(true), inicio);
+    const t2 = setTimeout(() => {
       setAcesa(true);
       vibrate(marco ? [20, 40, 30] : 20);
       if (marco) celebrate({ count: 80, y: 0.42 });
       else if (perfeita) celebrate({ count: 45, y: 0.62 });
-    }, reduzir ? 0 : 600);
-    const f = setTimeout(() => botaoRef.current?.focus({ preventScroll: true }), reduzir ? 0 : 1000);
+    }, pouso);
+    const f = setTimeout(() => botaoRef.current?.focus({ preventScroll: true }), pouso + 400);
     const tecla = (e) => e.key === "Escape" && onFechar();
     window.addEventListener("keydown", tecla);
     return () => {
-      clearTimeout(t);
+      clearTimeout(t1);
+      clearTimeout(t2);
       clearTimeout(f);
       window.removeEventListener("keydown", tecla);
     };
@@ -143,7 +159,7 @@ function TelaOfensiva({ de, para, semana = [], onFechar }) {
         initial={{ opacity: 0, transform: "translateY(16px) scale(0.92)" }}
         animate={{ opacity: 1, transform: "translateY(0px) scale(1)", transition: { type: "spring", duration: 0.5, bounce: 0.25 } }}
       >
-        <ChamaAcendendo acesa={acesa} marco={marco} tamanho={168} />
+        <ChamaAcendendo acesa={ignicao} marco={marco} tamanho={168} />
       </motion.div>
 
       <div className="-mt-3 text-[76px] font-black leading-none" style={{ color: acesa ? "#FFC247" : "#5B6E82", transition: "color 200ms ease" }}>

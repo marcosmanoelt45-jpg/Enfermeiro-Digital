@@ -1,4 +1,4 @@
-// Comemorações de sequência (a cada 5 acertos seguidos) e de ofensiva (1ª resposta do dia).
+// Comemorações de sequência (a cada 5 acertos seguidos) e de ofensiva (1ª atividade concluída do dia).
 // As telas que têm respostas (Questões, Revisão, Cálculo) chamam `registrarResposta`; o componente
 // <Comemoracoes /> (montado uma vez no App) ouve o evento e mostra a animação.
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
@@ -39,14 +39,13 @@ function avisar(detalhe) {
 }
 
 /**
- * Registra uma resposta e dispara as comemorações.
+ * Registra uma resposta e dispara a comemoração de sequência.
  * `resultado`: "acerto" (de primeira ou de segunda), "primeiro_erro" (o amarelo: não zera a sequência) ou "erro"
- * (o erro final: zera). A 1ª resposta do dia acende a ofensiva.
+ * (o erro final: zera). A ofensiva NÃO sobe aqui: ela acende ao terminar a atividade (recordActivity ou
+ * concluirAtividadeDoDia no serviço), como no Duolingo.
  */
 export function registrarResposta({ userId = null, resultado }) {
   const svc = clinicalGamificationService;
-  const dia = svc.iniciarDiaDeEstudo(userId);
-  if (dia.novo) avisar({ tipo: "ofensiva", de: dia.de, para: dia.para, semana: semanaDaOfensiva(svc.getState(userId)) });
   if (resultado === "acerto") {
     const n = svc.registrarAcertoQuestao(userId)?.acertosSeguidos ?? 0;
     if (comemoraSequencia(n)) avisar({ tipo: "sequencia", n });

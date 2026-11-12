@@ -6,6 +6,7 @@ import PlurallQuestionCard from "@/components/simulador/PlurallQuestionCard";
 import { useAuth } from "@/lib/AuthContext";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
 import { registrarResposta } from "@/components/feedback/comemoracoes.js";
+import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { vibrate } from "@/lib/motion";
 
 const NOVO = { selectedChoice: null, tentativas: 0, status: "aberta", isFinalizada: false, opcoesFalhadas: [] };
@@ -50,6 +51,8 @@ export default function RevisaoPage() {
   };
 
   const proxima = () => {
+    // Terminou a última questão: a revisão conta como atividade concluída e acende a ofensiva do dia.
+    if (indice + 1 >= questoes.length) clinicalGamificationService.concluirAtividadeDoDia(user?.id);
     setIndice((i) => i + 1);
     setEstado(NOVO);
     setDicaVisivel(false);
