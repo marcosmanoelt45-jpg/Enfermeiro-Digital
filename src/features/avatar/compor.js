@@ -143,7 +143,8 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
       const corDaPeca = p.startsWith("cabelo-") || p.startsWith("barba-") ? cores.cabelo : cores.acessorio;
       const onde = p.startsWith("cracha-") ? "cracha" : p.startsWith("cabeca-") && ajusteCabeca ? "cabeca" : null;
       // primeiro apaga o que esta peça esconde (pijama saindo pelos lados do jaleco, cabelo acima da touca)
-      if (info.apaga) arquivos.push({ url: `${BASE_URL}${p}.apaga.webp`, apaga: true, onde });
+      const usaApaga = info.apaga && (p !== "cabeca-touca" || a.cabelo === "coque"); // touca só esconde o coque
+      if (usaApaga) arquivos.push({ url: `${BASE_URL}${p}.apaga.webp`, apaga: true, onde });
       // tingidos primeiro (cada um se estende um pouco por baixo do próximo) e a cor fixa por cima: sem emenda
       if (info.pele) arquivos.push({ url: `${BASE_URL}${p}.pele.webp`, cor: cores.pele, onde });
       if (info.roupa) arquivos.push({ url: `${BASE_URL}${p}.roupa.webp`, cor: cores.roupa, onde });
@@ -166,11 +167,15 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
         ctx.translate(-cx, -cy);
       } else if (onde === "cabeca") {
         const [ax, ay] = CAMADAS._ajusteCabeca.ancora;
-        // sobe até o topo do cabelo, mas sem deixar o acessório sair por cima da imagem
+        // touca cobre o alto do cabelo inteiro (sobe e alarga tudo); tiaras assentam dentro do volume, com só
+        // as orelhinhas por cima (sobem pouco mais da metade e alargam menos)
+        const touca = a.cabeca === "touca";
+        const esc = touca ? ajusteCabeca.st ?? ajusteCabeca.s : 1 + (ajusteCabeca.s - 1) * 0.45;
         const topo = CAMADAS[`cabeca-${a.cabeca}`]?.topo ?? ay;
-        const dy = Math.max(ajusteCabeca.dy, 3 - ay - ajusteCabeca.s * (topo - ay));
+        // sem deixar o acessório sair por cima da imagem
+        const dy = Math.max(ajusteCabeca.dy * (touca ? 1 : 0.6), 3 - ay - esc * (topo - ay));
         ctx.translate(ax, ay + dy);
-        ctx.scale(ajusteCabeca.s, ajusteCabeca.s);
+        ctx.scale(esc, esc);
         ctx.translate(-ax, -ay);
       }
       desenhar();

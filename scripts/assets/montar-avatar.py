@@ -323,10 +323,15 @@ for n, a_c in ALFA_CABELO.items():
     topo = topo_base + float(np.median(dif_topo)) + 8  # a tiara assenta um pouco dentro do volume
     lin = np.where(junto[int(topo) + 80])[0]
     larg = int(2 * min(cx - lin.min(), lin.max() - cx)) if lin.size else larg_base  # simétrica: ignora o rabo de lado
-    escala = float(np.clip(larg / larg_base, 1.0, 1.45))
+    escala = float(np.clip(larg / larg_base, 1.0, 1.7))
     dy = min(topo - topo_base, 0.0)
-    if dy < -2 or escala > 1.02:
-        ajustes[n] = {'dy': round(dy / 2, 1), 's': round(escala, 3)}
+    # para a touca: largura um pouco mais abaixo (onde fica a borda dela), comparada à da cabeça careca ali
+    lin2 = np.where(junto[int(topo) + 150])[0]
+    larg2 = int(2 * min(cx - lin2.min(), lin2.max() - cx)) if lin2.size else larg_base
+    larg2_base = int(cab_base[topo_base + 150].sum())
+    esc_touca = float(np.clip(larg2 / max(larg2_base, 1), 1.0, 1.7))
+    if dy < -2 or escala > 1.02 or esc_touca > 1.02:
+        ajustes[n] = {'dy': round(dy / 2, 1), 's': round(escala, 3), 'st': round(esc_touca, 3)}
 manifesto['_ajusteCabeca'] = {'ancora': [round(cx / 2, 1), round(topo_base / 2, 1)], 'cabelos': ajustes}
 print('ajustes', ajustes)
 

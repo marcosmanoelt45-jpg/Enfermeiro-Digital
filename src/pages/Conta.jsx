@@ -40,6 +40,7 @@ import { CORES_FUNDO } from "@/features/avatar/pecas.js";
 import { useMeuAvatar } from "@/features/avatar/meuAvatar.js";
 import { atualizarMeuPerfil } from "@/features/social/servicoSocial.js";
 import { EVENTO_SINCRONIZADO } from "@/features/conta/sincronizacao.js";
+import PrivacidadeESom from "@/features/conta/PrivacidadeESom.jsx";
 
 // Helper de pluralização PT-BR (profile-7)
 const plural = (n, singular, pluralForm) => (n === 1 ? singular : pluralForm);
@@ -479,8 +480,9 @@ export default function Conta() {
           )}
         </div>
 
-        {/* Ações da Conta: Ajustes e Sair */}
+        {/* Ações da Conta: privacidade e som, Ajustes e Sair */}
         <div className="space-y-3 pt-3">
+          <PrivacidadeESom comSocial={flagAtiva("social")} />
           {/* Ajustes de leitura, plantão noturno e toque: antes só existiam numa gaveta que nunca abria. */}
           <Button
             type="button"

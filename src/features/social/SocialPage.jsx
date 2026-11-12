@@ -15,14 +15,14 @@ const segmento = (ativo) =>
 /**
  * Social (rota /social): duas abas.
  * - Pódio: os 3 primeiros num pódio e o resto em lista, por Ofensiva, Recorde ou PE da semana, entre amigos ou no
- *   ranking geral (só quem ligou "aparecer no ranking geral").
+ *   ranking geral (todo mundo, menos quem ocultou o perfil).
  * - Amigos: convite por link (WhatsApp, Telegram, copiar) e a lista de amigos, com a ofensiva juntos de cada um.
  */
 export default function SocialPage() {
   const { user } = useAuth();
   const navigate = useNavigate();
   const [aba, setAba] = useState("podio");
-  const [escopo, setEscopo] = useState("amigos");
+  const [escopo, setEscopo] = useState("geral"); // todo mundo aparece no pódio geral (quem não ocultou o perfil)
   const [metrica, setMetrica] = useState("ofensiva");
   const [perfis, setPerfis] = useState(null);
   const [amigos, setAmigos] = useState(null);
@@ -109,9 +109,9 @@ export default function SocialPage() {
 
           {escopo === "geral" && eu && !eu.no_ranking_geral && (
             <div className="flex items-center justify-between gap-3 rounded-2xl border-2 border-[#27394B] bg-[#131F2E] p-3">
-              <p className="text-sm font-semibold text-[#9FB3C6]">Você ainda não aparece no ranking geral. Só seu nome, avatar e números ficam visíveis.</p>
+              <p className="text-sm font-semibold text-[#9FB3C6]">Seu perfil está oculto: só seus amigos te veem. Mostrar deixa nome, avatar e números visíveis no pódio.</p>
               <Button size="sm" variant="primary" onClick={entrarNoGeral}>
-                Aparecer
+                Mostrar
               </Button>
             </div>
           )}
