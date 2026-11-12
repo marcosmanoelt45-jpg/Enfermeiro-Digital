@@ -3,6 +3,7 @@ import PropTypes from "prop-types";
 import { Button } from "@/components/ui/button";
 import { ClipboardList, NotebookPen } from "lucide-react";
 import JanelaFolha from "@/components/prontuario/JanelaFolha.jsx";
+import DicaExame from "@/components/prontuario/DicaExame.jsx";
 import { MODELO_SBAR } from "@/components/prontuario/modelosAnotacao.js";
 import { ICONE_ANOTACAO, ICONE_PRONTUARIO } from "@/components/prontuario/icones.js";
 import FolhaEvolucao from "@/features/consulta/componentes/FolhaEvolucao.jsx";
@@ -229,12 +230,13 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
         }
       />
 
+      <DicaExame exemplo={'"Vou avaliar o curativo" ou "vou auscultar o pulmão".'} />
       <JanelaFolha
         id="plantao-prontuario"
         aberta={prontuario}
         titulo="Prontuário"
         icone={ClipboardList}
-        cor="#20D5B5"
+        tipo="prancheta"
         lado="esquerda"
         paginas={paginasPlantao({ cenario, lacunasPreenchidas: lacunas })}
         pagina={paginaProntuario}
@@ -246,7 +248,7 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
         aberta={notasAbertas}
         titulo="Anotação"
         icone={NotebookPen}
-        cor="#FFC247"
+        tipo="bloco"
         lado="direita"
         paginas={[
           {

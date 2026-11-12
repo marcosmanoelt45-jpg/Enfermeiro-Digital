@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AnimatePresence, m as motion } from "framer-motion";
-import { Check, ChevronLeft, Crown, Dices, Glasses, IdCard, Palette, Scissors, Shirt, Smile, UserRound } from "lucide-react";
+import { Check, ChevronLeft, Crown, Dices, Glasses, IdCard, Palette, Scissors, Shield, Shirt, Smile, UserRound } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -12,7 +12,7 @@ import { CATEGORIAS, normalizarAvatar, sortearAvatar } from "./pecas.js";
 import { gravarMeuAvatarLocal, lerMeuAvatar } from "./meuAvatar.js";
 import { atualizarMeuPerfil, SocialIndisponivel } from "@/features/social/servicoSocial.js";
 
-const ICONES = { rosto: Smile, cabelo: Scissors, barba: UserRound, oculos: Glasses, cabeca: Crown, roupa: Shirt, cracha: IdCard, fundo: Palette };
+const ICONES = { rosto: Smile, cabelo: Scissors, barba: UserRound, oculos: Glasses, mascara: Shield, cabeca: Crown, roupa: Shirt, cracha: IdCard, fundo: Palette };
 const EASE_OUT = [0.23, 1, 0.32, 1];
 
 /**

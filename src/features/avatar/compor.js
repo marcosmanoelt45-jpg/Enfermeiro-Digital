@@ -2,7 +2,7 @@
 // Cada peça pode ter até 4 arquivos: cor fixa (<peca>.webp) e sombras para tingir (.pele, .roupa, .cor).
 // Tingir: cor_final = cor_escolhida * sombra / 170 (170 = tom médio da peça original).
 import CAMADAS from "./camadas.json";
-import { CORES_ACESSORIO, CORES_CABELO, CORES_ROUPA, PELES, normalizarAvatar } from "./pecas.js";
+import { CORES_ACESSORIO, CORES_CABELO, CORES_MASCARA, CORES_ROUPA, PELES, normalizarAvatar } from "./pecas.js";
 import { ajustarTexto, primeiroNome } from "./nomeNoCracha.js";
 
 const REF = 170;
@@ -20,6 +20,7 @@ export function pecasDoAvatar(a) {
   if (a.olhos !== "cilios") lista.push(`olhos-${a.olhos}`);
   if (a.boca !== "sorriso") lista.push(`boca-${a.boca}`);
   if (a.barba !== "nenhuma") lista.push(`barba-${a.barba}`);
+  if (a.mascara !== "nenhuma") lista.push(`mascara-${a.mascara}`);
   if (a.cabeca !== "nenhum") lista.push(`cabeca-${a.cabeca}`);
   return lista.filter((p) => CAMADAS[p]);
 }
@@ -133,6 +134,7 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
     roupa: CORES_ROUPA[a.corRoupa],
     cabelo: CORES_CABELO[a.corCabelo],
     acessorio: CORES_ACESSORIO[a.corAcessorio],
+    mascara: CORES_MASCARA[a.corMascara],
   };
   const trabalho = (async () => {
     const pecas = pecasDoAvatar(a);
@@ -141,7 +143,7 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
     const ajusteCabeca = CAMADAS._ajusteCabeca?.cabelos?.[`cabelo-${a.cabelo}`] || null;
     for (const p of pecas) {
       const info = CAMADAS[p];
-      const corDaPeca = p.startsWith("cabelo-") || p.startsWith("barba-") ? cores.cabelo : cores.acessorio;
+      const corDaPeca = p.startsWith("cabelo-") || p.startsWith("barba-") ? cores.cabelo : p.startsWith("mascara-") ? cores.mascara : cores.acessorio;
       const onde = p.startsWith("cracha-") ? "cracha" : p.startsWith("cabeca-") && ajusteCabeca ? "cabeca" : null;
       // primeiro apaga o que esta peça esconde (pijama saindo pelos lados do jaleco, cabelo acima da touca)
       const usaApaga = info.apaga && (p !== "cabeca-touca" || a.cabelo === "coque"); // touca só esconde o coque

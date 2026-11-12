@@ -49,8 +49,9 @@ export default function FolhaEvolucao({
   };
 
   return (
-    <div className={`overflow-hidden rounded-2xl border-4 border-[#6B4A3A] shadow-[0_10px_28px_rgba(0,0,0,0.4)] ${preencher ? "flex h-full flex-col" : ""}`} style={{ backgroundColor: "#8A5E45" }}>
-      <div className={`m-2 rounded-sm bg-[#E5E8E3] text-[#2B2F2E] ${preencher ? "flex min-h-0 flex-1 flex-col" : ""}`} style={{ boxShadow: "0 4px 0 #3E2C26" }}>
+    // Na janela (preencher) a moldura é a da própria janela: aqui fica só o papel.
+    <div className={preencher ? "flex h-full flex-col" : "overflow-hidden rounded-2xl border-4 border-[#6B4A3A] shadow-[0_10px_28px_rgba(0,0,0,0.4)]"} style={preencher ? undefined : { backgroundColor: "#8A5E45" }}>
+      <div className={`rounded-sm bg-[#E5E8E3] text-[#2B2F2E] ${preencher ? "flex min-h-0 flex-1 flex-col" : "m-2"}`} style={{ boxShadow: preencher ? "0 3px 0 rgba(0,0,0,0.25)" : "0 4px 0 #3E2C26" }}>
         <header className="space-y-1 border-b-2 border-[#2B2F2E]/70 px-4 pb-2 pt-3">
           <h2 className="text-center text-sm font-black tracking-wide">{titulo}</h2>
           <div className="flex flex-wrap justify-between gap-x-3 text-[12px] font-bold">

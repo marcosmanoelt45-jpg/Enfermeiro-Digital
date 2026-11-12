@@ -225,6 +225,13 @@
 "pele": true,
 "roupa": true
 },
+"mascara-cirurgica": {
+"cor": true,
+"fixo": true
+},
+"mascara-comum": {
+"cor": true
+},
 "oculos-gatinho": {
 "fixo": true,
 "pele": true

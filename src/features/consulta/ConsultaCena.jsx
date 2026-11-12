@@ -14,6 +14,7 @@ import { ClipboardList, NotebookPen } from "lucide-react";
 import FolhaEvolucao from "./componentes/FolhaEvolucao.jsx";
 import { paginasConsulta } from "./componentes/ProntuarioConsulta.jsx";
 import JanelaFolha from "@/components/prontuario/JanelaFolha.jsx";
+import DicaExame from "@/components/prontuario/DicaExame.jsx";
 import { MODELO_SOAP, anotarNoObjetivo, semModeloVazio } from "@/components/prontuario/modelosAnotacao.js";
 import { ICONE_ANOTACAO, ICONE_PRONTUARIO } from "@/components/prontuario/icones.js";
 import PainelExames, { PopupExame } from "./componentes/PainelExames.jsx";
@@ -199,6 +200,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       onTurnos={setTurnos}
       slotAbaixoPalco={<PainelExames exames={exames} />}
     />
+    {!retomada && <DicaExame exemplo={'"Vou medir sua glicemia" ou "vou auscultar seus pulmões".'} />}
     <PopupExame
       pedido={ausculta ? null : examePedido}
       resultado={resultadoNovo}
@@ -234,7 +236,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       aberta={prontuarioAberto}
       titulo="Prontuário"
       icone={ClipboardList}
-      cor="#20D5B5"
+      tipo="prancheta"
       lado="esquerda"
       paginas={paginasConsulta({ sessao, exames })}
       pagina={paginaProntuario}
@@ -246,7 +248,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       aberta={notasAbertas}
       titulo="Anotação"
       icone={NotebookPen}
-      cor="#FFC247"
+      tipo="bloco"
       lado="direita"
       paginas={[
         { titulo: "Evolução (SOAP)", conteudo: <div className="h-full min-h-[420px]"><FolhaEvolucao texto={notas} onMudar={setNotas} briefing={b} turnos={turnos} modelo={MODELO_SOAP} preencher idCampo="folha-evolucao-janela" /></div> },

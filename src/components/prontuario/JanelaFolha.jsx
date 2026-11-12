@@ -2,10 +2,11 @@ import React, { useCallback, useEffect, useLayoutEffect, useRef, useState } from
 import PropTypes from "prop-types";
 import { createPortal } from "react-dom";
 import { AnimatePresence, m as motion } from "framer-motion";
-import { ChevronLeft, ChevronRight, GripHorizontal, X } from "lucide-react";
+import { ChevronLeft, ChevronRight, X } from "lucide-react";
 
-// Janela de folha (prontuário, anotação) por cima da cena, como uma janela de navegador: arrasta pela barra de
-// título, muda de tamanho pelo canto e não cobre a conversa com fundo escuro. Tamanho com limite (nem minúscula
+// Janela de folha (prontuário, anotação) por cima da cena, como uma janela de navegador, mas sem moldura de
+// computador: a própria prancheta (ou bloco) é a janela. Arrasta segurando a borda do desenho, muda de tamanho
+// pelo canto e não cobre a conversa com fundo escuro. Tamanho com limite (nem minúscula
 // nem maior que a tela) e sempre dentro da tela. Várias páginas: botão grande de virar a página no rodapé.
 // Posição e tamanho ficam guardados na visita (sessionStorage) por janela.
 
@@ -51,7 +52,7 @@ function lerGuardado(id) {
   }
 }
 
-export default function JanelaFolha({ id, aberta, titulo, icone: Icone = null, cor = "#20D5B5", lado = "esquerda", paginas, onFechar, pagina: paginaControlada, onPagina }) {
+export default function JanelaFolha({ id, aberta, titulo, icone: Icone = null, tipo = "prancheta", lado = "esquerda", paginas, onFechar, pagina: paginaControlada, onPagina }) {
   const [ret, setRet] = useState(null);
   const [z, setZ] = useState(() => proximoZ());
   const [paginaInterna, setPaginaInterna] = useState(0);
@@ -121,119 +122,137 @@ export default function JanelaFolha({ id, aberta, titulo, icone: Icone = null, c
   const atual = paginas[Math.min(pagina, total - 1)];
 
   if (typeof document === "undefined") return null;
+  const bloco = tipo === "bloco";
+  // Moldura = o próprio desenho (prancheta de madeira ou bloco amarelo). Segurar na moldura arrasta; o papel
+  // não (dá para rolar, selecionar e escrever); o canto de baixo muda o tamanho.
+  const moldura = bloco
+    ? { backgroundColor: "#F2B53A", boxShadow: "inset 0 0 0 4px #D99A1E, 0 16px 36px rgba(0,0,0,0.55)" }
+    : {
+        backgroundColor: "#8A5E45",
+        backgroundImage: "repeating-linear-gradient(176deg, rgba(0,0,0,0.10) 0 3px, transparent 3px 22px), repeating-linear-gradient(183deg, rgba(255,255,255,0.05) 0 6px, transparent 6px 37px)",
+        boxShadow: "inset 0 0 0 5px #6B4A3A, 0 16px 36px rgba(0,0,0,0.55)",
+      };
+  const naoArrasta = (e) => e.stopPropagation();
   // no body: nenhum ancestral com transform atrapalha o position: fixed
   return createPortal(
     <AnimatePresence>
       {aberta && ret && (
         <motion.section
           role="dialog"
-          aria-label={titulo}
-          className="fixed flex flex-col overflow-hidden rounded-2xl border-2 bg-[#0B131D] shadow-[0_18px_44px_rgba(0,0,0,0.6)]"
-          style={{ left: ret.x, top: ret.y, width: ret.l, height: ret.a, zIndex: z, borderColor: cor }}
+          aria-label={total > 1 ? `${titulo}: ${atual.titulo}` : titulo}
+          className="fixed touch-none select-none"
+          style={{ left: ret.x, top: ret.y, width: ret.l, height: ret.a, zIndex: z }}
           initial={{ opacity: 0, transform: "scale(0.96)" }}
           animate={{ opacity: 1, transform: "scale(1)" }}
           exit={{ opacity: 0, transform: "scale(0.96)" }}
           transition={{ duration: 0.18, ease: EASE }}
-          onPointerDown={() => setZ(proximoZ())}
         >
-          {/* barra de título: arrastar */}
-          <header
-            className="flex shrink-0 cursor-grab touch-none select-none items-center gap-2 px-3 py-2 active:cursor-grabbing"
-            style={{ backgroundColor: cor }}
+          <div
+            className="relative flex h-full cursor-grab flex-col rounded-[20px] px-3 pb-2 pt-9 active:cursor-grabbing"
+            style={moldura}
             onPointerDown={comecar("mover")}
             onPointerMove={mover}
             onPointerUp={soltar}
             onPointerCancel={soltar}
           >
-            {Icone && <Icone className="h-5 w-5 shrink-0 text-[#0B131D]" aria-hidden="true" />}
-            <h2 className="min-w-0 flex-1 truncate text-sm font-black text-[#0B131D]">
-              {titulo}
-              {total > 1 && <span className="font-extrabold opacity-70"> · {atual.titulo}</span>}
-            </h2>
-            <GripHorizontal className="h-4 w-4 shrink-0 text-[#0B131D]/60" aria-hidden="true" />
+            {/* topo: prendedor de metal com o nome (prancheta) ou espiral (bloco) */}
+            {bloco ? (
+              <div className="pointer-events-none absolute inset-x-6 top-1.5 flex justify-between" aria-hidden="true">
+                {Array.from({ length: 9 }).map((_, i) => (
+                  <span key={i} className="h-6 w-2.5 rounded-full bg-gradient-to-b from-[#C9CED1] to-[#7E8589] shadow-[0_2px_0_rgba(0,0,0,0.25)]" />
+                ))}
+              </div>
+            ) : (
+              <div className="pointer-events-none absolute left-1/2 top-1 flex h-8 -translate-x-1/2 items-center gap-1.5 rounded-t-xl rounded-b-md bg-[#A6AAAA] px-4 shadow-[0_3px_0_#7A7F7D]" aria-hidden="true">
+                {Icone && <Icone className="h-4 w-4 text-[#3B4140]" />}
+                <span className="text-xs font-black uppercase tracking-wide text-[#3B4140]">{titulo}</span>
+              </div>
+            )}
+
             <button
               type="button"
-              onPointerDown={(e) => e.stopPropagation()}
+              onPointerDown={naoArrasta}
               onClick={onFechar}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[#0B131D]/15 text-[#0B131D] transition-colors hover:bg-[#0B131D]/25"
+              className="absolute right-2 top-1.5 flex h-8 w-8 items-center justify-center rounded-full bg-[#0B131D]/80 text-[#EAF2F8] shadow-[0_2px_0_rgba(0,0,0,0.35)] transition-transform duration-100 active:scale-95"
               aria-label={`Fechar ${titulo}`}
             >
-              <X className="h-5 w-5" aria-hidden="true" />
+              <X className="h-4 w-4" aria-hidden="true" />
             </button>
-          </header>
 
-          {/* conteúdo da página */}
-          <div className="relative min-h-0 flex-1 overflow-y-auto overscroll-contain p-2">
-            <AnimatePresence mode="wait" initial={false} custom={direcao}>
-              <motion.div
-                key={pagina}
-                className="h-full"
-                custom={direcao}
-                initial={{ opacity: 0, transform: `translateX(${direcao * 24}px)` }}
-                animate={{ opacity: 1, transform: "translateX(0px)" }}
-                exit={{ opacity: 0, transform: `translateX(${direcao * -24}px)` }}
-                transition={{ duration: 0.16, ease: EASE }}
-              >
-                {atual.conteudo}
-              </motion.div>
-            </AnimatePresence>
-          </div>
+            {/* papel: rola, sem arrastar */}
+            <div className={`relative min-h-0 flex-1 cursor-auto select-text overflow-y-auto overscroll-contain rounded-sm ${bloco ? "mt-5" : ""}`} onPointerDown={naoArrasta} style={{ touchAction: "pan-y" }}>
+              <AnimatePresence mode="wait" initial={false} custom={direcao}>
+                <motion.div
+                  key={pagina}
+                  className="h-full"
+                  custom={direcao}
+                  initial={{ opacity: 0, transform: `translateX(${direcao * 24}px)` }}
+                  animate={{ opacity: 1, transform: "translateX(0px)" }}
+                  exit={{ opacity: 0, transform: `translateX(${direcao * -24}px)` }}
+                  transition={{ duration: 0.16, ease: EASE }}
+                >
+                  {atual.conteudo}
+                </motion.div>
+              </AnimatePresence>
+            </div>
 
-          {/* rodapé: virar a página (botões grandes) */}
-          {total > 1 && (
-            <footer className="flex shrink-0 items-center gap-2 border-t border-[#27394B] bg-[#131F2E] px-2 py-2">
-              <button
-                type="button"
-                onClick={() => virar(-1)}
-                disabled={pagina === 0}
-                className="btn-3d-outline flex h-11 items-center gap-1 rounded-xl px-3 text-sm font-extrabold disabled:opacity-40"
-                aria-label="Página anterior"
-              >
-                <ChevronLeft className="h-5 w-5" aria-hidden="true" />
-                <span className="hidden sm:inline">Voltar</span>
-              </button>
-              <div className="flex min-w-0 flex-1 flex-col items-center">
-                <span className="truncate text-xs font-black text-[#EAF2F8]">{atual.titulo}</span>
-                <span className="flex gap-1.5 pt-1" aria-label={`Página ${pagina + 1} de ${total}`}>
+            {/* pé da moldura: virar a página */}
+            {total > 1 ? (
+              <div className="flex shrink-0 items-center gap-2 pt-2" onPointerDown={naoArrasta}>
+                <button
+                  type="button"
+                  onClick={() => virar(-1)}
+                  disabled={pagina === 0}
+                  className="flex h-10 items-center gap-1 rounded-xl bg-[#0B131D]/75 px-3 text-sm font-extrabold text-[#EAF2F8] disabled:opacity-35"
+                  aria-label="Página anterior"
+                >
+                  <ChevronLeft className="h-5 w-5" aria-hidden="true" />
+                  <span className="hidden sm:inline">Voltar</span>
+                </button>
+                <span className="flex min-w-0 flex-1 justify-center gap-1.5" aria-label={`Página ${pagina + 1} de ${total}`}>
                   {paginas.map((p, i) => (
                     <button
                       key={p.titulo}
                       type="button"
                       onClick={() => virar(i - pagina)}
-                      className={`h-2.5 rounded-full transition-[width,background-color] duration-200 ${i === pagina ? "w-6" : "w-2.5 bg-[#27394B]"}`}
-                      style={i === pagina ? { backgroundColor: cor } : undefined}
+                      className={`h-2.5 rounded-full transition-[width] duration-200 ${i === pagina ? "w-6 bg-[#EAF2F8]" : "w-2.5 bg-[#0B131D]/45"}`}
                       aria-label={`Ir para ${p.titulo}`}
                       aria-current={i === pagina ? "page" : undefined}
                     />
                   ))}
                 </span>
+                <button
+                  type="button"
+                  onClick={() => virar(1)}
+                  disabled={pagina === total - 1}
+                  className="btn-3d-teal flex h-10 items-center gap-1 rounded-xl px-3 text-sm font-extrabold disabled:opacity-40"
+                  aria-label="Próxima página"
+                >
+                  <span className="hidden sm:inline">Virar página</span>
+                  <ChevronRight className="h-5 w-5" aria-hidden="true" />
+                </button>
               </div>
-              <button
-                type="button"
-                onClick={() => virar(1)}
-                disabled={pagina === total - 1}
-                className="btn-3d-teal flex h-11 items-center gap-1 rounded-xl px-3 text-sm font-extrabold disabled:opacity-40"
-                aria-label="Próxima página"
-              >
-                <span className="hidden sm:inline">Virar página</span>
-                <ChevronRight className="h-5 w-5" aria-hidden="true" />
-              </button>
-            </footer>
-          )}
+            ) : (
+              <div className="h-3 shrink-0" />
+            )}
 
-          {/* canto: mudar o tamanho */}
-          <div
-            className="absolute bottom-0 right-0 z-10 h-6 w-6 cursor-nwse-resize touch-none"
-            onPointerDown={comecar("tamanho")}
-            onPointerMove={mover}
-            onPointerUp={soltar}
-            onPointerCancel={soltar}
-            role="separator"
-            aria-label="Arraste para mudar o tamanho da janela"
-          >
-            <svg viewBox="0 0 24 24" className="h-full w-full" aria-hidden="true">
-              <path d="M22 10 L10 22 M22 16 L16 22" stroke={cor} strokeWidth="2.5" strokeLinecap="round" />
-            </svg>
+            {/* canto: mudar o tamanho */}
+            <div
+              className="absolute -bottom-1 -right-1 z-10 h-7 w-7 cursor-nwse-resize"
+              onPointerDown={(e) => {
+                e.stopPropagation();
+                comecar("tamanho")(e);
+              }}
+              onPointerMove={mover}
+              onPointerUp={soltar}
+              onPointerCancel={soltar}
+              role="separator"
+              aria-label="Arraste para mudar o tamanho"
+            >
+              <svg viewBox="0 0 24 24" className="h-full w-full" aria-hidden="true">
+                <path d="M20 9 L9 20 M20 15 L15 20" stroke={bloco ? "#7A5208" : "#E9ECEB"} strokeWidth="2.5" strokeLinecap="round" />
+              </svg>
+            </div>
           </div>
         </motion.section>
       )}
@@ -247,7 +266,7 @@ JanelaFolha.propTypes = {
   aberta: PropTypes.bool.isRequired,
   titulo: PropTypes.string.isRequired,
   icone: PropTypes.elementType,
-  cor: PropTypes.string,
+  tipo: PropTypes.oneOf(["prancheta", "bloco"]),
   lado: PropTypes.oneOf(["esquerda", "direita"]),
   paginas: PropTypes.arrayOf(PropTypes.shape({ titulo: PropTypes.string.isRequired, conteudo: PropTypes.node })).isRequired,
   onFechar: PropTypes.func.isRequired,

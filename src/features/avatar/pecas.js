@@ -8,6 +8,7 @@ export const PELES = ["#FFDCC8", "#FEC3A3", "#EAA67C", "#C98457", "#9A603E", "#6
 export const CORES_CABELO = ["#2A2230", "#4A2E2A", "#7A4A2A", "#B5552C", "#E0B05C", "#BDB6AF", "#E991B8", "#5E8FEA"];
 export const CORES_ROUPA = ["#A5B6EE", "#C3A6E6", "#7FCFC2", "#F3AFC8", "#F6C77E", "#93D38E", "#5B6B83", "#F08A7E"];
 export const CORES_ACESSORIO = ["#C69E9C", "#F3A9BE", "#F7F1EA", "#3C3542", "#F2C14E", "#7CCBC0", "#A88BE0"];
+export const CORES_MASCARA = ["#A9D3EE", "#F3B3C8", "#F7F7F5", "#3C3542", "#93D38E", "#C3A6E6", "#F6C77E", "#7FCFC2"];
 export const CORES_FUNDO = ["#BFEBD9", "#D9CCF5", "#FBD6C6", "#C6E0FB", "#FCE9A8", "#F8C9DA", "#2B4A5E", "#DDE6EC"];
 
 // Cada opção: id (o que vai salvo) e rótulo (o que a pessoa lê).
@@ -95,6 +96,22 @@ export const CATEGORIAS = [
           { id: "quadrado", rotulo: "Quadrado" },
           { id: "gatinho", rotulo: "Gatinho" },
           { id: "protecao", rotulo: "De proteção" },
+        ],
+      },
+    ],
+  },
+  {
+    id: "mascara",
+    rotulo: "Máscara",
+    grupos: [
+      { campo: "corMascara", rotulo: "Cor", tipo: "cor", cores: CORES_MASCARA },
+      {
+        campo: "mascara",
+        rotulo: "Máscara",
+        opcoes: [
+          { id: "nenhuma", rotulo: "Sem máscara" },
+          { id: "cirurgica", rotulo: "Cirúrgica" },
+          { id: "comum", rotulo: "De tecido" },
         ],
       },
     ],
@@ -196,6 +213,8 @@ export const PADRAO = {
   oculos: "nenhum",
   cabeca: "gato",
   corAcessorio: 0,
+  mascara: "nenhuma",
+  corMascara: 0,
   corRoupa: 0,
   estampa: "confete",
   jaleco: "nenhum",
@@ -233,5 +252,6 @@ export function sortearAvatar(semente = null) {
   if (r() < 0.75) a.barba = "nenhuma";
   if (a.oculos === "protecao" && r() < 0.7) a.oculos = "nenhum";
   if (a.fundo === 6) a.fundo = 0;
+  if (r() < 0.8) a.mascara = "nenhuma"; // sorteio: máscara só de vez em quando
   return normalizarAvatar(a);
 }

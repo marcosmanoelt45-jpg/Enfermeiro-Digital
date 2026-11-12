@@ -171,8 +171,8 @@ export default function CenaAoVivo({
                 className="group flex min-h-12 flex-1 basis-[9.5rem] items-center gap-2.5 rounded-2xl border-2 bg-[#131F2E] px-3 py-2 text-left transition-[transform,box-shadow] duration-100 active:translate-y-[3px]"
                 style={{ borderColor: a.ativo ? a.cor : "#27394B", boxShadow: `0 3px 0 ${a.ativo ? a.cor : "#0A1118"}` }}
               >
-                <span className="flex h-9 w-9 shrink-0 items-center justify-center overflow-hidden rounded-xl" style={{ backgroundColor: a.cor }}>
-                  {a.imagem ? <img src={a.imagem} alt="" className="h-9 w-9 object-contain" /> : <a.icone className="h-5 w-5 text-[#0B131D]" aria-hidden="true" />}
+                <span className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-xl" style={{ backgroundColor: a.imagem ? `${a.cor}22` : a.cor }}>
+                  {a.imagem ? <img src={a.imagem} alt="" className="h-10 w-10 object-contain" /> : <a.icone className="h-5 w-5 text-[#0B131D]" aria-hidden="true" />}
                 </span>
                 <span className="text-sm font-black text-[#EAF2F8]">{a.rotulo}</span>
               </button>

@@ -154,7 +154,7 @@ def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0
         if cat == 'boca':
             hh, ss, _ = hsv(img)
             pele &= ~((dif_hue(hh, 22) > 14) & (ss > 0.15))  # língua rosa não é pele  # quase pele: fica lisa (some rastro); lábio/traço mantém o tom
-    if cat == 'cabeca':
+    if cat in ('cabeca', 'mascara'):
         # acessório não leva pele: a cabeça careca em volta dele seria pintada por cima do cabelo escolhido
         sem_cor = ~(cor_mask if cor_mask is not None else np.zeros_like(vale))
         careca = (classe_pele(img) | (np.sqrt(((img - PELE_REF) ** 2).sum(2)) < 40)) & sem_cor
@@ -255,7 +255,7 @@ for n in nomes:
         alfa = alfa * dilata(regiao | ndimage.binary_opening(d > 60, iterations=1), 2)
         alfa = np.maximum(alfa, regiao.astype(np.float32))
     if cat not in ('olhos', 'oculos'): alfa[OLHOS] = 0
-    if cat not in ('boca', 'barba'): alfa[BOCA] = 0
+    if cat not in ('boca', 'barba', 'mascara'): alfa[BOCA] = 0
     # óculos ficam com os olhos originais nas lentes; a camada de olhos escolhida é desenhada por cima
     # pedacinhos soltos (ruído do JPEG longe da peça) saem
     rot, qtd = ndimage.label(alfa > 0.1)
@@ -275,6 +275,18 @@ for n in nomes:
             # o traço da boca que aparece por baixo do bigode não é pelo
             cor_mask &= v < float(np.median(v[sel])) * 1.7
         gama = 0.65  # reflexos mais suaves quando a cor escolhida é clara
+    elif cat == 'mascara':
+        # máscara inteira tinge com a cor escolhida (o elástico branco da cirúrgica fica branco)
+        h, s, v = hsv(img)
+        sel = (alfa > 0.8) & (s > 0.15) & (dif_hue(h, 22) > 12)
+        hue_ref = float(np.median(h[sel]))
+        cor_mask = (dif_hue(h, hue_ref) < 22) & (s > 0.08)
+        cor_ref = float(np.median(lum(img)[cor_mask & (alfa > 0.8)]))
+        # rosa claro perto da cor da pele: a diferença com a base fica fraca e a máscara sairia transparente.
+        # A área da máscara (cor dela, sem buracos) fica opaca.
+        regiao = ndimage.binary_fill_holes(ndimage.binary_closing(cor_mask & dilata(alfa > 0.15, 4), iterations=3))
+        regiao = ndimage.binary_opening(regiao, iterations=2)
+        alfa = np.where(regiao, 1.0, alfa)
     elif n in TINGE_CABECA:
         h, s, v = hsv(img)
         sel = (alfa > 0.8) & (s > 0.18) & (dif_hue(h, 22) > 10)
