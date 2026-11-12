@@ -13,6 +13,7 @@ import { callResilientAI } from './aiCoreService.js';
 import { sanitizeTextForLGPD } from '../lib/dlpSanitizer.js';
 import { filtrarRespostaGoti } from './gotiFiltro.js';
 import { clinicalHistoryService } from './clinicalHistoryService.js';
+import { RESPOSTA_APOIO_GOTI, RESPOSTA_DANO_GOTI, pedidoDeDano, riscoDeVida } from '../../supabase/functions/_shared/logica/seguranca.js';
 
 // O prompt de sistema do Goti fica em supabase/functions/_shared/tarefasIA.js (tarefa "goti"), o mesmo que o servidor usa.
 
@@ -139,7 +140,11 @@ export const gotiPreceptorService = {
         .slice(0, 2000);
     userMessage = cleanStudentText(userMessage);
 
-    try {
+    // Risco à vida do aluno ou pedido para ferir alguém: resposta fixa, sem depender da IA.
+    if (riscoDeVida(userMessage)) assistantReply = RESPOSTA_APOIO_GOTI;
+    else if (pedidoDeDano(userMessage)) assistantReply = RESPOSTA_DANO_GOTI;
+
+    if (!assistantReply) try {
       const recentHistory = history
         .slice(-6)
         .map((item) => {

@@ -15,6 +15,7 @@ import FolhaEvolucao from "./componentes/FolhaEvolucao.jsx";
 import { paginasConsulta } from "./componentes/ProntuarioConsulta.jsx";
 import JanelaFolha from "@/components/prontuario/JanelaFolha.jsx";
 import DicaExame from "@/components/prontuario/DicaExame.jsx";
+import AvisoApoio, { conferirApoio } from "@/components/prontuario/AvisoApoio.jsx";
 import { MODELO_SOAP, anotarNoObjetivo, semModeloVazio } from "@/components/prontuario/modelosAnotacao.js";
 import { ICONE_ANOTACAO, ICONE_PRONTUARIO } from "@/components/prontuario/icones.js";
 import PainelExames, { PopupExame } from "./componentes/PainelExames.jsx";
@@ -114,6 +115,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
 
   const onEnviar = useCallback(
     async (texto, canal, turnoId) => {
+      conferirApoio(texto);
       const r = await consulta.turno({ sessaoId: sessao.sessaoId, turnoId, texto, canal });
       setRestantes(r.turnosRestantes);
       // Salva sozinho a cada fala: a consulta aparece no histórico antes de o aluno encerrar e registrar.
@@ -200,6 +202,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       onTurnos={setTurnos}
       slotAbaixoPalco={<PainelExames exames={exames} />}
     />
+    <AvisoApoio />
     {!retomada && <DicaExame exemplo={'"Vou medir sua glicemia" ou "vou auscultar seus pulmões".'} />}
     <PopupExame
       pedido={ausculta ? null : examePedido}

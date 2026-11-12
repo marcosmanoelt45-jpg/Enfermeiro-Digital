@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { ClipboardList, NotebookPen } from "lucide-react";
 import JanelaFolha from "@/components/prontuario/JanelaFolha.jsx";
 import DicaExame from "@/components/prontuario/DicaExame.jsx";
+import AvisoApoio from "@/components/prontuario/AvisoApoio.jsx";
 import { MODELO_SBAR, MODELO_SOAP } from "@/components/prontuario/modelosAnotacao.js";
 import FolhaEvolucao from "@/features/consulta/componentes/FolhaEvolucao.jsx";
 import { paginasConsulta } from "@/features/consulta/componentes/ProntuarioConsulta.jsx";
@@ -42,6 +43,7 @@ export default function VitrineFolhas() {
   const paginas = modo === "consulta" ? paginasConsulta({ sessao: SESSAO, exames: [{ exameId: "glicemia", rotulo: "Glicemia capilar", resultado: "112 mg/dL" }] }) : paginasPlantao({ cenario, lacunasPreenchidas: {} });
   return (
     <div className="min-h-screen space-y-4 bg-[#0B131D] p-4 text-[#EAF2F8]">
+      <AvisoApoio />
       <DicaExame key={modo} exemplo={modo === "consulta" ? '"Vou medir sua glicemia" ou "vou auscultar seus pulmões".' : '"Vou avaliar o curativo" ou "vou auscultar o pulmão".'} />
       <div className="flex gap-2">
         {["consulta", "plantao"].map((m) => (

@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { ClipboardList, NotebookPen } from "lucide-react";
 import JanelaFolha from "@/components/prontuario/JanelaFolha.jsx";
 import DicaExame from "@/components/prontuario/DicaExame.jsx";
+import AvisoApoio, { conferirApoio } from "@/components/prontuario/AvisoApoio.jsx";
 import { MODELO_SBAR } from "@/components/prontuario/modelosAnotacao.js";
 import { ICONE_ANOTACAO, ICONE_PRONTUARIO } from "@/components/prontuario/icones.js";
 import FolhaEvolucao from "@/features/consulta/componentes/FolhaEvolucao.jsx";
@@ -114,6 +115,7 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
     async (texto) => {
       const pergunta = perguntaAtual(roteiro.current);
       if (!pergunta || !String(texto ?? "").trim()) return [];
+      conferirApoio(texto);
       setRetorno(null);
       if (!conversa.current) conversa.current = abertura.map((f) => ({ autor: "ana", texto: f.texto }));
       conversa.current.push({ autor: "aluno", texto: String(texto).trim() });
@@ -231,6 +233,7 @@ export default function PlantaoCena({ cenario, onFinalizado, onSair, onProgresso
       />
 
       <DicaExame exemplo={'"Vou avaliar o curativo" ou "vou auscultar o pulmão".'} />
+      <AvisoApoio />
       <JanelaFolha
         id="plantao-prontuario"
         aberta={prontuario}
