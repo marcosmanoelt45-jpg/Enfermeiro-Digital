@@ -134,6 +134,7 @@ BOCA_BASE = dilata(BOCA & _longe_da_pele, 7) & dilata(BOCA, 3)
 TINGE_CABECA = {'cabeca-gato', 'cabeca-urso', 'cabeca-coelho', 'cabeca-touca', 'cabeca-laco', 'cabeca-antenas'}
 os.makedirs(SAIDA, exist_ok=True)
 manifesto = {}
+ALFA_CABELO = {}
 
 # Que classes de tingimento cada categoria pode ter (ex.: estampa não tem pele, senão confete rosa vira pele).
 PELE_OK = {'base', 'olhos', 'boca', 'barba', 'cabelo', 'cabeca', 'oculos', 'jaleco', 'colete'}
@@ -279,6 +280,55 @@ for n in nomes:
             cor_mask &= (s > 0.2) & (v > 0.45)  # só as bolinhas; a tiara fina fica com a cor da arte
         cor_ref = float(np.median(lum(img)[cor_mask & (alfa > 0.8)]))
     gravar_camadas(n, limpa, alfa, fundo, cor_mask, cor_ref, gama)
+    if cat == 'cabelo':
+        ALFA_CABELO[n] = alfa.copy()
+    if cat == 'cabeca':
+        ys_ = np.where((alfa > 0.3).any(1))[0]
+        manifesto[n]['topo'] = round(float(ys_.min()) / 2, 1)  # alto do acessório (512), para não sair da imagem
+    apaga = None
+    if n in ('jaleco', 'colete'):
+        # onde a roupa de baixo aparecia e na arte da peça virou fundo (jaleco mais estreito que a manga): apaga
+        apaga = (alfa_base > 0.5) & (fundo > 0.5)
+        apaga[: int(base.shape[0] * 0.55)] = False  # só no corpo
+    elif n == 'cabeca-touca':
+        # a touca cobre o alto da cabeça: some o cabelo que passaria por cima dela (coque, topete...)
+        touca = alfa > 0.5
+        apaga = np.zeros_like(touca)
+        cols = np.where(touca.any(0))[0]
+        for x in cols[3:-3]:
+            topo = np.argmax(touca[:, x])
+            apaga[: topo + 3, x] = True
+    if apaga is not None:
+        apaga = ndimage.binary_opening(apaga, iterations=1)
+        apaga = ndimage.binary_dilation(apaga, iterations=1)
+        if apaga.sum() > 50:
+            salvar(np.zeros(base.shape, np.float32), apaga.astype(np.float32), os.path.join(SAIDA, n + '.apaga.webp'))
+            manifesto[n]['apaga'] = True
+
+# Acessório de cabeça foi desenhado na cabeça careca. Com cabelo, sobe até o topo do cabelo e alarga junto
+# (senão a tiara fica enterrada no cabelo). Ajuste por cabelo, em coordenadas de 512 px: âncora no alto da
+# cabeça careca, desloca dy e escala s em volta dela.
+cab_base = alfa_base > 0.5
+topo_base = int(np.argmax(cab_base.any(1)))
+linha = np.where(cab_base[topo_base + 30])[0]
+cx = float(linha.mean())
+larg_base = int(cab_base[topo_base + 80].sum())
+larg_testa = int(cab_base[topo_base + 160].sum())  # largura da cabeça na testa (para escolher onde medir)
+ajustes = {}
+for n, a_c in ALFA_CABELO.items():
+    junto = cab_base | (a_c > 0.5)
+    # mede nos lados do alto da cabeça (25% a 40% da largura para cada lado): coque e topete no meio não contam
+    xs = [x for x in range(int(cx - 0.4 * larg_testa), int(cx + 0.4 * larg_testa)) if abs(x - cx) >= 0.28 * larg_testa]
+    dif_topo = [int(np.argmax(junto[:, x])) - int(np.argmax(cab_base[:, x])) for x in xs if cab_base[:, x].any()]
+    topo = topo_base + float(np.median(dif_topo)) + 8  # a tiara assenta um pouco dentro do volume
+    lin = np.where(junto[int(topo) + 80])[0]
+    larg = int(2 * min(cx - lin.min(), lin.max() - cx)) if lin.size else larg_base  # simétrica: ignora o rabo de lado
+    escala = float(np.clip(larg / larg_base, 1.0, 1.45))
+    dy = min(topo - topo_base, 0.0)
+    if dy < -2 or escala > 1.02:
+        ajustes[n] = {'dy': round(dy / 2, 1), 's': round(escala, 3)}
+manifesto['_ajusteCabeca'] = {'ancora': [round(cx / 2, 1), round(topo_base / 2, 1)], 'cabelos': ajustes}
+print('ajustes', ajustes)
 
 # o manifesto vai junto do código (import estático em src/features/avatar/compor.js)
 with open(os.path.join(RAIZ, 'src', 'features', 'avatar', 'camadas.json'), 'w', encoding='utf-8') as f:

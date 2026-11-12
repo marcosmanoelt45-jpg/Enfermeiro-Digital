@@ -1,4 +1,44 @@
 {
+"_ajusteCabeca": {
+"ancora": [
+256.0,
+85.0
+],
+"cabelos": {
+"cabelo-cacheado": {
+"dy": -69.5,
+"s": 1.267
+},
+"cabelo-chanel": {
+"dy": -15.0,
+"s": 1.106
+},
+"cabelo-coque": {
+"dy": -7.0,
+"s": 1.081
+},
+"cabelo-curto": {
+"dy": -16.5,
+"s": 1.037
+},
+"cabelo-longo": {
+"dy": -13.0,
+"s": 1.106
+},
+"cabelo-rabo": {
+"dy": -14.5,
+"s": 1.062
+},
+"cabelo-raspado": {
+"dy": 0.0,
+"s": 1.025
+},
+"cabelo-topete": {
+"dy": -53.5,
+"s": 1.0
+}
+}
+},
 "barba-bigode": {
 "cor": true,
 "pele": true
@@ -41,36 +81,45 @@
 },
 "cabeca-antenas": {
 "fixo": true,
-"pele": true
+"pele": true,
+"topo": 20.5
 },
 "cabeca-coelho": {
 "cor": true,
-"pele": true
+"pele": true,
+"topo": 9.5
 },
 "cabeca-flores": {
 "fixo": true,
-"pele": true
+"pele": true,
+"topo": 106.0
 },
 "cabeca-gato": {
 "cor": true,
-"pele": true
+"pele": true,
+"topo": 52.0
 },
 "cabeca-laco": {
 "cor": true,
-"pele": true
+"pele": true,
+"topo": 37.0
 },
 "cabeca-quepe": {
 "fixo": true,
-"pele": true
+"pele": true,
+"topo": 27.5
 },
 "cabeca-touca": {
+"apaga": true,
 "cor": true,
 "fixo": true,
-"pele": true
+"pele": true,
+"topo": 57.0
 },
 "cabeca-urso": {
 "cor": true,
-"pele": true
+"pele": true,
+"topo": 54.0
 },
 "cabelo-cacheado": {
 "cor": true,
@@ -171,6 +220,7 @@
 "roupa": true
 },
 "jaleco": {
+"apaga": true,
 "fixo": true,
 "pele": true,
 "roupa": true

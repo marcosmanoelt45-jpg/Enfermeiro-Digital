@@ -136,39 +136,55 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
   const trabalho = (async () => {
     const pecas = pecasDoAvatar(a);
     const arquivos = [];
+    // ajuste do acessório de cabeça ao cabelo escolhido (sobe até o topo do cabelo e alarga junto)
+    const ajusteCabeca = CAMADAS._ajusteCabeca?.cabelos?.[`cabelo-${a.cabelo}`] || null;
     for (const p of pecas) {
       const info = CAMADAS[p];
       const corDaPeca = p.startsWith("cabelo-") || p.startsWith("barba-") ? cores.cabelo : cores.acessorio;
-      const cracha = p.startsWith("cracha-");
+      const onde = p.startsWith("cracha-") ? "cracha" : p.startsWith("cabeca-") && ajusteCabeca ? "cabeca" : null;
+      // primeiro apaga o que esta peça esconde (pijama saindo pelos lados do jaleco, cabelo acima da touca)
+      if (info.apaga) arquivos.push({ url: `${BASE_URL}${p}.apaga.webp`, apaga: true, onde });
       // tingidos primeiro (cada um se estende um pouco por baixo do próximo) e a cor fixa por cima: sem emenda
-      if (info.pele) arquivos.push({ url: `${BASE_URL}${p}.pele.webp`, cor: cores.pele, cracha });
-      if (info.roupa) arquivos.push({ url: `${BASE_URL}${p}.roupa.webp`, cor: cores.roupa, cracha });
-      if (info.cor) arquivos.push({ url: `${BASE_URL}${p}.cor.webp`, cor: corDaPeca, cracha });
-      if (info.fixo) arquivos.push({ url: `${BASE_URL}${p}.webp`, cracha });
+      if (info.pele) arquivos.push({ url: `${BASE_URL}${p}.pele.webp`, cor: cores.pele, onde });
+      if (info.roupa) arquivos.push({ url: `${BASE_URL}${p}.roupa.webp`, cor: cores.roupa, onde });
+      if (info.cor) arquivos.push({ url: `${BASE_URL}${p}.cor.webp`, cor: corDaPeca, onde });
+      if (info.fixo) arquivos.push({ url: `${BASE_URL}${p}.webp`, onde });
     }
     const [ims] = await Promise.all([Promise.all(arquivos.map((f) => carregar(f.url))), nomeCracha ? fonteCarregada() : null]);
     const tela = novaTela(lado);
     const ctx = tela.getContext("2d");
     ctx.imageSmoothingQuality = "high";
     const k = lado / 512;
-    const [cx, cy] = CRACHA_CENTRO;
-    const noCracha = (desenhar) => {
+    // desenha em coordenadas da arte (512) com o ajuste de cada lugar
+    const em = (onde, desenhar) => {
       ctx.save();
       ctx.scale(k, k);
-      ctx.translate(cx, cy);
-      ctx.scale(CRACHA_ESCALA, CRACHA_ESCALA);
-      ctx.translate(-cx, -cy);
+      if (onde === "cracha") {
+        const [cx, cy] = CRACHA_CENTRO;
+        ctx.translate(cx, cy);
+        ctx.scale(CRACHA_ESCALA, CRACHA_ESCALA);
+        ctx.translate(-cx, -cy);
+      } else if (onde === "cabeca") {
+        const [ax, ay] = CAMADAS._ajusteCabeca.ancora;
+        // sobe até o topo do cabelo, mas sem deixar o acessório sair por cima da imagem
+        const topo = CAMADAS[`cabeca-${a.cabeca}`]?.topo ?? ay;
+        const dy = Math.max(ajusteCabeca.dy, 3 - ay - ajusteCabeca.s * (topo - ay));
+        ctx.translate(ax, ay + dy);
+        ctx.scale(ajusteCabeca.s, ajusteCabeca.s);
+        ctx.translate(-ax, -ay);
+      }
       desenhar();
       ctx.restore();
     };
     ims.forEach((im, i) => {
-      const { cor, cracha } = arquivos[i];
+      const { cor, onde, apaga } = arquivos[i];
       const fonte = cor ? tingida(im, lado, cor) : im;
-      if (cracha) noCracha(() => ctx.drawImage(fonte, 0, 0, 512, 512));
-      else ctx.drawImage(fonte, 0, 0, lado, lado);
+      if (apaga) ctx.globalCompositeOperation = "destination-out";
+      em(onde, () => ctx.drawImage(fonte, 0, 0, 512, 512));
+      ctx.globalCompositeOperation = "source-over";
       // o nome entra logo depois do crachá, antes do que vem por cima (cabelo, acessórios)
       const proximo = arquivos[i + 1];
-      if (cracha && nomeCracha && (!proximo || !proximo.cracha)) noCracha(() => escreverNome(ctx, placa, nomeCracha));
+      if (onde === "cracha" && nomeCracha && (!proximo || proximo.onde !== "cracha")) em("cracha", () => escreverNome(ctx, placa, nomeCracha));
     });
     return tela.toDataURL("image/png");
   })();
