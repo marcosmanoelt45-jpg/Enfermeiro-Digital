@@ -59,11 +59,20 @@ const CSS = `
 .enfere-splash.es-playing .es-skip-hint{opacity:1}
 @media (min-width: 768px) {
   .enfere-splash .es-c2 { top: 30%; }
-  .enfere-splash .es-g2 { width: clamp(400px, 34vw, 514px); max-height: 60vh; }
+  /* tela larga e baixa (tablet deitado, notebook): o Goti também segue a altura, senão os pés descem no título */
+  .enfere-splash .es-g2 { width: min(clamp(400px, 34vw, 514px), 50vh, 50dvh); max-height: 60vh; }
   .enfere-splash .es-ttl { top: 57%; font-size: 3.6rem; }
   .enfere-splash .es-tag { top: 57%; margin-top: 4.2rem; font-size: 1.25rem; }
   .enfere-splash .es-btns { bottom: 40px; max-width: 440px; }
   .enfere-splash .es-btns button { font-size: 1.05rem; padding: 16px; }
+}
+/* tela larga e bem baixa (tablet de 600-700 px de altura deitado): tudo um pouco mais junto para caber */
+@media (min-width: 768px) and (max-height: 700px) {
+  .enfere-splash .es-c2 { top: 28%; }
+  .enfere-splash .es-g2 { width: min(clamp(300px, 34vw, 514px), 44vh, 44dvh); }
+  .enfere-splash .es-ttl { top: 50%; font-size: 3rem; }
+  .enfere-splash .es-tag { top: 50%; margin-top: 3.5rem; font-size: 1.1rem; }
+  .enfere-splash .es-btns { bottom: 16px; }
 }
 `;
 
