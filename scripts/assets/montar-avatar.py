@@ -31,10 +31,46 @@ def hsv(img):
 def lum(img):
     return img[..., 0] * 0.299 + img[..., 1] * 0.587 + img[..., 2] * 0.114
 
-def alfa_fundo(img):
-    """1 onde é verde do fundo, 0 onde não é."""
+def separar_fundo(img, manter_tracos=False):
+    """Separa o verde do fundo: devolve (alfa do fundo 0..1, imagem com a cor de frente nas bordas).
+    Na borda, o pixel é mistura do verde com a cor da peça; estima quanto é verde projetando o pixel na reta
+    entre o verde e a cor do pixel de frente mais próximo (sem isso sobra um contorno claro/esverdeado)."""
     k = img[..., 1] - np.maximum(img[..., 0], img[..., 2])
-    return np.clip((k - 60) / 110, 0, 1)
+    verde = k > 200
+    G = np.median(img[verde], axis=0) if verde.any() else np.array([12, 245, 5], np.float32)
+    perto = ndimage.binary_dilation(verde, iterations=8)  # a transição da arte chega a ~8 px
+    frente = ~perto  # longe do verde: cor pura da peça
+    faixa = perto & ~verde
+    a = np.zeros(img.shape[:2], np.float32)
+    a[verde] = 1
+    out = img.copy()
+    if faixa.any() and frente.any():
+        _, (iy, ix) = ndimage.distance_transform_edt(~frente, return_indices=True)
+        by, bx = np.where(faixa)
+        F = img[iy[by, bx], ix[by, bx]]
+        P = img[by, bx]
+        d = G - F
+        t = np.clip(((P - F) * d).sum(1) / np.maximum((d * d).sum(1), 1), 0, 1)
+        resto = np.sqrt(((P - (F + t[:, None] * d)) ** 2).sum(1))
+        explica = resto < 45  # o pixel é mesmo mistura de verde com a cor de dentro
+        # o que não é mistura (fio fino, cílio na borda) fica com a própria cor e transparência pelo verde
+        t_k = np.clip((k[by, bx] - 25) / 175, 0, 1)
+        if not manter_tracos:
+            # pedaço do contorno escuro da arte colado no verde: vira a cor de dentro (senão sai pontilhado)
+            escuro = lum(P) < lum(F) * 0.85
+            explica |= escuro
+            t = np.where(escuro & ~(resto < 45), t_k, t)
+        a[by, bx] = np.where(resto < 45, t, t_k)
+        out[by, bx] = np.where(explica[:, None], F, P)
+    return a, out
+
+_cache_fundo = {}
+def alfa_fundo(img):
+    chave = id(img)
+    if chave not in _cache_fundo:
+        _cache_fundo.clear()
+        _cache_fundo[chave] = separar_fundo(img)
+    return _cache_fundo[chave][0]
 
 def sem_verde(img):
     out = img.copy()
@@ -51,7 +87,7 @@ PELE_REF = np.array([250, 196, 166], np.float32)  # ajustada pela base logo abai
 def classe_pele(img):
     h, s, v = hsv(img)
     perto = np.sqrt(((img - PELE_REF) ** 2).sum(2)) < 42
-    return ((dif_hue(h, 22) < 13) & (s > 0.12) & (s < 0.62) & (v > 0.58)) | perto
+    return ((dif_hue(h, 22) < 14) & (s > 0.08) & (s < 0.7) & (v > 0.58)) | perto
 
 def classe_roupa(img):
     h, s, v = hsv(img)
@@ -66,19 +102,10 @@ def salvar(arr_rgb, alfa, caminho):
     im = Image.fromarray(rgba, 'RGBA').convert('RGBa').resize((LADO, LADO), Image.LANCZOS).convert('RGBA')
     im.save(caminho, 'WEBP', quality=88, method=6)
 
-FUNDO_ATUAL = None  # alfa do verde da imagem original (antes de tirar o verde), definido por peça
-
-def sombra(img, mascara_classe, ref_lum):
-    s = np.clip(lum(img) / max(ref_lum, 1) * REF_SOMBRA, 0, 255)
-    # na borda com o fundo verde o brilho vem do verde: usa o tom médio para não sobrar contorno claro
-    if FUNDO_ATUAL is not None:
-        s = np.where(FUNDO_ATUAL > 0.04, REF_SOMBRA, s)
-    return np.dstack([s, s, s]), mascara_classe
-
 base = ler('base')
-bg = alfa_fundo(base)
+bg, base_sep = separar_fundo(base)
 alfa_base = 1 - bg
-base_limpa = sem_verde(base)
+base_limpa = sem_verde(base_sep)
 pele_base = classe_pele(base) & (alfa_base > 0.5)
 PELE_REF[:] = np.median(base[pele_base], axis=0)
 pele_base = classe_pele(base) & (alfa_base > 0.5)
@@ -98,32 +125,90 @@ for n in nomes:
     if n.startswith('boca-'): BOCA |= dif(ler(n)) > 60
 OLHOS = dilata(ndimage.binary_opening(OLHOS, iterations=1), 6)
 BOCA = dilata(ndimage.binary_opening(BOCA, iterations=1), 6)
+# traços do rosto da base (olhos com cílios e sobrancelha de baixo, boca): as variações cobrem essa área
+# inteira, senão sobra a borda fraquinha do olho/boca originais por baixo (fantasma)
+_longe_da_pele = np.sqrt(((base - PELE_REF) ** 2).sum(2)) > 18
+OLHOS_BASE = dilata(OLHOS & _longe_da_pele, 6) & OLHOS
+BOCA_BASE = dilata(BOCA & _longe_da_pele, 7) & dilata(BOCA, 3)
 
 TINGE_CABECA = {'cabeca-gato', 'cabeca-urso', 'cabeca-coelho', 'cabeca-touca', 'cabeca-laco', 'cabeca-antenas'}
 os.makedirs(SAIDA, exist_ok=True)
 manifesto = {}
 
-def gravar_camadas(nome, img, alfa, cor_mask=None, cor_ref=None):
-    pele = classe_pele(img) & (alfa > 0.02)
-    roupa = classe_roupa(img) & (alfa > 0.02) & ~pele
-    cor = (cor_mask & (alfa > 0.02) & ~pele) if cor_mask is not None else np.zeros_like(pele)
+# Que classes de tingimento cada categoria pode ter (ex.: estampa não tem pele, senão confete rosa vira pele).
+PELE_OK = {'base', 'olhos', 'boca', 'barba', 'cabelo', 'cabeca', 'oculos', 'jaleco', 'colete'}
+ROUPA_OK = {'base', 'estampa', 'jaleco', 'colete', 'cordao', 'estetoscopio', 'cracha', 'cabelo'}
+
+def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0):
+    cat = nome.split('-')[0]
+    vale = alfa > 0.02
+    lisa = np.zeros_like(vale)
+    pele = classe_pele(img) & vale if cat in PELE_OK else np.zeros_like(vale)
+    if cat in ('olhos', 'boca'):
+        # no rosto, tudo que é quase cor de pele vira pele (o rastro claro do olho/boca antigos some)
+        dist = np.sqrt(((img - PELE_REF) ** 2).sum(2))
+        # olhos: o rastro fraco do olho antigo vira pele; boca: só o que é quase pele (língua e traço ficam)
+        pele = (classe_pele(img) | (dist < (70 if cat == 'olhos' else 50))) & vale
+        lisa = dist < (70 if cat == 'olhos' else 35)
+        if cat == 'boca':
+            hh, ss, _ = hsv(img)
+            pele &= ~((dif_hue(hh, 22) > 14) & (ss > 0.15))  # língua rosa não é pele  # quase pele: fica lisa (some rastro); lábio/traço mantém o tom
+    if cor_mask is not None and cat == 'cabeca':
+        pele &= ~cor_mask  # parte interna das orelhinhas é rosa claro: é do acessório, não pele
+    roupa = classe_roupa(img) & vale & ~pele if cat in ROUPA_OK else np.zeros_like(vale)
+    cor = (cor_mask & vale & ~pele) if cor_mask is not None else np.zeros_like(vale)
     roupa &= ~cor
+    img = img.copy()
+    # borda com o fundo verde: a cor ali é mistura com o verde. Copia cor e classe do pixel de dentro mais perto,
+    # mantendo só a transparência da borda (tira o contorno claro/esverdeado).
+    dentro = (fundo < 0.02) & (alfa > 0.5)
+    borda = (fundo >= 0.02) & vale
+    if dentro.any() and borda.any():
+        _, (iy, ix) = ndimage.distance_transform_edt(~dentro, return_indices=True)
+        by, bx = np.where(borda)
+        sy, sx = iy[by, bx], ix[by, bx]
+        img[by, bx] = img[sy, sx]
+        for m in (pele, roupa, cor):
+            m[by, bx] = m[sy, sx]
     fixo = ~(pele | roupa | cor)
+    # pontinho de cor fixa grudado na borda de fora (resto do contorno da arte): sai
+    rot, qtd = ndimage.label(fixo & vale)
+    if qtd:
+        areas = ndimage.sum(np.ones_like(alfa), rot, index=np.arange(1, qtd + 1))
+        fora = ndimage.binary_dilation(alfa < 0.05, iterations=3)
+        for i in np.where(areas < 80)[0] + 1:
+            comp = rot == i
+            if (comp & fora).any() and cat != 'base':
+                alfa = np.where(comp, 0, alfa)
     info = {}
+    def sombra_de(mask, ref, g=1.0):
+        r = np.clip(lum(img) / max(ref, 1), 0, 3) ** g
+        sh = np.clip(r * REF_SOMBRA, 0, 255)
+        return np.dstack([sh, sh, sh])
     if (alfa * fixo).sum() > 50:
         salvar(img, alfa * fixo, os.path.join(SAIDA, nome + '.webp')); info['fixo'] = True
     if (alfa * pele).sum() > 50:
-        s, _ = sombra(img, pele, LUM_PELE); salvar(s, alfa * pele, os.path.join(SAIDA, nome + '.pele.webp')); info['pele'] = True
+        sp = sombra_de(pele, LUM_PELE)
+        if cat in ('olhos', 'boca'):
+            # pele lisa igual à da base embaixo: some o rastro do olho/boca antigos sem marcar a emenda
+            sp[lisa] = PELE_LISA[lisa][:, None]
+        salvar(sp, alfa * pele, os.path.join(SAIDA, nome + '.pele.webp')); info['pele'] = True
     if (alfa * roupa).sum() > 50:
-        s, _ = sombra(img, roupa, LUM_ROUPA); salvar(s, alfa * roupa, os.path.join(SAIDA, nome + '.roupa.webp')); info['roupa'] = True
+        salvar(sombra_de(roupa, LUM_ROUPA), alfa * roupa, os.path.join(SAIDA, nome + '.roupa.webp')); info['roupa'] = True
     if (alfa * cor).sum() > 50:
-        s, _ = sombra(img, cor, cor_ref); salvar(s, alfa * cor, os.path.join(SAIDA, nome + '.cor.webp')); info['cor'] = True
+        salvar(sombra_de(cor, cor_ref, gama), alfa * cor, os.path.join(SAIDA, nome + '.cor.webp')); info['cor'] = True
     manifesto[nome] = info
     print(nome, info)
 
 # base
-FUNDO_ATUAL = bg
-gravar_camadas('base', base_limpa, alfa_base)
+gravar_camadas('base', base_limpa, alfa_base, bg)
+BORDA_BASE = (bg > 0.02) & (bg < 0.98)
+# tom da pele da base sem os traços do rosto (média só dos pixels de pele, suavizada), para as variações de
+# olhos/boca preencherem a área antiga sem marcar a emenda
+_so_pele = (pele_base & ~dilata(OLHOS | BOCA, 2)).astype(np.float32)
+_num = ndimage.gaussian_filter(lum(base_limpa) * _so_pele, 12)
+_den = ndimage.gaussian_filter(_so_pele, 12)
+PELE_LISA = np.clip(_num / np.maximum(_den, 1e-3) / LUM_PELE * REF_SOMBRA, 0, 255)
 
 for n in nomes:
     img = ler(n)
@@ -132,25 +217,43 @@ for n in nomes:
     m = ndimage.binary_opening(alfa > 0.3, iterations=2)
     m = dilata(m, 2)
     alfa = alfa * m
-    alfa = np.minimum(alfa, 1 - alfa_fundo(img))
+    fundo, img_sep = separar_fundo(img, manter_tracos=(n == 'cabeca-antenas'))
+    alfa = np.minimum(alfa, 1 - fundo)
+    # contorno do corpo que só mudou de leve (a peça não cobre ali): fica com a base
+    alfa[BORDA_BASE & (fundo > 0.02)] = 0
     cat = n.split('-')[0]
+    if cat == 'olhos': alfa = np.maximum(alfa, OLHOS_BASE.astype(np.float32))
+    if cat == 'boca': alfa = np.maximum(alfa, BOCA_BASE.astype(np.float32))
     if cat not in ('olhos', 'oculos'): alfa[OLHOS] = 0
     if cat not in ('boca', 'barba'): alfa[BOCA] = 0
     # óculos ficam com os olhos originais nas lentes; a camada de olhos escolhida é desenhada por cima
-    limpa = sem_verde(img)
-    FUNDO_ATUAL = alfa_fundo(img)
+    # pedacinhos soltos (ruído do JPEG longe da peça) saem
+    rot, qtd = ndimage.label(alfa > 0.1)
+    if qtd:
+        areas = ndimage.sum(np.ones_like(alfa), rot, index=np.arange(1, qtd + 1))
+        pequenos = np.isin(rot, np.where(areas < 60)[0] + 1)
+        alfa[pequenos] = 0
+    limpa = sem_verde(img_sep)
     cor_mask = cor_ref = None
+    gama = 1.0
     if cat in ('cabelo', 'barba'):
+        h, s, v = hsv(img)
         cor_mask = ~classe_pele(img) & ~classe_roupa(img)
         sel = cor_mask & (alfa > 0.8)
         cor_ref = float(np.median(lum(img)[sel])) if sel.any() else 60.0
+        if cat == 'barba':
+            # o traço da boca que aparece por baixo do bigode não é pelo
+            cor_mask &= v < float(np.median(v[sel])) * 1.7
+        gama = 0.65  # reflexos mais suaves quando a cor escolhida é clara
     elif n in TINGE_CABECA:
         h, s, v = hsv(img)
-        sel = (alfa > 0.8) & (s > 0.18) & ~classe_pele(img)
+        sel = (alfa > 0.8) & (s > 0.18) & (dif_hue(h, 22) > 10)
         hue_ref = float(np.median(h[sel]))
-        cor_mask = (dif_hue(h, hue_ref) < 18) & (s > 0.12)
+        cor_mask = (dif_hue(h, hue_ref) < 14) & (s > 0.08) & (v > 0.25)
+        if n == 'cabeca-antenas':
+            cor_mask &= (s > 0.2) & (v > 0.45)  # só as bolinhas; a tiara fina fica com a cor da arte
         cor_ref = float(np.median(lum(img)[cor_mask & (alfa > 0.8)]))
-    gravar_camadas(n, limpa, alfa, cor_mask, cor_ref)
+    gravar_camadas(n, limpa, alfa, fundo, cor_mask, cor_ref, gama)
 
 # o manifesto vai junto do código (import estático em src/features/avatar/compor.js)
 with open(os.path.join(RAIZ, 'src', 'features', 'avatar', 'camadas.json'), 'w', encoding='utf-8') as f:

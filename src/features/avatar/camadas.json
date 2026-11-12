@@ -40,13 +40,11 @@
 "pele": true
 },
 "cabeca-antenas": {
-"cor": true,
 "fixo": true,
 "pele": true
 },
 "cabeca-coelho": {
 "cor": true,
-"fixo": true,
 "pele": true
 },
 "cabeca-flores": {
@@ -55,12 +53,10 @@
 },
 "cabeca-gato": {
 "cor": true,
-"fixo": true,
 "pele": true
 },
 "cabeca-laco": {
 "cor": true,
-"fixo": true,
 "pele": true
 },
 "cabeca-quepe": {
@@ -74,7 +70,6 @@
 },
 "cabeca-urso": {
 "cor": true,
-"fixo": true,
 "pele": true
 },
 "cabelo-cacheado": {
@@ -141,7 +136,6 @@
 },
 "estampa-confete": {
 "fixo": true,
-"pele": true,
 "roupa": true
 },
 "estampa-coracoes": {
@@ -154,7 +148,6 @@
 },
 "estampa-curativos": {
 "fixo": true,
-"pele": true,
 "roupa": true
 },
 "estampa-ecg": {
@@ -163,7 +156,6 @@
 },
 "estampa-estrelas": {
 "fixo": true,
-"pele": true,
 "roupa": true
 },
 "estampa-gotinhas": {
@@ -189,8 +181,7 @@
 },
 "oculos-protecao": {
 "fixo": true,
-"pele": true,
-"roupa": true
+"pele": true
 },
 "oculos-quadrado": {
 "fixo": true,
