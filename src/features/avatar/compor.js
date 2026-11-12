@@ -140,10 +140,11 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
       const info = CAMADAS[p];
       const corDaPeca = p.startsWith("cabelo-") || p.startsWith("barba-") ? cores.cabelo : cores.acessorio;
       const cracha = p.startsWith("cracha-");
-      if (info.fixo) arquivos.push({ url: `${BASE_URL}${p}.webp`, cracha });
+      // tingidos primeiro (cada um se estende um pouco por baixo do próximo) e a cor fixa por cima: sem emenda
       if (info.pele) arquivos.push({ url: `${BASE_URL}${p}.pele.webp`, cor: cores.pele, cracha });
       if (info.roupa) arquivos.push({ url: `${BASE_URL}${p}.roupa.webp`, cor: cores.roupa, cracha });
       if (info.cor) arquivos.push({ url: `${BASE_URL}${p}.cor.webp`, cor: corDaPeca, cracha });
+      if (info.fixo) arquivos.push({ url: `${BASE_URL}${p}.webp`, cracha });
     }
     const [ims] = await Promise.all([Promise.all(arquivos.map((f) => carregar(f.url))), nomeCracha ? fonteCarregada() : null]);
     const tela = novaTela(lado);

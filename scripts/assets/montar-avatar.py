@@ -185,30 +185,52 @@ def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0
         r = np.clip(lum(img) / max(ref, 1), 0, 3) ** g
         sh = np.clip(r * REF_SOMBRA, 0, 255)
         return np.dstack([sh, sh, sh])
-    if (alfa * fixo).sum() > 50:
-        salvar(img, alfa * fixo, os.path.join(SAIDA, nome + '.webp')); info['fixo'] = True
+    # Divisas entre classes: cada arquivo é desenhado por cima do outro (tingidos primeiro, cor fixa por último).
+    # Se cada um parar exatamente na divisa, os dois ficam meio transparentes ali e o que está embaixo vaza
+    # (anel claro em volta do olho). Então cada classe tingida se estende 3 px por baixo das que vêm depois,
+    # com o tom do pixel dela mais próximo.
+    def estender(mask, sob, sombra):
+        ext = dilata(mask, 3) & (mask | sob) & vale
+        if not mask.any():
+            return ext, sombra
+        _, (iy, ix) = ndimage.distance_transform_edt(~mask, return_indices=True)
+        sh = sombra.copy()
+        novo = ext & ~mask
+        sh[novo] = sombra[iy[novo], ix[novo]]
+        return ext, sh
     if (alfa * pele).sum() > 50:
         sp = sombra_de(pele, LUM_PELE)
         if cat in ('olhos', 'boca'):
             # pele lisa igual à da base embaixo: some o rastro do olho/boca antigos sem marcar a emenda
             sp[lisa] = PELE_LISA[lisa][:, None]
-        salvar(sp, alfa * pele, os.path.join(SAIDA, nome + '.pele.webp')); info['pele'] = True
+        m, sp = estender(pele, roupa | cor | fixo, sp)
+        ap = alfa * m
+        if cat in ('olhos', 'boca'):
+            # a pele lisa some aos poucos na borda da área (sem emenda com a pele da base)
+            dentro = ndimage.distance_transform_edt(alfa > 0.5)
+            ap = np.where(lisa, ap * np.clip(dentro / 8, 0, 1), ap)
+        salvar(sp, ap, os.path.join(SAIDA, nome + '.pele.webp')); info['pele'] = True
     if (alfa * roupa).sum() > 50:
-        salvar(sombra_de(roupa, LUM_ROUPA), alfa * roupa, os.path.join(SAIDA, nome + '.roupa.webp')); info['roupa'] = True
+        m, sr = estender(roupa, cor | fixo, sombra_de(roupa, LUM_ROUPA))
+        salvar(sr, alfa * m, os.path.join(SAIDA, nome + '.roupa.webp')); info['roupa'] = True
     if (alfa * cor).sum() > 50:
-        salvar(sombra_de(cor, cor_ref, gama), alfa * cor, os.path.join(SAIDA, nome + '.cor.webp')); info['cor'] = True
+        m, sc = estender(cor, fixo, sombra_de(cor, cor_ref, gama))
+        salvar(sc, alfa * m, os.path.join(SAIDA, nome + '.cor.webp')); info['cor'] = True
+    if (alfa * fixo).sum() > 50:
+        salvar(img, alfa * fixo, os.path.join(SAIDA, nome + '.webp')); info['fixo'] = True
     manifesto[nome] = info
     print(nome, info)
 
 # base
 gravar_camadas('base', base_limpa, alfa_base, bg)
 BORDA_BASE = (bg > 0.02) & (bg < 0.98)
-# tom da pele da base sem os traços do rosto (média só dos pixels de pele, suavizada), para as variações de
-# olhos/boca preencherem a área antiga sem marcar a emenda
-_so_pele = (pele_base & ~dilata(OLHOS | BOCA, 2)).astype(np.float32)
-_num = ndimage.gaussian_filter(lum(base_limpa) * _so_pele, 12)
-_den = ndimage.gaussian_filter(_so_pele, 12)
-PELE_LISA = np.clip(_num / np.maximum(_den, 1e-3) / LUM_PELE * REF_SOMBRA, 0, 255)
+# tom da pele da base em volta dos olhos/boca (sem os traços), para as variações preencherem a área antiga.
+# Tom único por região (mediana do anel de pele em volta): média suavizada puxava o escuro da pupila.
+PELE_LISA = np.full(base.shape[:2], REF_SOMBRA, np.float32)
+for _reg in (OLHOS, BOCA):
+    _anel = dilata(_reg, 10) & ~dilata(_reg, 2) & pele_base
+    if _anel.any():
+        PELE_LISA[dilata(_reg, 10)] = float(np.median(lum(base_limpa)[_anel])) / LUM_PELE * REF_SOMBRA
 
 for n in nomes:
     img = ler(n)
@@ -222,8 +244,11 @@ for n in nomes:
     # contorno do corpo que só mudou de leve (a peça não cobre ali): fica com a base
     alfa[BORDA_BASE & (fundo > 0.02)] = 0
     cat = n.split('-')[0]
-    if cat == 'olhos': alfa = np.maximum(alfa, OLHOS_BASE.astype(np.float32))
-    if cat == 'boca': alfa = np.maximum(alfa, BOCA_BASE.astype(np.float32))
+    if cat in ('olhos', 'boca'):
+        regiao = OLHOS_BASE if cat == 'olhos' else BOCA_BASE
+        # só o traço novo (mudança forte) e a área do traço antigo; o resto é rastro fraco da edição (anel claro)
+        alfa = alfa * dilata(regiao | ndimage.binary_opening(d > 60, iterations=1), 2)
+        alfa = np.maximum(alfa, regiao.astype(np.float32))
     if cat not in ('olhos', 'oculos'): alfa[OLHOS] = 0
     if cat not in ('boca', 'barba'): alfa[BOCA] = 0
     # óculos ficam com os olhos originais nas lentes; a camada de olhos escolhida é desenhada por cima
