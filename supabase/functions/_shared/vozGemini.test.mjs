@@ -1,6 +1,17 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { chaveCacheGemini, executarLote, falarComGemini, limparFinal, ordenarModelosTts, pcmParaWav, vozDoPersonagem } from "./vozGemini.ts";
+import { chaveCacheGemini, duracaoPlausivel, escolherModelo, executarLote, falarComGemini, limparFinal, normalizarVolume, ordenarModelosTts, pcmParaWav, textoParaFala, vozDoPersonagem } from "./vozGemini.ts";
+import pronunciaServidor from "./dados/pronuncia.js";
+import pronunciaApp from "../../../src/data/falas/pronuncia.js";
+
+// 1 s de "fala" (24 kHz, 16 bits): o TTS de teste precisa ter duração plausível para a frase.
+function falaPcm(segundos = 1, amp = 5000, taxa = 24000) {
+  const n = Math.round(segundos * taxa);
+  const b = Buffer.alloc(n * 2);
+  for (let i = 0; i < n; i++) b.writeInt16LE(Math.round(amp * Math.sin(i / 3)), i * 2);
+  return b;
+}
+const FALA_B64 = falaPcm().toString("base64");
 
 const logOriginal = console.log;
 test.before(() => { console.log = () => {}; });
@@ -37,10 +48,10 @@ test("falarComGemini devolve WAV a partir do PCM base64 e usa a voz do personage
   const fetchImpl = async (url, init) => {
     pedidos.push({ url: String(url), corpo: init?.body ? JSON.parse(init.body) : null });
     if (String(url).includes("/models?")) return { ok: true, status: 200, json: async () => ({ models: [{ name: "models/gemini-9-flash-tts", supportedGenerationMethods: ["generateContent"] }] }) };
-    return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ inlineData: { mimeType: "audio/L16;codec=pcm;rate=24000", data: btoa("\u0001\u0002\u0003\u0004") } }] } }] }) };
+    return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ inlineData: { mimeType: "audio/L16;codec=pcm;rate=24000", data: FALA_B64 } }] } }] }) };
   };
   const wav = await falarComGemini({ texto: "Bom dia.", personagemId: "marcus", chave: "k", fetchImpl });
-  assert.equal(wav.byteLength, 48);
+  assert.equal(wav.byteLength, 44 + 48000);
   const geracao = pedidos.find((p) => p.url.includes(":generateContent"));
   assert.match(geracao.url, /gemini-9-flash-tts/);
   assert.equal(geracao.corpo.generationConfig.speechConfig.voiceConfig.prebuiltVoiceConfig.voiceName, "Charon");
@@ -80,7 +91,7 @@ test("falarComGemini no 429 espera o tempo pedido e tenta de novo o mesmo modelo
     if (String(url).includes("/models?")) return { ok: true, status: 200, json: async () => ({ models: [{ name: "models/gemini-9-flash-tts", supportedGenerationMethods: ["generateContent"] }] }) };
     n++;
     if (n === 1) return { ok: false, status: 429, json: async () => ({ error: { details: [{ violations: [{ quotaId: "PorMinuto-FreeTier", quotaValue: "3" }] }, { retryDelay: "0.01s" }] } }) };
-    return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ inlineData: { mimeType: "audio/L16;rate=24000", data: btoa("\u0001\u0002") } }] } }] }) };
+    return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ inlineData: { mimeType: "audio/L16;rate=24000", data: FALA_B64 } }] } }] }) };
   };
   const wav = await falarComGemini({ texto: "Oi.", personagemId: "medico-rui", chave: "k", fetchImpl });
   assert.ok(wav);
@@ -121,4 +132,69 @@ test("executarLote: pula o que já existe, respeita o máximo e para quando a co
   let chamadas = 0;
   const r2 = await executarLote({ lista, existentes, gerar: async () => (++chamadas === 1 ? new Uint8Array([1]) : null), salvar: async () => {}, max: 10 });
   assert.deepEqual(r2, { gerados: 1, faltam: 2, parouPorFalha: true });
+});
+
+test("modelo de voz fixo: usa o preferido mesmo que saia um modelo novo na frente da lista", () => {
+  assert.equal(escolherModelo(["gemini-9-flash-tts", "gemini-3.8-flash-tts"]), "gemini-3.8-flash-tts");
+  assert.equal(escolherModelo(["gemini-9-flash-tts"]), "gemini-9-flash-tts");
+});
+
+test("cada personagem tem voz do sexo certo (o Goti é menino, não cai na voz padrão feminina)", () => {
+  assert.equal(vozDoPersonagem("goti").voz, "Puck");
+  assert.notEqual(vozDoPersonagem("marcus").voz, vozDoPersonagem("teresinha").voz);
+});
+
+test("abreviações lidas por extenso na voz do servidor (igual ao app)", () => {
+  assert.equal(textoParaFala("PA 160/100 e FC 112."), "pressão 160/100 e frequência cardíaca 112.");
+  assert.equal(textoParaFala("Dipirona 500 mg EV."), "Dipirona 500 miligramas endovenoso.");
+  assert.equal(textoParaFala("Papai"), "Papai");
+});
+
+test("o dicionário de pronúncia do servidor é a mesma cópia do app", () => {
+  assert.deepEqual(pronunciaServidor, pronunciaApp);
+});
+
+test("duração plausível: descarta fala inventada (longa demais) ou cortada", () => {
+  const frase = "Bom dia, enfermeira. Estou com dor no peito desde cedo."; // ~55 caracteres, ~4 s
+  assert.equal(duracaoPlausivel(4.2, frase), true);
+  assert.equal(duracaoPlausivel(25, frase), false);
+  assert.equal(duracaoPlausivel(0.5, frase), false);
+});
+
+test("normalizarVolume: rajada alta no meio da fala desce, e o volume fica no alvo sem estourar", () => {
+  const fala = falaPcm(1, 2000);
+  const rajada = falaPcm(0.1, 30000);
+  const entrada = new Uint8Array(Buffer.concat([fala, rajada, fala]));
+  const saida = normalizarVolume(entrada, 24000);
+  const v = new DataView(saida.buffer);
+  let pico = 0;
+  let somaFala = 0;
+  for (let i = 0; i < saida.byteLength / 2; i++) pico = Math.max(pico, Math.abs(v.getInt16(i * 2, true)));
+  for (let i = 0; i < 24000; i++) somaFala += v.getInt16(i * 2, true) ** 2;
+  const rmsFala = Math.sqrt(somaFala / 24000);
+  assert.ok(pico <= 29000, `pico ${pico}`);
+  assert.ok(pico < rmsFala * 4, "a rajada continuou bem mais alta que a fala");
+  assert.ok(rmsFala > 2500 && rmsFala < 4000, `rms ${rmsFala}`);
+});
+
+test("falarComGemini descarta a fala com duração absurda e tenta de novo", async () => {
+  const { _zerarBloqueio } = await import("./vozGemini.ts");
+  _zerarBloqueio();
+  let n = 0;
+  const longa = falaPcm(30).toString("base64");
+  const fetchImpl = async (url) => {
+    if (String(url).includes("/models?")) return { ok: true, status: 200, json: async () => ({ models: [{ name: "models/gemini-9-flash-tts", supportedGenerationMethods: ["generateContent"] }] }) };
+    n++;
+    const data = n === 1 ? longa : FALA_B64;
+    return { ok: true, status: 200, json: async () => ({ candidates: [{ content: { parts: [{ inlineData: { mimeType: "audio/L16;rate=24000", data } }] } }] }) };
+  };
+  const wav = await falarComGemini({ texto: "Bom dia.", personagemId: "marcus", chave: "k", fetchImpl });
+  assert.ok(wav);
+  assert.equal(n, 2);
+  assert.ok(wav.byteLength < 44 + 24000 * 2 * 2);
+});
+
+test("chave do cache: fala com abreviação usa g3 (gerada de novo, lida por extenso); as demais seguem no g2", async () => {
+  assert.match(await chaveCacheGemini("enfermeira-ana", "Qual a PA dele?"), /^g3-/);
+  assert.match(await chaveCacheGemini("enfermeira-ana", "Bom dia."), /^g2-/);
 });

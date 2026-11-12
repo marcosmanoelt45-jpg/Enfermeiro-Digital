@@ -1,6 +1,7 @@
 // Voz ao vivo pelo Gemini (TTS), com a mesma GEMINI_API_KEY da IA. Usada pela função `voz` quando não há
 // servidor próprio (VOZ_AO_VIVO_URL). O Gemini devolve PCM 16 bits; aqui vira WAV, que o navegador toca.
 import { logEvento } from "./log.ts";
+import pronuncia from "./dados/pronuncia.js";
 
 const BASE = "https://generativelanguage.googleapis.com/v1beta";
 
@@ -10,7 +11,12 @@ export const VOZES_GEMINI: Record<string, { voz: string; jeito: string }> = {
   teresinha: { voz: "Sulafat", jeito: "uma senhora idosa, calma e gentil" },
   "medico-rui": { voz: "Orus", jeito: "um médico adulto, direto e seguro" },
   "enfermeira-ana": { voz: "Aoede", jeito: "uma enfermeira adulta, simpática e objetiva" },
+  goti: { voz: "Puck", jeito: "um mascote jovem, animado" },
 };
+
+// Modelo de voz fixo: a ordem da lista do Google muda quando sai modelo novo e, com ela, o timbre mudava de um
+// dia para o outro. Usa este sempre que existir; só cai no 1º da lista se ele sumir.
+export const MODELOS_PREFERIDOS = ["gemini-3.8-flash-tts", "gemini-2.5-flash-preview-tts"];
 const PADRAO = { voz: "Kore", jeito: "uma pessoa adulta, de forma natural" };
 
 let modelosTts: string[] | null = null;
@@ -40,6 +46,74 @@ async function descobrirModelosTts(chave: string, fetchImpl: typeof fetch): Prom
     logEvento("voz_gemini_listar_excecao", { tipo: e instanceof Error ? e.name : "Erro" });
   }
   return modelosTts?.length ? modelosTts : ["gemini-2.5-flash-preview-tts"];
+}
+
+/** O modelo usado: o preferido (fixo) se estiver disponível; senão o 1º da lista. */
+export function escolherModelo(disponiveis: string[]): string {
+  return MODELOS_PREFERIDOS.find((m) => disponiveis.includes(m)) ?? disponiveis[0];
+}
+
+// Abreviações lidas por extenso (PA -> pressão, mg -> miligramas...), igual à voz do navegador no app.
+const SEM_PALAVRA = "[^\\p{L}\\p{N}_]";
+const escapar = (t: string) => t.replace(/[.*+?^${}()|[\]\\/]/g, "\\$&");
+export function textoParaFala(texto: string, dicionario: Record<string, string> = pronuncia as Record<string, string>): string {
+  let saida = String(texto ?? "");
+  for (const chave of Object.keys(dicionario).sort((a, b) => b.length - a.length)) {
+    const re = new RegExp(`(^|${SEM_PALAVRA})${escapar(chave)}(?=$|${SEM_PALAVRA})`, "giu");
+    saida = saida.replace(re, (_m, antes) => antes + dicionario[chave]);
+  }
+  return saida;
+}
+
+/**
+ * A fala gerada tem duração plausível para o texto? O TTS às vezes inventa trechos, repete ou corta a frase:
+ * duração muito maior ou muito menor que a esperada (~13 caracteres por segundo) é descartada e gera de novo.
+ */
+export function duracaoPlausivel(segundos: number, texto: string): boolean {
+  const esperado = Math.max(0.6, String(texto).length / 13);
+  return segundos >= esperado * 0.35 && segundos <= esperado * 2.6 + 1.2;
+}
+
+/**
+ * Volume parelho entre as falas e sem estouro: trechos muito mais altos que a própria fala (estalo, chiado)
+ * descem ao nível da fala, e a fala inteira vai para o mesmo volume médio, sem passar do teto.
+ */
+export function normalizarVolume(pcm: Uint8Array, taxa = 24000): Uint8Array {
+  const n = Math.floor(pcm.byteLength / 2);
+  if (n < taxa * 0.1) return pcm;
+  const dv = new DataView(pcm.buffer, pcm.byteOffset, n * 2);
+  const a = new Float32Array(n);
+  for (let i = 0; i < n; i++) a[i] = dv.getInt16(i * 2, true);
+  const W = Math.round(taxa * 0.02);
+  const jan = Math.floor(n / W);
+  const rms = Array.from({ length: jan }, (_, w) => {
+    let s = 0;
+    for (let i = w * W; i < (w + 1) * W; i++) s += a[i] * a[i];
+    return Math.sqrt(s / W);
+  });
+  const fala = rms.filter((r) => r > 300).sort((x, y) => x - y);
+  if (!fala.length) return pcm;
+  const mediana = fala[Math.floor(fala.length / 2)];
+  // rajada: janela mais de 3x acima da fala típica desce para 1,6x
+  for (let w = 0; w < jan; w++) {
+    if (rms[w] > mediana * 3) {
+      const g = (mediana * 1.6) / rms[w];
+      for (let i = w * W; i < (w + 1) * W; i++) a[i] *= g;
+    }
+  }
+  let pico = 1;
+  for (let i = 0; i < n; i++) pico = Math.max(pico, Math.abs(a[i]));
+  const alvo = 3300; // ~ -20 dBFS de média na fala
+  const ganho = Math.min(alvo / mediana, 29000 / pico);
+  const out = new Uint8Array(n * 2);
+  const ov = new DataView(out.buffer);
+  for (let i = 0; i < n; i++) ov.setInt16(i * 2, Math.max(-32768, Math.min(32767, Math.round(a[i] * ganho))), true);
+  return out;
+}
+
+/** A cota grátis do dia acabou (nenhuma fala nova sai até ela voltar). */
+export function cotaDoDiaEsgotada(): boolean {
+  return Date.now() < bloqueadoAte;
 }
 
 // O Gemini às vezes termina o áudio com uma rajada alta de ruído (o "chiado de TV") depois de um silêncio.
@@ -120,10 +194,12 @@ export function vozDoPersonagem(personagemId: string) {
 }
 
 // Nome do arquivo no bucket "vozes-cache". g2: áudios sem o chiado final (os g- antigos ficam sem uso).
+// g3: falas com abreviação (agora lidas por extenso); as demais seguem com o g2 já guardado.
 export async function chaveCacheGemini(personagemId: string, texto: string): Promise<string> {
   const bytes = new TextEncoder().encode(`${vozDoPersonagem(personagemId).voz}|${texto}`);
   const hash = await crypto.subtle.digest("SHA-1", bytes);
-  return `g2-${Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("")}.wav`;
+  const prefixo = textoParaFala(texto) === texto ? "g2" : "g3";
+  return `${prefixo}-${Array.from(new Uint8Array(hash)).map((b) => b.toString(16).padStart(2, "0")).join("")}.wav`;
 }
 
 /**
@@ -169,7 +245,8 @@ export async function falarComGemini(
   const { voz } = vozDoPersonagem(personagemId);
   // Sempre o MESMO modelo (o 1º da lista): trocar de modelo mudava o timbre no meio da conversa.
   // Se falhar, tenta o mesmo de novo; se falhar outra vez, o cliente usa a voz do navegador nessa frase.
-  const primeiro = (await descobrirModelosTts(chave, fetchImpl))[0];
+  const primeiro = escolherModelo(await descobrirModelosTts(chave, fetchImpl));
+  const falado = textoParaFala(texto);
   for (const modelo of [primeiro, primeiro]) {
     const inicio = Date.now();
     try {
@@ -178,7 +255,7 @@ export async function falarComGemini(
         headers: { "content-type": "application/json", "x-goog-api-key": chave },
         body: JSON.stringify({
           // Só a fala: instrução de estilo no texto era lida em voz alta (o timbre vem da voz escolhida).
-          contents: [{ parts: [{ text: texto }] }],
+          contents: [{ parts: [{ text: falado }] }],
           generationConfig: { responseModalities: ["AUDIO"], speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: voz } } } },
         }),
         signal: AbortSignal.timeout(timeoutMs),
@@ -217,8 +294,15 @@ export async function falarComGemini(
         continue;
       }
       const taxa = Number(String(parte.inlineData.mimeType ?? "").match(/rate=(\d+)/)?.[1] ?? 24000);
+      const limpo = limparFinal(base64ParaBytes(b64), taxa);
+      const segundos = limpo.byteLength / 2 / taxa;
+      if (!duracaoPlausivel(segundos, falado)) {
+        // fala inventada, repetida ou cortada: gera de novo (não guarda nem toca a errada)
+        logEvento("voz_gemini_duracao_estranha", { modelo, voz, segundos: Math.round(segundos * 10) / 10, chars: falado.length });
+        continue;
+      }
       logEvento("voz_gemini_ok", { modelo, voz, ms: Date.now() - inicio });
-      return pcmParaWav(limparFinal(base64ParaBytes(b64), taxa), taxa);
+      return pcmParaWav(normalizarVolume(limpo, taxa), taxa);
     } catch (e) {
       logEvento("voz_gemini_excecao", { modelo, tipo: e instanceof Error ? e.name : "Erro", ms: Date.now() - inicio });
     }

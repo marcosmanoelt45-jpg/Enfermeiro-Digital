@@ -6,12 +6,14 @@
 // - "mp3": personagem só de falas fixas com mp3 (o Dr. Rui) usa sempre o mp3.
 // - "gemini": tenta a voz do Gemini; na primeira falha (cota do dia acabou), passa para "navegador" e fica nele
 //   até o fim da cena. A voz troca no máximo uma vez, e nunca volta.
+// - Se a cota do dia já acabou antes de a cena começar (estadoVoz), a cena inteira já nasce no "navegador".
+// A voz do navegador é sempre a mesma por personagem e do mesmo sexo (reprodutor.js).
 import { useCallback, useEffect, useRef, useState } from "react";
 import { buscarPersonagem } from "./dados/personagens.js";
-import { dividirEmFrases, resolverFala } from "./logica/falas.js";
+import { resolverFala } from "./logica/falas.js";
 import { carregarManifesto } from "./voz/manifestos.js";
 import { obterReprodutor } from "./voz/reprodutor.js";
-import { gerarVoz } from "./servidor.js";
+import { estadoVoz, gerarVoz } from "./servidor.js";
 
 export function modoInicialDaVoz(personagem) {
   return personagem?.voz?.modo === "mp3" ? "mp3" : "gemini";
@@ -45,7 +47,15 @@ export default function useVozPersonagem(personagemId) {
     async (falas) => {
       const gen = ++geracaoRef.current;
       const personagem = buscarPersonagem(personagemId);
-      if (!modoRef.current) modoRef.current = modoInicialDaVoz(personagem);
+      if (!modoRef.current) {
+        let modo = modoInicialDaVoz(personagem);
+        // Cota grátis do Gemini já acabou hoje: a cena inteira na voz do navegador (sem começar numa e trocar).
+        if (modo === "gemini") {
+          const estado = await estadoVoz();
+          if (!estado.gemini) modo = "navegador";
+        }
+        if (!modoRef.current) modoRef.current = modo;
+      }
       const manifesto = await carregarManifesto(personagemId);
       const player = reprodutor();
       // "falando" (a animação) liga quando o áudio começa a sair, não quando a voz é pedida.
@@ -64,10 +74,9 @@ export default function useVozPersonagem(personagemId) {
           }
 
           if (modoRef.current === "gemini") {
-            // Frase a frase: no máximo 2 pedidos por fala (a 1ª frase sozinha, que começa rápido, e o resto junto).
-            // Fala fixa vai inteira num pedido só: é o mesmo texto que o lote diário guarda no servidor.
-            const todas = fala.origem === "fixa" ? [fala.texto] : dividirEmFrases(fala.texto);
-            const frases = todas.length > 1 ? [todas[0], todas.slice(1).join(" ")] : todas;
+            // Um pedido por fala, inteira: o mesmo jeito e volume do começo ao fim (dois pedidos davam entonações
+            // diferentes na mesma fala) e metade do gasto da cota grátis, que é pequena.
+            const frases = [fala.texto];
             const pedidos = frases.map((frase) => gerarVoz({ texto: frase, personagemId }).catch(() => null));
             const primeira = await pedidos[0];
             if (gen !== geracaoRef.current) return false;

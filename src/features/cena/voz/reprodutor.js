@@ -27,9 +27,47 @@ export function montarWavSilencioso(ms = 100, taxa = 8000) {
   return new Uint8Array(buf);
 }
 
-function escolherVozPtBr(sintese) {
-  const vozes = sintese?.getVoices?.() ?? [];
-  return vozes.find((v) => /pt[-_]BR/i.test(v.lang)) ?? vozes.find((v) => /^pt/i.test(v.lang)) ?? null;
+// Nomes das vozes pt-BR mais comuns (Windows, Android/Chrome, iPhone/Mac) pelo sexo da voz.
+const VOZES_MASCULINAS = /daniel|antonio|ant[oô]nio|felipe|fabio|f[aá]bio|julio|j[uú]lio|humberto|valerio|val[eé]rio|donato|nicolau|leonel|ricardo|male|masculin/i;
+const VOZES_FEMININAS = /maria|francisca|thalita|luciana|fernanda|vit[oó]ria|leila|raquel|manuela|yara|giovanna|elza|female|feminin|google portugu[eê]s do brasil/i;
+
+/**
+ * Voz do navegador para o personagem: em português, do mesmo sexo e sempre a mesma (fica guardada no aparelho
+ * por personagem). Antes era a primeira voz em português que aparecesse, às vezes feminina para o Sr. Marcus.
+ */
+export function escolherVozPtBr(sintese, personagem = null, armazenamento = typeof localStorage !== "undefined" ? localStorage : null) {
+  const vozes = (sintese?.getVoices?.() ?? []).filter((v) => /^pt/i.test(v.lang));
+  if (!vozes.length) return null;
+  const chave = personagem?.id ? `enfere_voz_navegador_${personagem.id}` : null;
+  try {
+    const guardada = chave && armazenamento?.getItem(chave);
+    const achada = guardada && vozes.find((v) => v.name === guardada);
+    if (achada) return achada;
+  } catch {
+    /* sem armazenamento */
+  }
+  const brasil = vozes.filter((v) => /pt[-_]BR/i.test(v.lang));
+  const lista = brasil.length ? brasil : vozes;
+  const sexo = personagem?.sexo;
+  const doSexo = sexo === "M" ? lista.filter((v) => VOZES_MASCULINAS.test(v.name)) : sexo === "F" ? lista.filter((v) => VOZES_FEMININAS.test(v.name) || !VOZES_MASCULINAS.test(v.name)) : lista;
+  // vozes locais primeiro (mais estáveis e sem depender de rede)
+  const ordenada = [...(doSexo.length ? doSexo : lista)].sort((a, b) => Number(Boolean(b.localService)) - Number(Boolean(a.localService)));
+  const escolhida = ordenada[0];
+  try {
+    if (chave && escolhida) armazenamento?.setItem(chave, escolhida.name);
+  } catch {
+    /* sem armazenamento */
+  }
+  return escolhida;
+}
+
+/** Sem voz masculina instalada, o personagem homem fala com voz feminina mais grave (pitch menor). */
+export function ajustesDaVoz(personagem, voz) {
+  const base = personagem?.voz?.navegador ?? {};
+  let pitch = base.pitch ?? 1;
+  const vozFeminina = voz && !VOZES_MASCULINAS.test(voz.name);
+  if (personagem?.sexo === "M" && vozFeminina) pitch = Math.min(pitch, 0.7);
+  return { pitch, rate: base.rate ?? 1 };
 }
 
 // speechSynthesis.getVoices() vem vazio na primeira chamada do Chrome: espera voiceschanged por até 1 s.
@@ -143,7 +181,8 @@ export function criarReprodutor({
     if (!sintese) return;
     await aguardarVozes(sintese);
     if (gen !== geracao) return;
-    const voz = escolherVozPtBr(sintese);
+    const voz = escolherVozPtBr(sintese, personagem);
+    const ajustes = ajustesDaVoz(personagem, voz);
     const falavel = aplicarPronuncia(texto);
     const frases = dividirEmFrases(falavel);
     const originais = dividirEmFrases(texto);
@@ -157,8 +196,9 @@ export function criarReprodutor({
         const u = criarUtterance(frases[i]);
         u.lang = "pt-BR";
         if (voz) u.voice = voz;
-        u.pitch = personagem?.voz?.navegador?.pitch ?? 1;
-        u.rate = personagem?.voz?.navegador?.rate ?? 1;
+        u.pitch = ajustes.pitch;
+        u.rate = ajustes.rate;
+        u.volume = 1;
         u.onboundary = (e) => {
           if (gen !== geracao || e.name === "sentence") return;
           // Estimativa: posição do caractere na frase -> índice da palavra.

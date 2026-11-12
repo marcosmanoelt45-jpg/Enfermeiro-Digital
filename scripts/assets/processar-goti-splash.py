@@ -149,6 +149,65 @@ def limpa_pernas(q):
     return q
 
 
+def limpa_sapatos(q):
+    """Os sapatos do Goti são brancos (crocs com furinhos). O Flow às vezes deixa uma mancha preta grande no lado
+    de dentro (sobra do sapato preto original ou sombra entre os pés). Na faixa dos pés, mancha escura grande vira
+    a cor do sapato; os furinhos (pequenos) ficam."""
+    a = np.array(q.getchannel("A"))
+    rgb = np.asarray(q.convert("RGB")).astype(np.int16)
+    # pernas e sapatos às vezes ficam soltos do corpo (o vão sob o jaleco é transparente): usa tudo o que é opaco
+    corpo_m = a > 60
+    ys = np.flatnonzero(corpo_m.any(axis=1))
+    if ys.size == 0:
+        return q
+    topo, pe = ys[0], ys[-1]
+    alt = pe - topo
+    faixa = np.zeros_like(corpo_m)
+    faixa[int(pe - 0.11 * alt):pe + 1] = True
+    mx, mn = rgb.max(axis=2), rgb.min(axis=2)
+    branco = (mn > 165) & (mx - mn < 45) & corpo_m & faixa
+    if not branco.any():
+        return q
+    cor = np.median(np.asarray(q.convert("RGB"))[branco], axis=0)
+    # buraco na transparência dentro do sapato (o recorte do verde comeu um pedaço perto da tira): o fundo escuro
+    # aparecia como mancha preta. Fecha o contorno de cada pé e preenche o que ficou vazio dentro dele.
+    # Cada pé separado (para não fechar o vão entre os dois): fecha o contorno com folga e preenche.
+    pes_m = (a > 200) & faixa
+    rp, npes = ndimage.label(pes_m)
+    cheio = np.zeros_like(pes_m)
+    if npes:
+        areas_p = ndimage.sum(np.ones_like(rp), rp, range(1, npes + 1))
+        for i in 1 + np.flatnonzero(areas_p > 0.002 * alt * alt):
+            pe_i = rp == i
+            pe_i = np.pad(pe_i, 12)
+            fech = ndimage.binary_fill_holes(ndimage.binary_closing(pe_i, iterations=9))[12:-12, 12:-12]
+            cheio |= fech
+    cheio &= faixa
+    buraco = cheio & ~(a > 200)
+    if buraco.any():
+        arr = np.array(q.convert("RGBA"))
+        arr[buraco, :3] = cor.astype(np.uint8)
+        arr[buraco, 3] = 255
+        q = Image.fromarray(arr, "RGBA")
+        a = np.array(q.getchannel("A"))
+        rgb = np.asarray(q.convert("RGB")).astype(np.int16)
+        mx, mn = rgb.max(axis=2), rgb.min(axis=2)
+    escuro = (mx < 95) & (mx - mn < 40) & corpo_m & faixa
+    r2, n2 = ndimage.label(ndimage.binary_dilation(escuro, iterations=1) & corpo_m & faixa)
+    if n2 == 0:
+        return q
+    areas = ndimage.sum(np.ones_like(r2), r2, range(1, n2 + 1))
+    limite = max(40, 0.0016 * alt * alt)  # furinho do croc é bem menor que isso
+    grandes = np.isin(r2, 1 + np.flatnonzero(areas > limite))
+    if not grandes.any():
+        return q
+    arr = np.array(q.convert("RGBA"))
+    arr[grandes, :3] = cor.astype(np.uint8)
+    out = Image.fromarray(arr, "RGBA")
+    out.putalpha(Image.fromarray(a))
+    return out
+
+
 def corpo(q):
     """Caixa do corpo: a maior mancha (ignora objetos que voam)."""
     an = np.asarray(q.getchannel("A")) > 60
@@ -196,14 +255,14 @@ def salva(fr, nome, loop, fps=FPS):
 
 # Lendo: 1x (é parado de propósito), ida e volta.
 t, a = extrai(lendo)
-ql = [limpa_pernas(q) for q in recorta(t, a, True)]
+ql = [limpa_sapatos(limpa_pernas(q)) for q in recorta(t, a, True)]
 shutil.rmtree(t)
 fl = aplica(ql, moldura(ql[0]))
 salva(fl + fl[-2:0:-1], "goti-lendo", True)
 
 # Susto: mais rápido (vel_susto) e sem filtrar a prancheta e os óculos que voam.
 t, a = extrai(susto, f"setpts=PTS/{vel_susto}", interpola=False)
-qs = [limpa_pernas(q) for q in recorta(t, a, False)]
+qs = [limpa_sapatos(limpa_pernas(q)) for q in recorta(t, a, False)]
 shutil.rmtree(t)
 # Respingo no chão quando ele pousa: na faixa do chão, só fica o que cabe na largura dos sapatos do último
 # quadro (ele termina parado no mesmo lugar em que pousa).
@@ -284,14 +343,14 @@ for i in range(int(n * 0.45), n - 1):
     c0, c1 = max(0, cols[0] - 30), min(LADO, cols[-1] + 31)
     fa[faixa0:, c0:c1] = ga[faixa0:, c0:c1]
     fs[i] = Image.fromarray(fa)
-salva(fs, "goti-susto", False, fps=30)
+salva([limpa_sapatos(f) for f in fs], "goti-susto", False, fps=30)
 
 # Oi: o aceno novo do Flow (começa e termina no mesmo quadro de frente do fim do susto), no mesmo tamanho e
 # lugar do último quadro do susto.
 x0, y0, x1, y1 = corpo(fs[-1])
 alt_fim, base_fim, cx_fim = (y1 - y0) / LADO, y1 / LADO, (x0 + x1) / 2 / LADO
 t, a = extrai(oi, interpola=False)
-qo = [limpa_pernas(q) for q in recorta(t, a, True)]
+qo = [limpa_sapatos(limpa_pernas(q)) for q in recorta(t, a, True)]
 shutil.rmtree(t)
 fo = aplica(qo, moldura(qo[0], alt_fim, base_fim, cx_fim))
-salva(fo, "goti-oi", True, fps=30)
+salva([limpa_sapatos(f) for f in fo], "goti-oi", True, fps=30)

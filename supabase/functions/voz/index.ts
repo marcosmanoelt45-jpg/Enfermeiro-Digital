@@ -12,7 +12,10 @@ import { consumirCota, limiteDe } from "../_shared/cota.ts";
 import { ErroApp, erroDeExcecao } from "../_shared/erros.ts";
 import { logEvento } from "../_shared/log.ts";
 import { z } from "../_shared/schemas.ts";
-import { chaveCacheGemini, executarLote, falarComGemini } from "../_shared/vozGemini.ts";
+import { chaveCacheGemini, cotaDoDiaEsgotada, executarLote, falarComGemini } from "../_shared/vozGemini.ts";
+
+// Dia do Pacífico: é quando a cota grátis do Google zera.
+const diaDoPacifico = () => new Intl.DateTimeFormat("en-CA", { timeZone: "America/Los_Angeles" }).format(new Date());
 import falasFixas from "../_shared/falasFixas.json" with { type: "json" };
 
 const MAX_CARACTERES = 400;
@@ -30,10 +33,12 @@ async function iniciarLote(admin: Admin, chave: string): Promise<Response> {
 
   const tarefa = (async () => {
     const existentes = new Set<string>();
-    for (let offset = 0; offset < 20000; offset += 1000) {
-      const { data } = await admin.storage.from(BUCKET).list("", { limit: 1000, offset, search: "g2-" });
-      for (const o of data ?? []) existentes.add(o.name);
-      if (!data || data.length < 1000) break;
+    for (const prefixo of ["g2-", "g3-"]) {
+      for (let offset = 0; offset < 20000; offset += 1000) {
+        const { data } = await admin.storage.from(BUCKET).list("", { limit: 1000, offset, search: prefixo });
+        for (const o of data ?? []) existentes.add(o.name);
+        if (!data || data.length < 1000) break;
+      }
     }
     const r = await executarLote({
       lista: falasFixas as { p: string; t: string }[],
@@ -111,6 +116,17 @@ Deno.serve(async (req) => {
       const admin = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", { auth: { persistSession: false, autoRefreshToken: false } });
       return await iniciarLote(admin, chaveGemini);
     }
+    // Estado da voz no começo da cena: se a cota grátis do dia já acabou, o app usa a voz do navegador a cena
+    // inteira (em vez de começar com a voz do Gemini e trocar no meio, quando a cota acaba).
+    if ((corpo as { acao?: string } | null)?.acao === "estado") {
+      let gemini = Boolean(!base && chaveGemini);
+      if (gemini) {
+        const admin = createClient(Deno.env.get("SUPABASE_URL") ?? "", Deno.env.get("SUPABASE_SERVICE_ROLE_KEY") ?? "", { auth: { persistSession: false, autoRefreshToken: false } });
+        const { data } = await admin.storage.from(BUCKET).list("esgotado", { search: diaDoPacifico() });
+        if ((data ?? []).some((o: { name: string }) => o.name.startsWith(diaDoPacifico()))) gemini = false;
+      }
+      return new Response(JSON.stringify({ gemini, servidor: Boolean(base) }), { status: 200, headers: { ...corsHeaders, "Content-Type": "application/json" } });
+    }
     const usuario = await exigirUsuario(req);
     const entrada = Entrada.safeParse(corpo);
     if (!entrada.success) {
@@ -129,7 +145,13 @@ Deno.serve(async (req) => {
       }
       await consumirCota(usuario.supabaseUsuario, "voz", limiteDe("voz"));
       const wav = await falarComGemini({ texto, personagemId, chave: chaveGemini });
-      if (!wav) return new Response(null, { status: 204, headers: corsHeaders });
+      if (!wav) {
+        // cota do dia acabou: marca no bucket para as próximas cenas já começarem na voz do navegador
+        if (cotaDoDiaEsgotada()) {
+          await admin.storage.from(BUCKET).upload(`esgotado/${diaDoPacifico()}.txt`, new TextEncoder().encode("1"), { contentType: "text/plain", upsert: true }).catch(() => {});
+        }
+        return new Response(null, { status: 204, headers: corsHeaders });
+      }
       try {
         await admin.storage.from(BUCKET).upload(chaveCache, wav, { contentType: "audio/wav", upsert: true });
       } catch {

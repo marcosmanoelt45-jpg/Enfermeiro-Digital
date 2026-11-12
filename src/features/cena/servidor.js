@@ -95,6 +95,24 @@ export function dispararLoteVozes() {
   supabase.functions.invoke("voz", { body: { acao: "lote" } }).catch(() => {});
 }
 
+// No começo de cada cena: a voz do Gemini ainda tem cota hoje? Se não, a cena inteira usa a voz do navegador
+// (em vez de começar numa voz e trocar no meio). Guarda a resposta por 1 minuto. Sem resposta: tenta o Gemini.
+let estadoCache = null;
+export async function estadoVoz() {
+  if (estadoCache && Date.now() - estadoCache.em < 60_000) return estadoCache.valor;
+  let valor = { gemini: true };
+  try {
+    if (temSessaoDoServidor()) {
+      const { data } = await supabase.functions.invoke("voz", { body: { acao: "estado" } });
+      if (data && typeof data.gemini === "boolean") valor = data;
+    }
+  } catch {
+    /* sem resposta: segue tentando o Gemini */
+  }
+  estadoCache = { em: Date.now(), valor };
+  return valor;
+}
+
 // Cliente das ações da cena-ia (Consulta ao Vivo). Cada função devolve os dados ou lança ErroServidor.
 // criar usa timeout de 30 s (a IA monta a ficha); o turno, 15 s; um turnoId repetido é idempotente no servidor.
 export const consulta = {

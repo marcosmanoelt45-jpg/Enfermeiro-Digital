@@ -107,3 +107,24 @@ test("manifestos: um fetch por personagem, 404 e erro viram manifesto vazio", as
   assert.deepEqual(await carregarManifesto("y", async () => ({ ok: false })), { falas: {} });
   assert.deepEqual(await carregarManifesto("z", async () => { throw new Error("rede"); }), { falas: {} });
 });
+
+test("voz do navegador: do sexo do personagem e sempre a mesma", async () => {
+  const { escolherVozPtBr, ajustesDaVoz } = await import("./reprodutor.js");
+  const vozes = [
+    { name: "Microsoft Maria - Portuguese (Brazil)", lang: "pt-BR", localService: true },
+    { name: "Microsoft Daniel - Portuguese (Brazil)", lang: "pt-BR", localService: true },
+    { name: "Google português do Brasil", lang: "pt-BR", localService: false },
+  ];
+  const sintese = { getVoices: () => vozes };
+  const guardado = new Map();
+  const arm = { getItem: (k) => guardado.get(k) ?? null, setItem: (k, v) => guardado.set(k, v) };
+  assert.match(escolherVozPtBr(sintese, { id: "marcus", sexo: "M" }, arm).name, /Daniel/);
+  assert.match(escolherVozPtBr(sintese, { id: "teresinha", sexo: "F" }, arm).name, /Maria/);
+  // a escolha fica guardada: mesmo se a lista mudar de ordem, a voz não troca
+  vozes.reverse();
+  assert.match(escolherVozPtBr(sintese, { id: "marcus", sexo: "M" }, arm).name, /Daniel/);
+  // sem voz masculina instalada: o homem fala com a feminina, só que mais grave
+  const soFeminina = { getVoices: () => [{ name: "Microsoft Maria", lang: "pt-BR" }] };
+  const voz = escolherVozPtBr(soFeminina, { id: "rui", sexo: "M" }, null);
+  assert.ok(ajustesDaVoz({ sexo: "M", voz: { navegador: { pitch: 0.9 } } }, voz).pitch <= 0.7);
+});
