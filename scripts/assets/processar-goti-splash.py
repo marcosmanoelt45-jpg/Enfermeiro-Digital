@@ -17,9 +17,9 @@ from scipy import ndimage
 lendo, susto = sys.argv[1], sys.argv[2]
 vel_susto = float(sys.argv[3]) if len(sys.argv) > 3 else 1.25
 FPS = 60
-LADO = 480
-ALTURA_CORPO = 0.60
-BASE = 0.92
+LADO = 560
+ALTURA_CORPO = 0.42
+BASE = 0.86
 INTERP = f"minterpolate=fps={FPS}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1"
 VERDE = "0x0AF609"
 
@@ -92,9 +92,9 @@ def salva(fr, nome, loop):
                     "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-b:v", "0", "-crf", "36", "-row-mt", "1",
                     "-metadata:s:v:0", "alpha_mode=1", "-an", webm], check=True)
     webp = os.path.join("public", "goti", nome + ".webp")
-    pq = [f.resize((300, 300), Image.LANCZOS) for f in fr[::2]]
+    pq = [f.resize((340, 340), Image.LANCZOS) for f in fr[::2]]
     pq[0].save(webp, save_all=True, append_images=pq[1:], duration=int(2000 / FPS), loop=0 if loop else 1, quality=62, method=4)
-    fr[0].resize((360, 360), Image.LANCZOS).save(os.path.join("public", "goti", nome + "-poster.webp"), quality=85)
+    fr[0].resize((420, 420), Image.LANCZOS).save(os.path.join("public", "goti", nome + "-poster.webp"), quality=85)
     print(nome, len(fr), "quadros", f"{len(fr) / FPS:.2f}s", os.path.getsize(webm) // 1024, "KB webm", os.path.getsize(webp) // 1024, "KB webp")
     shutil.rmtree(tmp)
 

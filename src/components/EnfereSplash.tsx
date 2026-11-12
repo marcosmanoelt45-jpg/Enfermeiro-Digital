@@ -37,16 +37,15 @@ const SUSTO_MS = 2450; // duração do susto (3 s do Flow tocados a 1,25x)
 const CSS = `
 .enfere-splash{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#0B131D;font-family:${FONT};user-select:none;-webkit-user-select:none;touch-action:manipulation;box-sizing:border-box}
 .enfere-splash *{box-sizing:border-box;margin:0}
-.enfere-splash .es-intro{position:absolute;inset:0;z-index:5;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;background:#0B131D}
-.enfere-splash .es-logo{width:min(34vw,148px);height:auto;opacity:0;will-change:transform,opacity}
-.enfere-splash .es-nome{font-size:2.6rem;font-weight:900;color:#20D5B5;letter-spacing:-0.02em;line-height:1;opacity:0;will-change:transform,opacity}
-.enfere-splash .es-c2{position:absolute;left:0;right:0;top:32%;transform:translateY(-50%);display:flex;justify-content:center}
-.enfere-splash .es-g2{position:relative;width:min(70vw,290px,38vh);aspect-ratio:1/1;opacity:0;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transform-origin:50% 92%}
+.enfere-splash .es-intro{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding-bottom:12vh;background:#0B131D}
+.enfere-splash .es-logo{width:min(34vw,148px);aspect-ratio:1/1;height:auto;opacity:0;will-change:transform,opacity}
+.enfere-splash .es-c2{position:absolute;left:0;right:0;top:29%;transform:translateY(-50%);display:flex;justify-content:center}
+.enfere-splash .es-g2{position:relative;width:min(100vw,414px,54vh);aspect-ratio:1/1;opacity:0;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transform-origin:50% 92%}
 .enfere-splash .es-g2:focus-visible{outline:3px solid #20D5B5;outline-offset:6px;border-radius:24px}
 .enfere-splash .es-g2 video,.enfere-splash .es-g2 img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none}
 .enfere-splash .es-g2 .on{opacity:1}
-.enfere-splash .es-sh{position:absolute;left:18%;right:18%;bottom:0;height:7%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),rgba(0,0,0,0))}
-.enfere-splash .es-ttl{position:absolute;left:0;right:0;top:55%;text-align:center;font-size:3.2rem;font-weight:900;color:#20D5B5;letter-spacing:-0.03em;line-height:1;opacity:0}
+.enfere-splash .es-sh{position:absolute;left:31%;right:31%;bottom:11%;height:5%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),rgba(0,0,0,0))}
+.enfere-splash .es-ttl{position:absolute;left:0;right:0;top:55%;text-align:center;font-size:3.2rem;font-weight:900;color:#20D5B5;letter-spacing:-0.03em;line-height:1;opacity:0;z-index:6;will-change:transform,opacity}
 .enfere-splash .es-tag{position:absolute;left:0;right:0;top:55%;margin-top:3.6rem;text-align:center;font-size:1.05rem;font-weight:600;color:#9FB3C6;opacity:0;padding:0 20px}
 .enfere-splash .es-btns{position:absolute;left:0;right:0;bottom:0;max-width:440px;margin:0 auto;padding:0 22px calc(24px + env(safe-area-inset-bottom,0px));display:flex;flex-direction:column;gap:12px;opacity:0;pointer-events:none}
 .enfere-splash.es-ready .es-btns{pointer-events:auto}
@@ -59,8 +58,8 @@ const CSS = `
 .enfere-splash .es-skip-hint{position:absolute;z-index:6;top:calc(1rem + env(safe-area-inset-top,0px));right:1rem;min-height:44px;font:700 0.8125rem ${FONT};color:rgba(255,255,255,0.8);background:rgba(22,34,46,0.8);border:1px solid rgba(255,255,255,0.12);padding:0 16px;border-radius:999px;opacity:0;transition:opacity 300ms ease;cursor:pointer;pointer-events:auto}
 .enfere-splash.es-playing .es-skip-hint{opacity:1}
 @media (min-width: 768px) {
-  .enfere-splash .es-c2 { top: 33%; }
-  .enfere-splash .es-g2 { width: clamp(280px, 24vw, 360px); max-height: 42vh; }
+  .enfere-splash .es-c2 { top: 30%; }
+  .enfere-splash .es-g2 { width: clamp(400px, 34vw, 514px); max-height: 60vh; }
   .enfere-splash .es-ttl { top: 57%; font-size: 3.6rem; }
   .enfere-splash .es-tag { top: 57%; margin-top: 4.2rem; font-size: 1.25rem; }
   .enfere-splash .es-btns { bottom: 40px; max-width: 440px; }
@@ -69,7 +68,7 @@ const CSS = `
 `;
 
 const MARKUP = `
-<div class="es-intro"><img class="es-logo" alt="" draggable="false"><p class="es-nome" aria-label="Enfere">Enfere</p></div>
+<div class="es-intro"><img class="es-logo" alt="" draggable="false"></div>
 <div class="es-c2">
   <button type="button" class="es-g2" aria-label="Goti lendo um prontuário. Toque para chamar a atenção dele.">
     <i class="es-sh" aria-hidden="true"></i>
@@ -103,7 +102,6 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   const $ = <T extends HTMLElement = HTMLElement>(sel: string) => root.querySelector(sel) as T;
   const intro = $(".es-intro");
   const logo = $<HTMLImageElement>(".es-logo");
-  const nome = $(".es-nome");
   logo.src = logoEnfere;
   const g2 = $<HTMLButtonElement>(".es-g2");
   const vLendo = $<HTMLVideoElement>(".es-v-lendo"), vSusto = $<HTMLVideoElement>(".es-v-susto"), vOi = $<HTMLVideoElement>(".es-v-oi");
@@ -132,6 +130,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   let anims: Animation[] = [];
   let finished = false;
   let fase: "abertura" | "lendo" | "susto" | "oi" = "abertura";
+  let dyNome = 0;
   const urls: string[] = [];
 
   const at = (ms: number, fn: () => void) => {
@@ -248,7 +247,6 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     root.classList.remove("es-playing");
     skipHint.style.display = "none";
     (btns as HTMLElement & { inert: boolean }).inert = false;
-    A(ttl, [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 400 });
     A(tag, [{ opacity: 0, transform: "translateY(8px)" }, { opacity: 1, transform: "none" }], { duration: 400, delay: 100 });
     A(btns, [{ opacity: 0, transform: "translateY(48px)" }, { opacity: 1, transform: "none" }], { duration: 600, delay: 150, easing: SPR });
     done();
@@ -258,15 +256,21 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   const palco = (comAnimacao: boolean) => {
     ficarLendo();
     if (comAnimacao) {
-      A(intro, [{ opacity: 1 }, { opacity: 0 }], { duration: 220 });
+      // O mesmo "Enfere" que estava sob a logo desliza até o lugar do título: um movimento só, sem nome repetido.
+      A(ttl, [{ opacity: 1, transform: `translateY(${dyNome}px)` }, { opacity: 1, transform: "none" }], { duration: 420 });
+      // A logo sai primeiro (encolhe e some); o Goti só entra depois, para os dois não se misturarem.
+      A(logo, [{ opacity: 1, transform: "scale(1)" }, { opacity: 0, transform: "scale(.85)" }], { duration: 160 });
+      A(intro, [{ opacity: 1 }, { opacity: 0 }], { duration: 160, delay: 60 });
       at(220, () => { intro.style.display = "none"; });
       A(g2, [
         { opacity: 0, transform: "translateY(20px) scale(.96)" },
         { opacity: 1, transform: "none" },
-      ], { duration: 380, easing: SPR });
+      ], { duration: 380, delay: 140, easing: SPR });
     } else {
       intro.style.display = "none";
       g2.style.opacity = "1";
+      ttl.style.opacity = "1";
+      ttl.style.transform = "none";
     }
     ready();
   };
@@ -283,15 +287,18 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
       return;
     }
     root.classList.add("es-playing");
+    // O título fica, durante a abertura, logo abaixo da logo; depois desliza para o lugar dele (palco).
+    const rl = logo.getBoundingClientRect();
+    dyNome = Math.round(rl.bottom + 14 - ttl.getBoundingClientRect().top);
     // Logo: salta de 0,6 com mola (passa um pouco de 1 e assenta). Nome: sobe 14 px logo depois.
     A(logo, [
       { opacity: 0, transform: "scale(.6)" },
       { opacity: 1, transform: "scale(1.06)", offset: 0.6 },
       { opacity: 1, transform: "scale(1)" },
     ], { duration: 420, easing: "cubic-bezier(.23,1,.32,1)" });
-    A(nome, [
-      { opacity: 0, transform: "translateY(14px)" },
-      { opacity: 1, transform: "none" },
+    A(ttl, [
+      { opacity: 0, transform: `translateY(${dyNome + 14}px)` },
+      { opacity: 1, transform: `translateY(${dyNome}px)` },
     ], { duration: 320, delay: 180 });
     at(950, () => fase === "abertura" && palco(true));
   };
