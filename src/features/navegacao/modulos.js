@@ -126,7 +126,7 @@ export const MODULOS = [
     dock: { rotulo: "Menu", icone: "Menu", ordem: 20, gaveta: true },
   },
   {
-    // Amigos por convite, perfil dos amigos e pódio. Atrás da chave `social` até a migration 015 estar no ar.
+    // Amigos por convite, perfil dos amigos e pódio (tabelas da migration 015). Chave `social` em flags.js.
     id: "social",
     rota: "/social",
     grupo: "principal",

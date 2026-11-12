@@ -47,13 +47,30 @@ function gravarPacoteLocal(id, pacote) {
 let disponivel = true; // vira false se a tabela não existe (migration ainda não aplicada)
 let perfilGarantido = null;
 
+// Avatar montado no aparelho (src/features/avatar/meuAvatar.js), lido aqui sem importar o módulo do editor.
+function avatarLocal(id) {
+  return ler(`enfere_avatar_${limpa(id)}`, null);
+}
+
 async function garantirPerfilPublico(id, nome) {
   if (perfilGarantido === id) return;
-  const { data, error } = await supabase.from("perfil_publico").select("user_id").eq("user_id", id).maybeSingle();
+  const { data, error } = await supabase.from("perfil_publico").select("user_id, avatar").eq("user_id", id).maybeSingle();
   if (error) throw error;
+  const local = avatarLocal(id);
   if (!data) {
-    const { error: e2 } = await supabase.from("perfil_publico").insert({ user_id: id, nome: (nome || "Estudante").slice(0, 40) });
+    const { error: e2 } = await supabase.from("perfil_publico").insert({ user_id: id, nome: (nome || "Estudante").slice(0, 40), ...(local ? { avatar: local } : {}) });
     if (e2 && e2.code !== "23505") throw e2;
+  } else if (local && (!data.avatar || !Object.keys(data.avatar).length)) {
+    // montou o avatar quando a conta ainda não guardava: sobe agora
+    await supabase.from("perfil_publico").update({ avatar: local }).eq("user_id", id);
+  } else if (!local && data.avatar && Object.keys(data.avatar).length) {
+    // aparelho novo: traz o avatar da conta
+    try {
+      localStorage.setItem(`enfere_avatar_${limpa(id)}`, JSON.stringify(data.avatar));
+      window.dispatchEvent(new CustomEvent("enfere:avatar-alterado"));
+    } catch {
+      /* sem armazenamento */
+    }
   }
   perfilGarantido = id;
 }
