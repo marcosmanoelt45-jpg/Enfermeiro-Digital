@@ -6,6 +6,18 @@ import '@fontsource-variable/nunito'
 import './index.css'
 import { instalarSomGlobal } from './lib/somGlobal.js'
 
+// Reset geral do progresso (12/11/2026, pedido do dono): apaga uma vez, em cada aparelho, a cópia local do
+// progresso (ofensiva, PE, histórico, revisão, rascunhos de consulta). Sem isso a sincronização devolveria ao
+// servidor o que foi zerado lá. Para um próximo reset, basta trocar a data.
+const RESET_PROGRESSO = '2026-11-12'
+try {
+  if (localStorage.getItem('enfere_reset_progresso') !== RESET_PROGRESSO) {
+    const prefixos = ['enfermeiro_digital_gamification_state', 'enfere_clinical_history_v1', 'enfere_questoes_revisao_v1', 'enfere_consulta_rascunho_', 'enfere_notas_']
+    Object.keys(localStorage).filter((k) => prefixos.some((p) => k.startsWith(p))).forEach((k) => localStorage.removeItem(k))
+    localStorage.setItem('enfere_reset_progresso', RESET_PROGRESSO)
+  }
+} catch { /* localStorage bloqueado */ }
+
 // "Mutar sons" do perfil vale para o site todo (mídia, voz do navegador e Web Audio).
 instalarSomGlobal()
 
