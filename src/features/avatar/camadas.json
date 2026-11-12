@@ -1,0 +1,223 @@
+{
+"barba-bigode": {
+"cor": true,
+"pele": true
+},
+"barba-cavanhaque": {
+"cor": true,
+"pele": true
+},
+"barba-cheia": {
+"cor": true,
+"pele": true
+},
+"barba-curta": {
+"cor": true,
+"pele": true
+},
+"base": {
+"fixo": true,
+"pele": true,
+"roupa": true
+},
+"boca-aberta": {
+"fixo": true,
+"pele": true
+},
+"boca-dentes": {
+"fixo": true,
+"pele": true
+},
+"boca-lingua": {
+"fixo": true,
+"pele": true
+},
+"boca-neutra": {
+"pele": true
+},
+"boca-o": {
+"fixo": true,
+"pele": true
+},
+"cabeca-antenas": {
+"cor": true,
+"fixo": true,
+"pele": true
+},
+"cabeca-coelho": {
+"cor": true,
+"fixo": true,
+"pele": true
+},
+"cabeca-flores": {
+"fixo": true,
+"pele": true
+},
+"cabeca-gato": {
+"cor": true,
+"fixo": true,
+"pele": true
+},
+"cabeca-laco": {
+"cor": true,
+"fixo": true,
+"pele": true
+},
+"cabeca-quepe": {
+"fixo": true,
+"pele": true
+},
+"cabeca-touca": {
+"cor": true,
+"fixo": true,
+"pele": true
+},
+"cabeca-urso": {
+"cor": true,
+"fixo": true,
+"pele": true
+},
+"cabelo-cacheado": {
+"cor": true,
+"pele": true,
+"roupa": true
+},
+"cabelo-chanel": {
+"cor": true,
+"pele": true
+},
+"cabelo-coque": {
+"cor": true,
+"pele": true
+},
+"cabelo-curto": {
+"cor": true,
+"pele": true
+},
+"cabelo-longo": {
+"cor": true,
+"pele": true,
+"roupa": true
+},
+"cabelo-rabo": {
+"cor": true,
+"pele": true,
+"roupa": true
+},
+"cabelo-raspado": {
+"cor": true,
+"pele": true
+},
+"cabelo-topete": {
+"cor": true,
+"pele": true
+},
+"colete": {
+"fixo": true,
+"pele": true,
+"roupa": true
+},
+"cordao": {
+"fixo": true,
+"roupa": true
+},
+"cracha-arcoiris": {
+"fixo": true,
+"roupa": true
+},
+"cracha-classico": {
+"fixo": true,
+"roupa": true
+},
+"cracha-coracao": {
+"fixo": true
+},
+"cracha-estrela": {
+"fixo": true
+},
+"cracha-goti": {
+"fixo": true,
+"roupa": true
+},
+"estampa-confete": {
+"fixo": true,
+"pele": true,
+"roupa": true
+},
+"estampa-coracoes": {
+"fixo": true,
+"roupa": true
+},
+"estampa-cruzes": {
+"fixo": true,
+"roupa": true
+},
+"estampa-curativos": {
+"fixo": true,
+"pele": true,
+"roupa": true
+},
+"estampa-ecg": {
+"fixo": true,
+"roupa": true
+},
+"estampa-estrelas": {
+"fixo": true,
+"pele": true,
+"roupa": true
+},
+"estampa-gotinhas": {
+"fixo": true,
+"roupa": true
+},
+"estampa-patinhas": {
+"fixo": true,
+"roupa": true
+},
+"estetoscopio": {
+"fixo": true,
+"roupa": true
+},
+"jaleco": {
+"fixo": true,
+"pele": true,
+"roupa": true
+},
+"oculos-gatinho": {
+"fixo": true,
+"pele": true
+},
+"oculos-protecao": {
+"fixo": true,
+"pele": true,
+"roupa": true
+},
+"oculos-quadrado": {
+"fixo": true,
+"pele": true
+},
+"oculos-redondo": {
+"fixo": true,
+"pele": true
+},
+"olhos-feliz": {
+"fixo": true,
+"pele": true
+},
+"olhos-grandes": {
+"fixo": true,
+"pele": true
+},
+"olhos-piscando": {
+"fixo": true,
+"pele": true
+},
+"olhos-ponto": {
+"fixo": true,
+"pele": true
+},
+"olhos-sono": {
+"fixo": true,
+"pele": true
+}
+}

@@ -1,4 +1,5 @@
-// Catálogo do avatar: cada categoria, suas opções e as cores. JS puro (o desenho fica em AvatarPessoa.jsx).
+// Catálogo do avatar: cada categoria, suas opções e as cores. JS puro (as camadas ficam em public/avatar e a
+// montagem em compor.js; cada opção aqui tem um arquivo <categoria>-<id> gerado por scripts/assets/montar-avatar.py).
 // O avatar salvo é um objeto pequeno com as escolhas (ex.: { pele: 2, cabelo: "longo", ... }), guardado no
 // perfil público (coluna avatar). Estilo tirado das artes do Flow (assets-brutos/flow/avatar): chapado,
 // formas redondas, bochechas rosadas, pijama hospitalar com estampa, crachá e acessórios de cabeça divertidos.
