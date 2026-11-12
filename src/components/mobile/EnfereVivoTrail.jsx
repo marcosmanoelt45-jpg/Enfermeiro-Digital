@@ -2,7 +2,6 @@ import React, { useMemo } from "react";
 import { m as motion } from "framer-motion";
 import { useNavigate } from "react-router-dom";
 import {
-  Flame,
   Zap,
   Stethoscope,
   ChevronRight,
@@ -13,6 +12,7 @@ import { clinicalHistoryService } from "@/services/clinicalHistoryService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import ChipOfensiva from "@/components/feedback/ofensiva/ChipOfensiva.jsx";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { fadeUp, listStagger } from "@/lib/motion";
 import { modulosDaTrilha } from "@/features/navegacao/modulos";
@@ -84,10 +84,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
         {/* Chips de Ofensiva e PE */}
         <div className="flex items-center gap-2">
           {/* Chip Ofensiva */}
-          <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-xs font-black shadow-sm">
-            <Flame className={`w-4 h-4 fill-current text-[#FFC247] ${gameState.streak ? "animate-flame-subtle" : ""}`} />
-            <span><AnimatedNumber value={gameState.streak || 0} /> {gameState.streak === 1 ? "dia" : "dias"}</span>
-          </div>
+          <ChipOfensiva estado={gameState} compacto />
 
           {/* Chip PE */}
           <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-xs font-black shadow-sm">

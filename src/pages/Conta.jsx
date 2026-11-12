@@ -35,6 +35,8 @@ import { clinicalHistoryService } from "@/services/clinicalHistoryService";
 import WeeklyActivityChart from "@/components/profile/WeeklyActivityChart";
 import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 import HistoricoAtividadesTab from "@/components/profile/HistoricoAtividadesTab";
+import SecaoOfensivasAmigos from "@/features/amigos/SecaoOfensivasAmigos.jsx";
+import { flagAtiva } from "@/features/flags";
 
 // Helper de pluralização PT-BR (profile-7)
 const plural = (n, singular, pluralForm) => (n === 1 ? singular : pluralForm);
@@ -363,6 +365,16 @@ export default function Conta() {
                   <AnimatedNumber value={gameState?.studyPoints ?? gameState?.totalXp ?? 0} /> PE
                 </Button>
               </motion.div>
+
+              {/* Ofensivas com amigos: atrás da chave `amigos` até o servidor do multiplayer existir. */}
+              {flagAtiva("amigos") && (
+                <motion.div variants={fadeUp}>
+                  <SecaoOfensivasAmigos
+                    itens={[]}
+                    onConvidar={() => toast({ title: "Amigos chegam na próxima atualização", description: "Logo você poderá convidar colegas e manter a ofensiva juntos." })}
+                  />
+                </motion.div>
+              )}
 
               {/* Grid 2x2 com as Métricas Individuais Reais (profile-8: Nota média e Atividades concluídas) */}
               <motion.div variants={fadeUp} className="grid grid-cols-2 gap-3">

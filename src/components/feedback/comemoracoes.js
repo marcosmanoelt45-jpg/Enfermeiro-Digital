@@ -11,13 +11,24 @@ const data = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "
 
 /** Os 7 últimos dias (hoje por último) com o que conta na ofensiva: PE no dia, dia iniciado ou congelado. */
 export function semanaDaOfensiva(estado, hoje = new Date()) {
-  const ativos = new Set([...(estado?.diasAtivos ?? []), ...(estado?.frozenDates ?? [])]);
+  const estudados = new Set(estado?.diasAtivos ?? []);
+  const congelados = new Set(estado?.frozenDates ?? []);
   return Array.from({ length: 7 }, (_, i) => {
     const d = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - (6 - i));
     const dia = data(d);
-    return { dia, letra: DIAS[d.getDay()], ativo: ativos.has(dia) || (Number(estado?.dailyXpMap?.[dia]) || 0) > 0, hoje: i === 6 };
+    const estudou = estudados.has(dia) || (Number(estado?.dailyXpMap?.[dia]) || 0) > 0;
+    const congelado = !estudou && congelados.has(dia);
+    return { dia, letra: DIAS[d.getDay()], ativo: estudou || congelado, congelado, hoje: i === 6 };
   });
 }
+
+/** Se a pessoa já estudou hoje (o foguinho do topo fica cinza até isso acontecer, como no Duolingo). */
+export function estudouHoje(estado, hoje = new Date()) {
+  const dia = data(hoje);
+  return (estado?.diasAtivos ?? []).includes(dia) || (Number(estado?.dailyXpMap?.[dia]) || 0) > 0;
+}
+
+export const MARCOS_DA_OFENSIVA = new Set([7, 14, 30, 50, 100, 200, 365, 500, 1000]);
 
 /** Quantos acertos seguidos merecem comemoração (5, 10, 15…). */
 export const comemoraSequencia = (n) => n > 0 && n % SEQUENCIA_A_CADA === 0;

@@ -31,6 +31,8 @@ const AIDashboard = lazy(() => import('@/pages/AIDashboard'));
 const Patients = lazy(() => import('@/pages/Patients'));
 const PatientDetail = lazy(() => import('@/pages/PatientDetail'));
 const Conta = lazy(() => import('@/pages/Conta'));
+// Vitrine das comemorações de ofensiva: só no `npm run dev` (o build de produção descarta o import).
+const VitrineOfensivas = import.meta.env.DEV ? lazy(() => import('@/features/amigos/VitrineOfensivas.jsx')) : null;
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
@@ -166,6 +168,7 @@ const AuthenticatedApp = () => {
       >
       <Routes>
         <Route path="/splash" element={<SplashPage />} />
+        {VitrineOfensivas && <Route path="/dev/ofensivas" element={<VitrineOfensivas />} />}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />

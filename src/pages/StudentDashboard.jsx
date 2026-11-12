@@ -8,7 +8,6 @@ import {
   Video,
   ArrowRightLeft,
   ChevronRight,
-  Flame,
   Zap,
   Stethoscope,
   BookOpen
@@ -23,6 +22,7 @@ import { clinicalGamificationService } from "@/services/clinicalGamificationServ
 import EnfereVivoTrail from "@/components/mobile/EnfereVivoTrail";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { AnimatedNumber } from "@/components/ui/animated-number";
+import ChipOfensiva from "@/components/feedback/ofensiva/ChipOfensiva.jsx";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { fadeUp, listStagger } from "@/lib/motion";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
@@ -144,10 +144,7 @@ export default function StudentDashboard() {
 
             {/* Badges de Ofensiva e Pontos de Estudo (PE) */}
             <div className="flex items-center gap-3 z-10">
-              <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#FFC247] text-sm font-black">
-                <Flame className={`w-5 h-5 fill-current text-[#FFC247] ${gameState.streak ? "animate-flame-subtle" : ""}`} />
-                <span><AnimatedNumber value={gameState.streak || 0} /> {gameState.streak === 1 ? "dia seguido" : "dias seguidos"}</span>
-              </div>
+              <ChipOfensiva estado={gameState} />
               <div className="flex items-center gap-2 px-4 py-2.5 rounded-2xl bg-[#16222E] border border-[#27394B] text-[#20D5B5] text-sm font-black">
                 <Zap className="w-5 h-5 fill-current text-[#20D5B5]" />
                 <span><AnimatedNumber value={gameState.studyPoints ?? 0} /> PE</span>

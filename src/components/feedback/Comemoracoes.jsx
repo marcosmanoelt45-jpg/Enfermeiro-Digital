@@ -2,16 +2,18 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import PropTypes from "prop-types";
 import { AnimatePresence, m as motion, useReducedMotion } from "framer-motion";
-import { Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { vibrate } from "@/lib/motion";
 import { celebrate } from "@/lib/celebrate";
-import { EVENTO_COMEMORACAO } from "./comemoracoes.js";
+import { EVENTO_COMEMORACAO, MARCOS_DA_OFENSIVA } from "./comemoracoes.js";
+import ChamaAcendendo from "./ofensiva/ChamaAcendendo.jsx";
+import Odometro from "./ofensiva/Odometro.jsx";
+import SemanaOfensiva from "./ofensiva/SemanaOfensiva.jsx";
+import TelaOfensivaAmigo from "@/features/amigos/TelaOfensivaAmigo.jsx";
 
 // Curvas e molas do projeto (src/lib/motion.js e as variáveis --ease-* de index.css).
 const EASE_OUT = [0.23, 1, 0.32, 1];
 const MOLA_POP = { type: "spring", duration: 0.5, bounce: 0.3 };
-const MARCOS_DA_OFENSIVA = new Set([7, 30, 50, 100, 365]);
 
 /**
  * Comemorações no estilo do Duolingo, com a cara do Enfere. Montado uma vez no App; ouve EVENTO_COMEMORACAO.
@@ -36,6 +38,7 @@ export default function Comemoracoes() {
     <AnimatePresence mode="wait">
       {atual?.tipo === "ofensiva" && <TelaOfensiva key={atual.chave} de={atual.de} para={atual.para} semana={atual.semana} onFechar={proxima} />}
       {atual?.tipo === "sequencia" && <SeloSequencia key={atual.chave} n={atual.n} onFim={proxima} />}
+      {atual?.tipo === "ofensiva_amigo" && <TelaOfensivaAmigo key={atual.chave} {...atual.dados} onFechar={proxima} />}
     </AnimatePresence>,
     document.body
   );
@@ -85,19 +88,28 @@ function SeloSequencia({ n, onFim }) {
 }
 SeloSequencia.propTypes = { n: PropTypes.number.isRequired, onFim: PropTypes.func.isRequired };
 
+/**
+ * Tela da ofensiva, em três tempos:
+ * 1. entra a chama apagada (cinza) com o número de ontem e a semana, com hoje ainda vazio;
+ * 2. ~0,6 s depois a chama acende (brilho + fagulhas), o número rola e o dia de hoje acende com um anel;
+ * 3. título e botão chegam por último, para o toque de "Continuar" não pular a virada.
+ * Marcos (7, 14, 30, 50, 100…) ganham ondas em volta da chama, um selo de marco e confete.
+ */
 function TelaOfensiva({ de, para, semana = [], onFechar }) {
   const reduzir = useReducedMotion();
-  const [virou, setVirou] = useState(false);
+  const [acesa, setAcesa] = useState(false);
   const botaoRef = useRef(null);
+  const marco = MARCOS_DA_OFENSIVA.has(para);
+  const perfeita = semana.length === 7 && semana.every((d) => d.ativo && !d.congelado);
 
   useEffect(() => {
-    // O número antigo fica um instante na tela e então sobe para o novo.
     const t = setTimeout(() => {
-      setVirou(true);
-      vibrate(20);
-      if (MARCOS_DA_OFENSIVA.has(para)) celebrate({ count: 70, y: 0.45 });
-    }, reduzir ? 0 : 650);
-    const f = setTimeout(() => botaoRef.current?.focus({ preventScroll: true }), 120);
+      setAcesa(true);
+      vibrate(marco ? [20, 40, 30] : 20);
+      if (marco) celebrate({ count: 80, y: 0.42 });
+      else if (perfeita) celebrate({ count: 45, y: 0.62 });
+    }, reduzir ? 0 : 600);
+    const f = setTimeout(() => botaoRef.current?.focus({ preventScroll: true }), reduzir ? 0 : 1000);
     const tecla = (e) => e.key === "Escape" && onFechar();
     window.addEventListener("keydown", tecla);
     return () => {
@@ -105,10 +117,17 @@ function TelaOfensiva({ de, para, semana = [], onFechar }) {
       clearTimeout(f);
       window.removeEventListener("keydown", tecla);
     };
-  }, [para, reduzir, onFechar]);
+  }, [marco, perfeita, reduzir, onFechar]);
 
-  const titulo = para <= 1 ? "Você começou uma ofensiva!" : `${para} dias seguidos!`;
-  const texto = para <= 1 ? "Estude um pouco todo dia para o foguinho crescer." : "Volte amanhã para manter o foguinho aceso.";
+  const titulo = para <= 1 ? (de > 0 ? "Ofensiva recomeçada!" : "Você começou uma ofensiva!") : "dias seguidos!";
+  const texto = marco
+    ? "Volte amanhã para seguir rumo ao próximo marco."
+    : perfeita
+      ? "Semana perfeita: 7 dias sem precisar congelar."
+      : para <= 1
+        ? "Estude um pouco todo dia para o foguinho crescer."
+        : "Volte amanhã para manter o foguinho aceso.";
+  const depois = (s) => ({ duration: 0.28, ease: EASE_OUT, delay: reduzir ? 0 : s });
 
   return (
     <motion.div
@@ -120,57 +139,53 @@ function TelaOfensiva({ de, para, semana = [], onFechar }) {
       animate={{ opacity: 1, transition: { duration: 0.2, ease: EASE_OUT } }}
       exit={{ opacity: 0, transition: { duration: 0.18, ease: EASE_OUT } }}
     >
-      {/* A entrada (mola) fica no invólucro; a tremulação em CSS fica na imagem, para um não apagar o outro. */}
       <motion.div
-        initial={{ opacity: 0, transform: "translateY(24px) scale(0.6)" }}
-        animate={{ opacity: 1, transform: "translateY(0px) scale(1)", transition: { type: "spring", duration: 0.6, bounce: 0.35 } }}
+        initial={{ opacity: 0, transform: "translateY(16px) scale(0.92)" }}
+        animate={{ opacity: 1, transform: "translateY(0px) scale(1)", transition: { type: "spring", duration: 0.5, bounce: 0.25 } }}
       >
-        <img src="/feedback/foguinho.webp" alt="" width={168} height={168} className="foguinho-vivo h-40 w-40" />
+        <ChamaAcendendo acesa={acesa} marco={marco} tamanho={168} />
       </motion.div>
 
-      {/* Número de dias: o antigo sai por cima, o novo entra por baixo (como um contador mecânico). */}
-      <div className="relative mt-2 h-[84px] w-full overflow-hidden" aria-hidden="true">
-        <AnimatePresence initial={false}>
-          <motion.span
-            key={virou ? `n-${para}` : `n-${de}`}
-            className="absolute inset-x-0 text-[72px] font-black leading-[84px] tabular-nums text-[#FFC247]"
-            initial={{ opacity: 0, transform: "translateY(60%)" }}
-            animate={{ opacity: 1, transform: "translateY(0%)", transition: MOLA_POP }}
-            exit={{ opacity: 0, transform: "translateY(-60%)", transition: { duration: 0.22, ease: EASE_OUT } }}
-          >
-            {virou ? para : de}
-          </motion.span>
-        </AnimatePresence>
+      <div className="-mt-3 text-[76px] font-black leading-none" style={{ color: acesa ? "#FFC247" : "#5B6E82", transition: "color 200ms ease" }}>
+        <Odometro valor={acesa ? para : de} />
       </div>
 
-      <h2 id="ofensiva-titulo" className="mt-1 text-2xl font-black text-[#EAF2F8]">
+      <motion.h2
+        id="ofensiva-titulo"
+        className="mt-1 text-2xl font-black text-[#EAF2F8]"
+        initial={{ opacity: 0, transform: "translateY(8px)" }}
+        animate={acesa ? { opacity: 1, transform: "translateY(0px)", transition: depois(0.15) } : {}}
+      >
         {titulo}
-      </h2>
-      <p className="mt-1 max-w-xs text-sm font-semibold text-[#9FB3C6]">{texto}</p>
+      </motion.h2>
 
-      {semana.length === 7 && (
-        <ol className="mt-6 flex gap-2.5" aria-label="Sua semana">
-          {semana.map((d) => {
-            const aceso = d.ativo && (!d.hoje || virou);
-            return (
-              <li key={d.dia} className="flex flex-col items-center gap-1.5">
-                <span className={`text-xs font-extrabold ${d.hoje ? "text-[#FFC247]" : "text-[#9FB3C6]"}`}>{d.letra}</span>
-                <motion.span
-                  className={`flex h-8 w-8 items-center justify-center rounded-full border-2 transition-colors duration-200 ${aceso ? "border-[#FF9600] bg-[#FF9600] text-[#2B1700]" : "border-[#27394B] bg-[#131F2E]"}`}
-                  animate={d.hoje && virou ? { transform: ["scale(0.8)", "scale(1.12)", "scale(1)"] } : { transform: "scale(1)" }}
-                  transition={{ duration: 0.4, ease: EASE_OUT, delay: 0.1 }}
-                >
-                  {aceso && <Check size={16} strokeWidth={3.5} aria-hidden="true" />}
-                </motion.span>
-              </li>
-            );
-          })}
-        </ol>
+      {marco && (
+        <motion.span
+          className="mt-2 rounded-full border-2 border-[#FFC247]/60 bg-[#FFC247]/10 px-3 py-1 text-xs font-black text-[#FFC247]"
+          initial={{ opacity: 0, transform: "scale(0.9)" }}
+          animate={acesa ? { opacity: 1, transform: "scale(1)", transition: { ...MOLA_POP, delay: reduzir ? 0 : 0.3 } } : {}}
+        >
+          Marco de {para} dias
+        </motion.span>
       )}
 
-      <Button ref={botaoRef} variant="warning" size="lg" className="mt-8 w-full max-w-xs" onClick={onFechar}>
-        Continuar
-      </Button>
+      <motion.p
+        className="mt-1.5 max-w-xs text-sm font-semibold text-[#9FB3C6]"
+        initial={{ opacity: 0 }}
+        animate={acesa ? { opacity: 1, transition: depois(0.25) } : {}}
+      >
+        {texto}
+      </motion.p>
+
+      <div className="mt-6">
+        <SemanaOfensiva semana={semana} acesa={acesa} />
+      </div>
+
+      <motion.div className="mt-8 w-full max-w-xs" initial={{ opacity: 0, transform: "translateY(8px)" }} animate={acesa ? { opacity: 1, transform: "translateY(0px)", transition: depois(0.4) } : {}}>
+        <Button ref={botaoRef} variant="warning" size="lg" className="w-full" onClick={onFechar}>
+          Continuar
+        </Button>
+      </motion.div>
     </motion.div>
   );
 }
