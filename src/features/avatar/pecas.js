@@ -3,10 +3,10 @@
 // perfil público (coluna avatar). Estilo tirado das artes do Flow (assets-brutos/flow/avatar): chapado,
 // formas redondas, bochechas rosadas, pijama hospitalar com estampa, crachá e acessórios de cabeça divertidos.
 
-export const PELES = ["#F7D7BF", "#EFBF94", "#E0A274", "#C17F55", "#94593A", "#663D27"];
-export const CORES_CABELO = ["#2A2230", "#4A2E22", "#7A4A2A", "#B5552C", "#E0B05C", "#BDB6AF", "#E991B8", "#5E8FEA"];
-export const CORES_ROUPA = ["#B8A4E3", "#93A8EC", "#7CCBC0", "#F2A7C4", "#F6C77E", "#8FD18A", "#5B6B83", "#F08A7E"];
-export const CORES_ACESSORIO = ["#E8A6B8", "#F7F1EA", "#3C3542", "#F2C14E", "#7CCBC0", "#A88BE0"];
+export const PELES = ["#FFDCC8", "#FEC3A3", "#EAA67C", "#C98457", "#9A603E", "#6B412B"];
+export const CORES_CABELO = ["#2A2230", "#4A2E2A", "#7A4A2A", "#B5552C", "#E0B05C", "#BDB6AF", "#E991B8", "#5E8FEA"];
+export const CORES_ROUPA = ["#A5B6EE", "#C3A6E6", "#7FCFC2", "#F3AFC8", "#F6C77E", "#93D38E", "#5B6B83", "#F08A7E"];
+export const CORES_ACESSORIO = ["#C69E9C", "#F3A9BE", "#F7F1EA", "#3C3542", "#F2C14E", "#7CCBC0", "#A88BE0"];
 export const CORES_FUNDO = ["#BFEBD9", "#D9CCF5", "#FBD6C6", "#C6E0FB", "#FCE9A8", "#F8C9DA", "#2B4A5E", "#DDE6EC"];
 
 // Cada opção: id (o que vai salvo) e rótulo (o que a pessoa lê).
@@ -196,7 +196,7 @@ export const PADRAO = {
   cabeca: "gato",
   corAcessorio: 0,
   corRoupa: 0,
-  estampa: "coracoes",
+  estampa: "confete",
   jaleco: "nenhum",
   estetoscopio: "nenhum",
   cracha: "classico",
