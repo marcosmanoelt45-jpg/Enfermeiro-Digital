@@ -9,9 +9,9 @@ export default function VitrineAvatar() {
   return (
     <div className="min-h-screen bg-[#0B131D] p-4 text-[#EAF2F8]">
       <div className="flex flex-wrap gap-3">
-        <AvatarPessoa avatar={PADRAO} tamanho={200} />
+        <AvatarPessoa avatar={PADRAO} nome="Maximiliano" tamanho={200} />
         {Array.from({ length: 11 }, (_, i) => (
-          <AvatarPessoa key={i} avatar={sortearAvatar(`v${i}`)} tamanho={130} redondo={i % 3 === 0} />
+          <AvatarPessoa key={i} avatar={{ ...sortearAvatar(`v${i}`), cracha: ["classico", "goti", "arcoiris"][i % 3] }} nome={["Ana", "Gabriela", "João Pedro", "Maximiliano", "Lu"][i % 5]} tamanho={130} redondo={i % 3 === 0} />
         ))}
       </div>
       {grupos.map((g) => (

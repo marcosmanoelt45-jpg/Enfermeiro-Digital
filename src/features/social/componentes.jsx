@@ -15,7 +15,7 @@ const EASE_OUT = [0.23, 1, 0.32, 1];
 /** Avatar de um perfil público (sorteia um estável pelo id se a pessoa ainda não montou o dela). */
 export function AvatarDe({ perfil, tamanho = 48, redondo = true }) {
   const temAvatar = perfil?.avatar && Object.keys(perfil.avatar).length > 0;
-  return <AvatarPessoa avatar={temAvatar ? perfil.avatar : sortearAvatar(perfil?.user_id || perfil?.nome || "x")} tamanho={tamanho} redondo={redondo} />;
+  return <AvatarPessoa avatar={temAvatar ? perfil.avatar : sortearAvatar(perfil?.user_id || perfil?.nome || "x")} nome={perfil?.nome} tamanho={tamanho} redondo={redondo} />;
 }
 AvatarDe.propTypes = { perfil: PropTypes.object, tamanho: PropTypes.number, redondo: PropTypes.bool };
 

@@ -160,7 +160,7 @@ export default function Conta() {
               initial={{ opacity: 0, transform: "translateY(10px)" }}
               animate={{ opacity: 1, transform: "translateY(0px)", transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } }}
             >
-              <AvatarPessoa avatar={meuAvatar} tamanho={176} semFundo titulo="Seu avatar" />
+              <AvatarPessoa avatar={meuAvatar} nome={user?.full_name} tamanho={176} semFundo titulo="Seu avatar" />
             </motion.div>
             <Button
               type="button"

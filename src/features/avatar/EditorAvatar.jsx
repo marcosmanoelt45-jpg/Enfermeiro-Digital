@@ -65,7 +65,7 @@ export default function EditorAvatar() {
         {/* Prévia: fica parada no topo enquanto a lista rola (no celular) */}
         <div className="sticky top-0 z-10 -mx-4 bg-[#0B131D] px-4 pb-3 pt-1 md:static md:mx-0 md:px-0">
           <div className="mx-auto w-48 overflow-hidden rounded-3xl md:w-full">
-            <AvatarPessoa avatar={avatar} tamanho={280} className="h-auto w-full" titulo="Prévia do seu avatar" />
+            <AvatarPessoa avatar={avatar} nome={user?.full_name} tamanho={280} className="h-auto w-full" titulo="Prévia do seu avatar" />
           </div>
           <Button variant="primary" size="lg" className="mt-3 hidden w-full md:flex" onClick={salvar} loading={salvando} disabled={!mudou && !salvando}>
             Salvar avatar
@@ -140,7 +140,7 @@ export default function EditorAvatar() {
                               marcada ? "border-[#20D5B5]" : "border-[#27394B] hover:border-[#3A516A]"
                             }`}
                           >
-                            <AvatarPessoa avatar={{ ...avatar, [g.campo]: o.id }} tamanho={120} className="h-auto w-full" />
+                            <AvatarPessoa avatar={{ ...avatar, [g.campo]: o.id }} nome={user?.full_name} tamanho={120} className="h-auto w-full" />
                             <span className="block truncate px-1 py-1.5 text-[11px] font-extrabold text-[#9FB3C6]">{o.rotulo}</span>
                             {marcada && (
                               <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#20D5B5] text-[#0B131D]">

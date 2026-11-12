@@ -3,6 +3,7 @@
 // Tingir: cor_final = cor_escolhida * sombra / 170 (170 = tom médio da peça original).
 import CAMADAS from "./camadas.json";
 import { CORES_ACESSORIO, CORES_CABELO, CORES_ROUPA, PELES, normalizarAvatar } from "./pecas.js";
+import { ajustarTexto, primeiroNome } from "./nomeNoCracha.js";
 
 const REF = 170;
 const BASE_URL = `${import.meta.env.BASE_URL || "/"}avatar/`;
@@ -78,10 +79,53 @@ function tingida(im, lado, cor) {
 const prontos = new Map(); // chave -> Promise<string> (URL da imagem pronta)
 const LIMITE = 160;
 
-/** Monta o avatar e devolve a URL de uma imagem PNG transparente (fundo fica por conta de quem mostra). */
-export function comporAvatar(avatar, lado = 256) {
+// Crachá: desenhado 30% maior que na arte (em volta do ponto do clipe) para o nome caber legível.
+// Plaquinha do nome em coordenadas da arte (512 px), cobrindo as linhas de "nome" que a arte trazia.
+const CRACHA_ESCALA = 1.3;
+const CRACHA_CENTRO = [318, 457];
+const PLACAS = {
+  classico: { x: 314, y: 444, l: 34, a: 19, fundo: "#FCFDFF", texto: "#2E3A55" },
+  goti: { x: 293, y: 463, l: 53, a: 25, fundo: "#1D9B95", texto: "#FFFFFF" },
+  arcoiris: { x: 289, y: 447, l: 56, a: 19, fundo: "#FEFDFC", texto: "#3A2C36" },
+};
+const FONTE = (tam) => `900 ${tam}px Nunito, "Nunito Fallback", system-ui, sans-serif`;
+
+async function fonteCarregada() {
+  try {
+    await document.fonts?.load(FONTE(20), "Aa");
+  } catch {
+    /* sem a fonte, usa a do sistema */
+  }
+}
+
+function escreverNome(ctx, placa, nome) {
+  const r = 3;
+  ctx.fillStyle = placa.fundo;
+  ctx.beginPath();
+  if (ctx.roundRect) ctx.roundRect(placa.x, placa.y, placa.l, placa.a, r);
+  else ctx.rect(placa.x, placa.y, placa.l, placa.a);
+  ctx.fill();
+  const medir = (t, tam) => {
+    ctx.font = FONTE(tam);
+    return ctx.measureText(t).width;
+  };
+  const { texto, tamanho } = ajustarTexto(nome, placa.l - 4, placa.a - 2, medir);
+  ctx.font = FONTE(tamanho);
+  ctx.fillStyle = placa.texto;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+  ctx.fillText(texto, placa.x + placa.l / 2, placa.y + placa.a / 2 + tamanho * 0.06);
+}
+
+/**
+ * Monta o avatar e devolve a URL de uma imagem PNG transparente (fundo fica por conta de quem mostra).
+ * `nome` vai escrito no crachá (só o primeiro nome) quando o crachá tem lugar para nome.
+ */
+export function comporAvatar(avatar, lado = 256, nome = "") {
   const a = normalizarAvatar(avatar);
-  const chave = `${lado}|${JSON.stringify(a)}`;
+  const placa = PLACAS[a.cracha];
+  const nomeCracha = placa ? primeiroNome(nome) : "";
+  const chave = `${lado}|${nomeCracha}|${JSON.stringify(a)}`;
   if (prontos.has(chave)) return prontos.get(chave);
   const cores = {
     pele: PELES[a.pele],
@@ -95,18 +139,35 @@ export function comporAvatar(avatar, lado = 256) {
     for (const p of pecas) {
       const info = CAMADAS[p];
       const corDaPeca = p.startsWith("cabelo-") || p.startsWith("barba-") ? cores.cabelo : cores.acessorio;
-      if (info.fixo) arquivos.push({ url: `${BASE_URL}${p}.webp` });
-      if (info.pele) arquivos.push({ url: `${BASE_URL}${p}.pele.webp`, cor: cores.pele });
-      if (info.roupa) arquivos.push({ url: `${BASE_URL}${p}.roupa.webp`, cor: cores.roupa });
-      if (info.cor) arquivos.push({ url: `${BASE_URL}${p}.cor.webp`, cor: corDaPeca });
+      const cracha = p.startsWith("cracha-");
+      if (info.fixo) arquivos.push({ url: `${BASE_URL}${p}.webp`, cracha });
+      if (info.pele) arquivos.push({ url: `${BASE_URL}${p}.pele.webp`, cor: cores.pele, cracha });
+      if (info.roupa) arquivos.push({ url: `${BASE_URL}${p}.roupa.webp`, cor: cores.roupa, cracha });
+      if (info.cor) arquivos.push({ url: `${BASE_URL}${p}.cor.webp`, cor: corDaPeca, cracha });
     }
-    const ims = await Promise.all(arquivos.map((f) => carregar(f.url)));
+    const [ims] = await Promise.all([Promise.all(arquivos.map((f) => carregar(f.url))), nomeCracha ? fonteCarregada() : null]);
     const tela = novaTela(lado);
     const ctx = tela.getContext("2d");
     ctx.imageSmoothingQuality = "high";
+    const k = lado / 512;
+    const [cx, cy] = CRACHA_CENTRO;
+    const noCracha = (desenhar) => {
+      ctx.save();
+      ctx.scale(k, k);
+      ctx.translate(cx, cy);
+      ctx.scale(CRACHA_ESCALA, CRACHA_ESCALA);
+      ctx.translate(-cx, -cy);
+      desenhar();
+      ctx.restore();
+    };
     ims.forEach((im, i) => {
-      const cor = arquivos[i].cor;
-      ctx.drawImage(cor ? tingida(im, lado, cor) : im, 0, 0, lado, lado);
+      const { cor, cracha } = arquivos[i];
+      const fonte = cor ? tingida(im, lado, cor) : im;
+      if (cracha) noCracha(() => ctx.drawImage(fonte, 0, 0, 512, 512));
+      else ctx.drawImage(fonte, 0, 0, lado, lado);
+      // o nome entra logo depois do crachá, antes do que vem por cima (cabelo, acessórios)
+      const proximo = arquivos[i + 1];
+      if (cracha && nomeCracha && (!proximo || !proximo.cracha)) noCracha(() => escreverNome(ctx, placa, nomeCracha));
     });
     return tela.toDataURL("image/png");
   })();
