@@ -286,7 +286,13 @@ function avisarOfensiva(de, para) {
   window.dispatchEvent(new CustomEvent('enfere:comemoracao', { detail: { tipo: 'ofensiva', de, para } }));
 }
 
-const diaComOffset =(now, offset) => getLocalDateString(new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset));
+// Avisa a sincronização com a conta (src/features/conta) que o progresso mudou. Evento em vez de import para o
+// serviço continuar rodando nos testes do node, sem o cliente do Supabase.
+function avisarProgresso() {
+  if (typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') window.dispatchEvent(new CustomEvent('enfere:progresso-alterado'));
+}
+
+const diaComOffset = (now, offset) => getLocalDateString(new Date(now.getFullYear(), now.getMonth(), now.getDate() - offset));
 
 /**
  * Ofensiva = dias seguidos até hoje (ou até ontem, se hoje ainda não estudou). Dia congelado mantém a corrente,
@@ -650,7 +656,17 @@ export const clinicalGamificationService = {
       const resolvedId = resolveCurrentUserId(userId);
       const key = getStorageKey(resolvedId);
       if (typeof localStorage !== 'undefined') {
+        // Só grava (e avisa a sincronização com a conta) quando algo mudou de verdade: o getState também chama
+        // saveState a cada leitura. `atualizadoEm` diz qual lado é o mais novo na mescla com a conta.
+        const semData = (x) => JSON.stringify({ ...x, atualizadoEm: undefined });
+        let anterior = null;
+        try {
+          anterior = JSON.parse(localStorage.getItem(key) || 'null');
+        } catch {}
+        if (anterior && semData(anterior) === semData(state)) return;
+        state.atualizadoEm = new Date().toISOString();
         localStorage.setItem(key, JSON.stringify(state));
+        avisarProgresso();
       }
     } catch (e) {
       console.warn('Erro ao salvar estado de gamificação:', e);

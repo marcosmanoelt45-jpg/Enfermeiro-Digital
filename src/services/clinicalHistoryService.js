@@ -29,6 +29,11 @@ function getKey(userId) {
   return `${STORAGE_KEY}_${cleanId}`;
 }
 
+// Avisa a sincronização com a conta (src/features/conta) que o histórico mudou (evento: sem import do Supabase).
+function avisarProgresso() {
+  if (typeof window !== 'undefined' && typeof CustomEvent !== 'undefined') window.dispatchEvent(new CustomEvent('enfere:progresso-alterado'));
+}
+
 function getRevisaoKey(userId) {
   userId = resolveCurrentUserId(userId);
   if (!userId) return REVISAO_STORAGE_KEY;
@@ -120,6 +125,7 @@ function setStorage(items, userId) {
       if (userId) {
         localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
       }
+      avisarProgresso();
     }
   } catch (err) {
     console.warn('[clinicalHistoryService] Falha ao salvar histórico:', err);
@@ -150,6 +156,7 @@ function setRevisaoStorage(items, userId) {
     if (typeof localStorage !== 'undefined') {
       const k = getRevisaoKey(userId);
       localStorage.setItem(k, JSON.stringify(items));
+      avisarProgresso();
     }
   } catch {
     // Fallback silencioso

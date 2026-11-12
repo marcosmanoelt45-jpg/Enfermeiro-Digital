@@ -1,6 +1,7 @@
 import React, { Suspense, lazy } from 'react';
 import { Toaster } from "@/components/ui/toaster";
 import Comemoracoes from "@/components/feedback/Comemoracoes.jsx";
+import SincronizacaoConta from "@/features/conta/SincronizacaoConta.jsx";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
 import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
@@ -33,6 +34,11 @@ const PatientDetail = lazy(() => import('@/pages/PatientDetail'));
 const Conta = lazy(() => import('@/pages/Conta'));
 // Vitrine das comemorações de ofensiva: só no `npm run dev` (o build de produção descarta o import).
 const VitrineOfensivas = import.meta.env.DEV ? lazy(() => import('@/features/amigos/VitrineOfensivas.jsx')) : null;
+const EditorAvatar = lazy(() => import('@/features/avatar/EditorAvatar.jsx'));
+const SocialPage = lazy(() => import('@/features/social/SocialPage.jsx'));
+const ConvitePage = lazy(() => import('@/features/social/ConvitePage.jsx'));
+const PerfilAmigoPage = lazy(() => import('@/features/social/PerfilAmigoPage.jsx'));
+const VitrineAvatar = import.meta.env.DEV ? lazy(() => import('@/features/avatar/VitrineAvatar.jsx')) : null;
 const Login = lazy(() => import('@/pages/Login'));
 const Register = lazy(() => import('@/pages/Register'));
 const ForgotPassword = lazy(() => import('@/pages/ForgotPassword'));
@@ -113,6 +119,7 @@ const AuthenticatedApp = () => {
       path.startsWith("/register") ||
       path.startsWith("/forgot-password") ||
       path.startsWith("/reset-password") ||
+      path.startsWith("/convite") ||
       path.startsWith("/splash")
     ) {
       return false;
@@ -168,7 +175,10 @@ const AuthenticatedApp = () => {
       >
       <Routes>
         <Route path="/splash" element={<SplashPage />} />
+        {/* Link de convite de amigo: abre sem login (mostra quem convidou e leva para entrar/criar conta). */}
+        <Route path="/convite/:codigo" element={<ConvitePage />} />
         {VitrineOfensivas && <Route path="/dev/ofensivas" element={<VitrineOfensivas />} />}
+        {VitrineAvatar && <Route path="/dev/avatar" element={<VitrineAvatar />} />}
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
         <Route path="/forgot-password" element={<ForgotPassword />} />
@@ -224,6 +234,9 @@ const AuthenticatedApp = () => {
           <Route path="/pacientes" element={<Patients />} />
 
           <Route path="/conta" element={<Conta />} />
+          <Route path="/avatar" element={<EditorAvatar />} />
+          <Route path="/social" element={<SocialPage />} />
+          <Route path="/perfil/:id" element={<PerfilAmigoPage />} />
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>
@@ -246,6 +259,7 @@ function App() {
             </Router>
             <Toaster />
             <Comemoracoes />
+            <SincronizacaoConta />
           </QueryClientProvider>
         </AuthProvider>
       </ThemeProvider>

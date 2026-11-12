@@ -17,11 +17,13 @@ import {
   PhoneCall,
   PlusCircle,
   Stethoscope,
+  Trophy,
   User,
   Video,
 } from "lucide-react";
 
 const ICONES = {
+  Trophy,
   ListChecks,
   Activity,
   ArrowRightLeft,

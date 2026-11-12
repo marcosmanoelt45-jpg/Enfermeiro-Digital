@@ -15,6 +15,7 @@ export const ROTAS_CONHECIDAS = [
   "/questoes",
   "/simulador-casos",
   "/conta",
+  "/social",
 ];
 
 // Cada módulo tem uma rota e, opcionalmente, um lugar em cada superfície (header, dock, trilha).
@@ -123,6 +124,14 @@ export const MODULOS = [
     flag: null,
     header: { rotulo: "Casos Clínicos", icone: "BookOpen", ordem: 60, briefingId: "casos" },
     dock: { rotulo: "Menu", icone: "Menu", ordem: 20, gaveta: true },
+  },
+  {
+    // Amigos por convite, perfil dos amigos e pódio. Atrás da chave `social` até a migration 015 estar no ar.
+    id: "social",
+    rota: "/social",
+    grupo: "principal",
+    flag: "social",
+    header: { rotulo: "Social", icone: "Trophy", ordem: 58 },
   },
   {
     id: "perfil",

@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { m as motion, AnimatePresence } from "framer-motion";
 import { useAuth } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/ThemeContext";
@@ -6,10 +6,9 @@ import { base44 } from "@/api/base44Client";
 import { useNavigate } from "react-router-dom";
 import {
   LogOut,
-  User,
-  Loader2,
-  Camera,
   Check,
+  Trophy,
+  UserPlus,
   Flame,
   Snowflake,
   ChevronDown,
@@ -22,7 +21,6 @@ import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
 import { SlidersHorizontal } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { toast } from "@/components/ui/use-toast";
-import PhotoCropper from "@/components/PhotoCropper";
 import StudentHeader from "@/components/StudentHeader";
 import MobileBottomDock from "@/components/mobile/MobileBottomDock";
 import { AnimatedNumber } from "@/components/ui/animated-number";
@@ -37,6 +35,11 @@ import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 import HistoricoAtividadesTab from "@/components/profile/HistoricoAtividadesTab";
 import SecaoOfensivasAmigos from "@/features/amigos/SecaoOfensivasAmigos.jsx";
 import { flagAtiva } from "@/features/flags";
+import AvatarPessoa from "@/features/avatar/AvatarPessoa.jsx";
+import { CORES_FUNDO } from "@/features/avatar/pecas.js";
+import { useMeuAvatar } from "@/features/avatar/meuAvatar.js";
+import { atualizarMeuPerfil } from "@/features/social/servicoSocial.js";
+import { EVENTO_SINCRONIZADO } from "@/features/conta/sincronizacao.js";
 
 // Helper de pluralização PT-BR (profile-7)
 const plural = (n, singular, pluralForm) => (n === 1 ? singular : pluralForm);
@@ -73,9 +76,11 @@ export default function Conta() {
     };
 
     window.addEventListener("focus", handleFocusOrVisible);
+    window.addEventListener(EVENTO_SINCRONIZADO, refreshGameState);
     document.addEventListener("visibilitychange", handleFocusOrVisible);
     return () => {
       window.removeEventListener("focus", handleFocusOrVisible);
+      window.removeEventListener(EVENTO_SINCRONIZADO, refreshGameState);
       document.removeEventListener("visibilitychange", handleFocusOrVisible);
     };
   }, [user?.id]);
@@ -84,9 +89,7 @@ export default function Conta() {
   const [editingName, setEditingName] = useState(false);
   const [nameValue, setNameValue] = useState(user?.full_name || "");
   const [savingName, setSavingName] = useState(false);
-  const [uploadingPhoto, setUploadingPhoto] = useState(false);
-  const [pendingFile, setPendingFile] = useState(null);
-  const fileRef = useRef(null);
+  const { avatar: meuAvatar, montado: avatarMontado } = useMeuAvatar(user?.id);
 
   // profile-8: Estatísticas resumidas oficiais de histórico real memoizadas
   const summaryStats = useMemo(() => {
@@ -129,6 +132,7 @@ export default function Conta() {
     try {
       const newName = nameValue.trim();
       await base44.auth.updateMe({ full_name: newName });
+      atualizarMeuPerfil({ nome: newName }).catch(() => {}); // amigos e pódio veem o nome novo
       await checkUserAuth();
       toast({ title: "Nome atualizado", description: "Seu nome foi atualizado com sucesso." });
       setEditingName(false);
@@ -136,32 +140,6 @@ export default function Conta() {
       toast({ title: "Erro ao salvar nome", description: err.message || "Tente novamente.", variant: "destructive" });
     } finally {
       setSavingName(false);
-    }
-  }
-
-  function handlePhotoChange(e) {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    if (file.size > 10 * 1024 * 1024) {
-      toast({ title: "Arquivo muito grande", description: "Tamanho máximo: 10 MB.", variant: "destructive" });
-      return;
-    }
-    setPendingFile(file);
-    if (fileRef.current) fileRef.current.value = "";
-  }
-
-  async function uploadCroppedPhoto(file) {
-    setPendingFile(null);
-    setUploadingPhoto(true);
-    try {
-      const { file_url } = await base44.integrations.Core.UploadPublicFile({ file });
-      await base44.auth.updateMe({ photo_url: file_url });
-      await checkUserAuth();
-      toast({ title: "Foto atualizada com sucesso!" });
-    } catch (err) {
-      toast({ title: "Erro ao enviar foto", description: err.message || "Tente novamente.", variant: "destructive" });
-    } finally {
-      setUploadingPhoto(false);
     }
   }
 
@@ -175,42 +153,36 @@ export default function Conta() {
       </div>
 
       <main className="flex-1 mx-auto max-w-xl md:max-w-2xl w-full px-4 sm:px-6 py-4 space-y-4">
-        {/* Título "Perfil" */}
-        <h1 className="text-xl sm:text-2xl font-black text-white pt-1">
-          Perfil
-        </h1>
-
-        {/* Card de Identidade do Estudante (profile-15 & Redesign) */}
-        <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-4 flex items-center gap-3.5 shadow-sm">
-          <div className="relative shrink-0">
-            <div className="w-14 h-14 rounded-2xl bg-[#20D5B5] ring-2 ring-[#20D5B5]/40 flex items-center justify-center text-[#0B131D] shadow-sm overflow-hidden">
-              {user?.photo_url ? (
-                <img src={user.photo_url} alt="" className="w-full h-full object-cover" />
-              ) : (
-                <User className="w-7 h-7 text-[#0B131D]" />
-              )}
-            </div>
-            {/* profile-15: touch target de 44px com after:inset e aria-label acessível */}
-            <button
-              type="button"
-              onClick={() => fileRef.current?.click()}
-              disabled={uploadingPhoto}
-              aria-label="Alterar foto de perfil"
-              className="absolute -bottom-1 -right-1 flex h-7 w-7 items-center justify-center rounded-full border border-[#1F3045] bg-[#131F2E] text-white hover:text-[#20D5B5] transition disabled:opacity-50 after:absolute after:-inset-2 cursor-pointer"
+        {/* Cabeçalho do perfil: o avatar grande no fundo que a pessoa escolheu, nome, nível e atalhos. */}
+        <section className="overflow-hidden rounded-3xl border-2 border-[#27394B]" aria-label="Seu perfil">
+          <div className="relative flex justify-center pt-6" style={{ background: CORES_FUNDO[meuAvatar.fundo] }}>
+            <motion.div
+              initial={{ opacity: 0, transform: "translateY(10px)" }}
+              animate={{ opacity: 1, transform: "translateY(0px)", transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } }}
             >
-              {uploadingPhoto ? <Loader2 className="h-3.5 w-3.5 animate-spin" /> : <Camera className="h-3.5 w-3.5" />}
-            </button>
-            <input ref={fileRef} type="file" accept="image/*" className="hidden" onChange={handlePhotoChange} />
+              <AvatarPessoa avatar={meuAvatar} tamanho={176} semFundo titulo="Seu avatar" />
+            </motion.div>
+            <Button
+              type="button"
+              size="sm"
+              variant="outline"
+              onClick={() => navigate("/avatar")}
+              className="absolute right-3 top-3 bg-[#0B131D]/70 backdrop-blur-sm"
+            >
+              <Pencil className="h-3.5 w-3.5" /> {avatarMontado ? "Editar avatar" : "Montar meu avatar"}
+            </Button>
           </div>
 
-          <div className="flex-1 min-w-0">
+          <div className="bg-[#131F2E] p-4">
             {editingName ? (
               <div className="flex items-center gap-2">
                 <Input
                   value={nameValue}
                   onChange={(e) => setNameValue(e.target.value)}
                   onKeyDown={(e) => e.key === "Enter" && saveName()}
-                  className="rounded-xl text-xs bg-[#131F2E] border-[#1F3045] text-white h-9"
+                  className="h-10 rounded-xl border-[#1F3045] bg-[#0B131D] text-sm text-white"
+                  maxLength={40}
+                  aria-label="Seu nome"
                   autoFocus
                 />
                 <Button
@@ -221,24 +193,17 @@ export default function Conta() {
                   disabled={savingName || !nameValue.trim()}
                   loading={savingName}
                   aria-label="Salvar nome"
-                  className="h-9 w-9 shrink-0"
+                  className="h-10 w-10 shrink-0"
                 >
                   <Check className="h-4 w-4" />
                 </Button>
               </div>
             ) : (
-              <div className="flex items-center justify-between gap-2">
+              <div className="flex items-start justify-between gap-2">
                 <div className="min-w-0">
-                  <div className="flex items-center gap-2 flex-wrap">
-                    <h2 className="text-base font-black text-white truncate">
-                      {user?.full_name || "Estudante de Enfermagem"}
-                    </h2>
-                    <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
-                      Nv {levelInfo.current.level} · {levelInfo.current.title}
-                    </span>
-                  </div>
-                  <p className="text-xs text-[#9FB3C6] truncate mt-0.5">
-                    Membro desde {new Date(user?.created_at || Date.now()).getFullYear()}
+                  <h1 className="truncate text-xl font-black text-white">{user?.full_name || "Estudante de Enfermagem"}</h1>
+                  <p className="mt-0.5 text-xs font-semibold text-[#9FB3C6]">
+                    Nv {levelInfo.current.level} · {levelInfo.current.title} · no Enfere desde {new Date(user?.created_at || Date.now()).getFullYear()}
                   </p>
                 </div>
                 <Button
@@ -249,14 +214,31 @@ export default function Conta() {
                     setNameValue(user?.full_name || "");
                     setEditingName(true);
                   }}
-                  className="text-xs font-bold text-[#20D5B5] shrink-0 h-8 px-2.5"
+                  className="h-8 shrink-0 px-2.5 text-xs font-bold text-[#20D5B5]"
                 >
-                  <Pencil className="w-3.5 h-3.5 mr-1" /> Editar
+                  <Pencil className="mr-1 h-3.5 w-3.5" /> Nome
                 </Button>
               </div>
             )}
+
+            {flagAtiva("social") && (
+              <button
+                type="button"
+                onClick={() => navigate("/social")}
+                className="mt-3 flex w-full items-center gap-3 rounded-2xl border-2 border-[#27394B] bg-[#0B131D] px-3 py-2.5 text-left transition-colors duration-150 hover:border-[#20D5B5]/60"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFC247]/15 text-[#FFC247]">
+                  <Trophy className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-black text-white">Amigos e pódio</span>
+                  <span className="block text-xs font-semibold text-[#9FB3C6]">Convide colegas e veja quem está com a maior ofensiva</span>
+                </span>
+                <UserPlus className="h-5 w-5 text-[#20D5B5]" aria-hidden="true" />
+              </button>
+            )}
           </div>
-        </div>
+        </section>
 
         {/* Abas com Semântica Acessível e Indicador Deslizante (profile-15 & Redesign) */}
         <div role="tablist" aria-label="Navegação do perfil" className="flex border-b border-[#1F3045] gap-2 pt-1 pb-1 relative">
@@ -571,14 +553,6 @@ export default function Conta() {
           </div>
         )}
       </AnimatePresence>
-
-      {pendingFile && (
-        <PhotoCropper
-          file={pendingFile}
-          onConfirm={uploadCroppedPhoto}
-          onCancel={() => setPendingFile(null)}
-        />
-      )}
 
       <GotiStudyPointsModal
         isOpen={showPeModal}
