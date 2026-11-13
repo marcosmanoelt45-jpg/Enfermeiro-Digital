@@ -17,7 +17,7 @@ import UserNotRegisteredError from '@/components/UserNotRegisteredError';
 import ScrollToTop from './components/ScrollToTop';
 import ProtectedRoute from '@/components/ProtectedRoute';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import EnfereSplash from '@/components/EnfereSplash';
+import EnfereSplash, { removerAberturaEstatica } from '@/components/EnfereSplash';
 
 // Páginas Principais Carregadas sob Demanda (Code-Splitting)
 const StudentDashboard = lazy(() => import('@/pages/StudentDashboard'));
@@ -129,18 +129,21 @@ const AuthenticatedApp = () => {
     return true;
   });
 
-  // O splash só aparece depois de a autenticação resolver: antes disso ele mostraria
-  // "Começar" para quem já está logado.
-  if (isLoadingPublicSettings || isLoadingAuth) {
-    return <PageLoader />;
-  }
+  // Sem abertura nesta visita: tira a logo estática do index.html (ela só aparece quando a abertura vai rodar,
+  // mas fica a garantia).
+  React.useEffect(() => {
+    if (!showInitialSplash) removerAberturaEstatica();
+  }, [showInitialSplash]);
 
   if (showInitialSplash) {
+    // A abertura entra já durante a conferência do login (é ela que disfarça o carregamento). Os botões esperam
+    // o login terminar (`aguardando`), para não mostrar "Começar" a quem já está logado.
     // Link direto para uma tela (ex.: /calculo-doses) mantém o destino depois do splash.
     const destino = `${location.pathname}${location.search}`;
     const returnTo = destino !== "/" ? `?returnTo=${encodeURIComponent(destino)}` : "";
     return (
       <EnfereSplash
+        aguardando={isLoadingPublicSettings || isLoadingAuth}
         isAuthenticated={isAuthenticated}
         userName={user?.user_metadata?.full_name || user?.full_name || user?.email}
         onGetStarted={() => {
@@ -155,6 +158,10 @@ const AuthenticatedApp = () => {
         }}
       />
     );
+  }
+
+  if (isLoadingPublicSettings || isLoadingAuth) {
+    return <PageLoader />;
   }
 
   if (authError) {

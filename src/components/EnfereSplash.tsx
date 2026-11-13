@@ -3,7 +3,8 @@
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
 // Logo ampliada (upscale de 2160 px reduzido a 512, para até 148 px em tela 3x): nítida e sem o granulado do PNG.
-import logoEnfere from "@/assets/goti-icone-512.webp";
+// Em public/ (endereço fixo): o index.html pré-carrega a mesma imagem para a abertura estática.
+const logoEnfere = "/goti/logo-goti-512.webp";
 
 /**
  * Enfere · tela de abertura (splash / onboarding)
@@ -25,6 +26,8 @@ export interface EnfereSplashProps {
   isAuthenticated?: boolean;
   /** Nome do usuário conectado para exibição calorosa */
   userName?: string;
+  /** O login ainda está sendo conferido: a abertura roda, e os botões só entram quando virar false. */
+  aguardando?: boolean;
   /** Sem uso enquanto o Goti não acena (mantido para não quebrar quem passa a prop). */
   waveSrc?: string;
   className?: string;
@@ -94,8 +97,10 @@ const MARKUP = `
 
 // ENGINE START
 interface MountOpts {
-  isAuthenticated?: boolean;
-  userName?: string;
+  /** Lido na hora de mostrar os botões (o login pode terminar de carregar durante a abertura). */
+  getAuth: () => { isAuthenticated?: boolean; userName?: string };
+  /** O login ainda está sendo conferido: a abertura roda, mas os botões esperam liberar(). */
+  aguardando: boolean;
   onGetStarted?: () => void;
   onHaveAccount?: () => void;
   onIntroComplete?: () => void;
@@ -104,8 +109,16 @@ interface MountOpts {
 const SPR = "cubic-bezier(.34,1.56,.64,1)";
 const EASE_OUT = "cubic-bezier(.23,1,.32,1)";
 
-/** Monta a tela de splash dentro de `root` e devolve a função de limpeza. */
-function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
+/** Tira a abertura estática do index.html (a logo que cai antes de o JavaScript chegar). */
+function removerAberturaEstatica() {
+  const est = typeof document !== "undefined" ? document.getElementById("abertura-estatica") : null;
+  est?.remove();
+  if (typeof document !== "undefined") document.documentElement.style.background = "";
+}
+export { removerAberturaEstatica };
+
+/** Monta a tela de splash dentro de `root`; devolve a limpeza e liberar() (o login terminou de carregar). */
+function mountEnfereSplash(root: HTMLElement, o: MountOpts): { destroy: () => void; liberar: () => void } {
   root.innerHTML = MARKUP;
   const $ = <T extends HTMLElement = HTMLElement>(sel: string) => root.querySelector(sel) as T;
   const intro = $(".es-intro");
@@ -126,20 +139,30 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     typeof navigator !== "undefined" &&
     (/iPad|iPhone|iPod/.test(navigator.userAgent) || /^((?!chrome|android).)*safari/i.test(navigator.userAgent));
 
-  // Personalização para usuário autenticado vs visitante
-  if (o.isAuthenticated) {
-    tag.textContent = o.userName
-      ? `Olá, ${o.userName.split(" ")[0]}! Seu plantão está pronto.`
+  // Personalização para usuário autenticado vs visitante (na hora dos botões: o login pode chegar no meio).
+  const aplicarTextos = () => {
+    const { isAuthenticated, userName } = o.getAuth();
+    if (!isAuthenticated) return;
+    tag.textContent = userName
+      ? `Olá, ${userName.split(" ")[0]}! Seu plantão está pronto.`
       : "Sessão ativa encontrada. Bem-vindo(a) ao seu plantão!";
     b1Btn.textContent = "Acessar Plataforma";
     b2Btn.textContent = "Trocar de Perfil";
-  }
+  };
+
+  // A logo do index.html já está caindo (ou caiu) desde o primeiro quadro: a abertura do app assume dela.
+  const est = document.getElementById("abertura-estatica");
+  const desdeEstatica = est ? performance.now() - ((window as Window & { __aberturaT0?: number }).__aberturaT0 ?? performance.now()) : 0;
 
   let timers: number[] = [];
   let anims: Animation[] = [];
   let finished = false;
   let fase: "abertura" | "lendo" = "abertura";
   let dyNome = 0;
+  // O palco (Goti e botões) só entra com as duas coisas: o tempo mínimo da abertura e o login conferido.
+  let tempoOk = false;
+  let liberado = !o.aguardando;
+  let pularPedido = false;
 
   const at = (ms: number, fn: () => void) => {
     timers.push(window.setTimeout(fn, ms));
@@ -213,20 +236,25 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
 
   // Mostra o Goti lendo e os botões (fim da abertura, pulo ou movimento reduzido).
   const palco = (comAnimacao: boolean) => {
+    aplicarTextos();
     ficarLendo();
     if (comAnimacao) {
       // O mesmo "Enfere" que estava sob a logo desliza até o lugar do título: um movimento só, sem nome repetido.
       A(ttl, [{ opacity: 1, transform: `translateY(${dyNome}px)` }, { opacity: 1, transform: "none" }], { duration: 420 });
       // A logo sai primeiro (encolhe e some); o Goti só entra depois, para os dois não se misturarem.
-      A(logo, [{ opacity: 1, transform: "scale(1)" }, { opacity: 0, transform: "scale(.85)" }], { duration: 160 });
+      A((est?.querySelector(".ae-lw") as HTMLElement | null) ?? logo, [{ opacity: 1, transform: "scale(1)" }, { opacity: 0, transform: "scale(.85)" }], { duration: 160 });
       A(intro, [{ opacity: 1 }, { opacity: 0 }], { duration: 160, delay: 60 });
-      at(220, () => { intro.style.display = "none"; });
+      at(220, () => {
+        intro.style.display = "none";
+        removerAberturaEstatica();
+      });
       A(g2, [
         { opacity: 0, transform: "translateY(20px) scale(.96)" },
         { opacity: 1, transform: "none" },
       ], { duration: 380, delay: 140, easing: SPR });
     } else {
       intro.style.display = "none";
+      removerAberturaEstatica();
       g2.style.opacity = "1";
       ttl.style.opacity = "1";
       ttl.style.transform = "none";
@@ -234,10 +262,19 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     ready();
   };
 
+  // Entra no palco quando der: com animação no fim natural; sem animação se a pessoa pediu para pular.
+  const tentarPalco = () => {
+    if (fase !== "abertura" || !liberado) return;
+    if (pularPedido) {
+      clearAll();
+      palco(false);
+    } else if (tempoOk) palco(true);
+  };
+
   const toEnd = () => {
     if (fase !== "abertura") return;
-    clearAll();
-    palco(false);
+    pularPedido = true;
+    tentarPalco();
   };
 
   const run = () => {
@@ -249,6 +286,11 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     // O título fica, durante a abertura, logo abaixo da logo; depois desliza para o lugar dele (palco).
     const rl = logo.getBoundingClientRect();
     dyNome = Math.round(rl.bottom + 14 - ttl.getBoundingClientRect().top);
+    // Com a logo estática já na tela, a do app fica escondida (as duas estão no mesmo lugar) e o tempo da
+    // abertura conta a partir de quando a estática começou a cair.
+    const nomeEm = Math.max(0, 300 - desdeEstatica);
+    const fimEm = Math.max(est ? 150 : 0, 1050 - desdeEstatica);
+    if (!est) {
     // Logo: cai como uma gota (sem encolher a imagem, para ela não ser desenhada pequena e esticada depois),
     // achata ao tocar o chão, estica um pouco e assenta. A base fica presa embaixo (transform-origin 50% 100%).
     A(logo, [
@@ -264,15 +306,25 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
       { opacity: 0.4, transform: "scale(1.08)", offset: 0.14 },
       { opacity: 0, transform: "scale(1.55)" },
     ], { duration: 720, delay: 205 });
+    }
     // Nome: aparece no lugar e cada letra sobe 12 px, uma depois da outra (35 ms entre elas).
-    A(ttl, [{ opacity: 0, transform: `translateY(${dyNome}px)` }, { opacity: 1, transform: `translateY(${dyNome}px)` }], { duration: 1, delay: 300 });
+    A(ttl, [{ opacity: 0, transform: `translateY(${dyNome}px)` }, { opacity: 1, transform: `translateY(${dyNome}px)` }], { duration: 1, delay: nomeEm });
     Array.from(ttl.children).forEach((letra, i) => {
       A(letra as HTMLElement, [
         { opacity: 0, transform: "translateY(12px)" },
         { opacity: 1, transform: "none" },
-      ], { duration: 320, delay: 300 + i * 35, fill: "both" }); // "both": escondida enquanto espera a vez
+      ], { duration: 320, delay: nomeEm + i * 35, fill: "both" }); // "both": escondida enquanto espera a vez
     });
-    at(1050, () => fase === "abertura" && palco(true));
+    at(fimEm, () => {
+      tempoOk = true;
+      tentarPalco();
+    });
+  };
+
+  const liberar = () => {
+    if (liberado) return;
+    liberado = true;
+    tentarPalco();
   };
 
   const onPointerDown = () => {
@@ -298,7 +350,9 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
 
   run();
 
-  return () => {
+  // Não tira a logo estática aqui: o StrictMode monta, desmonta e monta de novo, e ela sumiria antes da hora.
+  // Quem tira é o palco (fim da abertura) ou o App, quando a abertura deixa de aparecer.
+  const destroy = () => {
     clearAll();
     try { vLendo.pause(); } catch { /* nada */ }
     root.removeEventListener("pointerdown", onPointerDown as EventListener);
@@ -308,6 +362,7 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     root.classList.remove("es-ready", "es-playing");
     root.innerHTML = "";
   };
+  return { destroy, liberar };
 }
 // ENGINE END
 
@@ -317,25 +372,37 @@ export default function EnfereSplash({
   onIntroComplete,
   isAuthenticated = false,
   userName = "",
+  aguardando = false,
   waveSrc = "/goti/goti-oi.webm",
   className = "",
   style
 }: EnfereSplashProps) {
   const ref = useRef<HTMLDivElement>(null);
+  const motor = useRef<{ destroy: () => void; liberar: () => void } | null>(null);
   void waveSrc;
   const cb = useRef({ onGetStarted, onHaveAccount, onIntroComplete, isAuthenticated, userName });
   cb.current = { onGetStarted, onHaveAccount, onIntroComplete, isAuthenticated, userName };
+  const aguardandoInicial = useRef(aguardando);
 
   useEffect(() => {
     if (!ref.current) return;
-    return mountEnfereSplash(ref.current, {
-      isAuthenticated: cb.current.isAuthenticated,
-      userName: cb.current.userName,
+    motor.current = mountEnfereSplash(ref.current, {
+      getAuth: () => ({ isAuthenticated: cb.current.isAuthenticated, userName: cb.current.userName }),
+      aguardando: aguardandoInicial.current,
       onGetStarted: () => cb.current.onGetStarted?.(),
       onHaveAccount: () => cb.current.onHaveAccount?.(),
       onIntroComplete: () => cb.current.onIntroComplete?.(),
     });
+    return () => {
+      motor.current?.destroy();
+      motor.current = null;
+    };
   }, []); // Executa estritamente uma única vez por montagem da tela
+
+  // O login terminou de carregar: os botões podem entrar (com o texto certo para quem já está logado).
+  useEffect(() => {
+    if (!aguardando) motor.current?.liberar();
+  }, [aguardando]);
 
   return (
     <>

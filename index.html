@@ -34,8 +34,58 @@
       })();
     </script>
     <script src="/registerSW.js" defer></script>
+    <!-- Abertura estática: a logo cai em CSS puro já no primeiro quadro, enquanto o JavaScript baixa e o login é
+         conferido. A abertura do app (src/components/EnfereSplash.tsx) assume depois, com a logo no mesmo lugar. -->
+    <link rel="preload" as="image" href="/goti/logo-goti-512.webp" type="image/webp" />
+    <style>
+      #abertura-estatica{position:fixed;inset:0;z-index:2147483000;display:flex;align-items:center;justify-content:center;padding-bottom:12vh;pointer-events:none}
+      #abertura-estatica .ae-lw{position:relative;width:min(34vw,148px);aspect-ratio:1/1}
+      #abertura-estatica img{position:relative;display:block;width:100%;height:100%;opacity:0;transform-origin:50% 100%}
+      #abertura-estatica .ae-onda{position:absolute;left:4%;right:4%;top:14%;bottom:-2%;border-radius:30%;border:2px solid #20D5B5;opacity:0}
+      #abertura-estatica.ae-go img{animation:ae-cai 640ms linear both}
+      #abertura-estatica.ae-go .ae-onda{animation:ae-onda 720ms cubic-bezier(.23,1,.32,1) 205ms both}
+      /* se o app demorar, a logo flutua de leve (só enquanto espera) */
+      #abertura-estatica.ae-go .ae-lw{animation:ae-flutua 1.8s ease-in-out 1.4s infinite}
+      @keyframes ae-cai{
+        0%{opacity:0;transform:translateY(-36px) scale(1,1.04);animation-timing-function:cubic-bezier(.55,0,1,.45)}
+        32%{opacity:1;transform:translateY(0) scale(1,1.03);animation-timing-function:cubic-bezier(.23,1,.32,1)}
+        48%{opacity:1;transform:translateY(0) scale(1.07,.92);animation-timing-function:cubic-bezier(.23,1,.32,1)}
+        72%{opacity:1;transform:translateY(-4px) scale(.98,1.02);animation-timing-function:cubic-bezier(.23,1,.32,1)}
+        100%{opacity:1;transform:none}
+      }
+      @keyframes ae-onda{0%{opacity:0;transform:scale(1)}14%{opacity:.4;transform:scale(1.08)}100%{opacity:0;transform:scale(1.55)}}
+      @keyframes ae-flutua{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
+      @media (prefers-reduced-motion: reduce){
+        #abertura-estatica.ae-go img,#abertura-estatica.ae-go .ae-lw{animation:none;opacity:1}
+        #abertura-estatica.ae-go .ae-onda{animation:none}
+      }
+    </style>
   </head>
   <body>
+    <div id="abertura-estatica" aria-hidden="true" hidden><div class="ae-lw"><i class="ae-onda"></i><img src="/goti/logo-goti-512.webp" width="148" height="148" alt="" decoding="async" /></div></div>
+    <script>
+      // Mesmas regras do App.jsx (showInitialSplash): só aparece quando a abertura do app também vai aparecer.
+      (function () {
+        var el = document.getElementById('abertura-estatica');
+        try {
+          var p = location.pathname, h = location.hash || '', q = new URLSearchParams(location.search);
+          var pula = q.get('nosplash') === '1' || sessionStorage.getItem('enfere_splash_passed') || h.indexOf('access_token=') !== -1 || q.has('code') ||
+            /^\/(login|register|forgot-password|reset-password|convite|splash)/.test(p);
+          if (pula) { el.parentNode.removeChild(el); return; }
+        } catch (e) { el.parentNode.removeChild(el); return; }
+        el.hidden = false;
+        document.documentElement.style.background = '#0B131D';
+        var img = el.querySelector('img');
+        var vai = function () {
+          if (el.classList.contains('ae-go')) return;
+          window.__aberturaT0 = performance.now();
+          el.classList.add('ae-go');
+        };
+        // a queda só começa com a imagem pronta (senão cairia invisível); sem imagem em 1,5 s, começa assim mesmo
+        if (img.complete && img.naturalWidth) vai();
+        else { img.addEventListener('load', vai); img.addEventListener('error', vai); setTimeout(vai, 1500); }
+      })();
+    </script>
     <div id="root"></div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
