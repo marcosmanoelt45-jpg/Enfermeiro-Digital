@@ -2,15 +2,17 @@
 
 import { useEffect, useRef } from "react";
 import type { CSSProperties } from "react";
-import logoEnfere from "@/assets/goti-icone-oficial.png";
+// Logo ampliada (upscale de 2160 px reduzido a 512, para até 148 px em tela 3x): nítida e sem o granulado do PNG.
+import logoEnfere from "@/assets/goti-icone-512.webp";
 
 /**
  * Enfere · tela de abertura (splash / onboarding)
- * 1. Abertura (~1 s, desenhada em código para rodar na taxa da tela): a logo salta com mola e o nome
- *    "Enfere" sobe logo abaixo. Curta de propósito: a pessoa abre o app várias vezes por dia.
- * 2. Tela dos botões: o Goti de costas, de óculos, lendo um prontuário (loop).
- *    Tocar nele: leva um susto, derruba a prancheta e os óculos, vira de frente e passa a acenar ("Oi").
- * Vídeos WebM com transparência no Chrome/Android; WebP animado no Safari/iOS (que não mostra WebM transparente).
+ * 1. Abertura (~1 s, desenhada em código para rodar na taxa da tela): a logo cai como uma gota, achata ao tocar
+ *    o chão, quica de leve e assenta; no toque, uma onda verde-água se abre atrás dela. O nome "Enfere" sobe letra
+ *    por letra logo abaixo. Curta de propósito: a pessoa abre o app várias vezes por dia.
+ * 2. Tela dos botões: o Goti de costas, de óculos, lendo um prontuário (loop). Por enquanto sem toque: o susto e
+ *    o aceno (goti-susto, goti-oi) ficaram guardados em public/goti para voltar depois.
+ * Vídeo WebM com transparência no Chrome/Android; WebP animado no Safari/iOS (que não mostra WebM transparente).
  * Arquivos gerados por scripts/assets/processar-goti-splash.py.
  */
 
@@ -23,7 +25,7 @@ export interface EnfereSplashProps {
   isAuthenticated?: boolean;
   /** Nome do usuário conectado para exibição calorosa */
   userName?: string;
-  /** Caminho do vídeo do Goti acenando (depois do susto) */
+  /** Sem uso enquanto o Goti não acena (mantido para não quebrar quem passa a prop). */
   waveSrc?: string;
   className?: string;
   style?: CSSProperties;
@@ -31,17 +33,17 @@ export interface EnfereSplashProps {
 
 const FONT = '"Nunito Variable","Nunito",ui-rounded,system-ui,-apple-system,"Segoe UI",sans-serif';
 const LENDO = "/goti/goti-lendo";
-const SUSTO = "/goti/goti-susto";
-const SUSTO_MS = 1530; // duração do susto (trecho de 1,9 s do Flow tocado a 1,25x)
 
 const CSS = `
 .enfere-splash{position:relative;width:100%;height:100vh;height:100dvh;overflow:hidden;background:#0B131D;font-family:${FONT};user-select:none;-webkit-user-select:none;touch-action:manipulation;box-sizing:border-box}
 .enfere-splash *{box-sizing:border-box;margin:0}
 .enfere-splash .es-intro{position:absolute;inset:0;z-index:5;display:flex;align-items:center;justify-content:center;padding-bottom:12vh;background:#0B131D}
-.enfere-splash .es-logo{width:min(34vw,148px);aspect-ratio:1/1;height:auto;opacity:0;will-change:transform,opacity}
+.enfere-splash .es-lw{position:relative;width:min(34vw,148px);aspect-ratio:1/1}
+.enfere-splash .es-logo{position:relative;display:block;width:100%;height:100%;opacity:0;transform-origin:50% 100%}
+.enfere-splash .es-onda{position:absolute;left:4%;right:4%;top:14%;bottom:-2%;border-radius:30%;border:2px solid #20D5B5;opacity:0;pointer-events:none}
+.enfere-splash .es-ttl span{display:inline-block}
 .enfere-splash .es-c2{position:absolute;left:0;right:0;top:29%;transform:translateY(-44%);display:flex;justify-content:center}
-.enfere-splash .es-g2{position:relative;width:min(100vw,414px,54vh);aspect-ratio:1/1;opacity:0;padding:0;border:0;background:none;cursor:pointer;-webkit-tap-highlight-color:transparent;transform-origin:50% 92%}
-.enfere-splash .es-g2:focus-visible{outline:3px solid #20D5B5;outline-offset:6px;border-radius:24px}
+.enfere-splash .es-g2{position:relative;width:min(100vw,414px,54vh);aspect-ratio:1/1;opacity:0;transform-origin:50% 92%}
 .enfere-splash .es-g2 video,.enfere-splash .es-g2 img{position:absolute;inset:0;width:100%;height:100%;object-fit:contain;opacity:0;pointer-events:none}
 .enfere-splash .es-g2 .on{opacity:1}
 .enfere-splash .es-sh{position:absolute;left:31%;right:31%;bottom:17.5%;height:5%;border-radius:50%;background:radial-gradient(closest-side,rgba(0,0,0,.55),rgba(0,0,0,0))}
@@ -77,24 +79,21 @@ const CSS = `
 `;
 
 const MARKUP = `
-<div class="es-intro"><img class="es-logo" alt="" draggable="false"></div>
+<div class="es-intro"><div class="es-lw"><i class="es-onda" aria-hidden="true"></i><img class="es-logo" alt="" draggable="false" width="148" height="148" decoding="sync"></div></div>
 <div class="es-c2">
-  <button type="button" class="es-g2" aria-label="Goti lendo um prontuário. Toque para chamar a atenção dele.">
+  <div class="es-g2" role="img" aria-label="Goti, de costas, lendo um prontuário">
     <i class="es-sh" aria-hidden="true"></i>
     <video class="es-v-lendo" muted playsinline loop preload="auto" aria-hidden="true"></video>
-    <video class="es-v-susto" muted playsinline preload="auto" aria-hidden="true"></video>
-    <video class="es-v-oi" muted playsinline loop preload="auto" aria-hidden="true"></video>
-    <img class="es-i-lendo" alt="" draggable="false"><img class="es-i-susto" alt="" draggable="false"><img class="es-i-oi" alt="" draggable="false">
-  </button>
+    <img class="es-i-lendo" alt="" draggable="false">
+  </div>
 </div>
-<h1 class="es-ttl">Enfere</h1><p class="es-tag">Enfermagem, passo a passo.</p>
+<h1 class="es-ttl" aria-label="Enfere"><span aria-hidden="true">E</span><span aria-hidden="true">n</span><span aria-hidden="true">f</span><span aria-hidden="true">e</span><span aria-hidden="true">r</span><span aria-hidden="true">e</span></h1><p class="es-tag">Enfermagem, passo a passo.</p>
 <div class="es-btns"><button type="button" class="es-b1">Começar</button><button type="button" class="es-b2">Já tenho uma conta</button></div>
 <button type="button" class="es-skip-hint" aria-label="Pular introdução">Pular</button>
 `;
 
 // ENGINE START
 interface MountOpts {
-  waveSrc: string;
   isAuthenticated?: boolean;
   userName?: string;
   onGetStarted?: () => void;
@@ -111,10 +110,11 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   const $ = <T extends HTMLElement = HTMLElement>(sel: string) => root.querySelector(sel) as T;
   const intro = $(".es-intro");
   const logo = $<HTMLImageElement>(".es-logo");
+  const onda = $(".es-onda");
   logo.src = logoEnfere;
-  const g2 = $<HTMLButtonElement>(".es-g2");
-  const vLendo = $<HTMLVideoElement>(".es-v-lendo"), vSusto = $<HTMLVideoElement>(".es-v-susto"), vOi = $<HTMLVideoElement>(".es-v-oi");
-  const iLendo = $<HTMLImageElement>(".es-i-lendo"), iSusto = $<HTMLImageElement>(".es-i-susto"), iOi = $<HTMLImageElement>(".es-i-oi");
+  const g2 = $(".es-g2");
+  const vLendo = $<HTMLVideoElement>(".es-v-lendo");
+  const iLendo = $<HTMLImageElement>(".es-i-lendo");
   const ttl = $(".es-ttl"), tag = $(".es-tag"), btns = $(".es-btns");
   const skipHint = $(".es-skip-hint");
   (btns as HTMLElement & { inert: boolean }).inert = true;
@@ -138,9 +138,8 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
   let timers: number[] = [];
   let anims: Animation[] = [];
   let finished = false;
-  let fase: "abertura" | "lendo" | "susto" | "oi" = "abertura";
+  let fase: "abertura" | "lendo" = "abertura";
   let dyNome = 0;
-  const urls: string[] = [];
 
   const at = (ms: number, fn: () => void) => {
     timers.push(window.setTimeout(fn, ms));
@@ -166,32 +165,23 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     }
   };
   const mostrar = (el: HTMLElement) => {
-    [vLendo, vSusto, vOi, iLendo, iSusto, iOi].forEach((x) => x.classList.toggle("on", x === el));
+    [vLendo, iLendo].forEach((x) => x.classList.toggle("on", x === el));
   };
 
-  // Fontes: WebM com alfa fora do Safari; WebP animado no Safari. Com movimento reduzido, quadros parados.
+  // Fontes: WebM com alfa fora do Safari; WebP animado no Safari. Com movimento reduzido, quadro parado.
   if (reduzir) {
     iLendo.src = `${LENDO}-poster.webp`;
-    iOi.src = "/goti/goti-pose-happy.png";
   } else if (safari) {
     iLendo.src = `${LENDO}.webp`;
-    // O aceno (WebP pesado) só é pedido quando o susto começa.
-    // O WebP do susto toca uma vez: um endereço novo (blob) a cada toque faz ele começar do 1º quadro.
-    fetch(`${SUSTO}.webp`).then((r) => r.blob()).then((b) => { (iSusto as HTMLImageElement & { _blob?: Blob })._blob = b; }).catch(() => {});
   } else {
     vLendo.src = `${LENDO}.webm`;
-    vSusto.src = `${SUSTO}.webm`;
-    vOi.src = o.waveSrc;
-    [vLendo, vSusto, vOi].forEach((v) => {
-      v.muted = true;
-      v.defaultMuted = true;
-      v.playsInline = true;
-      v.addEventListener("error", () => {
-        // Sem o vídeo: cai para o WebP equivalente.
-        const img = v === vLendo ? iLendo : v === vSusto ? iSusto : iOi;
-        img.src = v === vLendo ? `${LENDO}.webp` : v === vSusto ? `${SUSTO}.webp` : "/goti/goti-oi.webp";
-        if (v.classList.contains("on")) mostrar(img);
-      });
+    vLendo.muted = true;
+    vLendo.defaultMuted = true;
+    vLendo.playsInline = true;
+    vLendo.addEventListener("error", () => {
+      // Sem o vídeo: cai para o WebP.
+      iLendo.src = `${LENDO}.webp`;
+      if (vLendo.classList.contains("on")) mostrar(iLendo);
     });
   }
 
@@ -202,50 +192,6 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
       mostrar(vLendo);
       tocar(vLendo);
     }
-  };
-
-  const acenar = () => {
-    fase = "oi";
-    g2.setAttribute("aria-label", "Goti acenando");
-    if (reduzir || safari) mostrar(iOi);
-    else {
-      // O último quadro do susto e o 1º do oi são o mesmo desenho: o susto fica parado na tela até o oi já estar
-      // rodando, e só então troca (sem piscar nem "pular" de lugar).
-      tocar(vOi);
-      const trocar = () => mostrar(vOi);
-      if (vOi.readyState >= 3) trocar();
-      else vOi.addEventListener("playing", trocar, { once: true });
-    }
-  };
-
-  // Toque no Goti enquanto ele lê: susto, derruba tudo, vira e dá oi.
-  const cutucar = (e: Event) => {
-    e.stopPropagation();
-    if (fase !== "lendo") return;
-    fase = "susto";
-    if (reduzir) {
-      acenar();
-      return;
-    }
-    if (safari) {
-      if (!iOi.src) iOi.src = "/goti/goti-oi.webp";
-      const blob = (iSusto as HTMLImageElement & { _blob?: Blob })._blob;
-      if (blob) {
-        const u = URL.createObjectURL(blob);
-        urls.push(u);
-        iSusto.src = u;
-        mostrar(iSusto);
-        at(SUSTO_MS, acenar);
-      } else acenar();
-      return;
-    }
-    tocar(vSusto);
-    // Troca para o susto só quando ele já está rodando, para não piscar.
-    const trocar = () => mostrar(vSusto);
-    if (vSusto.readyState >= 2) trocar();
-    else vSusto.addEventListener("playing", trocar, { once: true });
-    vSusto.addEventListener("ended", acenar, { once: true });
-    at(SUSTO_MS + 800, () => fase === "susto" && acenar()); // reserva, se o `ended` não vier
   };
 
   const done = () => {
@@ -303,17 +249,30 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
     // O título fica, durante a abertura, logo abaixo da logo; depois desliza para o lugar dele (palco).
     const rl = logo.getBoundingClientRect();
     dyNome = Math.round(rl.bottom + 14 - ttl.getBoundingClientRect().top);
-    // Logo: salta de 0,6 com mola (passa um pouco de 1 e assenta). Nome: sobe 14 px logo depois.
+    // Logo: cai como uma gota (sem encolher a imagem, para ela não ser desenhada pequena e esticada depois),
+    // achata ao tocar o chão, estica um pouco e assenta. A base fica presa embaixo (transform-origin 50% 100%).
     A(logo, [
-      { opacity: 0, transform: "scale(.6)" },
-      { opacity: 1, transform: "scale(1.06)", offset: 0.6 },
-      { opacity: 1, transform: "scale(1)" },
-    ], { duration: 420, easing: "cubic-bezier(.23,1,.32,1)" });
-    A(ttl, [
-      { opacity: 0, transform: `translateY(${dyNome + 14}px)` },
-      { opacity: 1, transform: `translateY(${dyNome}px)` },
-    ], { duration: 320, delay: 180 });
-    at(950, () => fase === "abertura" && palco(true));
+      { opacity: 0, transform: "translateY(-36px) scale(1,1.04)", easing: "cubic-bezier(.55,0,1,.45)" },
+      { opacity: 1, transform: "translateY(0) scale(1,1.03)", offset: 0.32, easing: "cubic-bezier(.23,1,.32,1)" },
+      { opacity: 1, transform: "translateY(0) scale(1.07,.92)", offset: 0.48, easing: "cubic-bezier(.23,1,.32,1)" },
+      { opacity: 1, transform: "translateY(-4px) scale(.98,1.02)", offset: 0.72, easing: "cubic-bezier(.23,1,.32,1)" },
+      { opacity: 1, transform: "translateY(0) scale(1,1)" },
+    ], { duration: 640, easing: "linear" });
+    // A onda nasce no toque (~205 ms) e se abre devagar enquanto some.
+    A(onda, [
+      { opacity: 0, transform: "scale(1)" },
+      { opacity: 0.4, transform: "scale(1.08)", offset: 0.14 },
+      { opacity: 0, transform: "scale(1.55)" },
+    ], { duration: 720, delay: 205 });
+    // Nome: aparece no lugar e cada letra sobe 12 px, uma depois da outra (35 ms entre elas).
+    A(ttl, [{ opacity: 0, transform: `translateY(${dyNome}px)` }, { opacity: 1, transform: `translateY(${dyNome}px)` }], { duration: 1, delay: 300 });
+    Array.from(ttl.children).forEach((letra, i) => {
+      A(letra as HTMLElement, [
+        { opacity: 0, transform: "translateY(12px)" },
+        { opacity: 1, transform: "none" },
+      ], { duration: 320, delay: 300 + i * 35, fill: "both" }); // "both": escondida enquanto espera a vez
+    });
+    at(1050, () => fase === "abertura" && palco(true));
   };
 
   const onPointerDown = () => {
@@ -334,7 +293,6 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
 
   root.addEventListener("pointerdown", onPointerDown as EventListener);
   skipHint.addEventListener("click", onSkip);
-  g2.addEventListener("click", cutucar);
   b1Btn.addEventListener("click", b1);
   b2Btn.addEventListener("click", b2);
 
@@ -342,11 +300,9 @@ function mountEnfereSplash(root: HTMLElement, o: MountOpts): () => void {
 
   return () => {
     clearAll();
-    [vLendo, vSusto, vOi].forEach((v) => { try { v.pause(); } catch { /* nada */ } });
-    urls.forEach((u) => URL.revokeObjectURL(u));
+    try { vLendo.pause(); } catch { /* nada */ }
     root.removeEventListener("pointerdown", onPointerDown as EventListener);
     skipHint.removeEventListener("click", onSkip);
-    g2.removeEventListener("click", cutucar);
     b1Btn.removeEventListener("click", b1);
     b2Btn.removeEventListener("click", b2);
     root.classList.remove("es-ready", "es-playing");
@@ -366,13 +322,13 @@ export default function EnfereSplash({
   style
 }: EnfereSplashProps) {
   const ref = useRef<HTMLDivElement>(null);
-  const cb = useRef({ onGetStarted, onHaveAccount, onIntroComplete, waveSrc, isAuthenticated, userName });
-  cb.current = { onGetStarted, onHaveAccount, onIntroComplete, waveSrc, isAuthenticated, userName };
+  void waveSrc;
+  const cb = useRef({ onGetStarted, onHaveAccount, onIntroComplete, isAuthenticated, userName });
+  cb.current = { onGetStarted, onHaveAccount, onIntroComplete, isAuthenticated, userName };
 
   useEffect(() => {
     if (!ref.current) return;
     return mountEnfereSplash(ref.current, {
-      waveSrc: cb.current.waveSrc,
       isAuthenticated: cb.current.isAuthenticated,
       userName: cb.current.userName,
       onGetStarted: () => cb.current.onGetStarted?.(),

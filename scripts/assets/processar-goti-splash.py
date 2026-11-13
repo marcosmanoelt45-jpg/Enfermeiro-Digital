@@ -10,8 +10,8 @@
 # horizontal, com os pés a BASE do topo. Lendo e susto usam o 1º quadro de cada um como referência; o "oi" usa o
 # último quadro do susto. Assim o Goti não muda de tamanho nem de lugar entre um vídeo e outro, e sobra espaço dos
 # lados para os braços.
-# Fluidez: só o "lendo" (lento) ganha quadros intermediários (minterpolate, 60 fps). Susto e oi ficam com os
-# quadros reais a 30 fps: interpolar movimento rápido inventava quadros borrados no giro.
+# Fluidez: todos usam só os quadros reais do Flow (lendo a 24 fps; susto e oi a 30 fps). A interpolação
+# (minterpolate) inventava quadros borrados no giro e deformava o braço e a prancheta no "lendo".
 import os, shutil, subprocess, sys, tempfile
 import numpy as np
 from PIL import Image, ImageFilter
@@ -26,9 +26,9 @@ BASE = 0.8
 INTERP = f"minterpolate=fps={FPS}:mi_mode=mci:mc_mode=aobmc:me_mode=bidir:vsbmc=1"
 
 
-def extrai(arq, filtro_extra="", interpola=True):
+def extrai(arq, filtro_extra="", interpola=True, fps=30):
     tmp = tempfile.mkdtemp()
-    vf = (filtro_extra + "," if filtro_extra else "") + (INTERP if interpola else "fps=30")
+    vf = (filtro_extra + "," if filtro_extra else "") + (INTERP if interpola else f"fps={fps}")
     subprocess.run(["ffmpeg", "-v", "error", "-y", "-i", arq, "-vf", vf, os.path.join(tmp, "q%04d.png")], check=True)
     return tmp, sorted(f for f in os.listdir(tmp) if f.endswith(".png"))
 
@@ -292,12 +292,27 @@ def salva(fr, nome, loop, fps=FPS):
     shutil.rmtree(tmp)
 
 
-# Lendo: 1x (é parado de propósito), ida e volta.
-t, a = extrai(lendo)
+def suaviza_alfa(quadros):
+    """Contorno estável: o recorte do verde muda alguns pixels de um quadro para o outro e a borda "tremia".
+    O alfa de cada quadro vira a mediana dele com o anterior e o próximo (tira o pisca de um quadro só sem
+    atrasar o movimento)."""
+    alfas = [np.asarray(q.getchannel("A")) for q in quadros]
+    out = []
+    for i, q in enumerate(quadros):
+        viz = np.stack([alfas[max(0, i - 1)], alfas[i], alfas[min(len(alfas) - 1, i + 1)]])
+        q = q.copy()
+        q.putalpha(Image.fromarray(np.median(viz, axis=0).astype(np.uint8)))
+        out.append(q)
+    return out
+
+
+# Lendo: 1x (é parado de propósito), ida e volta. Só os quadros reais do Flow (24 por segundo): a interpolação
+# inventava quadros que deformavam o braço e a prancheta quando eles se mexem.
+t, a = extrai(lendo, interpola=False, fps=24)
 ql = [limpa_sapatos(limpa_pernas(q)) for q in recorta(t, a, True)]
 shutil.rmtree(t)
-fl = aplica(ql, moldura(ql[0]))
-salva(fl + fl[-2:0:-1], "goti-lendo", True)
+fl = suaviza_alfa(aplica(ql, moldura(ql[0])))
+salva(fl + fl[-2:0:-1], "goti-lendo", True, fps=24)
 
 # Susto: mais rápido (vel_susto) e sem filtrar a prancheta e os óculos que voam.
 t, a = extrai(susto, f"setpts=PTS/{vel_susto}", interpola=False)
