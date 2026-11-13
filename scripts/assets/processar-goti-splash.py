@@ -99,6 +99,15 @@ def recorta(tmp, arqs, so_maior):
                     fora_sapato[max(0, cols[0] - 6):cols[-1] + 7] = False
                     keep &= ~(chao & corpo_m & fora_sapato[None, :])
             a = Image.fromarray((an * keep).astype(np.uint8))
+        if not so_maior:
+            # O vídeo do Flow é estreito: o que ele joga longe sai pela borda e chegava cortado em linha reta (a borda
+            # do vídeo cai dentro do quadro da abertura). Perto da borda do vídeo, tudo some aos poucos.
+            # Rampa longa (180 px) só nos objetos soltos (folhas, óculos, estrelinhas); o corpo só tem uma margem curta.
+            h, w = an.shape
+            dist = np.minimum.outer(np.minimum(np.arange(h), np.arange(h)[::-1]), np.minimum(np.arange(w), np.arange(w)[::-1]))
+            corpo_r = (rot == (1 + int(np.argmax(ndimage.sum(np.ones_like(rot), rot, range(1, n + 1)))))) if n else np.zeros_like(an, bool)
+            rampa = np.where(corpo_r, np.clip((dist - 2) / 30, 0, 1), np.clip((dist - 6) / 180, 0, 1) ** 1.5)
+            a = Image.fromarray((np.asarray(a).astype(np.float32) * rampa).astype(np.uint8))
         q.putalpha(a)
         out.append(q)
     return out
@@ -125,26 +134,56 @@ def limpa_pernas(q):
         if larg[y] < 0.55 * ref:
             barra = y
             break
-    sapato = int(pe - 0.085 * alt)
-    if barra is None or barra >= sapato:
+    if barra is None:
+        return q
+    # Onde o sapato começa: no fim da perna azul (menos a tira do croc), medido em cada quadro. Uma linha fixa
+    # (8,5% da altura) cortava o topo dos sapatos no pulo do "oi", quando os pés sobem.
+    azul = (rgb[..., 2] > 150) & (rgb[..., 2] - rgb[..., 0] > 60) & corpo_m
+    # Cada perna separada: com um pé levantado, vale o fim da perna MAIS ALTA (senão o sapato levantado cai na
+    # zona e some junto com o borrão).
+    pernas = np.zeros_like(m)
+    pernas[barra + 1:pe + 1] = azul[barra + 1:pe + 1]
+    rp, nper = ndimage.label(pernas)
+    L = R = None
+    if nper:
+        areas_p = ndimage.sum(np.ones_like(rp), rp, range(1, nper + 1))
+        duas = 1 + np.argsort(areas_p)[::-1][:2]
+        fins, bordas = [], []
+        for i in duas:
+            yy, xx = np.nonzero(rp == i)
+            fins.append(yy.max())
+            bordas.append((xx.min(), xx.max()))
+        sapato = int(min(fins)) - int(0.025 * alt)
+        if len(bordas) == 2:
+            esq, dir_ = sorted(bordas)
+            L, R = esq[1], dir_[0]
+    else:
+        sapato = int(pe - 0.085 * alt)
+    sapato = min(sapato, int(pe - 0.05 * alt))
+    if barra >= sapato:
         return q
     zona = np.zeros_like(m)
     zona[barra + 1:sapato] = True
     mx, mn = rgb.max(axis=2), rgb.min(axis=2)
     branco = (mn > 165) & (mx - mn < 45)
-    a[zona & branco & corpo_m] = 0
-    # Até o chão, no vão entre as duas pernas (as bordas de dentro das pernas azuis), também não há nada branco.
-    azul = (rgb[..., 2] > 150) & (rgb[..., 2] - rgb[..., 0] > 60) & corpo_m
-    cols = np.flatnonzero(azul[barra + 1:sapato].any(axis=0))
-    if cols.size > 4:
-        saltos = np.flatnonzero(np.diff(cols) > 6)
-        if saltos.size:
-            j = saltos[np.argmax(np.diff(cols)[saltos])]
-            L, R = cols[j], cols[j + 1]
-            if R - L > 14:
-                vao = np.zeros_like(m)
-                vao[barra + 1:pe + 1, L + 9:R - 8] = True
-                a[vao & branco & corpo_m] = 0
+    # O borrão do Flow é um retângulo branco pendurado no jaleco, entre as pernas. As colunas dele são medidas
+    # acima dos sapatos (onde só ele pode ser branco) e, abaixo, só essas colunas são apagadas: os sapatos ao
+    # lado ficam inteiros.
+    bz = zona & branco & corpo_m
+    a[bz] = 0
+    altura_zona = max(1, sapato - barra - 1)
+    colunas = np.flatnonzero(bz.sum(axis=0) > 0.6 * altura_zona)
+    if L is not None and R is not None:
+        colunas = colunas[(colunas > L) & (colunas < R)]  # o borrão fica entre as pernas, nunca sobre elas
+    else:
+        colunas = colunas[:0]
+    if colunas.size > 6:
+        grupos = np.split(colunas, np.flatnonzero(np.diff(colunas) > 2) + 1)
+        g = max(grupos, key=len)
+        if g.size > 6:
+            vao = np.zeros_like(m)
+            vao[sapato:pe + 1, g[0] + 2:g[-1] - 1] = True
+            a[vao & branco & corpo_m] = 0
     q.putalpha(Image.fromarray(a))
     return q
 
