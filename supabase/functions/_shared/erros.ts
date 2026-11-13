@@ -9,6 +9,9 @@ export type CodigoErro =
   | "SESSAO_ENCERRADA"
   | "TURNO_DUPLICADO"
   | "IA_INDISPONIVEL"
+  | "SEM_PERMISSAO"
+  | "NAO_ENCONTRADO"
+  | "CONFLITO"
   | "ERRO_INTERNO";
 
 export const STATUS_POR_CODIGO: Record<CodigoErro, number> = {
@@ -19,6 +22,9 @@ export const STATUS_POR_CODIGO: Record<CodigoErro, number> = {
   SESSAO_ENCERRADA: 409,
   TURNO_DUPLICADO: 200, // idempotência: a interface recebe a resposta já salva, sem erro
   IA_INDISPONIVEL: 503,
+  SEM_PERMISSAO: 403,
+  NAO_ENCONTRADO: 404,
+  CONFLITO: 409,
   ERRO_INTERNO: 500,
 };
 

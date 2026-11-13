@@ -14,7 +14,9 @@ import {
   ChevronDown,
   ChevronUp,
   Pencil,
-  AlertTriangle
+  AlertTriangle,
+  ShieldCheck,
+  ChevronRight
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import ClinicalOptionsModal from "@/components/mobile/ClinicalOptionsModal";
@@ -41,6 +43,7 @@ import { useMeuAvatar } from "@/features/avatar/meuAvatar.js";
 import { atualizarMeuPerfil } from "@/features/social/servicoSocial.js";
 import { EVENTO_SINCRONIZADO } from "@/features/conta/sincronizacao.js";
 import PrivacidadeESom from "@/features/conta/PrivacidadeESom.jsx";
+import { souAdmin } from "@/features/admin/servicoAdmin.js";
 
 // Helper de pluralização PT-BR (profile-7)
 const plural = (n, singular, pluralForm) => (n === 1 ? singular : pluralForm);
@@ -55,6 +58,15 @@ export default function Conta() {
   const [showPeModal, setShowPeModal] = useState(false);
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
   const [showAjustes, setShowAjustes] = useState(false);
+  // Link da administração: o servidor decide (tabela admins); aqui só se esconde para os demais.
+  const [ehAdmin, setEhAdmin] = useState(false);
+  useEffect(() => {
+    let vivo = true;
+    if (user?.id) souAdmin().then((ok) => vivo && setEhAdmin(ok));
+    return () => {
+      vivo = false;
+    };
+  }, [user?.id]);
 
   // Controle do acordeão de dedicação semanal
   const [openDedication, setOpenDedication] = useState(true);
@@ -236,6 +248,23 @@ export default function Conta() {
                   <span className="block text-xs font-semibold text-[#9FB3C6]">Convide colegas e veja quem está com a maior ofensiva</span>
                 </span>
                 <UserPlus className="h-5 w-5 text-[#20D5B5]" aria-hidden="true" />
+              </button>
+            )}
+
+            {ehAdmin && (
+              <button
+                type="button"
+                onClick={() => navigate("/admin")}
+                className="mt-3 flex w-full items-center gap-3 rounded-2xl border-2 border-[#27394B] bg-[#0B131D] px-3 py-2.5 text-left transition-colors duration-150 hover:border-[#20D5B5]/60"
+              >
+                <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#20D5B5]/15 text-[#20D5B5]">
+                  <ShieldCheck className="h-5 w-5" aria-hidden="true" />
+                </span>
+                <span className="min-w-0 flex-1">
+                  <span className="block text-sm font-black text-white">Administração</span>
+                  <span className="block text-xs font-semibold text-[#9FB3C6]">Contas, histórico e exclusão</span>
+                </span>
+                <ChevronRight className="h-5 w-5 text-[#20D5B5]" aria-hidden="true" />
               </button>
             )}
           </div>

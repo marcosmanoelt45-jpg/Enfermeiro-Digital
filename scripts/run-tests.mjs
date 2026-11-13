@@ -7,7 +7,7 @@ import { spawnSync } from "node:child_process";
 import { fileURLToPath } from "node:url";
 
 const raiz = join(dirname(fileURLToPath(import.meta.url)), "..");
-const pastas = ["src/features", "src/components","src/data", "src/lib", "src/services", "supabase/functions/_shared", "supabase/functions/cena-ia", "scripts/voicebox", "scripts/ia"];
+const pastas = ["src/features", "src/components","src/data", "src/lib", "src/services", "supabase/functions/_shared", "supabase/functions/cena-ia", "supabase/functions/admin", "scripts/voicebox", "scripts/ia"];
 
 function procurar(dir, achados) {
   if (!existsSync(dir)) return;

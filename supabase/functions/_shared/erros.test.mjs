@@ -11,6 +11,9 @@ test("cada código do contrato C5 tem o HTTP esperado", () => {
     SESSAO_ENCERRADA: 409,
     TURNO_DUPLICADO: 200,
     IA_INDISPONIVEL: 503,
+    SEM_PERMISSAO: 403,
+    NAO_ENCONTRADO: 404,
+    CONFLITO: 409,
     ERRO_INTERNO: 500,
   });
 });
