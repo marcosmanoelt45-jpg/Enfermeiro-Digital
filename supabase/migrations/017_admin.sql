@@ -24,5 +24,5 @@ revoke all on table public.admin_log from anon, authenticated;
 
 -- O admin é a conta principal do dono.
 insert into public.admins (user_id)
-select id from auth.users where lower(email) = lower('__EMAIL_DO_DONO__')
+select id from auth.users where lower(email) = lower('mxmine45@gmail.com')
 on conflict do nothing;
