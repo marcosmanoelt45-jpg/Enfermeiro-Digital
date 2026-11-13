@@ -5,11 +5,10 @@ import SincronizacaoConta from "@/features/conta/SincronizacaoConta.jsx";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
 import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
-import { LazyMotion, MotionConfig, m as motion } from 'framer-motion';
+import { LazyMotion, MotionConfig } from 'framer-motion';
 
 // Os componentes usam `m` (leve); o motor de animação, arraste e layout chega num chunk à parte.
 const loadMotionFeatures = () => import('@/lib/motionFeatures').then((mod) => mod.default);
-import { ease } from '@/lib/motion';
 import PageNotFound from './lib/PageNotFound';
 import { AuthProvider, useAuth } from '@/lib/AuthContext';
 import { ThemeProvider } from '@/lib/ThemeContext';
@@ -64,9 +63,11 @@ function Redirecionar({ para, aba }) {
   return <Navigate to={{ pathname: para, search: busca ? `?${busca}` : '' }} replace />;
 }
 
+// Carregando uma tela: só aparece se demorar mais de 0,3 s (antes o véu escuro com spinner piscava em toda
+// troca rápida de tela) e com o fundo do app, sem véu translúcido.
 const PageLoader = () => (
-  <div className="fixed inset-0 flex items-center justify-center bg-slate-50/80 dark:bg-slate-950/80 backdrop-blur-sm z-50">
-    <div className="w-8 h-8 border-4 border-teal-200 dark:border-teal-900 border-t-teal-600 dark:border-t-teal-400 rounded-full animate-spin"></div>
+  <div className="enfere-page-loader fixed inset-0 z-50 flex items-center justify-center bg-[#0B131D]">
+    <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#27394B] border-t-[#20D5B5]"></div>
   </div>
 );
 
@@ -175,13 +176,9 @@ const AuthenticatedApp = () => {
 
   return (
     <Suspense fallback={<PageLoader />}>
-      {/* Só opacidade: transform num ancestral quebraria os elementos position:fixed (dock, folhas inferiores) */}
-      <motion.div
-        key={location.pathname}
-        initial={{ opacity: 0 }}
-        animate={{ opacity: 1 }}
-        transition={{ duration: 0.18, ease: ease.out }}
-      >
+      {/* A tela troca na hora: a página nova começando apagada (opacidade 0) piscava a cada troca de tela.
+          Sem transform num ancestral (quebraria os elementos position:fixed: dock, folhas inferiores). */}
+      <div key={location.pathname}>
       <Routes>
         <Route path="/splash" element={<SplashPage />} />
         {/* Link de convite de amigo: abre sem login (mostra quem convidou e leva para entrar/criar conta). */}
@@ -251,7 +248,7 @@ const AuthenticatedApp = () => {
         </Route>
         <Route path="*" element={<PageNotFound />} />
       </Routes>
-      </motion.div>
+      </div>
     </Suspense>
   );
 };

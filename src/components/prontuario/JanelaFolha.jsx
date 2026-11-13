@@ -7,7 +7,8 @@ import { ChevronLeft, ChevronRight, X } from "lucide-react";
 // Janela de folha (prontuário, anotação) por cima da cena, como uma janela de navegador, mas sem moldura de
 // computador: a própria prancheta (ou bloco) é a janela. Arrasta segurando a borda do desenho, muda de tamanho
 // pelo canto e não cobre a conversa com fundo escuro. Tamanho com limite (nem minúscula
-// nem maior que a tela) e sempre dentro da tela. Várias páginas: botão grande de virar a página no rodapé.
+// nem maior que a tela) e sempre dentro da tela. Várias páginas: botão grande de virar a página no rodapé (a
+// página troca na hora, sem animação).
 // Posição e tamanho ficam guardados na visita (sessionStorage) por janela.
 
 const MIN_L = 300;
@@ -58,8 +59,8 @@ export default function JanelaFolha({ id, aberta, titulo, icone: Icone = null, t
   const [paginaInterna, setPaginaInterna] = useState(0);
   const pagina = paginaControlada ?? paginaInterna;
   const setPagina = onPagina ?? setPaginaInterna;
-  const [direcao, setDirecao] = useState(1);
   const arrasto = useRef(null);
+  const papel = useRef(null);
   const total = paginas.length;
 
   useLayoutEffect(() => {
@@ -113,8 +114,9 @@ export default function JanelaFolha({ id, aberta, titulo, icone: Icone = null, t
     (passo) => {
       const nova = Math.min(total - 1, Math.max(0, pagina + passo));
       if (nova === pagina) return;
-      setDirecao(passo);
       setPagina(nova);
+      // página nova começa do topo
+      if (papel.current) papel.current.scrollTop = 0;
     },
     [pagina, setPagina, total]
   );
@@ -179,21 +181,19 @@ export default function JanelaFolha({ id, aberta, titulo, icone: Icone = null, t
               <X className="h-4 w-4" aria-hidden="true" />
             </button>
 
-            {/* papel: rola, sem arrastar */}
-            <div className={`relative min-h-0 flex-1 cursor-auto select-text overflow-y-auto overscroll-contain rounded-sm ${bloco ? "mt-5" : ""}`} onPointerDown={naoArrasta} style={{ touchAction: "pan-y" }}>
-              <AnimatePresence mode="wait" initial={false} custom={direcao}>
-                <motion.div
-                  key={pagina}
-                  className="h-full"
-                  custom={direcao}
-                  initial={{ opacity: 0, transform: `translateX(${direcao * 24}px)` }}
-                  animate={{ opacity: 1, transform: "translateX(0px)" }}
-                  exit={{ opacity: 0, transform: `translateX(${direcao * -24}px)` }}
-                  transition={{ duration: 0.16, ease: EASE }}
-                >
-                  {atual.conteudo}
-                </motion.div>
-              </AnimatePresence>
+            {/* papel: rola só na vertical, sem arrastar. A página troca na hora: virar página é ação repetida, e
+                a animação antiga (a página saía, a moldura aparecia vazia e a nova deslizava) piscava e fazia a
+                barra de rolagem lateral, com as setinhas, aparecer por um instante. O espaço da barra vertical
+                fica reservado (scrollbar-gutter), para o conteúdo não pular quando uma página é mais alta. */}
+            <div
+              ref={papel}
+              className={`relative min-h-0 flex-1 cursor-auto select-text overflow-y-auto overflow-x-hidden overscroll-contain rounded-sm ${bloco ? "mt-5" : ""}`}
+              onPointerDown={naoArrasta}
+              style={{ touchAction: "pan-y", scrollbarGutter: "stable", scrollbarWidth: "thin" }}
+            >
+              <div className="h-full" key={pagina}>
+                {atual.conteudo}
+              </div>
             </div>
 
             {/* pé da moldura: virar a página */}

@@ -379,6 +379,9 @@ html, body {
 .mesa-etiqueta-on { animation: mesa-etiqueta-pop 160ms var(--ease-out, cubic-bezier(.2,.8,.2,1)) both; }
 @keyframes mesa-etiqueta-pop { from { opacity: 0; transform: translateY(4px) scale(.92); } to { opacity: 1; transform: none; } }
 @media (prefers-reduced-motion: reduce) { .mesa-etiqueta-on { animation: none; } }
+/* Carregando uma tela (App.jsx): invisível nos primeiros 300 ms, para troca rápida de tela não piscar. */
+.enfere-page-loader { animation: page-loader-surge 150ms ease-out 300ms both; }
+@keyframes page-loader-surge { from { opacity: 0; } to { opacity: 1; } }
 
 /* Foguinho da ofensiva: depois de acender, balança pela base como chama viva (estica, encolhe e inclina),
    como o do Duolingo em repouso. Só nas telas raras de comemoração. */

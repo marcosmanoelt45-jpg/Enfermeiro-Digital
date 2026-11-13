@@ -67,7 +67,8 @@ export default function ConsultaPage() {
   const [sessao, setSessao] = useState(null);
   const [retomada, setRetomada] = useState(null);
   const [emCena, setEmCena] = useState(false);
-  const [retomando, setRetomando] = useState(true);
+  // Só mostra "Retomando…" quando há mesmo uma consulta guardada (antes começava sempre assim e piscava).
+  const [retomando, setRetomando] = useState(() => !isLocalDemoSession() && Boolean(lerRascunho(userId)));
   const [retomadaPendente, setRetomadaPendente] = useState(false);
 
   const demo = isLocalDemoSession();
