@@ -160,7 +160,9 @@ def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0
     lisa = np.zeros_like(vale)
     boca_labio = None
     boca_lingua = None
-    pele = classe_pele(img) & vale if cat in PELE_OK else np.zeros_like(vale)
+    boca_fresta = None
+    cor_interior = None
+    pele =classe_pele(img) & vale if cat in PELE_OK else np.zeros_like(vale)
     if cat in ('olhos', 'boca'):
         # no rosto, tudo que é quase cor de pele vira pele (o rastro claro do olho/boca antigos some)
         dist = np.sqrt(((img - PELE_REF) ** 2).sum(2))
@@ -213,6 +215,19 @@ def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0
             labio |= antes & ~solido
             # o que fica cercado pelo lábio e não é parte fixa (frestas entre língua e lábio) é lábio também
             labio |= ndimage.binary_fill_holes(labio | solido) & ~solido
+            # embaixo da língua o lábio de baixo entrava em dentinhos (claros nas peles escuras): fecha o contorno
+            # da boca abaixo do topo da língua e pinta esses dentinhos e as frestas com a cor do interior
+            boca_fresta = None
+            if lingua.any():
+                linhas = np.arange(alfa.shape[0])[:, None] >= np.where(lingua.any(1))[0].min()
+                novos = ndimage.binary_closing(solido, structure=disco(6)) & ~solido & zona & linhas
+                # a borda de baixo da língua (carocinhos claros) caía como lábio: vira interior também
+                meio = np.arange(alfa.shape[0])[:, None] >= np.where(lingua.any(1))[0].mean()
+                novos |= dilata(lingua, 10) & labio & meio & ~lingua
+                solido |= novos
+                labio &= ~novos
+                boca_fresta = solido & ~(interior | dentes | lingua) & linhas
+                cor_interior = np.median(img[interior], axis=0) if interior.any() else np.array([60, 20, 20], np.float32)
             boca_lingua = lingua & solido
             if os.environ.get('DEBUG_BOCA') == nome:
                 ys, xs = np.where(zona)
@@ -259,6 +274,8 @@ def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0
         alvo = np.array([58, 30, 26], np.float32)
         k = np.clip((LUM_PELE * 0.72 - lum(img)) / (LUM_PELE * 0.4), 0.55, 1.0)[..., None]
         img = np.where(tra[..., None], img * (1 - k) + alvo * k, img)
+        if boca_fresta is not None:
+            img = np.where(boca_fresta[..., None], cor_interior, img)
     if cat in ('olhos', 'base'):
         # sobrancelha, cílios e olho fechado num marrom quase preto (como a pupila): o marrom médio da arte
         # sumia nas peles escuras

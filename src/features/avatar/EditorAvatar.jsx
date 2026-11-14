@@ -37,6 +37,11 @@ export default function EditorAvatar() {
     setAvatar((a) => normalizarAvatar({ ...a, [campo]: valor }));
   };
 
+  const sortear = () => {
+    vibrate(10);
+    setAvatar(sortearAvatar());
+  };
+
   const salvar = async () => {
     setSalvando(true);
     gravarMeuAvatarLocal(user?.id, avatar);
@@ -52,30 +57,39 @@ export default function EditorAvatar() {
   };
 
   return (
-    <PageShell activeTab="perfil" semDock larguraMax="4xl">
+    <PageShell activeTab="perfil" semDock larguraMax="6xl">
       <div className="flex items-center justify-between gap-2">
         <button type="button" onClick={() => navigate(-1)} className="flex h-10 w-10 items-center justify-center rounded-xl text-[#9FB3C6] hover:bg-[#16222E]" aria-label="Voltar">
           <ChevronLeft className="h-6 w-6" />
         </button>
-        <h1 className="text-lg font-black">Seu avatar</h1>
-        <Button variant="outline" size="sm" onClick={() => { vibrate(10); setAvatar(sortearAvatar()); }} aria-label="Sortear um avatar">
+        <h1 className="text-lg font-black md:mr-auto md:text-2xl">Seu avatar</h1>
+        <Button variant="outline" size="sm" className="md:hidden" onClick={sortear} aria-label="Sortear um avatar">
           <Dices className="h-4 w-4" /> Aleatório
         </Button>
       </div>
 
-      <div className="md:grid md:grid-cols-[280px_1fr] md:gap-6">
-        {/* Prévia: fica parada no topo enquanto a lista rola (no celular) */}
-        <div className="sticky top-0 z-10 -mx-4 bg-[#0B131D] px-4 pb-3 pt-1 md:static md:mx-0 md:px-0">
-          <div className="mx-auto w-48 overflow-hidden rounded-3xl md:w-full">
-            <AvatarPessoa avatar={avatar} nome={user?.full_name} tamanho={280} className="h-auto w-full" titulo="Prévia do seu avatar" />
+      <div className="md:grid md:grid-cols-[300px_1fr] md:items-start md:gap-6 lg:grid-cols-[340px_1fr]">
+        {/* Prévia: fica parada no topo enquanto a lista rola (no celular); no computador é um cartão fixo ao lado */}
+        <div className="sticky top-0 z-10 -mx-4 bg-[#0B131D] px-4 pb-3 pt-1 md:top-20 md:mx-0 md:rounded-3xl md:border-2 md:border-[#27394B] md:bg-[#131F2E] md:p-4">
+          <div className="mx-auto w-48 overflow-hidden rounded-3xl md:w-full md:rounded-2xl">
+            <AvatarPessoa avatar={avatar} nome={user?.full_name} tamanho={340} className="h-auto w-full" titulo="Prévia do seu avatar" />
           </div>
-          <Button variant="primary" size="lg" className="mt-3 hidden w-full md:flex" onClick={salvar} loading={salvando} disabled={!mudou && !salvando}>
-            Salvar avatar
-          </Button>
+          <div className="mt-4 hidden flex-col gap-2 md:flex">
+            <Button variant="primary" size="lg" className="w-full" onClick={salvar} loading={salvando} disabled={!mudou && !salvando}>
+              Salvar avatar
+            </Button>
+            <Button variant="outline" className="w-full" onClick={sortear} aria-label="Sortear um avatar">
+              <Dices className="h-4 w-4" /> Aleatório
+            </Button>
+          </div>
         </div>
 
-        <div>
-          <div role="tablist" aria-label="Partes do avatar" className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:flex-wrap md:px-0">
+        <div className="md:min-w-0 md:rounded-3xl md:border-2 md:border-[#27394B] md:bg-[#131F2E] md:p-4">
+          <div
+            role="tablist"
+            aria-label="Partes do avatar"
+            className="-mx-4 flex gap-2 overflow-x-auto px-4 pb-2 md:mx-0 md:grid md:grid-cols-5 md:overflow-visible md:border-b-2 md:border-[#27394B] md:px-0 md:pb-4 lg:grid-cols-9"
+          >
             {CATEGORIAS.map((c) => {
               const Icone = ICONES[c.id];
               const ativa = c.id === aba;
@@ -86,11 +100,11 @@ export default function EditorAvatar() {
                   role="tab"
                   aria-selected={ativa}
                   onClick={() => setAba(c.id)}
-                  className={`flex shrink-0 items-center gap-1.5 rounded-2xl border-2 px-3 py-2 text-sm font-extrabold transition-colors duration-150 ${
-                    ativa ? "border-[#20D5B5] bg-[#20D5B5]/12 text-[#20D5B5]" : "border-[#27394B] text-[#9FB3C6] hover:border-[#3A516A]"
+                  className={`flex shrink-0 items-center gap-1.5 rounded-2xl border-2 px-3 py-2 text-sm font-extrabold transition-colors duration-150 md:flex-col md:gap-1 md:px-1 md:py-2.5 md:text-xs ${
+                    ativa ? "border-[#20D5B5] bg-[#20D5B5]/12 text-[#20D5B5]" : "border-[#27394B] text-[#9FB3C6] hover:border-[#3A516A] md:border-transparent md:hover:bg-[#16222E]"
                   }`}
                 >
-                  <Icone className="h-4 w-4" aria-hidden="true" />
+                  <Icone className="h-4 w-4 md:h-5 md:w-5" aria-hidden="true" />
                   {c.rotulo}
                 </button>
               );
@@ -101,7 +115,7 @@ export default function EditorAvatar() {
             <motion.div
               key={aba}
               role="tabpanel"
-              className="mt-3 space-y-5 pb-28 md:pb-4"
+              className="mt-3 space-y-5 pb-28 md:mt-4 md:pb-0"
               initial={{ opacity: 0, transform: "translateY(6px)" }}
               animate={{ opacity: 1, transform: "translateY(0px)", transition: { duration: 0.18, ease: EASE_OUT } }}
               exit={{ opacity: 0, transition: { duration: 0.1 } }}
@@ -140,7 +154,7 @@ export default function EditorAvatar() {
                       />
                     </div>
                   ) : (
-                    <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-5">
+                    <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 md:grid-cols-[repeat(auto-fill,minmax(100px,1fr))]">
                       {g.opcoes.map((o) => {
                         const marcada = avatar[g.campo] === o.id;
                         return (

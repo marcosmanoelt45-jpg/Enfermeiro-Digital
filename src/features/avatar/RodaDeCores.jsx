@@ -1,10 +1,7 @@
 import React, { useMemo } from "react";
-import { m as motion } from "framer-motion";
 import { Check } from "lucide-react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-
-const EASE_OUT = [0.23, 1, 0.32, 1];
 const LADO = 320; // tamanho da roda
 const BOLA = 40;
 
@@ -79,30 +76,31 @@ export default function RodaDeCores({ aberta, onFechar, rotulo, cores, valor, on
         {/* posições em %: a roda encolhe junto em telas estreitas */}
         <div className="relative mx-auto aspect-square w-full" style={{ maxWidth: LADO }}>
           {/* cor escolhida no meio */}
-          <motion.span
+          <span
             aria-hidden="true"
-            className="absolute left-1/2 top-1/2 h-16 w-16 rounded-full border-4 border-[#0B131D] shadow-[0_0_0_2px_#27394B]"
-            style={{ background: cores[valor], marginLeft: -32, marginTop: -32 }}
-            animate={{ backgroundColor: cores[valor] }}
-            transition={{ duration: 0.15, ease: EASE_OUT }}
+            className="absolute left-1/2 top-1/2 h-16 w-16 rounded-full border-4 border-[#0B131D] shadow-[0_0_0_2px_#27394B] transition-colors duration-150 ease-out"
+            style={{ backgroundColor: cores[valor], marginLeft: -32, marginTop: -32 }}
           />
           {pontos.map((p, k) => {
             const marcada = p.i === valor;
             return (
-              <motion.button
+              // entrada em CSS (não depende do relógio do JS) e a escolhida cresce por transição
+              <span
                 key={p.i}
-                type="button"
-                onClick={() => onEscolher(p.i)}
-                aria-label={`${rotulo}: cor ${p.i + 1}`}
-                aria-pressed={marcada}
-                className={`absolute rounded-full border-[3px] ${marcada ? "z-10 border-[#20D5B5]" : "border-[#0B131D] hover:border-[#3A516A]"}`}
-                style={{ width: BOLA, height: BOLA, left: pct(p.x), top: pct(p.y), marginLeft: -BOLA / 2, marginTop: -BOLA / 2, background: p.cor }}
-                initial={{ opacity: 0, transform: "scale(0.85)" }}
-                animate={{ opacity: 1, transform: marcada ? "scale(1.12)" : "scale(1)" }}
-                transition={{ duration: 0.18, ease: EASE_OUT, delay: Math.min(k * 0.012, 0.2) }}
+                className="absolute animate-[rodaEntra_180ms_cubic-bezier(0.23,1,0.32,1)_both] motion-reduce:animate-none"
+                style={{ width: BOLA, height: BOLA, left: pct(p.x), top: pct(p.y), marginLeft: -BOLA / 2, marginTop: -BOLA / 2, animationDelay: `${Math.min(k * 12, 200)}ms`, zIndex: marcada ? 10 : undefined }}
               >
-                {marcada && <Check className="absolute inset-0 m-auto h-5 w-5 text-[#0B131D] drop-shadow-[0_0_2px_#fff]" strokeWidth={3.5} aria-hidden="true" />}
-              </motion.button>
+                <button
+                  type="button"
+                  onClick={() => onEscolher(p.i)}
+                  aria-label={`${rotulo}: cor ${p.i + 1}`}
+                  aria-pressed={marcada}
+                  className={`relative h-full w-full rounded-full border-[3px] transition-transform duration-150 ease-out ${marcada ? "scale-110 border-[#20D5B5]" : "border-[#0B131D] hover:border-[#3A516A]"}`}
+                  style={{ background: p.cor }}
+                >
+                  {marcada && <Check className="absolute inset-0 m-auto h-5 w-5 text-[#0B131D] drop-shadow-[0_0_2px_#fff]" strokeWidth={3.5} aria-hidden="true" />}
+                </button>
+              </span>
             );
           })}
         </div>
