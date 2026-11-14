@@ -20,6 +20,27 @@ export function pedeFonteExterna(texto) {
   return FONTE_EXTERNA.test(semAcento(texto));
 }
 
+// O que aparece na fonte que o aluno pediu (receita, caixas de remédio, filho, registro): os fatos de remédios e
+// alergias (e de antecedentes, se for um registro ou papel do posto) que estão liberados neste turno. A IA do
+// paciente às vezes só respondia "pode pegar" sem contar nada; com isto o app mostra o conteúdo num cartão.
+// Só fato liberado entra: versão falsa (falta de confiança) continua escondida. Devolve null se não houver nada.
+const ORIGENS = [
+  [/(filh[oa]|familia|espos[ao]|marido|net[oa]|irma|acompanhante|cuidador|vizinh)/, "Lista e caixas de remédio trazidas pelo acompanhante"],
+  [/(ligar|ligacao|telefon|celular|whats)/, "Familiar ao telefone"],
+  [/(registro|prontuario|internac|exames? antigos?|posto de saude|ubs|carteirinha|caderneta|cartao)/, "Registro de atendimento anterior"],
+  [/(receita|caixa|bula|embalage|bolsa|sacola|remedio|farmacia)/, "Receita e caixas de remédio da bolsa"],
+];
+export function conteudoDaFonte(ficha, { confianca, contagemTemas = {} }, texto) {
+  const t = semAcento(texto);
+  const origem = (ORIGENS.find(([re]) => re.test(t)) ?? [null, "Receita e papéis que o paciente trouxe"])[1];
+  const temas = new Set(["medicacoes", "alergias"]);
+  if (origem === "Registro de atendimento anterior") temas.add("antecedentes");
+  const itens = estadoDosFatos(ficha, { confianca, contagemTemas })
+    .filter((f) => f.liberado && temas.has(f.tema) && f.texto)
+    .map((f) => ({ id: f.id, tema: f.tema, texto: f.texto }));
+  return itens.length ? { origem, itens } : null;
+}
+
 // Para cada fato: { id, tema, regra, liberado, texto (só se liberado), instrucao }.
 export function estadoDosFatos(ficha, { confianca, contagemTemas = {} }) {
   return ficha.fatos.map((f) => {

@@ -15,6 +15,7 @@ export const ROTULO_EXAME = {
   "ausculta-abdominal": "Ausculta abdominal",
   "avaliar-edema": "Pesquisa de edema",
   "avaliar-dor": "Escala de dor",
+  ecg: "Eletrocardiograma (ECG)",
 };
 
 // O aluno disse que vai fazer (ou pediu para fazer) um exame? Reserva sem IA, para quando a IA do paciente
@@ -25,16 +26,20 @@ const PALAVRAS = [
   ["glicemia-capilar", /(glicemia|\bhgt\b|glicose|dextro|ponta do dedo|furar (o |seu )?dedo|furadinha|acucar no sangue|diabete)/],
   ["palpacao-abdominal", /(palp|apalp|examin|sentir|toc)\w*.{0,30}(barriga|abdome|abdomen|estomago)|(barriga|abdome|abdomen).{0,30}(palp|apalp)\w*/],
   ["ausculta-abdominal", new RegExp(`${ESCUTAR}.{0,30}(barriga|abdome|abdomen|intestino)|ruidos? (hidroaereos?|intestina)`)],
-  ["ausculta-cardiaca", new RegExp(`${ESCUTAR}.{0,30}(coracao|cardiac)|bulhas?`)],
-  ["ausculta-pulmonar", new RegExp(`${ESCUTAR}.{0,30}(pulmao|pulmoes|peito|costas|respira)|ausculta pulmonar`)],
+  // ECG antes do pulso e do coração ("eletrocardiograma" tem "cardio")
+  ["ecg", /(eletrocardiograma|\beletro\b|\becg\b|tracado do coracao)/],
+  // "verificar o pulmão" / "examinar o coração" também valem (antes só "auscultar"/"escutar")
+  ["ausculta-cardiaca", new RegExp(`${ESCUTAR}.{0,30}(coracao|cardiac)|bulhas?|\\bcoracao\\b`)],
+  ["ausculta-pulmonar", new RegExp(`${ESCUTAR}.{0,30}(pulmao|pulmoes|peito|costas|respira)|ausculta pulmonar|\\bpulm(ao|oes)\\b`)],
   ["oximetria", /(saturacao|oximetro|oximetria|\bsat\b|oxigenio no sangue)/],
   ["medir-pa", /(pressao|\bpa\b)/],
   ["contar-pulso", /(pulso|frequencia cardiaca|batimentos|\bfc\b)/],
   ["contar-fr", /(frequencia respiratoria|contar (a |sua )?respira|\bfr\b)/],
   ["medir-temperatura", /(temperatura|febre|termometro)/],
-  ["avaliar-pupilas", /pupila/],
+  ["avaliar-pupilas", /(pupila|\bolhos?\b)/],
   ["escala-glasgow", /glasgow/],
-  ["avaliar-edema", /(edema|inchaco|inchad[oa])/],
+  // pés, pernas e tornozelos: o que se examina neles à beira do leito é o edema (e a perfusão)
+  ["avaliar-edema", /(edema|inchaco|inchad[oa]|\bpes\b|\bpe\b|pernas?|tornozel|canela)/],
   ["avaliar-pele", /(\bpele\b|mucosas?|turgor|perfusao|enchimento capilar)/],
   ["avaliar-dor", /(escala de dor|nota (para|da|pra) (a |sua )?dor|de 0 a 10|de zero a dez)/],
 ];

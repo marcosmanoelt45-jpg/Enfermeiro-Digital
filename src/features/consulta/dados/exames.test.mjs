@@ -17,6 +17,13 @@ test("reconhece pedidos de exame do jeito que o aluno fala", () => {
     ["Vou contar seu pulso agora", "contar-pulso"],
     ["Posso ver se as pernas estão inchadas?", "avaliar-edema"],
     ["AGORA VOU MEDIR A PRESSAO", "medir-pa"],
+    // jeitos de pedir que antes não disparavam
+    ["Posso verificar seu pulmão?", "ausculta-pulmonar"],
+    ["Posso examinar seu coração?", "ausculta-cardiaca"],
+    ["Posso verificar seus pés?", "avaliar-edema"],
+    ["Posso verificar seu eletrocardiograma?", "ecg"],
+    ["Vou fazer um ECG no senhor", "ecg"],
+    ["Posso examinar seus olhos?", "avaliar-pupilas"],
   ];
   for (const [frase, id] of casos) assert.equal(detectarExame(frase), id, frase);
 });

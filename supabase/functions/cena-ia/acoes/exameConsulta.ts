@@ -30,7 +30,7 @@ export function resultadoPorCodigo(exameId: string, sv: any): string | null {
 }
 
 const SYSTEM = `Você é o "resultado do exame" numa simulação de enfermagem. Recebe o caso completo e o exame que o aluno fez à beira do leito.
-Escreva o achado como um enfermeiro registraria: curto (até 25 palavras), objetivo, com números e unidades quando couber (ex.: "HGT 486 mg/dL", "Abdome doloroso à palpação em epigástrio, sem defesa"). Seja coerente com a doença, os fatos e os sinais vitais do caso; se o exame não tiver relação com o problema, descreva um achado normal. Não dê diagnóstico nem conduta.
+Escreva o achado como um enfermeiro registraria: curto (até 25 palavras), objetivo, com números e unidades quando couber (ex.: "HGT 486 mg/dL", "Abdome doloroso à palpação em epigástrio, sem defesa"). No ECG, descreva ritmo, frequência e alterações de ST ou onda T (ex.: "Ritmo sinusal, FC 112 bpm, infradesnivelamento de ST em V4-V6"). Seja coerente com a doença, os fatos e os sinais vitais do caso; se o exame não tiver relação com o problema, descreva um achado normal. Não dê diagnóstico nem conduta.
 SAÍDA: apenas JSON: { "resultado": "..." }`;
 
 export async function exameConsulta(

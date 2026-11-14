@@ -130,6 +130,12 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       // O exame vem da IA do paciente ou, se ela não marcar, do próprio texto do aluno ("vou medir sua glicemia").
       const pedido = r.exame ?? detectarExame(texto);
       if (pedido && !feitosRef.current.has(pedido)) setExamePedido(pedido);
+      // Pediu a receita, as caixas de remédio ou o familiar: o que aparece lá vira um cartão (como um resultado).
+      if (r.fonte?.itens?.length) {
+        const cartao = { exameId: `fonte:${r.fonte.origem}`, rotulo: r.fonte.origem, resultado: r.fonte.itens.join("; ") };
+        setExames((lista) => [...lista.filter((x) => x.exameId !== cartao.exameId), cartao]);
+        setResultadoNovo(cartao);
+      }
       return [{ texto: r.fala, emocao: r.emocao, origem: "aovivo" }];
     },
     [sessao.sessaoId, sessao.briefing, sessao.tema, sessao.personalidadePublica, user?.id]
@@ -140,7 +146,8 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       setErro(null);
       setEnviando(true);
       try {
-        const examesFeitos = exames.map((x) => ({ minijogoId: x.exameId, resultado: `${x.rotulo}: ${x.resultado}` }));
+        // cartões da receita/família não são exames: ficam fora da lista enviada
+        const examesFeitos = exames.filter((x) => !String(x.exameId).startsWith("fonte:")).map((x) => ({ minijogoId: x.exameId, resultado: `${x.rotulo}: ${x.resultado}` }));
         const { relatorio: r } = await consulta.finalizar({ sessaoId: sessao.sessaoId, registro: examesFeitos.length ? { ...registro, examesFeitos } : registro });
         // Histórico do Perfil e pontos, uma vez só (o servidor já recusa finalizar de novo).
         const duracao = Math.round((Date.now() - inicio.current) / 1000);

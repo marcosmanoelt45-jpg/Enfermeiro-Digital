@@ -30,6 +30,7 @@ export const EXAMES_ROTULOS = {
   "ausculta-abdominal": "Ausculta abdominal",
   "avaliar-edema": "Pesquisa de edema",
   "avaliar-dor": "Escala de dor",
+  "ecg": "Eletrocardiograma (ECG)",
 };
 
 // Todos os exames de beira de leito que o aluno pode pedir em qualquer consulta.

@@ -7,7 +7,7 @@ import { sanitizeClinicalText } from "../../_shared/dlp.ts";
 // @ts-ignore: módulos JS puros compartilhados
 import { buscarPersonalidade } from "../../_shared/dados/personalidades.js";
 // @ts-ignore
-import { aplicarResposta, CHAVE_FONTE_EXTERNA, estadoDosFatos, pedeFonteExterna } from "../../_shared/logica/regras.js";
+import { aplicarResposta, CHAVE_FONTE_EXTERNA, conteudoDaFonte, estadoDosFatos, pedeFonteExterna } from "../../_shared/logica/regras.js";
 // @ts-ignore
 import { rapportDe } from "../../_shared/logica/rapport.js";
 // @ts-ignore
@@ -183,6 +183,10 @@ export async function turnoConsulta(userId: string, entrada: EntradaTurno, deps:
   const liberadosIds = estadoDosFatos(ficha, { confianca: sessao.confianca, contagemTemas })
     .filter((f: { liberado: boolean }) => f.liberado)
     .map((f: { id: string }) => f.id);
+  // Pediu a receita, as caixas de remédio ou o familiar: o conteúdo liberado vira um cartão na tela (a IA às vezes
+  // só dizia "pode pegar"), e o que aparece nele conta como descoberto.
+  const fonte = pediuFonte ? conteudoDaFonte(ficha, { confianca: sessao.confianca, contagemTemas }, textoAluno) : null;
+  if (fonte) resposta = { ...resposta, revelados: [...(resposta.revelados ?? []), ...fonte.itens.map((i: { id: string }) => i.id)] };
   const novo = aplicarResposta(
     { ficha, confianca: sessao.confianca, contagemTemas, notas: sessao.notas_memoria ?? [], liberadosIds },
     resposta,
@@ -223,7 +227,15 @@ export async function turnoConsulta(userId: string, entrada: EntradaTurno, deps:
     exames: ficha.examesDisponiveis ?? [],
     fatos: ficha.fatos.map((f: { id: string; tema: string; revelacao: string; peso: number; versaoFalsa?: string }) => ({ id: f.id, tema: f.tema, regra: f.revelacao, peso: f.peso, versaoFalsa: f.versaoFalsa ?? null })),
   };
-  return { fala, emocao, rapport: rapportDe(novo.confianca), turnosRestantes, exame: novo.exame, _debug };
+  return {
+    fala,
+    emocao,
+    rapport: rapportDe(novo.confianca),
+    turnosRestantes,
+    exame: novo.exame,
+    fonte: fonte ? { origem: fonte.origem, itens: fonte.itens.map((i: { texto: string }) => i.texto) } : null,
+    _debug,
+  };
 }
 
 function respostaDeSalva(s: { fala: string; emocao: string; confianca: number; turnosAluno: number }) {

@@ -174,7 +174,8 @@ test("criar: idade e sexo vêm do paciente e do caso (nem do app, nem da IA); te
 test("turno: resposta válida é gravada e a resposta tem só fala, emoção, rapport e turnos restantes", async () => {
   const { repo, sessaoId } = await preparar();
   const r = montarResposta({}, await turno(repo, sessaoId, llmFalso(respostaIA())));
-  assert.deepEqual(Object.keys(r).sort(), ["emocao", "exame", "fala", "rapport", "turnosRestantes"]);
+  assert.deepEqual(Object.keys(r).sort(), ["emocao", "exame", "fala", "fonte", "rapport", "turnosRestantes"]);
+  assert.equal(r.fonte, null); // sem pedido de receita/família, sem cartão
   assert.equal(r.fala, "Tô com falta de ar, enfermeiro.");
   assert.equal(r.emocao, "dor");
   assert.equal(r.turnosRestantes, 39);
