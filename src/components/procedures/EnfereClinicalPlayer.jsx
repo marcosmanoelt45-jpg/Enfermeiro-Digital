@@ -320,7 +320,7 @@ export default function EnfereClinicalPlayer({
           <div className="text-center p-8 text-[#9FB3C6]">
             <BookOpen className="w-10 h-10 mx-auto text-[#FFC247] mb-2 opacity-80" />
             <p className="text-sm font-bold text-[#EAF2F8]">Não foi possível carregar o vídeo aqui.</p>
-            {sourceUrl && (
+            {sourceUrl && !videoUrl?.startsWith('/') && (
               <a href={sourceUrl} target="_blank" rel="noopener noreferrer" className="mt-3 inline-block text-xs font-bold text-[#20D5B5] underline">
                 Assistir no repositório oficial
               </a>
@@ -527,7 +527,7 @@ export default function EnfereClinicalPlayer({
         <div className="flex items-center gap-2">
           <Award className="w-4 h-4 text-teal-400 shrink-0" />
           <span>
-            Produção Acadêmica: <strong className="text-slate-200">{sourceName}</strong>
+            Referência: <strong className="text-slate-200">{sourceName}</strong>
           </span>
         </div>
 
@@ -539,7 +539,7 @@ export default function EnfereClinicalPlayer({
               rel="noopener noreferrer"
               className="inline-flex items-center gap-1.5 text-teal-400 hover:text-teal-300 font-semibold transition hover:underline"
             >
-              <span>Ver no Repositório Oficial</span>
+              <span>{videoUrl?.startsWith('/') ? 'Abrir site' : 'Ver no Repositório Oficial'}</span>
               <ExternalLink className="w-3.5 h-3.5" />
             </a>
           )}

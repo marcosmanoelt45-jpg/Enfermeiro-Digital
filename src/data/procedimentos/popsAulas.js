@@ -1,7 +1,8 @@
 // POPs escritos a partir do material da disciplina ENF01015 (UFRGS) e das diretrizes que ele cita. O vídeo de
 // cada um é uma animação curta do Enfere com os passos (videos/, Remotion), em public/videos/pops/<id>.mp4.
-const BADGE = "Enfere · Material da disciplina (UFRGS)";
-const FONTE_VIDEO = "Animação do Enfere feita a partir do material da disciplina ENF01015 (UFRGS)";
+const BADGE = "UFRGS";
+const FONTE_VIDEO = "UFRGS";
+const LINK_UFRGS = "https://www.ufrgs.br/eenf/";
 const passo = (n, title, desc) => ({ id: `s${n}`, stepNumber: n, title, desc, checked: false });
 const mat = (n, name) => ({ id: `m${n}`, name, checked: false });
 
@@ -15,9 +16,9 @@ export const POPS_AULAS = [
     difficulty: "Intermediário",
     levelBadge: "Terapia Medicamentosa",
     institutionalBadge: BADGE,
-    cofenNorm: "Checklist de medicação IV da UFRGS (ENF01015); Protocolo de Segurança na Prescrição, Uso e Administração de Medicamentos (MS/Anvisa)",
+    cofenNorm: "UFRGS; Protocolo de Segurança na Prescrição, Uso e Administração de Medicamentos (MS/Anvisa)",
     officialGuideUrl: null,
-    sourceUrl: null,
+    sourceUrl: LINK_UFRGS,
     videoUrl: "/videos/pops/medicacao-intravenosa.mp4",
     videoSource: FONTE_VIDEO,
     previewImage: "/videos/pops/medicacao-intravenosa.jpg",
@@ -49,9 +50,9 @@ export const POPS_AULAS = [
     difficulty: "Fundamental",
     levelBadge: "Terapia Medicamentosa",
     institutionalBadge: BADGE,
-    cofenNorm: "UFRGS ENF01015: Preparo e administração segura de medicamentos",
+    cofenNorm: "UFRGS",
     officialGuideUrl: null,
-    sourceUrl: null,
+    sourceUrl: LINK_UFRGS,
     videoUrl: "/videos/pops/injecao-subcutanea.mp4",
     videoSource: FONTE_VIDEO,
     previewImage: "/videos/pops/injecao-subcutanea.jpg",
@@ -80,9 +81,9 @@ export const POPS_AULAS = [
     difficulty: "Fundamental",
     levelBadge: "Terapia Medicamentosa",
     institutionalBadge: BADGE,
-    cofenNorm: "UFRGS ENF01015: Preparo e administração segura de medicamentos",
+    cofenNorm: "UFRGS",
     officialGuideUrl: null,
-    sourceUrl: null,
+    sourceUrl: LINK_UFRGS,
     videoUrl: "/videos/pops/medicacao-por-sonda.mp4",
     videoSource: FONTE_VIDEO,
     previewImage: "/videos/pops/medicacao-por-sonda.jpg",
@@ -113,7 +114,7 @@ export const POPS_AULAS = [
     institutionalBadge: BADGE,
     cofenNorm: "Bastos SRB et al. Banho no leito: cuidados omitidos pela equipe de enfermagem (2019)",
     officialGuideUrl: null,
-    sourceUrl: null,
+    sourceUrl: LINK_UFRGS,
     videoUrl: "/videos/pops/banho-no-leito.mp4",
     videoSource: FONTE_VIDEO,
     previewImage: "/videos/pops/banho-no-leito.jpg",
@@ -142,9 +143,9 @@ export const POPS_AULAS = [
     difficulty: "Intermediário",
     levelBadge: "Urgência & Emergência",
     institutionalBadge: BADGE,
-    cofenNorm: "UFRGS ENF01015: Componentes do ECG",
+    cofenNorm: "UFRGS",
     officialGuideUrl: null,
-    sourceUrl: null,
+    sourceUrl: LINK_UFRGS,
     videoUrl: "/videos/pops/eletrocardiograma.mp4",
     videoSource: FONTE_VIDEO,
     previewImage: "/videos/pops/eletrocardiograma.jpg",
@@ -173,9 +174,9 @@ export const POPS_AULAS = [
     difficulty: "Avançado",
     levelBadge: "Perioperatório",
     institutionalBadge: BADGE,
-    cofenNorm: "UFRGS: Enfermagem no pós-operatório imediato na SRPA",
+    cofenNorm: "UFRGS",
     officialGuideUrl: null,
-    sourceUrl: null,
+    sourceUrl: LINK_UFRGS,
     videoUrl: "/videos/pops/recepcao-srpa.mp4",
     videoSource: FONTE_VIDEO,
     previewImage: "/videos/pops/recepcao-srpa.jpg",
@@ -206,7 +207,7 @@ export const POPS_AULAS = [
     institutionalBadge: BADGE,
     cofenNorm: "OMS: Cirurgias seguras salvam vidas (2º Desafio Global para a Segurança do Paciente)",
     officialGuideUrl: null,
-    sourceUrl: null,
+    sourceUrl: LINK_UFRGS,
     videoUrl: "/videos/pops/cirurgia-segura.mp4",
     videoSource: FONTE_VIDEO,
     previewImage: "/videos/pops/cirurgia-segura.jpg",
