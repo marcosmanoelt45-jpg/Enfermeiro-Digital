@@ -73,7 +73,8 @@ export default function CalculadoraLivre() {
 
   return (
     <div className="space-y-4">
-      <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1">
+      {/* no celular rola de lado com o dedo; com mouse (que não arrasta) as opções quebram linha e ficam todas à vista */}
+      <div className="no-scrollbar -mx-1 flex gap-2 overflow-x-auto px-1 pb-1 [@media(pointer:fine)]:flex-wrap [@media(pointer:fine)]:overflow-visible">
         {TIPOS.map((t) => (
           <button
             key={t.id}
@@ -81,7 +82,7 @@ export default function CalculadoraLivre() {
             onClick={() => setTipo(t.id)}
             aria-pressed={tipo === t.id}
             className={`flex shrink-0 items-center gap-1.5 rounded-full border-2 px-3 py-1.5 text-sm font-black transition-colors duration-150 ${
-              tipo === t.id ? "border-[#20D5B5] bg-[#20D5B5]/15 text-[#20D5B5]" : "border-[#27394B] text-[#9FB3C6]"
+              tipo === t.id ? "border-[#20D5B5] bg-[#20D5B5]/15 text-[#20D5B5]" : "border-[#27394B] text-[#9FB3C6] [@media(hover:hover)]:hover:border-[#3A516A]"
             }`}
           >
             <t.icone className="h-4 w-4" aria-hidden="true" /> {t.rotulo}
