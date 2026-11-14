@@ -25,11 +25,21 @@ import { prefersReducedMotion } from '@/lib/motion';
 import { AnimatedNumber } from '@/components/ui/animated-number';
 import { AnimatedProgress } from '@/components/ui/animated-progress';
 import { referenciaPop } from "@/data/procedimentos/referenciasPop";
+import { clinicalGamificationService } from '@/services/clinicalGamificationService';
+import { toast } from '@/components/ui/use-toast';
+import { useAuth } from '@/lib/AuthContext';
+
+/** Capa do vídeo: a imagem do próprio YouTube (320x180) quando o vídeo é de lá; senão a prévia do POP. */
+function capaDoVideo(proc) {
+  const id = String(proc?.videoUrl || '').match(/youtube(?:-nocookie)?\.com\/embed\/([\w-]{6,})/)?.[1];
+  return id ? `https://i.ytimg.com/vi/${id}/mqdefault.jpg` : proc?.previewImage || null;
+}
 
 // Catálogo de vídeos e POPs, reaproveitado na página /procedimentos e nas abas de Técnicas.
 // `embutido`: dentro de outra página (aba POPs de Técnicas), sem o cabeçalho e o rodapé do site, que a página já tem.
-export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos & POPs', embutido = false }) {
+export default function VideotecaConteudo({ titulo = 'Vídeos e POPs', embutido = false }) {
   const { triggerHaptic } = useTheme();
+  const { user } = useAuth();
 
   const [procedures, setProcedures] = useState(() => procedureService.list());
   const [selectedCategory, setSelectedCategory] = useState('all');
@@ -100,17 +110,30 @@ export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos
   };
 
   const categories = [
-    { id: 'all', label: 'Todos os Procedimentos' },
-    { id: 'watched', label: '✓ Já Assistidos' },
-    { id: 'unwatched', label: 'Pendentes' },
-    { id: 'semiotecnica', label: 'Semiotécnica & Biossegurança' },
-    { id: 'eliminacoes', label: 'Cateterismos & Eliminações' },
-    { id: 'vasculares', label: 'Acessos Vasculares' },
-    { id: 'respiratorio', label: 'Vias Aéreas & Ventilação' },
-    { id: 'curativos', label: 'Curativos & Lesões' },
-    { id: 'medicamentos', label: 'Terapia Medicamentosa' },
-    { id: 'urgencia', label: 'Urgência & Emergência' },
-  ];
+    { id: 'all', label: 'Todos' },
+    { id: 'unwatched', label: 'Para assistir' },
+    { id: 'watched', label: 'Assistidos' },
+    { id: 'semiotecnica', label: 'Semiotécnica' },
+    { id: 'eliminacoes', label: 'Sondas e eliminações' },
+    { id: 'vasculares', label: 'Acessos vasculares' },
+    { id: 'respiratorio', label: 'Vias aéreas' },
+    { id: 'curativos', label: 'Curativos' },
+    { id: 'medicamentos', label: 'Medicamentos' },
+    { id: 'urgencia', label: 'Urgência' },
+  ].filter((c) => ['all', 'unwatched', 'watched'].includes(c.id) || procedures.some((p) => p.category === c.id));
+
+  // Fim do vídeo: 1ª vez marca como assistido e rende o PE do vídeo; depois, só conta o dia na ofensiva.
+  const aoTerminarVideo = (proc) => {
+    const jaVisto = procedureService.getWatchedList().includes(proc.id);
+    if (!jaVisto) {
+      procedureService.markWatched(proc.id);
+      const r = clinicalGamificationService.recordActivity('video', null, user?.id ?? null, { activityId: `video:${proc.id}` });
+      toast({ title: 'Vídeo assistido', description: `+${r.earnedXp} PE e o dia de hoje na sua ofensiva.` });
+    } else {
+      clinicalGamificationService.concluirAtividadeDoDia(user?.id ?? null);
+    }
+    refreshList();
+  };
 
   const filtered = useMemo(() => {
     // Busca sem diferenciar acento: "puncao" encontra "Punção".
@@ -169,24 +192,14 @@ export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos
                 cofenNorm={activeProcedure.cofenNorm}
                 previewImage={activeProcedure.previewImage}
                 duration={activeProcedure.duration}
-                onComplete={() => refreshList()}
+                onComplete={() => aoTerminarVideo(activeProcedure)}
               />
             </div>
 
             {/* Informações Institucionais e Créditos Acadêmicos do POP */}
-            <div className="space-y-1.5 bg-[#0E1722] border border-[#1F3045] rounded-2xl p-4">
-              {activeProcedure.institutionalBadge && (
-                <span className="text-[10px] font-black uppercase text-[#20D5B5] tracking-wider block">
-                  {activeProcedure.institutionalBadge}
-                </span>
-              )}
-              <h1 className="text-base sm:text-lg font-black text-white leading-tight">
-                {activeProcedure.title}
-              </h1>
-              <p className="text-xs text-[#9FB3C6] leading-relaxed">
-                <strong className="text-[#EAF2F8]">Produção acadêmica & créditos:</strong>{' '}
-                {activeProcedure.videoSource || 'Acervo Institucional de Enfermagem'}
-              </p>
+            {/* o player já mostra o título e os créditos: aqui só o POP de referência e a fonte oficial */}
+            {(activeProcedure.officialGuideUrl || referenciaPop(activeProcedure.id)) && (
+            <div className="space-y-1.5 rounded-2xl border-2 border-[#27394B] bg-[#131F2E] p-4">
               {activeProcedure.officialGuideUrl && (
                 <div className="pt-1">
                   <a
@@ -212,6 +225,7 @@ export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos
                 </div>
               )}
             </div>
+            )}
 
             {/* Roteiro de Habilidade Prática & Checklist */}
             <div className="space-y-4">
@@ -227,65 +241,62 @@ export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos
             </div>
           </div>
         ) : (
-          /* Modo Catálogo & Lista de Procedimentos */
-          <div className="space-y-5">
-            {/* Cabeçalho da Videoteca */}
-            <div className="space-y-1.5 pt-1">
-              <span className="inline-block text-[10px] font-black px-2.5 py-0.5 rounded-full bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
-                Skills Lab · Acervo LabEnf UFSM & Hospitais de Excelência
+          /* Catálogo: progresso, busca, filtros e os vídeos em cartões com a capa */
+          <div className="space-y-4">
+            {/* embutido (aba Vídeos de Técnicas): a página já tem o título */}
+            {!embutido && (
+              <header className="space-y-1 pt-1">
+                <h1 className="text-xl font-black text-[#EAF2F8] sm:text-2xl">{titulo}</h1>
+                <p className="text-sm font-semibold text-[#9FB3C6]">Vídeos do LabEnf/UFSM e de instituições de referência, com roteiro passo a passo e checklist.</p>
+              </header>
+            )}
+
+            {/* progresso */}
+            <section className="flex items-center gap-3 rounded-2xl border-2 border-[#27394B] bg-[#131F2E] p-3" aria-label="Seu progresso nos vídeos">
+              <span className="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-[#20D5B5]/15 text-[#20D5B5]">
+                <Video className="h-6 w-6" aria-hidden="true" />
               </span>
-              <h1 className="text-xl sm:text-2xl font-black text-white">
-                {titulo}
-              </h1>
-              <p className="text-xs text-[#9FB3C6] leading-relaxed max-w-2xl">
-                Vídeos didáticos oficiais do Laboratório de Enfermagem da UFSM (LabEnf), UFRGS e instituições de referência, para fins exclusivamente educacionais e sem fins lucrativos.
-              </p>
-            </div>
-
-            {/* Campo de Busca */}
-            <div className="relative">
-              <Search className="absolute left-3.5 top-1/2 -translate-y-1/2 h-4 w-4 text-[#9FB3C6]" />
-              <input
-                type="text"
-                placeholder="Buscar procedimento, técnica ou instituição (ex: UFSM, sonda, curativo, traqueostomia)..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="w-full pl-10 pr-4 py-3 rounded-2xl text-xs sm:text-sm bg-[#0E1722] border border-[#1F3045] text-white placeholder:text-[#9FB3C6]/60 focus:outline-none focus:border-[#20D5B5]"
-              />
-            </div>
-
-            {/* Contador de Assistidos */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex-1 min-w-0">
-                <div className="text-xs font-bold text-[#20D5B5]">
-                  <AnimatedNumber value={concluidosCount} /> de {procedures.length} procedimentos concluídos
-                  <span className="ml-1.5 font-semibold text-[#9FB3C6]">· {watchedIds.length} assistidos</span>
-                </div>
-                <AnimatedProgress
-                  value={procedures.length ? (concluidosCount / procedures.length) * 100 : 0}
-                  label="Procedimentos concluídos"
-                  className="mt-1.5 h-1.5 max-w-xs"
-                />
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-black text-[#EAF2F8]">
+                  <AnimatedNumber value={watchedIds.length} /> de {procedures.length} assistidos
+                </p>
+                <p className="text-xs font-semibold text-[#9FB3C6]">
+                  {concluidosCount} {concluidosCount === 1 ? "checklist concluído" : "checklists concluídos"} · +15 PE por vídeo novo
+                </p>
+                <AnimatedProgress value={procedures.length ? (watchedIds.length / procedures.length) * 100 : 0} label="Vídeos assistidos" className="mt-1.5 h-2" />
               </div>
               <button
                 type="button"
                 onClick={() => setIsHistoryOpen(true)}
-                className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-[#27394B] bg-[#16222E] text-xs font-bold text-[#20D5B5] hover:bg-[#1F3045] transition cursor-pointer"
+                className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border-2 border-[#27394B] bg-[#0B131D] text-[#20D5B5] transition-colors duration-150 hover:border-[#20D5B5]/60"
+                aria-label="Histórico de treinamentos"
               >
-                <History className="w-3.5 h-3.5" />
-                <span>Histórico de Treinamentos</span>
+                <History className="h-5 w-5" aria-hidden="true" />
               </button>
-            </div>
+            </section>
 
-            {/* Chips de Categorias Deslizáveis */}
+            {/* busca */}
+            <label className="relative block">
+              <span className="sr-only">Buscar vídeo</span>
+              <Search className="pointer-events-none absolute left-3.5 top-1/2 h-4 w-4 -translate-y-1/2 text-[#9FB3C6]" aria-hidden="true" />
+              <input
+                type="search"
+                placeholder="Buscar (ex.: sonda, curativo, punção, UFSM)"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="w-full rounded-2xl border-2 border-[#27394B] bg-[#0B131D] py-3 pl-10 pr-4 text-sm font-semibold text-[#EAF2F8] placeholder:text-[#4F6378] focus:border-[#20D5B5] focus:outline-none"
+              />
+            </label>
+
+            {/* filtros */}
             <div
               ref={categoriesRef}
               onMouseDown={handleMouseDown}
               onMouseMove={handleMouseMove}
               onMouseUp={handleMouseUpOrLeave}
               onMouseLeave={handleMouseUpOrLeave}
-              style={{ touchAction: 'pan-x pan-y', WebkitOverflowScrolling: 'touch', overscrollBehaviorX: 'contain' }}
-              className="flex items-center gap-2 overflow-x-auto no-scrollbar py-1 select-none cursor-grab active:cursor-grabbing"
+              style={{ touchAction: 'pan-x pan-y', overscrollBehaviorX: 'contain' }}
+              className="no-scrollbar -mx-1 flex select-none items-center gap-2 overflow-x-auto px-1 pb-1"
             >
               {categories.map((cat) => {
                 const isActive = selectedCategory === cat.id;
@@ -293,78 +304,72 @@ export default function VideotecaConteudo({ titulo = 'Videoteca de Procedimentos
                   <button
                     key={cat.id}
                     type="button"
+                    aria-pressed={isActive}
                     onClick={() => {
                       triggerHaptic(15);
                       setSelectedCategory(cat.id);
                     }}
-                    className={`shrink-0 px-4 py-2 rounded-xl text-xs font-bold transition-all ${
-                      isActive
-                        ? 'bg-[#20D5B5] text-[#0B131D] font-black shadow-[0_2px_0_0_#148A76]'
-                        : 'bg-[#0E1722] border border-[#1F3045] text-[#9FB3C6] hover:text-white hover:border-[#20D5B5]/40'
+                    className={`shrink-0 rounded-full border-2 px-3 py-1.5 text-xs font-black transition-colors duration-150 ${
+                      isActive ? 'border-[#20D5B5] bg-[#20D5B5]/15 text-[#20D5B5]' : 'border-[#27394B] text-[#9FB3C6] hover:text-[#EAF2F8]'
                     }`}
                   >
-                    <span>{cat.label}</span>
+                    {cat.label}
                   </button>
                 );
               })}
             </div>
 
-            {/* Lista de Cards de Procedimentos */}
             {filtered.length === 0 ? (
-              <div className="rounded-3xl border border-[#1F3045] bg-[#0E1722] p-10 text-center space-y-2">
-                <Video className="h-10 w-10 text-[#9FB3C6] mx-auto opacity-60" />
-                <p className="text-sm font-bold text-white">Nenhum procedimento encontrado</p>
-                <p className="text-xs text-[#9FB3C6]">Tente buscar por outro termo ou selecione outra categoria.</p>
+              <div className="space-y-2 rounded-3xl border-2 border-[#27394B] bg-[#131F2E] p-8 text-center">
+                <Video className="mx-auto h-10 w-10 text-[#9FB3C6] opacity-60" aria-hidden="true" />
+                <p className="text-sm font-black text-[#EAF2F8]">Nenhum vídeo encontrado</p>
+                <p className="text-xs font-semibold text-[#9FB3C6]">Tente outro termo ou outro filtro.</p>
                 <Button variant="outline" size="sm" className="mt-2" onClick={() => { setSearchQuery(""); setSelectedCategory("all"); }}>
                   Limpar filtros
                 </Button>
               </div>
             ) : (
-              <div className="space-y-3">
+              <ul className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                 {filtered.map((proc) => {
                   const isWatched = watchedIds.includes(proc.id);
-
+                  const capa = capaDoVideo(proc);
                   return (
-                    <button
-                      key={proc.id}
-                      type="button"
-                      aria-label={`${proc.title}, ${proc.duration}${isWatched ? ", assistido" : ""}`}
-                      onClick={() => handleOpenProcedure(proc)}
-                      className="w-full text-left focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5] bg-[#131F2E] rounded-2xl border border-[#1F3045] hover:border-[#20D5B5]/50 p-4 transition-all cursor-pointer flex items-center gap-4 group shadow-sm"
-                    >
-                      {/* Quadrado do Play */}
-                      <div className="w-14 h-14 sm:w-16 sm:h-16 rounded-xl bg-[#0E1722] border border-[#1F3045] flex items-center justify-center shrink-0 group-hover:scale-105 transition-transform">
-                        <Play className="w-5 h-5 fill-white text-white ml-0.5" />
-                      </div>
-
-                      {/* Conteúdo */}
-                      <div className="flex-1 min-w-0 space-y-1.5">
-                        <h3 className="text-xs sm:text-sm font-bold text-white leading-tight line-clamp-2">
-                          {proc.title}
-                        </h3>
-                        <div className="flex items-center gap-2 flex-wrap">
-                          <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#20D5B5]/15 text-[#20D5B5] border border-[#20D5B5]/30">
-                            {proc.categoryLabel}
-                          </span>
-                          {proc.institutionalBadge && (
-                            <span className="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-[#0E1722] text-[#9FB3C6] border border-[#1F3045]">
-                              {proc.institutionalBadge}
-                            </span>
+                    <li key={proc.id}>
+                      <button
+                        type="button"
+                        aria-label={`${proc.title}, ${proc.duration}${isWatched ? ", assistido" : ""}`}
+                        onClick={() => handleOpenProcedure(proc)}
+                        className="group w-full overflow-hidden rounded-2xl border-2 border-[#27394B] bg-[#131F2E] text-left transition-colors duration-150 hover:border-[#20D5B5]/60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#20D5B5]"
+                      >
+                        <span className="relative block aspect-video bg-[#0B131D]">
+                          {capa ? (
+                            <img src={capa} alt="" loading="lazy" decoding="async" className="absolute inset-0 h-full w-full object-cover" />
+                          ) : (
+                            <Video className="absolute left-1/2 top-1/2 h-10 w-10 -translate-x-1/2 -translate-y-1/2 text-[#27394B]" aria-hidden="true" />
                           )}
-                          <span className="text-[10px] font-semibold text-[#9FB3C6]">
-                            {proc.duration}
+                          <span className="absolute inset-0 bg-gradient-to-t from-[#0B131D]/80 via-transparent to-transparent" aria-hidden="true" />
+                          <span className="absolute left-1/2 top-1/2 flex h-12 w-12 -translate-x-1/2 -translate-y-1/2 items-center justify-center rounded-full bg-[#20D5B5] shadow-[0_4px_0_#149F86] transition-transform duration-150 group-active:translate-y-[-46%]">
+                            <Play className="ml-0.5 h-5 w-5 fill-[#062B25] text-[#062B25]" aria-hidden="true" />
                           </span>
+                          {proc.duration && (
+                            <span className="absolute bottom-2 right-2 rounded-md bg-[#0B131D]/85 px-1.5 py-0.5 text-[11px] font-black tabular-nums text-[#EAF2F8]">{proc.duration}</span>
+                          )}
                           {isWatched && (
-                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-md bg-[#20D5B5]/20 text-[#20D5B5] border border-[#20D5B5]/40 flex items-center gap-1">
-                              ✓ Concluído
-                            </span>
+                            <span className="absolute left-2 top-2 rounded-full bg-[#3DD68C] px-2 py-0.5 text-[11px] font-black text-[#062B25]">✓ Assistido</span>
                           )}
-                        </div>
-                      </div>
-                    </button>
+                        </span>
+                        <span className="block space-y-1.5 p-3">
+                          <span className="line-clamp-2 block text-sm font-black leading-snug text-[#EAF2F8]">{proc.title}</span>
+                          <span className="flex flex-wrap items-center gap-1.5">
+                            <span className="rounded-md bg-[#20D5B5]/15 px-2 py-0.5 text-[11px] font-bold text-[#20D5B5]">{proc.categoryLabel}</span>
+                            {proc.institutionalBadge && <span className="truncate text-[11px] font-semibold text-[#9FB3C6]">{proc.institutionalBadge}</span>}
+                          </span>
+                        </span>
+                      </button>
+                    </li>
                   );
                 })}
-              </div>
+              </ul>
             )}
           </div>
         )}

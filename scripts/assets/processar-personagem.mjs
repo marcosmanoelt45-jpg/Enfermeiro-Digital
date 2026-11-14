@@ -29,7 +29,11 @@ const CHAVE =
   ":a='255*clip((95-(g(X,Y)-max(r(X,Y),b(X,Y))))/45,0,1)',split[ck_c][ck_a];[ck_a]alphaextract,erosion[ck_m];[ck_c][ck_m]alphamerge";
 // Corta 4 px da borda (o Veo deixa uma linha), recorta 4:3, e encolhe 8% com folga em cima (a cabeça não encosta no topo).
 // O croma é reamostrado em alta qualidade antes do recorte (o vídeo vem em 4:2:0).
-const BASE = `crop=iw-8:ih-8,crop='min(iw,ih*4/3)':'min(ih,iw*3/4)',scale=516:390:flags=lanczos+full_chroma_inp+full_chroma_int,pad=560:424:(ow-iw)/2:oh-ih:color=${VERDE},fps=24`;
+// Quadro de saída 940x712 (mesma proporção de antes, 560x424): é a resolução nativa do recorte 4:3 do Flow
+// (1280x720 -> ~950x712). Antes saía em 560x424 e ficava borrado em tela de celular (3x).
+const LARGURA = 940;
+const ALTURA = 712;
+const BASE = `crop=iw-8:ih-8,crop='min(iw,ih*4/3)':'min(ih,iw*3/4)',scale=${Math.round(LARGURA * 0.921)}:${Math.round(ALTURA * 0.92) & ~1}:flags=lanczos+full_chroma_inp+full_chroma_int,pad=${LARGURA}:${ALTURA}:(ow-iw)/2:oh-ih:color=${VERDE},fps=24`;
 const FUNDO = "0x16222E";
 // Ordem em que as emoções aparecem nos dados (as que não estiverem aqui vão no fim).
 // Emoções com loop de ida e volta: --vaivem=parado ou --vaivem=parado:3.
@@ -99,7 +103,7 @@ function processarClipe(emocao) {
   const mp4 = join(SAIDA, `${emocao}.mp4`);
   ff(["-i", bruto, "-vf", `${BASE},${CHAVE},format=yuva420p`, "-c:v", "libvpx-vp9", "-pix_fmt", "yuva420p", "-crf", "34", "-b:v", "0", "-row-mt", "1", "-auto-alt-ref", "0", "-an", webm]);
   ff([
-    "-f", "lavfi", "-i", `color=${FUNDO}:s=560x424:r=24`, "-i", bruto,
+    "-f", "lavfi", "-i", `color=${FUNDO}:s=${LARGURA}x${ALTURA}:r=24`, "-i", bruto,
     "-filter_complex", `[1:v]${BASE},${CHAVE}[fg];[0:v][fg]overlay=shortest=1,format=yuv420p`,
     "-c:v", "libx264", "-preset", "veryfast", "-crf", "26", "-pix_fmt", "yuv420p", "-movflags", "+faststart", "-an", mp4,
   ]);
