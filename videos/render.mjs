@@ -14,6 +14,6 @@ const serveUrl = await bundle({ entryPoint: path.join(aqui, "src", "index.jsx") 
 const comps = (await getCompositions(serveUrl)).filter((c) => !so || c.id === `pop-${so}`);
 for (const comp of comps) {
   const destino = path.join(saida, `${comp.id.replace(/^pop-/, "")}.mp4`);
-  await renderMedia({ composition: comp, serveUrl, codec: "h264", crf: 30, outputLocation: destino, inputProps: comp.defaultProps, concurrency: 4 });
+  await renderMedia({ composition: comp, serveUrl, codec: "h264", crf: 30, pixelFormat: "yuv420p", colorSpace: "bt709", outputLocation: destino, inputProps: comp.defaultProps, concurrency: 4 });
   console.log("ok", path.basename(destino), (fs.statSync(destino).size / 1e6).toFixed(1), "MB");
 }
