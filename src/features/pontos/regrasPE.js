@@ -55,7 +55,8 @@ export const LOJA_PE = [
   {
     id: "bloqueio_ofensiva",
     titulo: "Bloqueio de ofensiva",
-    descricao: "Protege sua ofensiva por 1 dia sem estudar. É usado sozinho: se você passar um dia sem concluir nenhuma atividade, ele entra no lugar.",
+    descricao: "Passou um dia sem estudar? Ele entra sozinho e sua ofensiva continua.",
+    imagem: "/ui/loja/bloqueio.webp",
     custo: 150,
     icone: "Shield",
     cor: "#5EB8FF",
@@ -63,7 +64,8 @@ export const LOJA_PE = [
   {
     id: "dobro_30",
     titulo: "PE em dobro · 30 min",
-    descricao: "Tudo o que você concluir nos próximos 30 minutos rende o dobro de PE.",
+    descricao: "Tudo o que você concluir em 30 minutos rende o dobro.",
+    imagem: "/ui/loja/dobro-30.webp",
     custo: 100,
     minutos: 30,
     icone: "Zap",
@@ -72,7 +74,8 @@ export const LOJA_PE = [
   {
     id: "dobro_60",
     titulo: "PE em dobro · 1 hora",
-    descricao: "Uma hora inteira de PE em dobro. Sai mais barato por minuto que o de 30.",
+    descricao: "Uma hora de PE em dobro, mais barato por minuto.",
+    imagem: "/ui/loja/dobro-60.webp",
     custo: 180,
     minutos: 60,
     icone: "Zap",

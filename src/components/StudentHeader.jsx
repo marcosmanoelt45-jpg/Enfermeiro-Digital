@@ -34,9 +34,13 @@ export default function StudentHeader({ activeTab = "hub", desktopOnly = false }
       setIsGotiChatOpen(true);
     }
     window.addEventListener("storage", handleStorage);
+    window.addEventListener("enfere:progresso-sincronizado", handleStorage);
+    window.addEventListener("enfere:progresso-alterado", handleStorage);
     window.addEventListener("open-goti-chat", handleCustomOpen);
     return () => {
       window.removeEventListener("storage", handleStorage);
+      window.removeEventListener("enfere:progresso-sincronizado", handleStorage);
+      window.removeEventListener("enfere:progresso-alterado", handleStorage);
       window.removeEventListener("open-goti-chat", handleCustomOpen);
     };
   }, []);

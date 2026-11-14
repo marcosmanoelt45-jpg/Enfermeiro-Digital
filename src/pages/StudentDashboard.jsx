@@ -17,7 +17,6 @@ import StudentFooter from "@/components/StudentFooter";
 import { useAuth } from "@/lib/AuthContext";
 import { useTheme } from "@/lib/ThemeContext";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
-import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 
 import EnfereVivoTrail from "@/components/mobile/EnfereVivoTrail";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
@@ -26,6 +25,7 @@ import ChipOfensiva from "@/components/feedback/ofensiva/ChipOfensiva.jsx";
 import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { fadeUp, listStagger } from "@/lib/motion";
 import { useMediaQuery } from "@/hooks/useMediaQuery";
+import { useEstadoJogo } from "@/features/pontos/useEstadoJogo.js";
 
 export default function StudentDashboard() {
   const navigate = useNavigate();
@@ -40,7 +40,7 @@ export default function StudentDashboard() {
 
   const cleanUserName = user?.name ? user.name.split(" ")[0] : (user?.full_name ? user.full_name.split(" ")[0] : "Estudante");
 
-  const gameState = useMemo(() => clinicalGamificationService.getState(user?.id), [user?.id]);
+  const gameState = useEstadoJogo(user?.id);
   const todayActivitiesCount = useMemo(() => {
     const all = clinicalHistoryService.getAllActivities("all", user?.id);
     const now = new Date();

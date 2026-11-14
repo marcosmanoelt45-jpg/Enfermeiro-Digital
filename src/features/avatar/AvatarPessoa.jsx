@@ -13,6 +13,8 @@ export default function AvatarPessoa({ avatar, nome = "", tamanho = 96, redondo 
   const lado = ladoPara(tamanho);
   // já montado antes: começa com a imagem (sem um quadro vazio, que piscava em listas como o pódio)
   const [src, setSrc] = useState(() => avatarJaPronto(a, lado, nome));
+  // pronta já no primeiro quadro: sem fade. Montada depois: entra com fade curto, sem estalo.
+  const [deCara] = useState(() => Boolean(src));
   const fluido = /\bw-full\b/.test(className); // ocupa a largura do pai (editor); senão, tamanho fixo
 
   useEffect(() => {
@@ -38,7 +40,14 @@ export default function AvatarPessoa({ avatar, nome = "", tamanho = 96, redondo 
       aria-label={titulo}
       aria-hidden={titulo ? undefined : true}
     >
-      {src && <img src={src} alt="" draggable={false} className="absolute inset-0 h-full w-full select-none" />}
+      {src && (
+        <img
+          src={src}
+          alt=""
+          draggable={false}
+          className={`absolute inset-0 h-full w-full select-none ${deCara ? "" : "animate-[avatarEntra_180ms_cubic-bezier(0.23,1,0.32,1)]"}`}
+        />
+      )}
     </span>
   );
 }

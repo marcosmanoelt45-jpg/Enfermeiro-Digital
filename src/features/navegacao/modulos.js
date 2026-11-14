@@ -16,6 +16,7 @@ export const ROTAS_CONHECIDAS = [
   "/simulador-casos",
   "/conta",
   "/social",
+  "/loja",
 ];
 
 // Cada módulo tem uma rota e, opcionalmente, um lugar em cada superfície (header, dock, trilha).
@@ -134,6 +135,14 @@ export const MODULOS = [
     header: { rotulo: "Social", icone: "Trophy", ordem: 58 },
   },
   {
+    // Loja de PE (bloqueio de ofensiva, PE em dobro). Antes era uma aba do Perfil.
+    id: "loja",
+    rota: "/loja",
+    grupo: "principal",
+    flag: null,
+    header: { rotulo: "Loja", icone: "ShoppingBag", ordem: 59 },
+  },
+  {
     id: "perfil",
     rota: "/conta",
     grupo: "principal",
@@ -212,6 +221,15 @@ export const GAVETA_PRATICA = [
     subtitulo: "Ranking de ofensiva e convite de colegas",
     icone: "Trophy",
     ordem: 50,
+  },
+  {
+    id: "loja",
+    modulo: "loja",
+    rota: "/loja",
+    titulo: "Loja",
+    subtitulo: "Bloqueio de ofensiva e PE em dobro",
+    icone: "ShoppingBag",
+    ordem: 55,
   },
   {
     id: "history",

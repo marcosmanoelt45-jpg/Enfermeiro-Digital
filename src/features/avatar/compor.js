@@ -84,13 +84,25 @@ const LIMITE = 160;
 // Plaquinha do nome em coordenadas da arte (512 px), cobrindo as linhas de "nome" que a arte trazia.
 const CRACHA_ESCALA = 1.3;
 const CRACHA_CENTRO = [318, 457];
+// Onde o crachá fica conforme o que vai no pescoço: no lugar da arte (peito direito) o diafragma do estetoscópio
+// batia em cima dele; com o cordão, o cordão terminava no meio do peito sem nada. Com estetoscópio, desce para o
+// meio do peito (entre o tubo e o diafragma); com cordão, fica pendurado na ponta dele.
+function centroDoCracha(a) {
+  if (a.estetoscopio === "estetoscopio") return [256, 460];
+  if (a.estetoscopio === "cordao") return [256, 462];
+  return CRACHA_CENTRO;
+}
 const PLACAS = {
   // o cartão branco do desenho vai até ~x 355: a área do nome usa quase toda a largura dele
   classico: { x: 313, y: 444, l: 40, a: 19, fundo: "#FCFDFF", texto: "#2E3A55" },
   goti: { x: 293, y: 463, l: 53, a: 25, fundo: "#1D9B95", texto: "#FFFFFF" },
   arcoiris: { x: 289, y: 447, l: 56, a: 19, fundo: "#FEFDFC", texto: "#3A2C36" },
 };
-const SUBIDA_TIARA = { cacheado: 0.6, topete: 0.4 };
+// Quanto a tiara sobe junto com o cabelo (1 = apoiada no alto do cabelo). Curto: afunda metade no cabelo (apoiada
+// em cima, ela parecia flutuar acima da cabeça).
+const SUBIDA_TIARA = { cacheado: 0.6, topete: 0.4, curto: 0.45 };
+// Careca: a arte do coelho tem a tiara mais baixa que as outras e sobrava a cabeça aparecendo acima dela.
+const AJUSTE_SEM_CABELO = { coelho: -15 };
 const FONTE = (tam) => `900 ${tam}px Nunito, "Nunito Fallback", system-ui, sans-serif`;
 
 async function fonteCarregada() {
@@ -162,7 +174,7 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
     for (const p of pecas) {
       const info = CAMADAS[p];
       const corDaPeca = p.startsWith("cabelo-") || p.startsWith("barba-") ? cores.cabelo : p.startsWith("mascara-") ? cores.mascara : cores.acessorio;
-      const onde = p.startsWith("cracha-") ? "cracha" : p.startsWith("cabeca-") && ajusteCabeca ? "cabeca" : null;
+      const onde = p.startsWith("cracha-") ? "cracha" : p.startsWith("cabeca-") ? "cabeca" : null;
       // primeiro apaga o que esta peça esconde (pijama saindo pelos lados do jaleco, cabelo acima da touca)
       const usaApaga = info.apaga && (p !== "cabeca-touca" || a.cabelo === "coque"); // touca só esconde o coque
       if (usaApaga) arquivos.push({ url: `${BASE_URL}${p}.apaga.webp`, apaga: true, onde });
@@ -183,9 +195,13 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
       ctx.scale(k, k);
       if (onde === "cracha") {
         const [cx, cy] = CRACHA_CENTRO;
-        ctx.translate(cx, cy);
+        const [nx, ny] = centroDoCracha(a);
+        ctx.translate(nx, ny);
         ctx.scale(CRACHA_ESCALA, CRACHA_ESCALA);
         ctx.translate(-cx, -cy);
+      } else if (onde === "cabeca" && !ajusteCabeca) {
+        // sem cabelo para acompanhar (careca): só o acerto da arte de cada acessório
+        ctx.translate(0, AJUSTE_SEM_CABELO[a.cabeca] ?? 0);
       } else if (onde === "cabeca") {
         const [ax, ay] = CAMADAS._ajusteCabeca.ancora;
         // touca cobre o alto do cabelo inteiro (sobe e alarga tudo); tiaras assentam dentro do volume, com só

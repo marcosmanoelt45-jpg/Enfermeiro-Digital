@@ -9,7 +9,6 @@ import {
 import { useTheme } from "@/lib/ThemeContext";
 import { useAuth } from "@/lib/AuthContext";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
-import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import GotiAnimated from "@/components/mascot/GotiAnimated";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import ChipOfensiva from "@/components/feedback/ofensiva/ChipOfensiva.jsx";
@@ -17,6 +16,7 @@ import { AnimatedProgress } from "@/components/ui/animated-progress";
 import { fadeUp, listStagger } from "@/lib/motion";
 import { modulosDaTrilha } from "@/features/navegacao/modulos";
 import { icone } from "@/features/navegacao/icones";
+import { useEstadoJogo } from "@/features/pontos/useEstadoJogo.js";
 
 export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }) {
   const navigate = useNavigate();
@@ -25,7 +25,7 @@ export default function EnfereVivoTrail({ userName = "Estudante", onOpenAIChat }
 
   const userInitial = userName && userName.trim() ? userName.trim().charAt(0).toUpperCase() : "E";
 
-  const gameState = useMemo(() => clinicalGamificationService.getState(user?.id), [user?.id]);
+  const gameState = useEstadoJogo(user?.id);
   const todayActivitiesCount = useMemo(() => {
     const all = clinicalHistoryService.getAllActivities("all", user?.id);
     const now = new Date();

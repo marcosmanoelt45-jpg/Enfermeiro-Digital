@@ -60,6 +60,7 @@ test("menus finais (D2): header, dock, gaveta Prática e trilha", () => {
       ["tecnicas", "Vídeos", "/tecnicas", "tecnicas"],
       ["minijogos", "Minijogos", "/minijogos", null],
       ["questoes", "Questões", "/questoes", null],
+      ["loja", "Loja", "/loja", null],
       ["casos", "Casos Clínicos", "/simulador-casos", "casos"],
     ]
   );
@@ -75,7 +76,7 @@ test("menus finais (D2): header, dock, gaveta Prática e trilha", () => {
   );
   assert.deepEqual(
     opcoesDaGavetaPratica(nenhuma).map((o) => o.id),
-    ["consulta", "plantao", "questoes", "minijogos", "pe_simulator", "continue", "history"]
+    ["consulta", "plantao", "questoes", "minijogos", "pe_simulator", "continue", "loja", "history"]
   );
   // Plantão aparece uma vez só no Menu e traz as duas maneiras de fazer; Semiologia saiu.
   const plantao = opcoesDaGavetaPratica(nenhuma).find((o) => o.id === "plantao");

@@ -16,6 +16,7 @@ import {
   Mic,
   PhoneCall,
   PlusCircle,
+  ShoppingBag,
   Stethoscope,
   Trophy,
   User,
@@ -23,6 +24,7 @@ import {
 } from "lucide-react";
 
 const ICONES = {
+  ShoppingBag,
   Trophy,
   ListChecks,
   Activity,

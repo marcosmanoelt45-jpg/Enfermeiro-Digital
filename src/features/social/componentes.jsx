@@ -100,18 +100,15 @@ export function Podio({ lista, unidade, meuId, animar = true }) {
   const coluna = (p, lugar, altura, cor, atraso) =>
     p ? (
       <div className="flex min-w-0 flex-1 flex-col items-center" key={`lugar-${lugar}`}>
-        <motion.div
-          initial={inicio({ opacity: 0, transform: "translateY(12px)" })}
-          animate={{ opacity: 1, transform: "translateY(0px)", transition: { duration: 0.3, ease: EASE_OUT, delay: atraso + 0.25 } }}
-          className="relative"
-        >
+        {/* foto e nome entram já no lugar (o esqueleto tem a mesma altura); só a barra do pódio cresce */}
+        <div className="relative">
           <div className={`rounded-full p-1 ${p.user_id === meuId ? "bg-[#20D5B5]" : "bg-transparent"}`}>
             <AvatarDe perfil={p} tamanho={lugar === 1 ? 76 : 60} />
           </div>
           {lugar === 1 && (
             <Crown className="absolute -top-4 left-1/2 -ml-3.5 h-7 w-7 fill-[#FFC247] text-[#FFC247]" aria-hidden="true" />
           )}
-        </motion.div>
+        </div>
         <p className="mt-1 max-w-full truncate text-xs font-black text-[#EAF2F8]">{p.user_id === meuId ? "Você" : String(p.nome || "Estudante").split(" ")[0]}</p>
         <p className="text-xs font-extrabold" style={{ color: cor }}>
           {p.valor} {unidade}

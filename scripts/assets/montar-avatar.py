@@ -7,7 +7,7 @@
 # e manifesto.json com o que cada peça tem. O tingimento é feito no navegador (AvatarPessoa.jsx):
 # cor_final = cor_escolhida * sombra / 170.
 # Uso: python scripts/assets/montar-avatar.py
-import json, os
+import json, os, time
 import numpy as np
 from PIL import Image, ImageFilter
 from scipy import ndimage
@@ -96,11 +96,21 @@ def classe_roupa(img):
 def dilata(m, r):
     return ndimage.binary_dilation(m, iterations=r)
 
+def disco(r):
+    y, x = np.ogrid[-r:r + 1, -r:r + 1]
+    return x * x + y * y <= r * r
+
 def salvar(arr_rgb, alfa, caminho):
     """Grava RGBA reduzido a LADO, com alfa pré-multiplicado na redução (sem franja escura)."""
     rgba = np.dstack([np.clip(arr_rgb, 0, 255), np.clip(alfa, 0, 1) * 255]).astype(np.uint8)
     im = Image.fromarray(rgba, 'RGBA').convert('RGBa').resize((LADO, LADO), Image.LANCZOS).convert('RGBA')
-    im.save(caminho, 'WEBP', quality=88, method=6)
+    for tentativa in range(5):  # o Windows às vezes segura o arquivo (servidor do Vite lendo): tenta de novo
+        try:
+            im.save(caminho, 'WEBP', quality=88, method=6)
+            return
+        except OSError:
+            if tentativa == 4: raise
+            time.sleep(0.5)
 
 base = ler('base')
 bg, base_sep = separar_fundo(base)
@@ -130,6 +140,10 @@ BOCA = dilata(ndimage.binary_opening(BOCA, iterations=1), 6)
 _longe_da_pele = np.sqrt(((base - PELE_REF) ** 2).sum(2)) > 18
 OLHOS_BASE = dilata(OLHOS & _longe_da_pele, 6) & OLHOS
 BOCA_BASE = dilata(BOCA & _longe_da_pele, 7) & dilata(BOCA, 3)
+# caixa dos olhos com as sobrancelhas (acima deles)
+CAIXA_OLHOS = np.zeros(base.shape[:2], bool)
+_ys, _xs = np.where(OLHOS)
+CAIXA_OLHOS[max(_ys.min() - 80, 0):_ys.max() + 6, max(_xs.min() - 10, 0):_xs.max() + 10] = True
 
 TINGE_CABECA = {'cabeca-gato', 'cabeca-urso', 'cabeca-coelho', 'cabeca-touca', 'cabeca-laco', 'cabeca-antenas'}
 os.makedirs(SAIDA, exist_ok=True)
@@ -144,6 +158,8 @@ def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0
     cat = nome.split('-')[0]
     vale = alfa > 0.02
     lisa = np.zeros_like(vale)
+    boca_labio = None
+    boca_lingua = None
     pele = classe_pele(img) & vale if cat in PELE_OK else np.zeros_like(vale)
     if cat in ('olhos', 'boca'):
         # no rosto, tudo que é quase cor de pele vira pele (o rastro claro do olho/boca antigos some)
@@ -154,6 +170,64 @@ def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0
         if cat == 'boca':
             hh, ss, _ = hsv(img)
             pele &= ~((dif_hue(hh, 22) > 14) & (ss > 0.15))  # língua rosa não é pele  # quase pele: fica lisa (some rastro); lábio/traço mantém o tom
+            # A boca inteira (traço, interior escuro, dentes e língua) nunca é pele: antes, parte do interior escuro
+            # e do traço caía na classe pele e era tingida junto, e nas peles escuras a boca saía granulada.
+            # Traços finos (linha da boca, lábio em volta dos dentes) viram sombra de pele, como o sorriso da base:
+            # tingidos, saem num tom mais escuro da própria pele e não ficam claros nem granulados nas peles escuras.
+            # Só fica cor fixa o que é grosso e escuro (interior da boca), os dentes brancos e a língua rosa.
+            # o lábio em volta dos dentes é coral (mais claro que o interior), então o interior é só o bem escuro
+            # As máscaras usam a região da boca, não o alfa: o alfa vem da diferença com a base, e a língua rosa-clara
+            # é parecida com a pele, então ficava meio transparente e a pele escura vazava em manchas.
+            zona = BOCA
+            escuro = (lum(img) < LUM_PELE * 0.5) & zona
+            grosso = ndimage.binary_opening(escuro, structure=disco(6))
+            interior = dilata(grosso, 3) & (lum(img) < LUM_PELE * 0.6) & zona
+            # dentes: o branco ligado ao interior (o de cima fica a mais de 12 px do interior e virava pele clara)
+            branco = (lum(img) > LUM_PELE * 1.05) & (ss < 0.22) & zona
+            dentes = ndimage.binary_propagation(branco & dilata(interior, 12), mask=branco)
+            rosa = (dif_hue(hh, 354) < 18) & (ss > 0.18) & (lum(img) > LUM_PELE * 0.55) & zona
+            lingua = ndimage.binary_fill_holes(ndimage.binary_closing(ndimage.binary_opening(rosa, structure=disco(8)), iterations=4))
+            # tudo o que fica entre interior, dentes e língua (as bordas entre eles) também é cor fixa e opaco,
+            # menos a borda coral do lábio que entra ali (essa é tingida com o resto do lábio)
+            solido = ndimage.binary_fill_holes(ndimage.binary_closing(interior | dentes | lingua, iterations=2)) & zona
+            partes = interior | dentes | lingua
+            distp = np.sqrt(((img - PELE_REF) ** 2).sum(2))
+            # lábio: coral bem diferente da pele, ou o que sobra dentro da boca entre as partes (o brilho claro
+            # do lábio de cima, quase cor de pele)
+            lingua = ndimage.binary_opening(lingua, structure=disco(5))  # sem os carocinhos na borda de baixo
+            partes = interior | dentes | lingua
+            tom_coral = (dif_hue(hh, 16) < 14) & (ss > 0.2)
+            linha = tom_coral & (ss > 0.3) & (distp > 40) & zona & ~partes
+            # só traços de verdade (linha da boca, lábio): manchinhas soltas do rastro antigo não contam
+            rot, qtd = ndimage.label(linha)
+            if qtd:
+                areas = ndimage.sum(np.ones_like(alfa), rot, index=np.arange(1, qtd + 1))
+                linha = np.isin(rot, np.where(areas >= 600)[0] + 1)
+            # o que fica cercado pelo lábio (a faixa clara entre o lábio de cima e os dentes) também é lábio;
+            # boca sem lábio ("o", aberta) não ganha contorno escuro em volta
+            labio = linha | (ndimage.binary_fill_holes(linha | solido) & ~partes & zona)
+            solido &= ~labio
+            # contorno liso: sem carocinhos embaixo da língua nem filetes nas pontas
+            antes = solido
+            solido = ndimage.binary_opening(solido, structure=disco(3))
+            labio |= antes & ~solido
+            # o que fica cercado pelo lábio e não é parte fixa (frestas entre língua e lábio) é lábio também
+            labio |= ndimage.binary_fill_holes(labio | solido) & ~solido
+            boca_lingua = lingua & solido
+            if os.environ.get('DEBUG_BOCA') == nome:
+                ys, xs = np.where(zona)
+                cx = slice(xs.min(), xs.max()); cy = slice(ys.min(), ys.max())
+                dbg = np.zeros(img.shape, np.uint8)
+                dbg[interior] = (120, 0, 0); dbg[dentes] = (255, 255, 255); dbg[lingua] = (255, 120, 160)
+                dbg[labio] = (0, 200, 0); dbg[solido & ~(interior | dentes | lingua)] = (255, 255, 0)
+                Image.fromarray(np.hstack([dbg[cy, cx], np.clip(img[cy, cx], 0, 255).astype(np.uint8)])).save(os.environ['DEBUG_SAIDA'])
+            alfa = np.maximum(alfa, solido.astype(np.float32))
+            vale = alfa > 0.02
+            boca_labio = labio & vale
+            pele = vale & ~solido
+            lisa &= ~solido
+            # em cima do traço antigo, o que não é boca nova é pele lisa (some a sombra cinza ao lado do "o")
+            lisa |= dilata(BOCA & _longe_da_pele, 5) & ~dilata(solido | labio, 2)
     if cat in ('cabeca', 'mascara'):
         # acessório não leva pele: a cabeça careca em volta dele seria pintada por cima do cabelo escolhido
         sem_cor = ~(cor_mask if cor_mask is not None else np.zeros_like(vale))
@@ -176,6 +250,22 @@ def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0
         for m in (pele, roupa, cor):
             m[by, bx] = m[sy, sx]
     fixo = ~(pele | roupa | cor)
+    if cat == 'boca':
+        # traço da boca num marrom bem escuro (como o dos olhos): o marrom claro da arte sumia nas peles escuras.
+        # Mantém a variação de tom (o traço mais grosso continua mais escuro que a borda), só puxa para baixo.
+        tra = fixo & vale & (lum(img) < LUM_PELE * 0.72)
+        if boca_lingua is not None:
+            tra &= ~boca_lingua  # a língua fica rosa; o filete avermelhado na borda do interior escurece junto
+        alvo = np.array([58, 30, 26], np.float32)
+        k = np.clip((LUM_PELE * 0.72 - lum(img)) / (LUM_PELE * 0.4), 0.55, 1.0)[..., None]
+        img = np.where(tra[..., None], img * (1 - k) + alvo * k, img)
+    if cat in ('olhos', 'base'):
+        # sobrancelha, cílios e olho fechado num marrom quase preto (como a pupila): o marrom médio da arte
+        # sumia nas peles escuras
+        tra = fixo & vale & CAIXA_OLHOS & (lum(img) < LUM_PELE * 0.62)
+        alvo = np.array([46, 26, 22], np.float32)
+        k = np.clip((LUM_PELE * 0.62 - lum(img)) / (LUM_PELE * 0.3), 0.6, 1.0)[..., None]
+        img = np.where(tra[..., None], img * (1 - k) + alvo * k, img)
     # pontinho de cor fixa grudado na borda de fora (resto do contorno da arte): sai
     rot, qtd = ndimage.label(fixo & vale)
     if qtd:
@@ -208,12 +298,23 @@ def gravar_camadas(nome, img, alfa, fundo, cor_mask=None, cor_ref=None, gama=1.0
         if cat in ('olhos', 'boca'):
             # pele lisa igual à da base embaixo: some o rastro do olho/boca antigos sem marcar a emenda
             sp[lisa] = PELE_LISA[lisa][:, None]
+        if boca_labio is not None and boca_labio.any():
+            # lábio num tom só: o brilho claro da arte (entre o lábio e os dentes) ficava uma faixa laranja
+            escuro_lab = boca_labio & (lum(img) < LUM_PELE * 0.9)
+            med = float(np.median(sp[escuro_lab if escuro_lab.any() else boca_labio, 0]))
+            sp[boca_labio] = np.minimum(sp[boca_labio], med)
         m, sp = estender(pele, roupa | cor | fixo, sp)
         ap = alfa * m
         if cat in ('olhos', 'boca'):
             # a pele lisa some aos poucos na borda da área (sem emenda com a pele da base)
             dentro = ndimage.distance_transform_edt(alfa > 0.5)
-            ap = np.where(lisa, ap * np.clip(dentro / 8, 0, 1), ap)
+            # menos em cima do traço antigo da base (sorriso/olho): ali a cobertura fica cheia, senão o contorno
+            # do traço antigo aparece como fantasma
+            antigo = dilata((OLHOS if cat == 'olhos' else BOCA) & _longe_da_pele, 5)
+            ap = np.where(lisa & ~antigo, ap * np.clip(dentro / 8, 0, 1), ap)
+            # e some aos poucos em volta dele (corte seco deixava um contorno claro do traço antigo)
+            perto = np.clip(1 - ndimage.distance_transform_edt(~antigo) / 6, 0, 1)
+            ap = np.where(lisa, np.maximum(ap, perto), ap)
         salvar(sp, ap, os.path.join(SAIDA, nome + '.pele.webp')); info['pele'] = True
     if (alfa * roupa).sum() > 50:
         m, sr = estender(roupa, cor | fixo, sombra_de(roupa, LUM_ROUPA))
@@ -237,8 +338,57 @@ for _reg in (OLHOS, BOCA):
     if _anel.any():
         PELE_LISA[dilata(_reg, 10)] = float(np.median(lum(base_limpa)[_anel])) / LUM_PELE * REF_SOMBRA
 
+def estetoscopio_limpo(img):
+    """Estetoscópio redesenhado a partir da arte: recorte pela cor (cinza neutro; pele, pijama e verde não são) em
+    vez da diferença com a base (fraca e ruidosa onde o tubo cruza o pijama), ruído do JPEG tirado e cores chapadas
+    em 4 tons (tubo, hastes, anel e diafragma). Sai uma camada só, de cor fixa: nada dele é tingido com o pijama."""
+    h, s, v = hsv(img)
+    L = lum(img)
+    cinza = (s < 0.16) & (L < 225) & (img[..., 1] - np.maximum(img[..., 0], img[..., 2]) < 40)
+    cinza &= ~classe_pele(img)
+    # só o que fica abaixo do pescoço (o resto da arte é igual à base e cinza nenhum)
+    cinza[: int(img.shape[0] * 0.55)] = False
+    m = ndimage.binary_opening(cinza, iterations=2)
+    rot, qtd = ndimage.label(m)
+    if qtd:
+        areas = ndimage.sum(np.ones_like(L), rot, index=np.arange(1, qtd + 1))
+        m = np.isin(rot, np.where(areas > 400)[0] + 1)
+    m = ndimage.binary_closing(m, iterations=2)
+    m = ndimage.binary_fill_holes(m) & (m | (L > 170))  # o miolo claro do diafragma entra
+    # contorno suave e redondo: borra a máscara e corta no meio (sem serrilhado nem pontinhos)
+    suave = np.asarray(Image.fromarray((m * 255).astype(np.uint8)).filter(ImageFilter.GaussianBlur(1.6)), np.float32) / 255
+    alfa = np.clip((suave - 0.35) / 0.3, 0, 1)
+    # tons chapados pelo cinza da arte (sem o ruído): 3 tons com limites longe do cinza da borracha (~77), que o
+    # JPEG faz variar uns 15 pontos (com limite perto dele o tubo saía listrado): tubo e hastes, anel e diafragma
+    Lm = ndimage.median_filter(np.where(m, L, 255), size=9)
+    # tubo quase preto: o cinza médio sumia em cima do colete azul-marinho e das roupas escuras
+    cores = np.array([[44, 47, 54], [158, 163, 169], [214, 217, 221]], np.float32)
+    idx = np.where(Lm < 135, 0, np.where(Lm < 188, 1, 2))
+    # pedacinho de outro tom dentro do tubo (ruído que sobrou): vira tubo
+    for t in (1, 2):
+        rot_t, q_t = ndimage.label(idx == t)
+        if q_t:
+            ar = ndimage.sum(np.ones_like(L), rot_t, index=np.arange(1, q_t + 1))
+            idx = np.where(np.isin(rot_t, np.where(ar < 150)[0] + 1), 0, idx)
+    out = cores[idx]
+    # borda: a cor do pixel de dentro mais perto (sem o tom misturado com o pijama)
+    dentro = alfa > 0.95
+    _, (iy, ix) = ndimage.distance_transform_edt(~dentro, return_indices=True)
+    out = out[iy, ix]
+    return out, alfa
+
+
 for n in nomes:
     img = ler(n)
+    if n == 'estetoscopio':
+        cor_e, alfa_e = estetoscopio_limpo(img)
+        salvar(cor_e, alfa_e, os.path.join(SAIDA, n + '.webp'))
+        for velho in (n + '.roupa.webp', n + '.pele.webp', n + '.cor.webp'):
+            if os.path.exists(os.path.join(SAIDA, velho)):
+                os.remove(os.path.join(SAIDA, velho))
+        manifesto[n] = {'fixo': True}
+        print(n, manifesto[n], '(redesenhado)')
+        continue
     d = dif(img)
     alfa = np.clip((d - 35) / 45, 0, 1)
     m = ndimage.binary_opening(alfa > 0.3, iterations=2)
@@ -304,7 +454,8 @@ for n in nomes:
     apaga = None
     if n in ('jaleco', 'colete'):
         # onde a roupa de baixo aparecia e na arte da peça virou fundo (jaleco mais estreito que a manga): apaga
-        apaga = (alfa_base > 0.5) & (fundo > 0.5)
+        # inclui a borda suavizada da peça (fundo > 0.2): ali o pijama vazava como uma linha fina nos ombros
+        apaga = (alfa_base > 0.1) & (fundo > 0.2)
         apaga[: int(base.shape[0] * 0.55)] = False  # só no corpo
     elif n == 'cabeca-touca':
         # a touca cobre o alto da cabeça: some o cabelo que passaria por cima dela (coque, topete...)

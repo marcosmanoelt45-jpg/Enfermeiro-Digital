@@ -35,6 +35,7 @@ const Conta = lazy(() => import('@/pages/Conta'));
 const VitrineOfensivas = import.meta.env.DEV ? lazy(() => import('@/features/amigos/VitrineOfensivas.jsx')) : null;
 const EditorAvatar = lazy(() => import('@/features/avatar/EditorAvatar.jsx'));
 const SocialPage = lazy(() => import('@/features/social/SocialPage.jsx'));
+const LojaPage = lazy(() => import('@/features/pontos/LojaPage.jsx'));
 const AdminPage = lazy(() => import('@/features/admin/AdminPage.jsx'));
 const ConvitePage = lazy(() => import('@/features/social/ConvitePage.jsx'));
 const PerfilAmigoPage = lazy(() => import('@/features/social/PerfilAmigoPage.jsx'));
@@ -243,6 +244,7 @@ const AuthenticatedApp = () => {
           <Route path="/conta" element={<Conta />} />
           <Route path="/avatar" element={<EditorAvatar />} />
           <Route path="/social" element={<SocialPage />} />
+          <Route path="/loja" element={<LojaPage />} />
           <Route path="/admin" element={<AdminPage />} />
           <Route path="/perfil/:id" element={<PerfilAmigoPage />} />
         </Route>

@@ -157,6 +157,7 @@
 "pele": true
 },
 "colete": {
+"apaga": true,
 "fixo": true,
 "pele": true,
 "roupa": true
@@ -216,8 +217,7 @@
 "roupa": true
 },
 "estetoscopio": {
-"fixo": true,
-"roupa": true
+"fixo": true
 },
 "jaleco": {
 "apaga": true,

@@ -17,7 +17,8 @@ export default function ChipOfensiva({ estado, compacto = false }) {
   const anterior = useRef(dias);
 
   useEffect(() => {
-    if (dias > anterior.current) {
+    // vindo de 0 é o progresso chegando do servidor depois do login, não um dia novo: sem pulo
+    if (dias > anterior.current && anterior.current > 0) {
       controle.start({
         transform: ["scale(1) rotate(0deg)", "scale(1.35) rotate(-8deg)", "scale(1) rotate(0deg)"],
         transition: { duration: 0.45, ease: [0.23, 1, 0.32, 1] },

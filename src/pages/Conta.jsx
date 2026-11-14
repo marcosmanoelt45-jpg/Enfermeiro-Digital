@@ -10,7 +10,6 @@ import {
   Trophy,
   UserPlus,
   Flame,
-  Snowflake,
   ChevronDown,
   ChevronUp,
   Pencil,
@@ -45,7 +44,8 @@ import { EVENTO_SINCRONIZADO } from "@/features/conta/sincronizacao.js";
 import PrivacidadeESom from "@/features/conta/PrivacidadeESom.jsx";
 import { souAdmin } from "@/features/admin/servicoAdmin.js";
 
-import LojaPE from "@/features/pontos/LojaPE.jsx";
+import { ArteItem } from "@/features/pontos/LojaPE.jsx";
+import { LOJA_PE } from "@/features/pontos/regrasPE.js";
 
 // Aba Social do Perfil: carrega só quando aberta (pódio, avatares e amigos não pesam o perfil).
 const SocialConteudo = React.lazy(() => import("@/features/social/SocialConteudo.jsx"));
@@ -251,7 +251,7 @@ export default function Conta() {
                   setPerfilTab("social");
                   document.getElementById("tab-social")?.scrollIntoView({ behavior: "smooth", block: "start" });
                 }}
-                className="mt-3 flex w-full items-center gap-3 rounded-2xl border-2 border-[#27394B] bg-[#0B131D] px-3 py-2.5 text-left transition-colors duration-150 hover:border-[#20D5B5]/60"
+                className="mt-3 flex w-full items-center gap-3 rounded-2xl border-2 border-[#27394B] bg-[#0B131D] px-3 py-2.5 text-left transition-colors duration-150 hover:border-[#20D5B5]/60 md:hidden"
               >
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFC247]/15 text-[#FFC247]">
                   <Trophy className="h-5 w-5" aria-hidden="true" />
@@ -333,30 +333,6 @@ export default function Conta() {
             )}
           </button>
 
-          <button
-            role="tab"
-            id="tab-loja"
-            aria-selected={perfilTab === "loja"}
-            aria-controls="panel-loja"
-            type="button"
-            onClick={() => {
-              triggerHaptic(10);
-              setPerfilTab("loja");
-            }}
-            className={`relative px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none ${
-              perfilTab === "loja" ? "text-[#20D5B5]" : "text-[#9FB3C6] hover:text-white"
-            }`}
-          >
-            Loja
-            {perfilTab === "loja" && (
-              <motion.span
-                layoutId="perfil-tab-indicator"
-                transition={spring.glide}
-                className="absolute bottom-0 inset-x-0 h-0.5 bg-[#20D5B5] rounded-full"
-              />
-            )}
-          </button>
-
           {flagAtiva("social") && (
             <button
               role="tab"
@@ -368,7 +344,7 @@ export default function Conta() {
                 triggerHaptic(10);
                 setPerfilTab("social");
               }}
-              className={`relative px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none ${
+              className={`relative px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none md:hidden ${
                 perfilTab === "social" ? "text-[#20D5B5]" : "text-[#9FB3C6] hover:text-white"
               }`}
             >
@@ -384,13 +360,8 @@ export default function Conta() {
           )}
         </div>
 
-        {/* Loja de PE: bloqueio de ofensiva e PE em dobro */}
-        <div role="tabpanel" id="panel-loja" aria-labelledby="tab-loja" hidden={perfilTab !== "loja"}>
-          {perfilTab === "loja" && <LojaPE userId={user?.id} onMudou={(s) => setGameState(s)} />}
-        </div>
-
         {/* Social: pódio e amigos (o mesmo conteúdo da página /social) */}
-        <div role="tabpanel" id="panel-social" aria-labelledby="tab-social" hidden={perfilTab !== "social"}>
+        <div role="tabpanel" id="panel-social" aria-labelledby="tab-social" hidden={perfilTab !== "social"} className="md:hidden">
           {perfilTab === "social" && (
             <React.Suspense fallback={<p className="py-8 text-center text-sm font-bold text-[#9FB3C6]">Carregando…</p>}>
               <SocialConteudo />
@@ -438,11 +409,26 @@ export default function Conta() {
                       <AnimatedNumber value={gameState?.streak ?? 0} /> dias seguidos
                     </h3>
                     <p className="text-[11px] text-[#9FB3C6]">
-                      Recorde: <AnimatedNumber value={gameState?.bestStreak ?? 0} /> dias ·{" "}
-                      {freezeCount} {plural(freezeCount, "congelamento disponível", "congelamentos disponíveis")}
+                      Recorde: <AnimatedNumber value={gameState?.bestStreak ?? 0} /> dias
                     </p>
                   </div>
                 </div>
+                <div className="flex shrink-0 items-center gap-2">
+                {/* bloqueios de ofensiva guardados: discreto, ao lado do PE; leva à loja */}
+                <button
+                  type="button"
+                  onClick={() => navigate("/loja")}
+                  title={`${freezeCount} ${plural(freezeCount, "bloqueio de ofensiva guardado", "bloqueios de ofensiva guardados")}`}
+                  aria-label={`${freezeCount} ${plural(freezeCount, "bloqueio de ofensiva guardado", "bloqueios de ofensiva guardados")}. Abrir a loja`}
+                  className="relative flex h-8 w-8 items-center justify-center rounded-xl transition-colors duration-150 hover:bg-[#5EB8FF]/10"
+                >
+                  <span className={freezeCount > 0 ? "" : "opacity-35 grayscale"}>
+                    <ArteItem item={LOJA_PE[0]} className="h-7 w-7" />
+                  </span>
+                  <span className="absolute -bottom-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full border-2 border-[#0E1722] bg-[#5EB8FF] px-0.5 text-[9px] font-black leading-none text-[#0B131D]">
+                    {freezeCount}
+                  </span>
+                </button>
                 <Button
                   type="button"
                   variant="outline"
@@ -455,6 +441,7 @@ export default function Conta() {
                 >
                   <AnimatedNumber value={gameState?.studyPoints ?? gameState?.totalXp ?? 0} /> PE
                 </Button>
+                </div>
               </motion.div>
 
               {/* Ofensivas com amigos: atrás da chave `amigos` até o servidor do multiplayer existir. */}
@@ -563,27 +550,6 @@ export default function Conta() {
                 )}
               </motion.div>
 
-              {/* Card de Congelamento de Plantão (profile-7 & profile-15: sem pulse infinito) */}
-              <motion.div variants={fadeUp} className="pt-1">
-                <div className="rounded-2xl border border-[#1F3045] bg-[#0E1722] p-4 flex items-center justify-between gap-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 rounded-xl bg-sky-950/60 border border-sky-800 text-sky-400 flex items-center justify-center shrink-0">
-                      <Snowflake className="w-5 h-5" />
-                    </div>
-                    <div>
-                      <h5 className="text-xs font-bold text-white flex items-center gap-2">
-                        Congelamento de Plantão
-                        <span className="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-sky-900/60 text-sky-300">
-                          {freezeCount} {plural(freezeCount, "disponível", "disponíveis")}
-                        </span>
-                      </h5>
-                      <p className="text-[11px] text-[#9FB3C6] mt-0.5">
-                        Fique 1 dia sem atividade sem perder sua contagem de dias seguidos na escala clínica.
-                      </p>
-                    </div>
-                  </div>
-                </div>
-              </motion.div>
             </motion.div>
           )}
         </div>

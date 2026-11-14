@@ -4,12 +4,31 @@
 // perfil público (coluna avatar). Estilo tirado das artes do Flow (assets-brutos/flow/avatar): chapado,
 // formas redondas, bochechas rosadas, pijama hospitalar com estampa, crachá e acessórios de cabeça divertidos.
 
-export const PELES = ["#FFDCC8", "#FEC3A3", "#EAA67C", "#C98457", "#9A603E", "#6B412B"];
-export const CORES_CABELO = ["#2A2230", "#4A2E2A", "#7A4A2A", "#B5552C", "#E0B05C", "#BDB6AF", "#E991B8", "#5E8FEA"];
-export const CORES_ROUPA = ["#A5B6EE", "#C3A6E6", "#7FCFC2", "#F3AFC8", "#F6C77E", "#93D38E", "#5B6B83", "#F08A7E"];
-export const CORES_ACESSORIO = ["#C69E9C", "#F3A9BE", "#F7F1EA", "#3C3542", "#F2C14E", "#7CCBC0", "#A88BE0"];
-export const CORES_MASCARA = ["#A9D3EE", "#F3B3C8", "#F7F7F5", "#3C3542", "#93D38E", "#C3A6E6", "#F6C77E", "#7FCFC2"];
-export const CORES_FUNDO = ["#BFEBD9", "#D9CCF5", "#FBD6C6", "#C6E0FB", "#FCE9A8", "#F8C9DA", "#2B4A5E", "#DDE6EC"];
+// As cores novas entram sempre no fim da lista: o avatar salva o índice, então a ordem antiga não pode mudar.
+export const PELES = [
+  "#FFDCC8", "#FEC3A3", "#EAA67C", "#C98457", "#9A603E", "#6B412B",
+  "#FFE9DC", "#F6CDB0", "#E3B48C", "#D49A6A", "#B5784C", "#83512F", "#55331F",
+];
+export const CORES_CABELO = [
+  "#2A2230", "#4A2E2A", "#7A4A2A", "#B5552C", "#E0B05C", "#BDB6AF", "#E991B8", "#5E8FEA",
+  "#16141A", "#5E3B22", "#9C5B2E", "#D9823B", "#F2D48A", "#F3EFEA", "#C2453D", "#9A6BD8", "#3FB5A0", "#F07C4A",
+];
+export const CORES_ROUPA = [
+  "#A5B6EE", "#C3A6E6", "#7FCFC2", "#F3AFC8", "#F6C77E", "#93D38E", "#5B6B83", "#F08A7E",
+  "#3E5C8A", "#5277D9", "#46B6C9", "#2F9C8C", "#5F8F5F", "#FFE08A", "#E25C5C", "#A23E5E", "#E4B8F2", "#B8C2CC", "#F2F4F7", "#353B48",
+];
+export const CORES_ACESSORIO = [
+  "#C69E9C", "#F3A9BE", "#F7F1EA", "#3C3542", "#F2C14E", "#7CCBC0", "#A88BE0",
+  "#E25C5C", "#F08A4B", "#93D38E", "#5277D9", "#A5B6EE", "#A23E5E", "#46B6C9", "#B8C2CC", "#8A5A3B",
+];
+export const CORES_MASCARA = [
+  "#A9D3EE", "#F3B3C8", "#F7F7F5", "#3C3542", "#93D38E", "#C3A6E6", "#F6C77E", "#7FCFC2",
+  "#3E5C8A", "#5277D9", "#E25C5C", "#A23E5E", "#F08A4B", "#B8C2CC", "#2F9C8C",
+];
+export const CORES_FUNDO = [
+  "#BFEBD9", "#D9CCF5", "#FBD6C6", "#C6E0FB", "#FCE9A8", "#F8C9DA", "#2B4A5E", "#DDE6EC",
+  "#FFD7A8", "#B9EBF2", "#D4F2C4", "#FFC4B8", "#E9DBFF", "#F3EBDD", "#FFFFFF", "#1E3347", "#3B2F4A", "#26403A",
+];
 
 // Cada opção: id (o que vai salvo) e rótulo (o que a pessoa lê).
 export const CATEGORIAS = [
@@ -17,7 +36,7 @@ export const CATEGORIAS = [
     id: "rosto",
     rotulo: "Rosto",
     grupos: [
-      { campo: "pele", rotulo: "Tom de pele", tipo: "cor", cores: PELES },
+      { campo: "pele", rotulo: "Tom de pele", tipo: "cor", cores: PELES, basicas: 6 },
       {
         campo: "olhos",
         rotulo: "Olhos",
@@ -48,7 +67,7 @@ export const CATEGORIAS = [
     id: "cabelo",
     rotulo: "Cabelo",
     grupos: [
-      { campo: "corCabelo", rotulo: "Cor", tipo: "cor", cores: CORES_CABELO },
+      { campo: "corCabelo", rotulo: "Cor", tipo: "cor", cores: CORES_CABELO, basicas: 8 },
       {
         campo: "cabelo",
         rotulo: "Corte",
@@ -104,7 +123,7 @@ export const CATEGORIAS = [
     id: "mascara",
     rotulo: "Máscara",
     grupos: [
-      { campo: "corMascara", rotulo: "Cor", tipo: "cor", cores: CORES_MASCARA },
+      { campo: "corMascara", rotulo: "Cor", tipo: "cor", cores: CORES_MASCARA, basicas: 8 },
       {
         campo: "mascara",
         rotulo: "Máscara",
@@ -120,7 +139,7 @@ export const CATEGORIAS = [
     id: "cabeca",
     rotulo: "Cabeça",
     grupos: [
-      { campo: "corAcessorio", rotulo: "Cor", tipo: "cor", cores: CORES_ACESSORIO },
+      { campo: "corAcessorio", rotulo: "Cor", tipo: "cor", cores: CORES_ACESSORIO, basicas: 7 },
       {
         campo: "cabeca",
         rotulo: "Acessório",
@@ -142,7 +161,7 @@ export const CATEGORIAS = [
     id: "roupa",
     rotulo: "Roupa",
     grupos: [
-      { campo: "corRoupa", rotulo: "Cor do pijama", tipo: "cor", cores: CORES_ROUPA },
+      { campo: "corRoupa", rotulo: "Cor do pijama", tipo: "cor", cores: CORES_ROUPA, basicas: 8 },
       {
         campo: "estampa",
         rotulo: "Estampa",
@@ -199,7 +218,7 @@ export const CATEGORIAS = [
   {
     id: "fundo",
     rotulo: "Fundo",
-    grupos: [{ campo: "fundo", rotulo: "Cor de fundo", tipo: "cor", cores: CORES_FUNDO }],
+    grupos: [{ campo: "fundo", rotulo: "Cor de fundo", tipo: "cor", cores: CORES_FUNDO, basicas: 8 }],
   },
 ];
 
@@ -247,7 +266,8 @@ export function sortearAvatar(semente = null) {
   };
   const de = (lista) => lista[Math.floor(r() * lista.length)];
   const a = {};
-  for (const g of CAMPOS) a[g.campo] = g.tipo === "cor" ? Math.floor(r() * g.cores.length) : de(g.opcoes).id;
+  // o sorteio usa só as cores básicas: assim o avatar sorteado de quem não montou o seu não muda quando entram cores
+  for (const g of CAMPOS) a[g.campo] = g.tipo === "cor" ? Math.floor(r() * (g.basicas ?? g.cores.length)) : de(g.opcoes).id;
   // sorteio mais "bonito": menos barba e óculos de proteção, e sem fundo escuro
   if (r() < 0.75) a.barba = "nenhuma";
   if (a.oculos === "protecao" && r() < 0.7) a.oculos = "nenhum";

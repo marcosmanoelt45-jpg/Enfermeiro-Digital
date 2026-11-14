@@ -8,6 +8,7 @@ import { toast } from "@/components/ui/use-toast";
 import { useAuth } from "@/lib/AuthContext";
 import { vibrate } from "@/lib/motion";
 import AvatarPessoa from "./AvatarPessoa.jsx";
+import RodaDeCores, { BotaoRoda } from "./RodaDeCores.jsx";
 import { CATEGORIAS, normalizarAvatar, sortearAvatar } from "./pecas.js";
 import { gravarMeuAvatarLocal, lerMeuAvatar } from "./meuAvatar.js";
 import { atualizarMeuPerfil, SocialIndisponivel } from "@/features/social/servicoSocial.js";
@@ -27,6 +28,7 @@ export default function EditorAvatar() {
   const [avatar, setAvatar] = useState(inicial);
   const [aba, setAba] = useState(CATEGORIAS[0].id);
   const [salvando, setSalvando] = useState(false);
+  const [roda, setRoda] = useState(null);
   const categoria = CATEGORIAS.find((c) => c.id === aba);
   const mudou = JSON.stringify(avatar) !== JSON.stringify(inicial);
 
@@ -111,9 +113,11 @@ export default function EditorAvatar() {
                     <div className="flex flex-wrap gap-2.5">
                       {g.cores.map((cor, i) => {
                         const marcada = avatar[g.campo] === i;
+                        // na fileira só as básicas (e a escolhida, se veio da roda); as outras ficam na roda
+                        if (i >= (g.basicas ?? g.cores.length) && !marcada) return null;
                         return (
                           <button
-                            key={cor}
+                            key={i}
                             type="button"
                             onClick={() => escolher(g.campo, i)}
                             aria-label={`${g.rotulo} ${i + 1}`}
@@ -125,6 +129,15 @@ export default function EditorAvatar() {
                           </button>
                         );
                       })}
+                      <BotaoRoda cores={g.cores} rotulo={g.rotulo} onClick={() => setRoda(g.campo)} />
+                      <RodaDeCores
+                        aberta={roda === g.campo}
+                        onFechar={() => setRoda(null)}
+                        rotulo={g.rotulo}
+                        cores={g.cores}
+                        valor={avatar[g.campo]}
+                        onEscolher={(i) => escolher(g.campo, i)}
+                      />
                     </div>
                   ) : (
                     <div className="grid grid-cols-3 gap-2.5 sm:grid-cols-4 lg:grid-cols-5">

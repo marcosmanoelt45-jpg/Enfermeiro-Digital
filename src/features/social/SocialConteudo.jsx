@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useAuth } from "@/lib/AuthContext";
 import { vibrate } from "@/lib/motion";
 import { CartaoConvite, LinhaPessoa, Podio } from "./componentes.jsx";
+import { comporAvatar, ladoPara } from "@/features/avatar/compor.js";
+import { sortearAvatar } from "@/features/avatar/pecas.js";
 import { METRICAS, ofensivaJuntos, ordenarPodio, estudouHojePerfil } from "./logicaSocial.js";
 import { atualizarMeuPerfil, listarAmigos, meuPerfil, perfisDoPodio, semanaAtual, SocialIndisponivel } from "./servicoSocial.js";
 
@@ -12,6 +14,16 @@ const segmento = (ativo) =>
   `flex-1 rounded-xl px-3 py-2 text-sm font-black transition-colors duration-150 ${ativo ? "bg-[#20D5B5] text-[#062B25]" : "text-[#9FB3C6] hover:text-[#EAF2F8]"}`;
 
 const POR_PAGINA = 20;
+
+function prepararFotos(perfis) {
+  const lados = [...new Set([76, 60, 44].map(ladoPara))];
+  const trabalhos = (perfis ?? []).slice(0, POR_PAGINA + 3).flatMap((perfil) => {
+    const temAvatar = perfil?.avatar && Object.keys(perfil.avatar).length > 0;
+    const avatar = temAvatar ? perfil.avatar : sortearAvatar(perfil?.user_id || perfil?.nome || "x");
+    return lados.map((lado) => comporAvatar(avatar, lado, perfil?.nome).catch(() => null));
+  });
+  return Promise.race([Promise.all(trabalhos), new Promise((r) => setTimeout(r, 2500))]);
+}
 
 /** Lugar do pódio enquanto carrega: mesma altura do pódio de verdade, para a tela não pular quando ele chega. */
 function EsqueletoPodio() {
@@ -58,6 +70,9 @@ export default function SocialConteudo() {
     setErro(null);
     try {
       const [p, a, m] = await Promise.all([perfisDoPodio(escopo, metrica), listarAmigos(), meuPerfil()]);
+      // monta as fotos antes de mostrar: antes cada uma aparecia num momento (até 2 s de diferença) e o pódio
+      // piscava foto por foto. Espera no máximo 2,5 s; o que não ficar pronto aparece depois, com fade.
+      await prepararFotos(p);
       setPerfis(p);
       setAmigos(a);
       setEu(m);

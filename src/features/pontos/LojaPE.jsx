@@ -1,31 +1,28 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { Shield, Zap, Sparkles, Stethoscope, ArrowRightLeft, GraduationCap, Gamepad2, Video, ListChecks, RotateCcw, Calculator } from "lucide-react";
+import { Shield, Zap, Sparkles } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { AnimatedNumber } from "@/components/ui/animated-number";
 import { toast } from "@/components/ui/use-toast";
 import { vibrate } from "@/lib/motion";
 import { celebrate } from "@/lib/celebrate";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
-import { LOJA_PE, MAX_BLOQUEIOS, PE_POR_ATIVIDADE, minutosDeDobro, podeComprar } from "./regrasPE.js";
+import { LOJA_PE, MAX_BLOQUEIOS, minutosDeDobro, podeComprar } from "./regrasPE.js";
 
 const ICONES = { Shield, Zap };
 
-// O que rende PE (valores de regrasPE.js), na linguagem do aluno.
-const GANHOS = [
-  { icone: Stethoscope, titulo: "Consulta ao Vivo", pe: PE_POR_ATIVIDADE.consulta, extra: "+ bônus pela nota" },
-  { icone: ArrowRightLeft, titulo: "Plantão com a Ana", pe: PE_POR_ATIVIDADE.plantao_vivo, extra: "+ bônus pela nota" },
-  { icone: GraduationCap, titulo: "Caso clínico", pe: PE_POR_ATIVIDADE.case_solved },
-  { icone: Gamepad2, titulo: "Minijogo", pe: PE_POR_ATIVIDADE.tecnica, extra: "+ bônus pela nota" },
-  { icone: Video, titulo: "Vídeo assistido até o fim", pe: PE_POR_ATIVIDADE.video, extra: "1ª vez de cada vídeo" },
-  { icone: ListChecks, titulo: "Questão certa", pe: PE_POR_ATIVIDADE.questao, extra: "por questão" },
-  { icone: Calculator, titulo: "Cálculo com o Dr. Rui", pe: null, extra: "por acerto, mais se for de primeira" },
-  { icone: RotateCcw, titulo: "Revisão concluída", pe: PE_POR_ATIVIDADE.revisao },
-];
+/** Arte do item; se a imagem não carregar, fica o ícone na cor do item. */
+export function ArteItem({ item, className = "h-16 w-16" }) {
+  const [falhou, setFalhou] = useState(!item.imagem);
+  const Icone = ICONES[item.icone] ?? Sparkles;
+  if (falhou) return <Icone className={className} style={{ color: item.cor }} aria-hidden="true" />;
+  return <img src={item.imagem} alt="" className={`${className} object-contain`} draggable={false} onError={() => setFalhou(true)} />;
+}
+ArteItem.propTypes = { item: PropTypes.object.isRequired, className: PropTypes.string };
 
 /**
- * Loja de PE: saldo, bloqueios guardados, PE em dobro ativo, itens para comprar e a tabela de como ganhar PE.
- * Usada na aba "Loja" do Perfil e no botão de PE do cabeçalho.
+ * Loja de PE: saldo, o que a pessoa já tem guardado (bloqueios e PE em dobro) e os itens.
+ * Usada na página /loja e no botão de PE do cabeçalho.
  */
 export default function LojaPE({ userId, onMudou }) {
   const [estado, setEstado] = useState(() => clinicalGamificationService.getState(userId));
@@ -33,6 +30,9 @@ export default function LojaPE({ userId, onMudou }) {
   const saldo = estado.studyPoints ?? estado.totalXp ?? 0;
   const bloqueios = estado.streakFreezeAvailable ?? 0;
   const minutos = minutosDeDobro(estado, agora);
+  const bloqueio = LOJA_PE.find((i) => i.id === "bloqueio_ofensiva");
+
+  useEffect(() => setEstado(clinicalGamificationService.getState(userId)), [userId]);
 
   // o relógio do PE em dobro anda sozinho (a cada 20 s basta: mostra minutos)
   useEffect(() => {
@@ -61,69 +61,64 @@ export default function LojaPE({ userId, onMudou }) {
   };
 
   return (
-    <div className="space-y-4">
-      {/* saldo */}
-      <section className="rounded-3xl border-2 border-[#FFC247]/40 bg-[#131F2E] p-4" aria-label="Seu saldo">
-        <p className="text-xs font-extrabold uppercase tracking-wide text-[#9FB3C6]">Seu saldo</p>
-        <p className="mt-0.5 text-4xl font-black text-[#FFC247]">
-          <AnimatedNumber value={saldo} /> <span className="text-xl">PE</span>
-        </p>
-        <div className="mt-3 flex flex-wrap gap-2">
-          <span className="inline-flex items-center gap-1.5 rounded-full bg-[#5EB8FF]/15 px-3 py-1 text-xs font-black text-[#5EB8FF]">
-            <Shield className="h-3.5 w-3.5" aria-hidden="true" /> {bloqueios} de {MAX_BLOQUEIOS} bloqueios
-          </span>
-          {minutos > 0 ? (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#FFC247]/20 px-3 py-1 text-xs font-black text-[#FFC247]">
-              <Zap className="h-3.5 w-3.5 fill-current" aria-hidden="true" /> PE em dobro: {minutos} min
+    <div className="space-y-5">
+      {/* saldo e o que já está guardado */}
+      <section className="flex flex-wrap items-end justify-between gap-4 rounded-3xl border-2 border-[#27394B] bg-[#131F2E] p-5" aria-label="Seu saldo">
+        <div>
+          <p className="text-xs font-bold text-[#9FB3C6]">Seu saldo</p>
+          <p className="mt-1 text-4xl font-black leading-none text-[#FFC247] tabular-nums">
+            <AnimatedNumber value={saldo} /> <span className="text-xl">PE</span>
+          </p>
+        </div>
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="inline-flex items-center gap-2 rounded-2xl bg-[#0B131D] py-1.5 pl-1.5 pr-3 text-xs font-black text-[#EAF2F8]" title="Bloqueios de ofensiva guardados">
+            <span className="flex">
+              {Array.from({ length: MAX_BLOQUEIOS }, (_, i) => (
+                <span key={i} className={i < bloqueios ? "" : "opacity-25 grayscale"}>
+                  <ArteItem item={bloqueio} className="h-6 w-6" />
+                </span>
+              ))}
             </span>
-          ) : (
-            <span className="inline-flex items-center gap-1.5 rounded-full bg-[#16222E] px-3 py-1 text-xs font-bold text-[#9FB3C6]">
-              <Zap className="h-3.5 w-3.5" aria-hidden="true" /> PE em dobro desligado
+            {bloqueios}/{MAX_BLOQUEIOS} bloqueios
+          </span>
+          {minutos > 0 && (
+            <span className="inline-flex items-center gap-1.5 rounded-2xl bg-[#FFC247]/15 px-3 py-2 text-xs font-black text-[#FFC247]">
+              <Zap className="h-3.5 w-3.5 fill-current" aria-hidden="true" /> PE em dobro · {minutos} min
             </span>
           )}
         </div>
       </section>
 
       {/* itens */}
-      <section className="space-y-2.5" aria-labelledby="loja-itens">
-        <h2 id="loja-itens" className="text-sm font-black text-[#EAF2F8]">Loja</h2>
+      <section aria-label="Itens da loja" className="grid gap-3 sm:grid-cols-3">
         {LOJA_PE.map((item) => {
-          const Icone = ICONES[item.icone] ?? Sparkles;
           const pode = podeComprar(item, { ...estado, studyPoints: saldo });
           return (
-            <article key={item.id} className="flex items-center gap-3 rounded-2xl border-2 border-[#27394B] bg-[#131F2E] p-3">
-              <span className="flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl" style={{ background: `${item.cor}22`, color: item.cor }}>
-                <Icone className="h-6 w-6" aria-hidden="true" />
-              </span>
-              <div className="min-w-0 flex-1">
-                <h3 className="text-sm font-black text-[#EAF2F8]">{item.titulo}</h3>
-                <p className="text-xs font-semibold leading-snug text-[#9FB3C6]">{item.descricao}</p>
-                {!pode.ok && <p className="mt-0.5 text-[11px] font-bold text-[#FFC247]">{pode.motivo}</p>}
+            <article key={item.id} className="flex items-center gap-4 rounded-3xl border-2 border-[#27394B] bg-[#131F2E] p-4 sm:flex-col sm:items-stretch sm:text-center">
+              <div className="flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl sm:h-28 sm:w-full" style={{ background: `${item.cor}14` }}>
+                <ArteItem item={item} className="h-16 w-16 sm:h-24 sm:w-24" />
               </div>
-              <Button type="button" variant={pode.ok ? "warning" : "locked"} size="sm" disabled={!pode.ok} onClick={() => comprar(item)} className="shrink-0" aria-label={`Comprar ${item.titulo} por ${item.custo} PE`}>
-                {item.custo} PE
-              </Button>
+              <div className="flex min-w-0 flex-1 flex-col gap-2">
+                <div>
+                  <h3 className="text-sm font-black text-[#EAF2F8]">{item.titulo}</h3>
+                  <p className="mt-0.5 text-xs font-semibold leading-snug text-[#9FB3C6]">{item.descricao}</p>
+                </div>
+                <Button
+                  type="button"
+                  variant={pode.ok ? "warning" : "locked"}
+                  size="sm"
+                  disabled={!pode.ok}
+                  onClick={() => comprar(item)}
+                  className="mt-auto w-full sm:w-full"
+                  aria-label={`Comprar ${item.titulo} por ${item.custo} PE`}
+                >
+                  {item.custo} PE
+                </Button>
+                {!pode.ok && <p className="text-[11px] font-bold text-[#9FB3C6]">{pode.motivo}</p>}
+              </div>
             </article>
           );
         })}
-      </section>
-
-      {/* como ganhar */}
-      <section className="rounded-2xl border-2 border-[#27394B] bg-[#0E1722] p-3" aria-labelledby="loja-ganhar">
-        <h2 id="loja-ganhar" className="text-sm font-black text-[#EAF2F8]">Como ganhar PE</h2>
-        <p className="text-xs font-semibold text-[#9FB3C6]">O PE vem de terminar uma atividade. Nota a partir de 70% dá +10; a partir de 90%, +20.</p>
-        <ul className="mt-2 divide-y divide-[#1F3045]">
-          {GANHOS.map((g) => (
-            <li key={g.titulo} className="flex items-center gap-3 py-2">
-              <g.icone className="h-4 w-4 shrink-0 text-[#20D5B5]" aria-hidden="true" />
-              <span className="min-w-0 flex-1">
-                <span className="block text-sm font-bold text-[#EAF2F8]">{g.titulo}</span>
-                {g.extra && <span className="block text-[11px] font-semibold text-[#9FB3C6]">{g.extra}</span>}
-              </span>
-              {g.pe != null && <span className="text-sm font-black text-[#FFC247]">+{g.pe}</span>}
-            </li>
-          ))}
-        </ul>
       </section>
     </div>
   );
