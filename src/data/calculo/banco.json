@@ -4734,5 +4734,791 @@
    ]
   },
   "origem": "erro:alergia"
+ },
+ {
+  "id": "p134",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Soro fisiológico 0,9%",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 2 horas e 30 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 500,
+   "minutos": 150
+  },
+  "resposta": 67,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Tempo em minutos: 2 h 30 min = 150 min.",
+   "Macrogotas: gotas/min = V × 20 ÷ minutos.",
+   "500 × 20 ÷ 150 = 66,66...",
+   "Arredondando (6 ou mais sobe): 67 gotas/min."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p134.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p135",
+  "tipo": "gotejamento_micro",
+  "categoria": "Microgotas / Minutos",
+  "prescricao": {
+   "farmaco": "Imipenem (Tienam)",
+   "dose": 500,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "em 30 minutos"
+  },
+  "disponivel": "diluído em 50 mL de soro; sem bomba, só equipo de microgotas",
+  "entrada": {
+   "kind": "micro_h",
+   "volumeMl": 50,
+   "horas": 0.5
+  },
+  "resposta": 100,
+  "unidade": "mcgts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume = 50 mL | tempo = 30 min = 0,5 h.",
+   "Microgotas: mcgts/min = V ÷ T(h).",
+   "50 ÷ 0,5 = 100 microgotas/min."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p135.enunciado",
+   "dica": "calc.dica.gotejamento_micro"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p136",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Horas",
+  "prescricao": {
+   "farmaco": "Soro glicofisiológico",
+   "dose": 2000,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 6 horas"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_h",
+   "volumeMl": 2000,
+   "horas": 6
+  },
+  "resposta": 111,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Volume = 2000 mL | tempo = 6 h.",
+   "Macrogotas: gotas/min = V ÷ (T × 3).",
+   "2000 ÷ 18 = 111,1.",
+   "Arredondando: 111 gotas/min."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p136.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p137",
+  "tipo": "reconstituicao",
+  "categoria": "Penicilina cristalina",
+  "prescricao": {
+   "farmaco": "Penicilina cristalina",
+   "dose": 2230000,
+   "unidadeDose": "UI",
+   "via": "IV",
+   "frequencia": "no horário"
+  },
+  "disponivel": "frasco-ampola de 10.000.000 UI: o pó ocupa 4 mL; dilua em 6 mL de água destilada (volume final 10 mL)",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 2230000,
+   "frasco": 10000000,
+   "volumeMl": 10
+  },
+  "resposta": 2.2,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "10 milhões de UI: o pó ocupa 4 mL + 6 mL de diluente = 10 mL.",
+   "10.000.000 UI --- 10 mL | 2.230.000 UI --- X.",
+   "X = 2.230.000 × 10 ÷ 10.000.000 = 2,23.",
+   "Arredondando (3 é menor que 5): 2,2 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p137.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p138",
+  "tipo": "diluicao",
+  "categoria": "Antibiótico já diluído",
+  "prescricao": {
+   "farmaco": "Piperacilina + tazobactam (Tazocin)",
+   "dose": 600,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "no horário"
+  },
+  "disponivel": "2,5 g em 50 mL de SF 0,9%",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 600,
+   "frasco": 2500,
+   "volumeMl": 50
+  },
+  "resposta": 12,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "2,5 g = 2500 mg.",
+   "2500 mg --- 50 mL | 600 mg --- X.",
+   "X = 600 × 50 ÷ 2500 = 12 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p138.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p139",
+  "tipo": "diluicao",
+  "categoria": "Xarope",
+  "prescricao": {
+   "farmaco": "Xarope analgésico",
+   "dose": 7,
+   "unidadeDose": "mg",
+   "via": "VO",
+   "frequencia": "de 3 em 3 horas, se dor"
+  },
+  "disponivel": "xarope de 50 mg/5 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 7,
+   "frasco": 50,
+   "volumeMl": 5
+  },
+  "resposta": 0.7,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "50 mg --- 5 mL | 7 mg --- X.",
+   "X = 7 × 5 ÷ 50 = 0,7 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p139.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p140",
+  "tipo": "gotas_orais",
+  "categoria": "Gotas orais",
+  "prescricao": {
+   "farmaco": "Metoclopramida gotas",
+   "dose": 3,
+   "unidadeDose": "mg",
+   "via": "VO",
+   "frequencia": "antes do almoço"
+  },
+  "disponivel": "solução oral de 4 mg/mL; conta-gotas de 20 gotas/mL",
+  "entrada": {
+   "kind": "gotas_orais",
+   "prescritoMg": 3,
+   "mgPorMl": 4,
+   "gtsPorMl": 20
+  },
+  "resposta": 15,
+  "unidade": "gotas",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "4 mg --- 1 mL | 3 mg --- X: X = 0,75 mL.",
+   "1 mL = 20 gotas: 0,75 × 20 = 15 gotas."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p140.enunciado",
+   "dica": "calc.dica.gotas_orais"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p141",
+  "tipo": "diluicao",
+  "categoria": "Ampola",
+  "prescricao": {
+   "farmaco": "Medicamento injetável",
+   "dose": 11,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 15 mg/4 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 11,
+   "frasco": 15,
+   "volumeMl": 4
+  },
+  "resposta": 2.9,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "15 mg --- 4 mL | 11 mg --- X.",
+   "X = 11 × 4 ÷ 15 = 2,93.",
+   "Arredondando: 2,9 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p141.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p142",
+  "tipo": "reconstituicao",
+  "categoria": "Penicilina cristalina",
+  "prescricao": {
+   "farmaco": "Penicilina cristalina",
+   "dose": 3500000,
+   "unidadeDose": "UI",
+   "via": "IV",
+   "frequencia": "de 4 em 4 horas"
+  },
+  "disponivel": "frasco-ampola de 5.000.000 UI diluído em 8 mL de água destilada (o pó ocupa 2 mL: 10 mL)",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 3500000,
+   "frasco": 5000000,
+   "volumeMl": 10
+  },
+  "resposta": 7,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "5 milhões de UI: 2 mL de pó + 8 mL = 10 mL.",
+   "5.000.000 UI --- 10 mL | 3.500.000 UI --- X.",
+   "X = 3.500.000 × 10 ÷ 5.000.000 = 7 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p142.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p143",
+  "tipo": "volume_infundido",
+  "categoria": "Volume pelo gotejamento",
+  "prescricao": {
+   "farmaco": "Soro fisiológico 0,9%",
+   "dose": 20,
+   "unidadeDose": "gts/min",
+   "via": "IV",
+   "frequencia": "em 24 horas"
+  },
+  "disponivel": "equipo de macrogotas correndo a 20 gotas/min",
+  "entrada": {
+   "kind": "volume_de_gts",
+   "gtsMin": 20,
+   "horas": 24
+  },
+  "resposta": 1440,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Gotas em 24 h: 20 × 60 × 24 = 28.800 gotas.",
+   "1 mL = 20 gotas: 28.800 ÷ 20 = 1440 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p143.enunciado",
+   "dica": "calc.dica.volume"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p144",
+  "tipo": "diluicao",
+  "categoria": "Solução oral",
+  "prescricao": {
+   "farmaco": "Antibiótico em solução oral",
+   "dose": 155,
+   "unidadeDose": "mg",
+   "via": "VO",
+   "frequencia": "de 12 em 12 horas"
+  },
+  "disponivel": "solução oral de 100 mg/mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 155,
+   "frasco": 100,
+   "volumeMl": 1
+  },
+  "resposta": 1.6,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "100 mg --- 1 mL | 155 mg --- X.",
+   "X = 1,55 mL.",
+   "Arredondando (5 sobe): 1,6 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p144.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p145",
+  "tipo": "volume_infundido",
+  "categoria": "Volume pelo gotejamento",
+  "prescricao": {
+   "farmaco": "Soro fisiológico 0,9%",
+   "dose": 100,
+   "unidadeDose": "gts/min",
+   "via": "IV",
+   "frequencia": "por 6 horas"
+  },
+  "disponivel": "equipo de macrogotas correndo a 100 gotas/min",
+  "entrada": {
+   "kind": "volume_de_gts",
+   "gtsMin": 100,
+   "horas": 6
+  },
+  "resposta": 1800,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Gotas em 6 h: 100 × 60 × 6 = 36.000.",
+   "36.000 ÷ 20 = 1800 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p145.enunciado",
+   "dica": "calc.dica.volume"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p146",
+  "tipo": "pediatrica",
+  "categoria": "Neonatal (IM)",
+  "prescricao": {
+   "farmaco": "Gentamicina",
+   "dose": 12,
+   "unidadeDose": "mg",
+   "via": "IM",
+   "frequencia": "dose única"
+  },
+  "disponivel": "ampola de 50 mg/2 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 12,
+   "frasco": 50,
+   "volumeMl": 2
+  },
+  "resposta": 0.5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "50 mg --- 2 mL | 12 mg --- X.",
+   "X = 12 × 2 ÷ 50 = 0,48.",
+   "Arredondando: 0,5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p146.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p147",
+  "tipo": "diluicao",
+  "categoria": "Solução oral",
+  "prescricao": {
+   "farmaco": "Anti-hipertensivo em solução oral",
+   "dose": 85,
+   "unidadeDose": "mg",
+   "via": "VO",
+   "frequencia": "uma vez ao dia"
+  },
+  "disponivel": "solução de 20 mg/2 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 85,
+   "frasco": 20,
+   "volumeMl": 2
+  },
+  "resposta": 8.5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "20 mg --- 2 mL | 85 mg --- X.",
+   "X = 85 × 2 ÷ 20 = 8,5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p147.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p148",
+  "tipo": "reconstituicao",
+  "categoria": "Diluição de antibiótico",
+  "prescricao": {
+   "farmaco": "Ampicilina",
+   "dose": 150,
+   "unidadeDose": "mg",
+   "via": "IV",
+   "frequencia": "de 6 em 6 horas"
+  },
+  "disponivel": "frasco de 1 g para diluir em 10 mL de água destilada",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 150,
+   "frasco": 1000,
+   "volumeMl": 10
+  },
+  "resposta": 1.5,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "1 g = 1000 mg em 10 mL.",
+   "1000 mg --- 10 mL | 150 mg --- X.",
+   "X = 1,5 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p148.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p149",
+  "tipo": "reconstituicao",
+  "categoria": "Penicilina cristalina",
+  "prescricao": {
+   "farmaco": "Penicilina cristalina",
+   "dose": 500000,
+   "unidadeDose": "UI",
+   "via": "IV",
+   "frequencia": "no horário"
+  },
+  "disponivel": "frasco-ampola de 5.000.000 UI: 8 mL de água destilada + 2 mL do pó = 10 mL",
+  "entrada": {
+   "kind": "regra3",
+   "prescrito": 500000,
+   "frasco": 5000000,
+   "volumeMl": 10
+  },
+  "resposta": 1,
+  "unidade": "mL",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "Volume final: 8 mL + 2 mL do pó = 10 mL.",
+   "5.000.000 UI --- 10 mL | 500.000 UI --- X.",
+   "X = 1 mL."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p149.enunciado",
+   "dica": "calc.dica.regra3"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p150",
+  "tipo": "gotejamento_macro",
+  "categoria": "Macrogotas / Minutos",
+  "prescricao": {
+   "farmaco": "Soro fisiológico 0,9%",
+   "dose": 200,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "em 40 minutos"
+  },
+  "disponivel": "equipo de macrogotas",
+  "entrada": {
+   "kind": "macro_min",
+   "volumeMl": 200,
+   "minutos": 40
+  },
+  "resposta": 100,
+  "unidade": "gts/min",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Macrogotas por minuto: V × 20 ÷ min.",
+   "200 × 20 ÷ 40 = 100 gotas/min."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p150.enunciado",
+   "dica": "calc.dica.gotejamento_macro"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p151",
+  "tipo": "insulina",
+  "categoria": "Insulina por glicemia (Caso 2)",
+  "prescricao": {
+   "farmaco": "Insulina regular humana",
+   "dose": 4,
+   "unidadeDose": "UI",
+   "via": "SC",
+   "frequencia": "antes do almoço"
+  },
+  "disponivel": "escala da prescrição: menor que 70 não dar; 71-100 metade; 101-150 dose usual; 151-200 +1; 201-250 +2; 251-300 +3; acima de 301 +4. Glicemia agora: 180 mg/dL",
+  "entrada": {
+   "kind": "insulina_escala",
+   "glicemia": 180,
+   "doseUsual": 4
+  },
+  "resposta": 5,
+  "unidade": "UI",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Glicemia 180 mg/dL: glicemia 151-200: dose usual + 1 UI.",
+   "Dose usual 4 UI: 5 UI de insulina regular SC."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p151.enunciado",
+   "dica": "calc.dica.insulina"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p152",
+  "tipo": "insulina",
+  "categoria": "Insulina por glicemia (Caso 2)",
+  "prescricao": {
+   "farmaco": "Insulina regular humana",
+   "dose": 4,
+   "unidadeDose": "UI",
+   "via": "SC",
+   "frequencia": "antes do almoço"
+  },
+  "disponivel": "escala da prescrição: menor que 70 não dar; 71-100 metade; 101-150 dose usual; 151-200 +1; 201-250 +2; 251-300 +3; acima de 301 +4. Glicemia agora: 95 mg/dL",
+  "entrada": {
+   "kind": "insulina_escala",
+   "glicemia": 95,
+   "doseUsual": 4
+  },
+  "resposta": 2,
+  "unidade": "UI",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Glicemia 95 mg/dL: glicemia 71-100: metade da dose.",
+   "Dose usual 4 UI: 2 UI de insulina regular SC."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p152.enunciado",
+   "dica": "calc.dica.insulina"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p153",
+  "tipo": "insulina",
+  "categoria": "Insulina por glicemia (Caso 2)",
+  "prescricao": {
+   "farmaco": "Insulina regular humana",
+   "dose": 4,
+   "unidadeDose": "UI",
+   "via": "SC",
+   "frequencia": "antes do almoço"
+  },
+  "disponivel": "escala da prescrição: menor que 70 não dar; 71-100 metade; 101-150 dose usual; 151-200 +1; 201-250 +2; 251-300 +3; acima de 301 +4. Glicemia agora: 260 mg/dL",
+  "entrada": {
+   "kind": "insulina_escala",
+   "glicemia": 260,
+   "doseUsual": 4
+  },
+  "resposta": 7,
+  "unidade": "UI",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Glicemia 260 mg/dL: glicemia 251-300: dose usual + 3 UI.",
+   "Dose usual 4 UI: 7 UI de insulina regular SC."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p153.enunciado",
+   "dica": "calc.dica.insulina"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p154",
+  "tipo": "insulina",
+  "categoria": "Insulina por glicemia (Caso 2)",
+  "prescricao": {
+   "farmaco": "Insulina regular humana",
+   "dose": 4,
+   "unidadeDose": "UI",
+   "via": "SC",
+   "frequencia": "antes do almoço"
+  },
+  "disponivel": "escala da prescrição: menor que 70 não dar; 71-100 metade; 101-150 dose usual; 151-200 +1; 201-250 +2; 251-300 +3; acima de 301 +4. Glicemia agora: 320 mg/dL",
+  "entrada": {
+   "kind": "insulina_escala",
+   "glicemia": 320,
+   "doseUsual": 4
+  },
+  "resposta": 8,
+  "unidade": "UI",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "Glicemia 320 mg/dL: glicemia acima de 301: dose usual + 4 UI.",
+   "Dose usual 4 UI: 8 UI de insulina regular SC."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p154.enunciado",
+   "dica": "calc.dica.insulina"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p155",
+  "tipo": "volume_infundido",
+  "categoria": "Tempo pelo gotejamento",
+  "prescricao": {
+   "farmaco": "Soro fisiológico 0,9%",
+   "dose": 500,
+   "unidadeDose": "mL",
+   "via": "IV",
+   "frequencia": "a 28 gotas/min"
+  },
+  "disponivel": "equipo de macrogotas correndo a 28 gotas/min",
+  "entrada": {
+   "kind": "tempo_de_gts_h",
+   "volumeMl": 500,
+   "gtsMin": 28
+  },
+  "resposta": 6,
+  "unidade": "h",
+  "casas": 1,
+  "tolerancia": 0.05,
+  "memoria": [
+   "500 mL × 20 = 10.000 gotas.",
+   "10.000 ÷ 28 = 357 minutos.",
+   "357 ÷ 60 = 5,95 h, cerca de 6,0 horas."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p155.enunciado",
+   "dica": "calc.dica.volume"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
+ },
+ {
+  "id": "p156",
+  "tipo": "gotas_orais",
+  "categoria": "Gotas orais",
+  "prescricao": {
+   "farmaco": "Dipirona gotas",
+   "dose": 500,
+   "unidadeDose": "mg",
+   "via": "VO",
+   "frequencia": "de 6 em 6 horas, se dor"
+  },
+  "disponivel": "solução oral de 500 mg/mL; 20 gotas/mL",
+  "entrada": {
+   "kind": "gotas_orais",
+   "prescritoMg": 500,
+   "mgPorMl": 500,
+   "gtsPorMl": 20
+  },
+  "resposta": 20,
+  "unidade": "gotas",
+  "casas": 0,
+  "tolerancia": 0.5,
+  "memoria": [
+   "500 mg --- 1 mL: a dose é 1 mL.",
+   "1 mL = 20 gotas."
+  ],
+  "erroProposital": null,
+  "falas": {
+   "enunciado": "calc.p156.enunciado",
+   "dica": "calc.dica.gotas_orais"
+  },
+  "altaVigilancia": false,
+  "origem": "ufrgs_lista"
  }
 ]

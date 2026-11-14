@@ -33,12 +33,21 @@ const FORMULAS = {
   // inverso: dada a vazão, qual a dose em mcg/min
   mcgmin_da_vazao: (e) => (e.vazaoMlH * ((e.quantidadeMg * 1000) / e.volumeMl)) / 60,
   ampolas: (e) => e.dose / e.mgPorAmpola,
+  // gotas orais: mL pela concentração, vezes as gotas de 1 mL do conta-gotas
+  gotas_orais: (e) => (e.prescritoMg / e.mgPorMl) * e.gtsPorMl,
+  // volume que passa num tempo, a um gotejamento fixo de macrogotas
+  volume_de_gts: (e) => (e.gtsMin * e.horas * 60) / GTS_POR_ML,
+  // tempo (h) para um volume acabar a um gotejamento fixo de macrogotas
+  tempo_de_gts_h: (e) => (e.volumeMl * GTS_POR_ML) / e.gtsMin / 60,
+  // escala de insulina regular da prescrição do Caso 2 (UFRGS)
+  insulina_escala: ({ glicemia: g, doseUsual: d }) => (g < 71 ? 0 : g <= 100 ? d / 2 : g <= 150 ? d : g <= 200 ? d + 1 : g <= 250 ? d + 2 : g <= 300 ? d + 3 : d + 4),
 };
 const UNIDADE_DA_FORMULA = {
   macro_h: "gts/min", macro_min: "gts/min", micro_h: "mcgts/min", regra3: "mL", pediatrica_dia: "mL",
   bic_conc: "mL/h", bic_mcgmin: "mL/h", bic_peso: "mL/h", bic_peso_min: "mL/h", mcgmin_da_vazao: "mcg/min", ampolas: "ampolas",
+  gotas_orais: "gotas", volume_de_gts: "mL", tempo_de_gts_h: "h", insulina_escala: "UI",
 };
-const CASAS_DA_UNIDADE = { "gts/min": 0, "mcgts/min": 0, ampolas: 0, mL: 1, "mL/h": 1, "mcg/min": 1 };
+const CASAS_DA_UNIDADE = { "gts/min": 0, "mcgts/min": 0, ampolas: 0, gotas: 0, UI: 0, mL: 1, "mL/h": 1, "mcg/min": 1, h: 1 };
 
 const normais = banco.filter((i) => !i.erroProposital);
 const comErro = banco.filter((i) => i.erroProposital);

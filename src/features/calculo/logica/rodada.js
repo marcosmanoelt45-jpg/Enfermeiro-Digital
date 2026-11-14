@@ -78,7 +78,9 @@ export function lerValor(entrada) {
 export function avaliarResposta(item, entrada, unidadeDita = null) {
   const valor = lerValor(entrada);
   if (valor === null) return { estado: "invalido", valor: null };
-  if (unidadeDita && unidadeDita !== item.unidade) return { estado: "unidade_errada", valor };
+  // "15 gotas" num item de gotas orais é a unidade certa (a fala "gotas" é lida como gts/min no gotejamento)
+  const mesmaUnidade = unidadeDita === item.unidade || (item.unidade === "gotas" && unidadeDita === "gts/min");
+  if (unidadeDita && !mesmaUnidade) return { estado: "unidade_errada", valor };
   if (item.casas === 0) {
     if (Number.isInteger(valor)) return { estado: valor === item.resposta ? "certo" : "errado", valor };
     return { estado: Math.abs(valor - item.resposta) <= item.tolerancia ? "quase" : "errado", valor };

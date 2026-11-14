@@ -9,6 +9,8 @@ const UNIDADES_FALADAS = [
   [/microgotas?|mcgts?|micro gotas?/, "mcgts/min"],
   [/gotas?|gts?|macrogotas?/, "gts/min"],
   [/ampolas?/, "ampolas"],
+  [/unidades?( internacionais)?|\bui\b/, "UI"],
+  [/\bhoras?\b/, "h"],
   [/mililitros?|\bmls?\b/, "mL"],
 ];
 

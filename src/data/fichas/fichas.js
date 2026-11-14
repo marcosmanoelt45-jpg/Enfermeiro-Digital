@@ -1,0 +1,380 @@
+// Fichas de consulta rápida (aba Fichas da página de Vídeos). Conteúdo resumido das aulas da disciplina ENF01015
+// (UFRGS) e das diretrizes que elas citam, escrito com nossas palavras; cada ficha cita a fonte.
+// Formato: { id, titulo, grupo, icone, resumo, blocos: [{ tipo: "tabela", cabecalho, linhas } | { tipo: "lista", itens } | { tipo: "texto", texto }], fonte }
+
+export const GRUPOS_FICHAS = {
+  seguranca: "Segurança",
+  escalas: "Escalas",
+  emergencia: "Emergência",
+  exames: "Exames",
+  medicacao: "Medicação",
+  registro: "Registro e processo",
+  cme: "Materiais",
+};
+
+export const FICHAS = [
+  {
+    id: "metas",
+    titulo: "Metas de segurança do paciente",
+    grupo: "seguranca",
+    icone: "ShieldCheck",
+    resumo: "As 6 metas internacionais",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Meta", "O que fazer"],
+        linhas: [
+          ["1. Identificar o paciente", "Dois identificadores (nome completo e outro dado), na pulseira, no leito e no prontuário"],
+          ["2. Comunicação efetiva", "Passagem de plantão estruturada (SBAR); confirmar ordens verbais repetindo"],
+          ["3. Segurança dos medicamentos", "9 certos; alta vigilância separada e com dupla checagem"],
+          ["4. Cirurgia segura", "Lista da OMS: antes da anestesia, pausa antes da incisão e antes de sair da sala"],
+          ["5. Reduzir infecção", "Higiene das mãos nos 5 momentos"],
+          ["6. Reduzir quedas", "Avaliar o risco (SAK) e aplicar medidas preventivas"],
+        ],
+      },
+      { tipo: "texto", texto: "A Política Nacional de Qualidade e Segurança do Paciente (Portaria GM/MS 11.527/2026) vale para todos os níveis de atenção, serviços públicos e privados e instituições de ensino." },
+    ],
+    fonte: "UFRGS ENF01015 (Princípios da Segurança; Preparo seguro de medicamentos); Portaria GM/MS 11.527/2026",
+  },
+  {
+    id: "nove-certos",
+    titulo: "Os 9 certos da medicação",
+    grupo: "seguranca",
+    icone: "Pill",
+    resumo: "Paciente, medicamento, via, hora, dose, registro, orientação, forma e resposta",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Certo", "Conferir"],
+        linhas: [
+          ["Paciente", "Nome completo e outro identificador; evitar homônimos no mesmo quarto"],
+          ["Medicamento", "Rótulo igual à prescrição; alergias"],
+          ["Via", "Via prescrita, diluente, velocidade e compatibilidade"],
+          ["Hora", "Horário prescrito; mudar só com aval"],
+          ["Dose", "Dose e unidade; prescrição vaga não se administra"],
+          ["Registro", "Checar o horário a cada dose; registrar recusas e eventos"],
+          ["Orientação", "Explicar nome, motivo e efeitos ao paciente"],
+          ["Forma", "Forma farmacêutica certa para a via e o paciente"],
+          ["Resposta", "Observar o efeito esperado e reações"],
+        ],
+      },
+      { tipo: "texto", texto: "Alta vigilância: insulina, heparina e varfarina, KCl 10% e NaCl 20%, quimioterápicos, nutrição parenteral e água destilada acima de 100 mL." },
+    ],
+    fonte: "Anvisa/GGTES: Práticas seguras para prevenção de erros na administração de medicamentos; UFRGS ENF01015",
+  },
+  {
+    id: "aldrete",
+    titulo: "Aldrete e Kroulik modificado",
+    grupo: "escalas",
+    icone: "BedDouble",
+    resumo: "Alta da SRPA: 9 ou mais, sem nenhum zero",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Item", "2", "1", "0"],
+        linhas: [
+          ["Atividade", "Move 4 membros", "Move 2 membros", "Não move"],
+          ["Respiração", "Respira fundo e tosse", "Dispneia ou limitada", "Apneia"],
+          ["Circulação (PA × basal)", "± 20%", "± 20 a 49%", "± 50% ou mais"],
+          ["Consciência", "Acordado", "Desperta ao chamado", "Não responde"],
+          ["SpO2", "> 92% em ar ambiente", "Precisa de O2 para > 90%", "< 90% mesmo com O2"],
+        ],
+      },
+      { tipo: "texto", texto: "O escore sozinho não basta: dor e náuseas controladas, temperatura ≥ 36 °C, sem sangramento ativo e tempo mínimo após o último opioide EV." },
+    ],
+    fonte: "UFRGS: Enfermagem no pós-operatório imediato na SRPA",
+  },
+  {
+    id: "asa",
+    titulo: "Classificação ASA",
+    grupo: "escalas",
+    icone: "Activity",
+    resumo: "Risco anestésico, de I a VI",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["ASA", "Paciente"],
+        linhas: [
+          ["I", "Saudável"],
+          ["II", "Doença sistêmica leve"],
+          ["III", "Doença sistêmica grave, com limitação funcional"],
+          ["IV", "Doença grave, ameaça constante à vida"],
+          ["V", "Não deve sobreviver sem a cirurgia"],
+          ["VI", "Morte encefálica, doador de órgãos"],
+        ],
+      },
+    ],
+    fonte: "UFRGS: Enfermagem no pós-operatório imediato na SRPA",
+  },
+  {
+    id: "sak",
+    titulo: "Escala SAK (risco de quedas)",
+    grupo: "escalas",
+    icone: "PersonStanding",
+    resumo: "Alto risco a partir de 10,5 pontos",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Variável", "Pontos"],
+        linhas: [
+          ["Desorientação ou confusão", "5"],
+          ["Micções frequentes", "5"],
+          ["Limitação para deambular", "4"],
+          ["Nº de medicamentos (até 72 h)", "1 por medicamento"],
+          ["Queda prévia", "1"],
+          ["Ausência de acompanhante", "0,5"],
+          ["Pós-operatório", "0,5"],
+        ],
+      },
+      { tipo: "lista", itens: ["Baixo risco: até 6 pontos", "Moderado: 6,5 a 10", "Alto: 10,5 ou mais", "Aplicar na admissão, 2 vezes por semana, se o estado mudar, após queda e na transferência", "Moderado e alto: diagnóstico \"Risco de quedas\" e medidas preventivas"] },
+    ],
+    fonte: "Severo IM et al. Escala SAK (2021); HCPA: Prevenção de quedas no paciente adulto internado",
+  },
+  {
+    id: "braden",
+    titulo: "Escala de Braden",
+    grupo: "escalas",
+    icone: "Layers",
+    resumo: "Lesão por pressão: quanto menor o escore, maior o risco",
+    blocos: [
+      { tipo: "lista", itens: ["6 subescalas: percepção sensorial, umidade, atividade, mobilidade, nutrição e fricção/cisalhamento", "Cada uma de 1 a 4 pontos (fricção de 1 a 3); total de 6 a 23"] },
+      {
+        tipo: "tabela",
+        cabecalho: ["Escore", "Risco"],
+        linhas: [
+          ["9 ou menos", "Muito alto"],
+          ["10 a 12", "Alto"],
+          ["13 a 14", "Moderado"],
+          ["15 a 18", "Leve"],
+          ["19 ou mais", "Sem risco"],
+        ],
+      },
+    ],
+    fonte: "Menegon DB et al. Análise das subescalas de Braden como indicativos de risco para úlcera por pressão",
+  },
+  {
+    id: "apfel",
+    titulo: "Escore de Apfel (NVPO)",
+    grupo: "escalas",
+    icone: "Waves",
+    resumo: "Risco de náuseas e vômitos no pós-operatório",
+    blocos: [
+      { tipo: "lista", itens: ["Sexo feminino: 1", "Não tabagista: 1", "História de NVPO ou cinetose: 1", "Opioide no pós-operatório: 1"] },
+      { tipo: "texto", texto: "Quanto mais pontos, maior o risco; até 80% dos pacientes de alto risco têm náuseas ou vômitos. Resgate com antiemético de classe diferente da profilaxia." },
+    ],
+    fonte: "UFRGS: Enfermagem no pós-operatório imediato na SRPA",
+  },
+  {
+    id: "rcp",
+    titulo: "RCP de alta qualidade (adulto)",
+    grupo: "emergencia",
+    icone: "HeartPulse",
+    resumo: "100 a 120/min, 5 a 6 cm, 30:2",
+    blocos: [
+      { tipo: "lista", itens: ["Cena segura, checar resposta, pedir ajuda e o DEA", "Checar respiração e pulso em até 10 s; gasping não é respiração", "Compressões de 100 a 120/min, 5 a 6 cm, retorno completo do tórax", "30:2 sem via aérea avançada; ventilação de 1 s, só até o tórax subir", "Com pulso e sem respiração: 1 ventilação a cada 6 s", "Chocáveis: FV e TV sem pulso. Após o choque, compressões na hora", "Gestante: deslocar o útero para a esquerda"] },
+    ],
+    fonte: "UFRGS: SBV + ACLS (AHA 2025); Destaques das Diretrizes AHA 2025",
+  },
+  {
+    id: "ecg",
+    titulo: "ECG: ondas e eletrodos",
+    grupo: "emergencia",
+    icone: "Activity",
+    resumo: "Onda P, QRS, T, intervalos e onde vai cada eletrodo",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Parte", "Significado"],
+        linhas: [
+          ["Onda P", "Despolarização dos átrios"],
+          ["Intervalo PR", "Do início da P ao início do QRS"],
+          ["QRS", "Despolarização dos ventrículos"],
+          ["Ponto J e segmento ST", "Fim do QRS até o início da T"],
+          ["Onda T", "Repolarização dos ventrículos"],
+          ["Intervalo QT", "Do início do QRS ao fim da T (sístole elétrica)"],
+        ],
+      },
+      {
+        tipo: "tabela",
+        cabecalho: ["Eletrodo", "Posição"],
+        linhas: [
+          ["V1", "4º espaço intercostal, à direita do esterno"],
+          ["V2", "4º espaço intercostal, à esquerda do esterno"],
+          ["V3", "Entre V2 e V4"],
+          ["V4", "5º espaço, linha hemiclavicular esquerda"],
+          ["V5", "Linha axilar anterior, na altura de V4"],
+          ["V6", "Linha axilar média, na altura de V4"],
+          ["Membros", "Braço direito, braço esquerdo, perna direita (terra) e perna esquerda"],
+        ],
+      },
+      { tipo: "lista", itens: ["Leitura em 7 perguntas: tem P? P:QRS 1:1? Tamanho do PR? QRS largo ou estreito? Ritmo regular? ST e J na linha de base? T positiva exceto em aVR?"] },
+    ],
+    fonte: "UFRGS ENF01015: Componentes do ECG",
+  },
+  {
+    id: "sca",
+    titulo: "Dor torácica e síndrome coronariana",
+    grupo: "emergencia",
+    icone: "HeartCrack",
+    resumo: "Angina instável, IAM sem e com supra de ST",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Quadro", "Troponina", "ECG"],
+        linhas: [
+          ["Angina instável", "Não passa do critério", "Normal, infra de ST ou T invertida"],
+          ["IAM sem supra (IAMSSST)", "Elevada", "Infra de ST ou T invertida"],
+          ["IAM com supra (IAMCSST)", "Elevada", "Supra ≥ 1 mm em 2 derivações contíguas ou BRE novo"],
+        ],
+      },
+      { tipo: "lista", itens: ["ECG o quanto antes, sinais vitais, acesso venoso e monitor", "Troponina ultrassensível na chegada e 2 a 3 h depois, com horário anotado", "Oxigênio só se houver hipoxemia", "Diabéticos, idosos e mulheres podem ter sintomas atípicos"] },
+    ],
+    fonte: "Manual MSD (profissional): Visão geral das síndromes coronarianas agudas; UFRGS: Exames laboratoriais",
+  },
+  {
+    id: "eletrolitos",
+    titulo: "Eletrólitos: sinais de alto e baixo",
+    grupo: "exames",
+    icone: "FlaskConical",
+    resumo: "Potássio, sódio, cálcio, magnésio, glicose",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Exame", "Alto (hiper)", "Baixo (hipo)"],
+        linhas: [
+          ["Potássio", "Fraqueza, paralisia, arritmia, PCR", "Fraqueza, cãibras, constipação, arritmia"],
+          ["Sódio", "Sede, confusão, convulsão, coma", "Cefaleia, náusea, letargia, convulsão"],
+          ["Cálcio", "Fraqueza, constipação, confusão, poliúria", "Espasmos, cãibras, parestesias, Chvostek e Trousseau"],
+          ["Magnésio", "Letargia, hipotensão, bradicardia", "Tremores, espasmos, convulsões, arritmias"],
+          ["Glicose", "Sede, poliúria, visão turva", "Sudorese, tremor, confusão, fome"],
+        ],
+      },
+    ],
+    fonte: "UFRGS ENF01015: Quadros de exames bioquímicos (Prof. Ruy Barcellos)",
+  },
+  {
+    id: "imagem",
+    titulo: "Exames de imagem",
+    grupo: "exames",
+    icone: "ScanLine",
+    resumo: "O que aparece branco e preto, indicações e preparo",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Exame", "Como aparece", "Cuidado"],
+        linhas: [
+          ["Raio-X", "Osso branco, tecido mole cinza, ar preto; sondas em linha branca", "Retirar adornos de metal"],
+          ["Tomografia", "Cinza; sangue agudo e osso claros", "Contraste: alergia, função renal, jejum, acesso"],
+          ["Ressonância", "Depende da sequência (T1 gordura clara, T2 líquido claro)", "Metal e marcapasso: avaliar antes"],
+          ["PET-CT", "Captação alta em vermelho/laranja", "Jejum; contraindicado na gravidez"],
+          ["Endoscopia", "Câmera", "Jejum e sedação; risco de perfuração"],
+        ],
+      },
+    ],
+    fonte: "UFRGS ENF01015: Fundamentos dos exames de imagem e quadro de exames de imagem",
+  },
+  {
+    id: "vias",
+    titulo: "Vias IM e SC",
+    grupo: "medicacao",
+    icone: "Syringe",
+    resumo: "Volume máximo, agulha e cuidados",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Local IM", "Volume máximo"],
+        linhas: [
+          ["Deltoide (área central)", "2 mL"],
+          ["Ventroglútea", "5 mL"],
+          ["Dorsoglútea", "5 mL"],
+          ["Vasto lateral da coxa", "5 mL"],
+        ],
+      },
+      { tipo: "lista", itens: ["IM: aspirar com uma agulha e trocar para administrar", "SC: prega e 45°, agulha 13 × 0,4; locais: braço, abdome (2 cm do umbigo), glúteo, coxa", "Depois de retirar a agulha: não massagear, comprimir com algodão seco"] },
+    ],
+    fonte: "UFRGS ENF01015: Preparo e administração segura de medicamentos",
+  },
+  {
+    id: "calculo",
+    titulo: "Cálculo: o que decorar",
+    grupo: "medicacao",
+    icone: "Calculator",
+    resumo: "Conversões, gotejamento e penicilina",
+    blocos: [
+      { tipo: "lista", itens: ["1 mL = 20 gotas = 60 microgotas; 1 gota = 3 microgotas", "1 g = 1000 mg; 1 mg = 1000 mcg; 1 L = 1000 mL", "Macrogotas/min = volume ÷ (horas × 3)", "Microgotas/min = volume ÷ horas", "Em minutos: gotas/min = volume × 20 ÷ minutos", "Arredondar: depois da vírgula, 5 ou mais sobe; menos que 5 mantém"] },
+      {
+        tipo: "tabela",
+        cabecalho: ["Penicilina cristalina", "Pó", "Diluente", "Volume final"],
+        linhas: [
+          ["5.000.000 UI", "2 mL", "8 mL", "10 mL"],
+          ["10.000.000 UI", "4 mL", "6 mL", "10 mL"],
+        ],
+      },
+    ],
+    fonte: "UFRGS ENF01015: Aula de cálculo de medicamentos (Angelina Jones)",
+  },
+  {
+    id: "registro",
+    titulo: "Registro e evolução",
+    grupo: "registro",
+    icone: "NotebookPen",
+    resumo: "CALOI, medicamento SN e evolução do HCPA",
+    blocos: [
+      { tipo: "lista", itens: ["Dor: CAracterística, LOcalização e Intensidade (CALOI); reavaliar 30 a 60 min após a intervenção", "Medicamento SN: justificar nas anotações e checar na prescrição", "Contenção: nó, perfusão e temperatura na 1ª hora e depois de 2 em 2 h", "Siglas: só as do siglário institucional"] },
+      {
+        tipo: "tabela",
+        cabecalho: ["Evolução (HCPA)", "O que vai"],
+        linhas: [
+          ["Subjetivo", "Relatos do paciente e da família"],
+          ["Objetivo", "Exame físico e indicadores clínicos (Braden, SAK)"],
+          ["Impressão", "Diagnósticos: mantido, melhorado ou piorado"],
+          ["Conduta", "Cuidados planejados e feitos"],
+          ["Conduta de educação", "Orientações e o que o paciente entendeu"],
+        ],
+      },
+      { tipo: "texto", texto: "Cofen 514/2016: guia de registros. Cofen 754/2024: prontuário eletrônico. Cofen 736/2024: Processo de Enfermagem." },
+    ],
+    fonte: "HCPA/DENF: Registros essenciais e roteiro de evolução; UFRGS: Registros de Enfermagem (2026)",
+  },
+  {
+    id: "comunicacao",
+    titulo: "Comunicação terapêutica",
+    grupo: "registro",
+    icone: "MessageCircle",
+    resumo: "Técnicas que ajudam e barreiras",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Ajuda", "Atrapalha"],
+        linhas: [
+          ["Ouvir reflexivamente", "Falsa tranquilização"],
+          ["Usar o silêncio", "Dar conselhos"],
+          ["Repetir as últimas palavras", "Julgar o comportamento"],
+          ["Perguntar e devolver a pergunta", "Usar jargão técnico"],
+          ["Estimular a falar de sentimentos", "Mudar de assunto de repente"],
+        ],
+      },
+    ],
+    fonte: "UFRGS ENF01015: Necessidades humanas, etapa I do PE (Stefanelli e Carvalho; Jarvis)",
+  },
+  {
+    id: "spaulding",
+    titulo: "Spaulding e CME",
+    grupo: "cme",
+    icone: "Package",
+    resumo: "Crítico, semicrítico e não crítico",
+    blocos: [
+      {
+        tipo: "tabela",
+        cabecalho: ["Artigo", "Toca", "Processo"],
+        linhas: [
+          ["Crítico", "Tecido estéril ou sistema vascular", "Limpeza + esterilização"],
+          ["Semicrítico", "Mucosa ou pele não íntegra", "Limpeza + desinfecção de alto nível"],
+          ["Não crítico", "Só pele íntegra", "Limpeza (+ desinfecção de baixo nível)"],
+        ],
+      },
+      { tipo: "lista", itens: ["Fluxo da CME: sempre do sujo para o limpo, sem retorno (RDC 50/2002)", "Estéril é probabilidade: menos de 1 em 1 milhão (SAL 10⁻⁶)", "Indicador químico mostra exposição; implantável exige indicador biológico"] },
+    ],
+    fonte: "UFRGS ENF01015: Tratamento de materiais com base em ambiente seguro; RDC Anvisa 15/2012",
+  },
+];

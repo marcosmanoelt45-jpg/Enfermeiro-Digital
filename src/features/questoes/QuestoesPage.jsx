@@ -12,11 +12,13 @@ import { vibrate } from "@/lib/motion";
 import { clinicalHistoryService, MODULE_TYPES } from "@/services/clinicalHistoryService";
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { registrarResposta } from "@/components/feedback/comemoracoes.js";
-import BANCO from "@/data/questoes/banco.json";
+import BANCO_ANTIGO from "@/data/questoes/banco.json";
+import { QUESTOES_AULAS } from "@/data/questoes/aulas/index.js";
 import { TOPICOS_PRATICA } from "@/data/questoes/temas.js";
 import { embaralharAlternativas, montarSessao, resumoDaSessao, todasRespondidas } from "./logica/sessao.js";
 import { PE_POR_ATIVIDADE } from "@/features/pontos/regrasPE.js";
 
+const BANCO = [...BANCO_ANTIGO, ...QUESTOES_AULAS];
 const NOVO = { selectedChoice: null, tentativas: 0, status: "aberta", isFinalizada: false, opcoesFalhadas: [] };
 const MODOS = { rapida: "Rápidas", normal: "Normais", revisao: "Revisão" };
 
@@ -190,7 +192,7 @@ export default function QuestoesPage() {
     <PageShell activeTab="questoes">
       <header className="space-y-1">
         <h1 className="text-xl font-extrabold">Questões</h1>
-        <p className="text-sm font-semibold text-[#9FB3C6]">Curativo, medicamentos, punção venosa e sinais vitais. Duas chances por questão.</p>
+        <p className="text-sm font-semibold text-[#9FB3C6]">{BANCO.length} questões das aulas: segurança, RCP, ECG, exames, cirurgia, curativo, medicação e mais. Duas chances por questão.</p>
       </header>
 
       {secao === "inicio" && (
@@ -198,7 +200,7 @@ export default function QuestoesPage() {
           opcoes={[
             { id: "rapida", rotulo: "Rápidas", descricao: "De 4 a 6 questões", icone: Zap, destaque: true, onClick: () => comecar("rapida") },
             { id: "normal", rotulo: "Normais", descricao: "De 7 a 9 questões", icone: Timer, onClick: () => comecar("normal") },
-            { id: "temas", rotulo: "Escolher tema", descricao: "Curativo, cálculo, punção…", icone: Layers, onClick: () => setSecao("temas") },
+            { id: "temas", rotulo: "Escolher tema", descricao: "Segurança, RCP, ECG, cirurgia…", icone: Layers, onClick: () => setSecao("temas") },
             { id: "revisao", rotulo: "Revisão", descricao: pendentes.length ? `${pendentes.length} questões para refazer` : "Nada para revisar agora", icone: RotateCcw, onClick: () => pendentes.length && comecar("revisao") },
             { id: "historico", rotulo: "Histórico", descricao: "Suas sessões e notas", icone: History, onClick: () => setSecao("historico") },
           ]}

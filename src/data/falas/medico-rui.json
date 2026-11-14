@@ -665,6 +665,110 @@
   {
    "id": "calc.r.abertura.3",
    "texto": "Vamos nessa. E se algo não parecer certo, me questiona."
+  },
+  {
+   "id": "calc.p134.enunciado",
+   "texto": "Soro fisiológico, 500 mililitros, pra correr em duas horas e meia no macrogotas. Quantas gotas por minuto?"
+  },
+  {
+   "id": "calc.p135.enunciado",
+   "texto": "Tienam 500 miligramas em 50 mililitros de soro, pra correr em 30 minutos. Não tem bomba, só equipo de microgotas. Quantas microgotas por minuto?"
+  },
+  {
+   "id": "calc.p136.enunciado",
+   "texto": "Soro glicofisiológico, dois litros em seis horas, no macrogotas. Quantas gotas por minuto?"
+  },
+  {
+   "id": "calc.p137.enunciado",
+   "texto": "Penicilina cristalina, 2 milhões e 230 mil unidades. Tem frasco de 10 milhões, o pó ocupa 4 mililitros e você dilui em 6 de água destilada. Quantos mililitros você aspira?"
+  },
+  {
+   "id": "calc.p138.enunciado",
+   "texto": "Tazocin, 600 miligramas. A solução tem 2,5 gramas em 50 mililitros de soro. Quantos mililitros?"
+  },
+  {
+   "id": "calc.p139.enunciado",
+   "texto": "Um xarope pra dor, 7 miligramas de 3 em 3 horas se precisar. O frasco tem 50 miligramas em 5 mililitros. Quantos mililitros?"
+  },
+  {
+   "id": "calc.p140.enunciado",
+   "texto": "Metoclopramida, 3 miligramas pela boca. A solução tem 4 miligramas por mililitro e o conta-gotas faz 20 gotas por mililitro. Quantas gotas?"
+  },
+  {
+   "id": "calc.p141.enunciado",
+   "texto": "Prescrição de 11 miligramas, e a ampola tem 15 miligramas em 4 mililitros. Quantos mililitros você aspira?"
+  },
+  {
+   "id": "calc.p142.enunciado",
+   "texto": "Penicilina cristalina, 3 milhões e meio de unidades. O frasco de 5 milhões foi diluído em 8 mililitros de água destilada. Quantos mililitros você aspira?"
+  },
+  {
+   "id": "calc.p143.enunciado",
+   "texto": "O soro está correndo a 20 gotas por minuto no macrogotas e vai ficar assim 24 horas. Quantos mililitros o paciente recebe?"
+  },
+  {
+   "id": "calc.p144.enunciado",
+   "texto": "Antibiótico, 155 miligramas pela boca. A solução oral tem 100 miligramas por mililitro. Quantos mililitros?"
+  },
+  {
+   "id": "calc.p145.enunciado",
+   "texto": "Soro correndo a 100 gotas por minuto durante 6 horas. Qual o volume total infundido?"
+  },
+  {
+   "id": "calc.p146.enunciado",
+   "texto": "Recém-nascido com gentamicina 12 miligramas intramuscular. A ampola tem 50 miligramas em 2 mililitros. Quanto você aspira?"
+  },
+  {
+   "id": "calc.p147.enunciado",
+   "texto": "Anti-hipertensivo, 85 miligramas pela boca. A solução tem 20 miligramas em 2 mililitros. Qual o volume?"
+  },
+  {
+   "id": "calc.p148.enunciado",
+   "texto": "Ampicilina 150 miligramas. O frasco é de 1 grama e você dilui em 10 mililitros de água destilada. Quanto aspira?"
+  },
+  {
+   "id": "calc.p149.enunciado",
+   "texto": "Penicilina cristalina, 500 mil unidades, com frasco de 5 milhões diluído em 8 mililitros. Quantos mililitros você administra?"
+  },
+  {
+   "id": "calc.p150.enunciado",
+   "texto": "Soro de 200 mililitros pra correr em 40 minutos no macrogotas. Quantas gotas por minuto?"
+  },
+  {
+   "id": "calc.p151.enunciado",
+   "texto": "Insulina regular, dose usual de 4 unidades antes do almoço, com a escala da prescrição. A glicemia capilar deu 180. Quantas unidades você aplica?"
+  },
+  {
+   "id": "calc.p152.enunciado",
+   "texto": "Insulina regular, dose usual de 4 unidades antes do almoço, com a escala da prescrição. A glicemia capilar deu 95. Quantas unidades você aplica?"
+  },
+  {
+   "id": "calc.p153.enunciado",
+   "texto": "Insulina regular, dose usual de 4 unidades antes do almoço, com a escala da prescrição. A glicemia capilar deu 260. Quantas unidades você aplica?"
+  },
+  {
+   "id": "calc.p154.enunciado",
+   "texto": "Insulina regular, dose usual de 4 unidades antes do almoço, com a escala da prescrição. A glicemia capilar deu 320. Quantas unidades você aplica?"
+  },
+  {
+   "id": "calc.p155.enunciado",
+   "texto": "Um soro de 500 mililitros está correndo a 28 gotas por minuto. Em quantas horas ele termina?"
+  },
+  {
+   "id": "calc.p156.enunciado",
+   "texto": "Dipirona em gotas, 500 miligramas. A solução tem 500 miligramas por mililitro, com 20 gotas por mililitro. Quantas gotas?"
+  },
+  {
+   "id": "calc.dica.gotas_orais",
+   "texto": "Primeiro ache os mililitros pela regra de três, depois multiplique por 20 gotas."
+  },
+  {
+   "id": "calc.dica.volume",
+   "texto": "Lembra: um mililitro são 20 gotas, e uma hora tem 60 minutos."
+  },
+  {
+   "id": "calc.dica.insulina",
+   "texto": "Olhe em que faixa da escala a glicemia caiu e some à dose usual."
   }
  ]
 }

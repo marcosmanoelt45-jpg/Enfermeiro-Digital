@@ -36,6 +36,55 @@ export const TOPICOS_PRATICA = [
     badge: "Semiologia"
   },
   {
+    id: "seguranca",
+    titulo: "Segurança do Paciente",
+    descricao: "Metas, 9 certos, alta vigilância e a política nacional de 2026",
+    tags: ["seguranca", "metas", "nove certos", "pnqsp"],
+    badge: "Segurança"
+  },
+  {
+    id: "rcp",
+    titulo: "Parada e RCP (AHA 2025)",
+    descricao: "Reconhecer a PCR, compressões, DEA e ritmos chocáveis",
+    tags: ["rcp", "pcr", "dea", "sbv", "acls"],
+    badge: "Emergência"
+  },
+  {
+    id: "cardio",
+    titulo: "Dor Torácica e ECG",
+    descricao: "Síndrome coronariana, troponina, ondas e eletrodos do ECG",
+    tags: ["iam", "sca", "ecg", "troponina", "infarto"],
+    badge: "Cardiologia"
+  },
+  {
+    id: "exames",
+    titulo: "Exames Laboratoriais e de Imagem",
+    descricao: "Eletrólitos, hemograma, raio-X, TC, RM e preparo",
+    tags: ["exames", "laboratorio", "imagem", "raio-x", "eletrolitos"],
+    badge: "Exames"
+  },
+  {
+    id: "perioperatorio",
+    titulo: "Perioperatório e SRPA",
+    descricao: "Cirurgia segura, ASA, Aldrete-Kroulik e complicações",
+    tags: ["cirurgia", "srpa", "aldrete", "asa", "perioperatorio"],
+    badge: "Cirúrgica"
+  },
+  {
+    id: "processo",
+    titulo: "Processo de Enfermagem e Registros",
+    descricao: "NANDA-I, NOC, NIC, evolução, Horta e comunicação terapêutica",
+    tags: ["nanda", "noc", "nic", "registro", "evolucao", "horta"],
+    badge: "SAE"
+  },
+  {
+    id: "fundamentos",
+    titulo: "Fundamentos e Escalas",
+    descricao: "CME, Spaulding, SAK, Braden, estomias e envelhecimento",
+    tags: ["cme", "spaulding", "sak", "braden", "estomia", "quedas"],
+    badge: "Fundamentos"
+  },
+  {
     id: "todos",
     titulo: "Geral (Todos os Temas Clínicos)",
     descricao: "Simulação ampla integrando casos cirúrgicos e de clínica médica",

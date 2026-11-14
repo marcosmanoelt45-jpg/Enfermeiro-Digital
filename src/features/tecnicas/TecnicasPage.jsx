@@ -9,6 +9,7 @@ import { clinicalGamificationService } from "@/services/clinicalGamificationServ
 import { catalogoPronto, ROTULOS_CATEGORIA, ROTULOS_TIPO } from "@/features/minijogos/dados/index.js";
 import { notaDoResultado } from "@/features/minijogos/logica/avaliar.js";
 import VideotecaConteudo from "@/features/tecnicas/VideotecaConteudo.jsx";
+import FichasConsulta from "@/features/tecnicas/FichasConsulta.jsx";
 import MinijogoRunner from "@/features/minijogos/componentes/MinijogoRunner.jsx";
 import MaoEstetoscopio from "@/features/minijogos/componentes/ausculta/MaoEstetoscopio.jsx";
 
@@ -29,6 +30,7 @@ export default function TecnicasPage({ secao = "videos" }) {
   const [categoria, setCategoria] = useState("todas");
   const [aberto, setAberto] = useState(null);
   const [versao, setVersao] = useState(0);
+  const [aba, setAba] = useState(() => (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("aba") === "fichas" ? "fichas" : "videos"));
 
   const catalogo = useMemo(() => catalogoPronto(), []);
 
@@ -70,7 +72,7 @@ export default function TecnicasPage({ secao = "videos" }) {
     <PageShell activeTab={minijogos ? "minijogos" : "tecnicas"} larguraMax="4xl">
       <header className="space-y-1">
         <h1 className="text-xl font-extrabold">{minijogos ? "Minijogos" : "Vídeos"}</h1>
-        <p className="text-sm font-semibold text-[#9FB3C6]">{minijogos ? "Pratique com as mãos, no seu ritmo." : "Procedimentos passo a passo, com vídeo e checklist."}</p>
+        <p className="text-sm font-semibold text-[#9FB3C6]">{minijogos ? "Pratique com as mãos, no seu ritmo." : "Procedimentos passo a passo e fichas para consultar na hora."}</p>
       </header>
 
       {minijogos && (
@@ -115,7 +117,24 @@ export default function TecnicasPage({ secao = "videos" }) {
         </>
       )}
 
-      {!minijogos && <VideotecaConteudo titulo="POPs com vídeo e checklist" embutido />}
+      {!minijogos && (
+        <div role="tablist" aria-label="Vídeos ou fichas" className="flex gap-1 rounded-2xl border-2 border-[#27394B] bg-[#131F2E] p-1">
+          {[["videos", "Vídeos e POPs"], ["fichas", "Fichas de consulta"]].map(([id, rotulo]) => (
+            <button
+              key={id}
+              type="button"
+              role="tab"
+              aria-selected={aba === id}
+              onClick={() => setAba(id)}
+              className={`flex-1 rounded-xl py-2 text-sm font-black transition-colors duration-150 ${aba === id ? "bg-[#20D5B5]/15 text-[#20D5B5]" : "text-[#9FB3C6] hover:text-[#EAF2F8]"}`}
+            >
+              {rotulo}
+            </button>
+          ))}
+        </div>
+      )}
+      {!minijogos && aba === "videos" && <VideotecaConteudo titulo="POPs com vídeo e checklist" embutido />}
+      {!minijogos && aba === "fichas" && <FichasConsulta />}
     </PageShell>
   );
 }
