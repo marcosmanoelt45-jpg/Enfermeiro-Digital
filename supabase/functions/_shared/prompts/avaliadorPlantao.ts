@@ -2,7 +2,8 @@
 // A IA só marca presença de elementos-chave e dá clareza; as notas finais saem de pontuacaoPlantao.js.
 import type { MensagemLLM } from "../llm.ts";
 
-export const PARAMETROS_AVALIADOR_PLANTAO = { json: true, temperatura: 0.2, maxTokens: 1000, timeoutMs: 20000 } as const;
+// 2000 tokens: com 5 itens por parte (Caso 2) a resposta em JSON passava de 1000 e vinha cortada (avaliação sem IA)
+export const PARAMETROS_AVALIADOR_PLANTAO = { json: true, temperatura: 0.2, maxTokens: 2000, timeoutMs: 25000 } as const;
 
 export const SYSTEM_AVALIADOR_PLANTAO = `Você é enfermeiro(a) sênior e avalia uma passagem de plantão no formato SBAR feita por um aluno, em respostas faladas ou escritas a perguntas de uma colega.
 

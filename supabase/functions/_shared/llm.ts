@@ -146,7 +146,7 @@ export async function chamarLLM(opcoes: OpcoesLLM): Promise<RespostaLLM> {
       if (json) corpo.response_format = { type: "json_object" };
       // Gemini "pensa" por padrão e isso gasta o limite de tokens (JSON cortado): reduz o raciocínio.
       if (provedor === "gemini" && /^gemini-2\.5-flash/.test(modelo)) corpo.reasoning_effort = "none";
-      else if (provedor === "gemini" && (/^gemini-3/.test(modelo) || /flash-latest$/.test(modelo))) corpo.reasoning_effort = "low";
+      else if (provedor === "gemini" && (/^gemini-3/.test(modelo) || /flash(-lite)?-latest$/.test(modelo))) corpo.reasoning_effort = "low";
 
       const enviar = (c: Record<string, unknown>) =>
         fetchImpl(ENDPOINTS[provedor], {

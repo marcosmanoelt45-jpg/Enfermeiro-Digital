@@ -27,7 +27,8 @@ export function normalizarQuestao(q) {
       letra: LETRAS[i],
       texto,
       isCorreta: i === q.c,
-      explicacao: `${i === q.c ? "Correta" : "Incorreta"}: ${q.por[i]}`,
+      // o cartão já mostra o selo CORRETA/INCORRETA: aqui vai só o porquê; na certa, a explicação inteira com a fonte
+      explicacao: i === q.c ? (q.fonte ? `${q.exp} Fonte: ${q.fonte}.` : q.exp) : q.por[i],
     })),
     fonte: q.fonte ?? null,
   };

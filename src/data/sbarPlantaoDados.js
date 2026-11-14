@@ -1114,14 +1114,14 @@ export const PLANTAO_EXTRAS = {
       pergunta("plt.srpa_colectomia.a1", "A", "Como estão os sinais vitais?", numero("pa_sistolica", "pa_diastolica", "fr", "sat")),
       pergunta("plt.srpa_colectomia.a2", "A", "E a respiração, como está?", texto, "via_aerea_respiracao"),
       pergunta("plt.srpa_colectomia.a3", "A", "Ele está acordado? Quanto deu o Aldrete?", texto, "consciencia_aldrete"),
-      pergunta("plt.srpa_colectomia.r1", "R", "O que eu faço agora com ele?", texto),
-      pergunta("plt.srpa_colectomia.r2", "R", "Quem eu aviso e o que deixo pronto?", texto),
+      pergunta("plt.srpa_colectomia.r1", "R", "O que eu faço agora com ele e quem eu aviso?", texto),
+      pergunta("plt.srpa_colectomia.r2", "R", "E quando ele vai poder sair da SRPA?", texto),
     ],
     elementosChave: {
       S: ["identificação (iniciais e idade)", "SRPA, leito 3", "colectomia sob anestesia geral", "chegou há 30 minutos"],
       B: ["ASA III", "hipertensão e DPOC", "morfina no fim da cirurgia", "sem alergias"],
       A: ["FR 8 e SpO2 89% em ar ambiente", "PA 92/54, cerca de 30% abaixo da basal", "sonolento, desperta ao chamado", "Aldrete 5"],
-      R: ["O2 e cabeceira elevada", "estimular a respirar e reavaliar a cada 5 minutos", "naloxona pronta", "avisar o anestesiologista", "aquecer com manta"],
+      R: ["O2 e cabeceira elevada", "estimular a respirar e reavaliar a cada 5 minutos", "naloxona pronta e avisar o anestesiologista", "aquecer com manta", "alta só com Aldrete de 9 ou mais, sem nenhum item zero, dor e náusea controladas"],
     },
   },
 

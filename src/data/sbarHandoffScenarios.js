@@ -481,7 +481,7 @@ export const PRESET_HANDOFF_SCENARIOS = [
       situation: "Paciente A.C.M., 68 anos, no Leito 3 da SRPA, no pós-operatório imediato de colectomia sob anestesia geral, há 30 minutos na sala.",
       background: "ASA III: hipertensão e DPOC leve. Recebeu morfina no fim da cirurgia. Sem alergias.",
       assessment: "Sonolento, desperta só ao chamado, FR 8 irpm e SpO2 89% em ar ambiente; PA 92/54 mmHg (cerca de 30% abaixo da basal), FC 104 bpm, Tax 35,6 °C. Dor 8/10 quando desperta. Aldrete e Kroulik 5: não tem critério de alta.",
-      recommendation: "Manter O2 e cabeceira elevada, estimular a respirar e reavaliar FR e SpO2 a cada 5 minutos; deixar naloxona pronta e avisar o anestesiologista; aquecer com manta térmica e controlar sangramento e diurese."
+      recommendation: "Manter O2 e cabeceira elevada, estimular a respirar e reavaliar FR e SpO2 a cada 5 minutos; deixar naloxona pronta e avisar o anestesiologista; aquecer com manta térmica. Alta da SRPA só com Aldrete de 9 ou mais, sem nenhum item zero, e dor e náusea controladas."
     },
     educationalPointers: {
       situation: "Diga o setor, a cirurgia, o tipo de anestesia e há quanto tempo ele chegou.",
