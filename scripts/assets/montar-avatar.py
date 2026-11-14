@@ -523,3 +523,7 @@ print('ajustes', ajustes)
 with open(os.path.join(RAIZ, 'src', 'features', 'avatar', 'camadas.json'), 'w', encoding='utf-8') as f:
     json.dump(manifesto, f, ensure_ascii=False, indent=0, sort_keys=True)
 print('pecas:', len(manifesto))
+
+# tiaras (gato, urso, coelho, laço, anteninhas): recorte próprio pela cor, sem buracos nem borda serrilhada
+import subprocess, sys
+subprocess.run([sys.executable, os.path.join(os.path.dirname(os.path.abspath(__file__)), 'refazer-acessorios-cabeca.py')], check=True)

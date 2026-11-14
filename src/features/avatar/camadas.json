@@ -88,12 +88,13 @@
 "pele": true
 },
 "cabeca-antenas": {
+"cor": true,
 "fixo": true,
-"topo": 20.5
+"topo": 22.5
 },
 "cabeca-coelho": {
 "cor": true,
-"topo": 9.5
+"topo": 11.5
 },
 "cabeca-flores": {
 "fixo": true,
@@ -101,11 +102,11 @@
 },
 "cabeca-gato": {
 "cor": true,
-"topo": 52.0
+"topo": 54.0
 },
 "cabeca-laco": {
 "cor": true,
-"topo": 37.0
+"topo": 39.5
 },
 "cabeca-quepe": {
 "fixo": true,
@@ -119,7 +120,7 @@
 },
 "cabeca-urso": {
 "cor": true,
-"topo": 54.0
+"topo": 56.0
 },
 "cabelo-cacheado": {
 "cor": true,

@@ -4,7 +4,7 @@
 import CAMADAS from "./camadas.json";
 import { CORES_ACESSORIO, CORES_CABELO, CORES_MASCARA, CORES_ROUPA, PELES, normalizarAvatar } from "./pecas.js";
 import { ajustarTexto, primeiroNome } from "./nomeNoCracha.js";
-import { desenharAcessorio, desenharCrachaArcoiris, ehVetor, TOPO_VETOR } from "./acessoriosVetor.js";
+import { desenharCrachaArcoiris } from "./acessoriosVetor.js";
 
 const REF = 170;
 const BASE_URL = `${import.meta.env.BASE_URL || "/"}avatar/`;
@@ -105,8 +105,8 @@ const PLACAS = {
 // Quanto a tiara sobe junto com o cabelo (1 = apoiada no alto do cabelo). Curto: afunda metade no cabelo (apoiada
 // em cima, ela parecia flutuar acima da cabeça).
 const SUBIDA_TIARA = { cacheado: 0.6, topete: 0.4, curto: 0.45 };
-// Careca: acerto da arte de cada acessório (os desenhados em vetor já encaixam na cabeça e não precisam).
-const AJUSTE_SEM_CABELO = {};
+// Careca: a arte do coelho tem a tiara mais baixa que as outras e sobrava a cabeça aparecendo acima dela.
+const AJUSTE_SEM_CABELO = { coelho: -15 };
 // Touca acertada cabelo por cabelo (escala e quanto sobe, em px da arte de 512): a conta automática deixava a
 // touca enorme no cacheado e pequena e alta demais no topete (o cabelo aparecia por baixo).
 const TOUCA = {
@@ -114,9 +114,9 @@ const TOUCA = {
   chanel: { s: 1.15, dy: -15 },
   rabo: { s: 1.09, dy: -14 },
   coque: { s: 1.08, dy: -7 },
-  cacheado: { s: 1.36, dy: -40 },
+  cacheado: { s: 1.32, dy: -37 },
   curto: { s: 1.09, dy: -16 },
-  topete: { s: 1.22, dy: -31 },
+  topete: { s: 1.1, dy: -14 }, // do tamanho da cabeça; o topete acima dela é apagado
   raspado: { s: 1.0, dy: 0 },
 };
 const FONTE = (tam) => `900 ${tam}px Nunito, "Nunito Fallback", system-ui, sans-serif`;
@@ -187,9 +187,7 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
     const arquivos = [];
     // ajuste do acessório de cabeça ao cabelo escolhido (sobe até o topo do cabelo e alarga junto)
     const ajusteCabeca = CAMADAS._ajusteCabeca?.cabelos?.[`cabelo-${a.cabelo}`] || null;
-    const vetor = ehVetor(a.cabeca); // acessório de cabeça desenhado em código (acessoriosVetor.js)
     for (const p of pecas) {
-      if (vetor && p === `cabeca-${a.cabeca}`) continue;
       if (p === "cracha-arcoiris") {
         arquivos.push({ vetorCracha: true, onde: "cracha" });
         continue;
@@ -198,7 +196,8 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
       const corDaPeca = p.startsWith("cabelo-") || p.startsWith("barba-") ? cores.cabelo : p.startsWith("mascara-") ? cores.mascara : cores.acessorio;
       const onde = p.startsWith("cracha-") ? "cracha" : p.startsWith("cabeca-") ? "cabeca" : null;
       // primeiro apaga o que esta peça esconde (pijama saindo pelos lados do jaleco, cabelo acima da touca)
-      const usaApaga = info.apaga && (p !== "cabeca-touca" || a.cabelo === "coque"); // touca só esconde o coque
+      // touca: some o cabelo que passaria por cima dela (coque e topete); nos outros ela já cobre o alto do cabelo
+      const usaApaga = info.apaga && (p !== "cabeca-touca" || a.cabelo === "coque" || a.cabelo === "topete");
       if (usaApaga) arquivos.push({ url: `${BASE_URL}${p}.apaga.webp`, apaga: true, onde });
       // tingidos primeiro (cada um se estende um pouco por baixo do próximo) e a cor fixa por cima: sem emenda
       if (info.pele) arquivos.push({ url: `${BASE_URL}${p}.pele.webp`, cor: cores.pele, onde });
@@ -232,7 +231,7 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
         const touca = a.cabeca === "touca";
         const certa = touca ? TOUCA[a.cabelo] : null;
         const esc = certa ? certa.s : touca ? ajusteCabeca.st ?? ajusteCabeca.s : 1 + (ajusteCabeca.s - 1) * 0.45;
-        const topo = TOPO_VETOR[a.cabeca] ?? CAMADAS[`cabeca-${a.cabeca}`]?.topo ?? ay;
+        const topo = CAMADAS[`cabeca-${a.cabeca}`]?.topo ?? ay;
         // sem deixar o acessório sair por cima da imagem
         // quanto a tiara sobe: cabelo rente (curto, raspado, liso) = em cima do cabelo; volume grande = um pouco
         // dentro dele (só as orelhinhas por cima); topete = atrás do topete, perto da raiz
@@ -258,8 +257,6 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
       const proximo = arquivos[i + 1];
       if (onde === "cracha" && nomeCracha && (!proximo || proximo.onde !== "cracha")) em("cracha", () => escreverNome(ctx, placa, nomeCracha));
     });
-    // acessório em vetor por último (fica por cima do cabelo, como as peças de cabeça)
-    if (vetor) em("cabeca", () => desenharAcessorio(ctx, a.cabeca, cores.acessorio));
     return tela.toDataURL("image/png");
   })();
   trabalho.then(
