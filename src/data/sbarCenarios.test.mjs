@@ -10,10 +10,10 @@ const CAMPOS_VITAIS = ["pa_sistolica", "pa_diastolica", "fc", "fr", "sat", "tax"
 const LETRAS = ["S", "B", "A", "R"];
 const MINIJOGOS = new Map(MINIJOGOS_ESTATICOS.map((m) => [m.id, m]));
 
-test("os 20 cenários têm os dados do Plantão (e só cenários que existem)", () => {
-  assert.equal(IDS_DOS_CENARIOS.length, 20);
+test("os 22 cenários têm os dados do Plantão (e só cenários que existem)", () => {
+  assert.equal(IDS_DOS_CENARIOS.length, 22);
   assert.deepEqual(Object.keys(PLANTAO_EXTRAS).sort(), [...IDS_DOS_CENARIOS].sort());
-  assert.equal(PLANTAO_CENARIOS.length, 20);
+  assert.equal(PLANTAO_CENARIOS.length, 22);
 });
 
 test("o cenário do Plantão só acrescenta campos: nada do original some ou muda", () => {

@@ -45,7 +45,8 @@ export const TEMAS = [
     "rotulo": "Abdome cirúrgico",
     "arquetipos": [
       "sc_peritonite",
-      "sc_pancreatite"
+      "sc_pancreatite",
+      "sc_pos_apendicectomia_dm"
     ]
   },
   {

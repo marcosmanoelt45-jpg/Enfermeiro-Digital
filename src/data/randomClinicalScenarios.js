@@ -26,7 +26,9 @@ export const CLINICAL_ARCHETYPES = [
     braden: { perception: 3, moisture: 3, activity: 1, mobility: 2, nutrition: 3, friction: 2 },
     cam: { acute: false, inattention: false, disorganized: false, altered_loc: false },
     sak: { disorientation: false, urination: false, walking: false, caregiver: true, postop: false, previous_falls: false, meds: 5 },
-    caloi: { intensity: 8, location: ["Tórax anterior", "Mandíbula", "MSE"], characteristics: ["Em aperto", "Irradiada", "Aguda"] }
+    caloi: { intensity: 8, location: ["Tórax anterior", "Mandíbula", "MSE"], characteristics: ["Em aperto", "Irradiada", "Aguda"] },
+    // NANDA-I 2024-2026: dor aguda, risco de débito cardíaco diminuído, ansiedade excessiva, risco de choque
+    nanda: ["00132", "00240", "00400", "00205"]
   },
   {
     id: "sc_dpoc",
@@ -265,6 +267,28 @@ export const CLINICAL_ARCHETYPES = [
     cam: { acute: false, inattention: false, disorganized: false, altered_loc: false },
     sak: { disorientation: false, urination: false, walking: false, caregiver: false, postop: false, previous_falls: false, meds: 4 },
     caloi: { intensity: 10, location: ["Face", "Tórax", "MMSS"], characteristics: ["Queimação extrema", "Aguda", "Contínua"] }
+  },
+  {
+    // Caso 2 da disciplina ENF01015 (UFRGS): pós-operatório de apendicectomia em pessoa com diabetes, com a
+    // prescrição do caso (dieta líquida, insulina NPH e regular por escala, analgesia e antieméticos se necessário).
+    id: "sc_pos_apendicectomia_dm",
+    specialty: "cirurgico_abdome",
+    disease: "Pós-operatório imediato de apendicectomia em paciente com diabetes mellitus tipo 2",
+    anamnesis: "Paciente no 1º dia de pós-operatório de apendicectomia por apendicite aguda. Refere dor na ferida operatória, náusea desde a manhã e ainda não eliminou flatos. Conta que costuma esquecer a metformina nos dias de trabalho.",
+    medicalHistory: "Diabetes mellitus tipo 2 há 8 anos, em uso irregular de metformina; hipertensão arterial. Trabalha como motorista em turnos longos.",
+    medications: "Prescrição atual: dieta líquida completa pós-cirúrgica; insulina NPH 12 UI SC antes da janta; insulina regular 4 UI SC antes das refeições com escala pela glicemia (menor que 70 não aplicar, 71 a 100 metade, 151 a 200 +1 UI, 201 a 250 +2, 251 a 300 +3, acima de 301 +4); dipirona 1 g EV de 6/6 h; metoclopramida 10 mg EV se náusea; ondansetrona 8 mg EV se náusea persistir; morfina 3 mg EV se dor intensa; paracetamol 750 mg VO se dor ou febre, intercalado com a dipirona. Em casa: metformina 850 mg e losartana 50 mg.",
+    allergies: "Nega alergias.",
+    notes: "Ferida operatória abdominal com curativo seco e limpo. Abdome distendido, ruídos hidroaéreos diminuídos. Glicemia capilar antes do almoço: 238 mg/dL. Acesso venoso periférico em MSD.",
+    ageRange: [55, 70],
+    preferredGender: null,
+    vitals: { pa_sistolica: 138, pa_diastolica: 86, fc: 96, fr: 18, tax: 37.6, sat: 96 },
+    braden: { perception: 4, moisture: 3, activity: 2, mobility: 3, nutrition: 2, friction: 3 },
+    cam: { acute: false, inattention: false, disorganized: false, altered_loc: false },
+    sak: { disorientation: false, urination: false, walking: true, caregiver: false, postop: true, previous_falls: false, meds: 6 },
+    caloi: { intensity: 6, location: ["Ferida operatória", "Fossa ilíaca direita"], characteristics: ["Em pontada", "Piora ao se mexer"] },
+    // NANDA-I 2024-2026: dor aguda, risco de autogestão ineficaz da glicemia, risco de infecção, risco de motilidade
+    // gastrintestinal prejudicada, risco de recuperação cirúrgica prejudicada, conhecimento de saúde inadequado
+    nanda: ["00132", "00489", "00004", "00422", "00464", "00435"]
   }
 ];
 

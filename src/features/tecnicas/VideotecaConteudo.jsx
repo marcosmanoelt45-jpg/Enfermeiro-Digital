@@ -120,6 +120,7 @@ export default function VideotecaConteudo({ titulo = 'Vídeos e POPs', embutido 
     { id: 'curativos', label: 'Curativos' },
     { id: 'medicamentos', label: 'Medicamentos' },
     { id: 'urgencia', label: 'Urgência' },
+    { id: 'perioperatorio', label: 'Perioperatório' },
   ].filter((c) => ['all', 'unwatched', 'watched'].includes(c.id) || procedures.some((p) => p.category === c.id));
 
   // Fim do vídeo: 1ª vez marca como assistido e rende o PE do vídeo; depois, só conta o dia na ofensiva.

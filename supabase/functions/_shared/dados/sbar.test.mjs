@@ -10,7 +10,7 @@ test("a cópia do servidor está sincronizada com os cenários originais (rode s
 });
 
 test("a cópia do servidor não leva o gabarito de tela das lacunas", () => {
-  assert.equal(CENARIOS_PLANTAO.length, 20);
+  assert.equal(CENARIOS_PLANTAO.length, 22);
   for (const c of CENARIOS_PLANTAO) for (const l of c.lacunas) assert.equal(l.exame, undefined, `${c.id}.${l.campo}`);
 });
 

@@ -1082,6 +1082,91 @@ export const PLANTAO_EXTRAS = {
       R: ["PTU por sonda nasogástrica", "Lugol 1 hora após o PTU", "proibido AAS", "monitorização cardíaca contínua"],
     },
   },
+  srpa_colectomia: {
+    lacunas: [
+      lacuna({
+        campo: "via_aerea_respiracao", rotulo: "Via aérea e respiração",
+        valorEsperado: "respiração lenta e superficial, roncos leves, FR 8 irpm e SpO2 89% em ar ambiente",
+        pergunta: "Você observa a respiração e o oxímetro do paciente. O que encontra?",
+        feedbackCerto: "Isso. Respiração lenta e superficial com dessaturação: hipoventilação, provavelmente pelo opioide.",
+        erradas: [
+          ["respiração rápida, com sibilos e expiração prolongada", "Isso sugeriria broncoespasmo; aqui a respiração está lenta."],
+          ["estridor alto com tiragem e agitação", "Estridor é obstrução alta (laringoespasmo); o paciente está sonolento e lento."],
+          ["respiração regular, FR 16 irpm e SpO2 97%", "A respiração não está normal: FR 8 e SpO2 89%."],
+        ],
+      }),
+      lacuna({
+        campo: "consciencia_aldrete", rotulo: "Consciência e escore de Aldrete",
+        valorEsperado: "desperta só ao chamado; Aldrete e Kroulik 5, sem critério de alta",
+        pergunta: "Você chama o paciente e pontua a escala de Aldrete e Kroulik. Qual o resultado?",
+        feedbackCerto: "Isso. Atividade 2, respiração 1, circulação 1, consciência 1 e SpO2 0: total 5, sem critério de alta.",
+        erradas: [
+          ["acordado e orientado; Aldrete 10, pronto para a alta", "Ele desperta só ao chamado e dessatura: não tem critério de alta."],
+          ["não responde a estímulo doloroso; Aldrete 2", "Ele desperta ao chamado; a consciência pontua 1."],
+          ["desperta ao chamado; Aldrete 9, com alta liberada", "Com SpO2 de 89% em ar ambiente, a saturação pontua 0: o total é 5."],
+        ],
+      }),
+    ],
+    perguntas: [
+      pergunta("plt.srpa_colectomia.s1", "S", "Quem é o paciente e que cirurgia ele fez?", texto),
+      pergunta("plt.srpa_colectomia.s2", "S", "Que anestesia ele recebeu e há quanto tempo está aqui?", texto),
+      pergunta("plt.srpa_colectomia.b1", "B", "Qual o ASA dele? Tem alergia?", texto),
+      pergunta("plt.srpa_colectomia.a1", "A", "Como estão os sinais vitais?", numero("pa_sistolica", "pa_diastolica", "fr", "sat")),
+      pergunta("plt.srpa_colectomia.a2", "A", "E a respiração, como está?", texto, "via_aerea_respiracao"),
+      pergunta("plt.srpa_colectomia.a3", "A", "Ele está acordado? Quanto deu o Aldrete?", texto, "consciencia_aldrete"),
+      pergunta("plt.srpa_colectomia.r1", "R", "O que eu faço agora com ele?", texto),
+      pergunta("plt.srpa_colectomia.r2", "R", "Quem eu aviso e o que deixo pronto?", texto),
+    ],
+    elementosChave: {
+      S: ["identificação (iniciais e idade)", "SRPA, leito 3", "colectomia sob anestesia geral", "chegou há 30 minutos"],
+      B: ["ASA III", "hipertensão e DPOC", "morfina no fim da cirurgia", "sem alergias"],
+      A: ["FR 8 e SpO2 89% em ar ambiente", "PA 92/54, cerca de 30% abaixo da basal", "sonolento, desperta ao chamado", "Aldrete 5"],
+      R: ["O2 e cabeceira elevada", "estimular a respirar e reavaliar a cada 5 minutos", "naloxona pronta", "avisar o anestesiologista", "aquecer com manta"],
+    },
+  },
+
+  caso2_apendicectomia_dm: {
+    lacunas: [
+      lacuna({
+        campo: "glicemia", rotulo: "Glicemia capilar",
+        valorEsperado: "238 mg/dL antes do almoço",
+        pergunta: "Você faz a glicemia capilar antes do almoço. Quanto deu?",
+        feedbackCerto: "Isso. 238 mg/dL: pela escala da prescrição, insulina regular com a dose usual + 2 UI.",
+        erradas: [
+          ["62 mg/dL, com sudorese e tremor", "Seria hipoglicemia; o paciente está hiperglicêmico."],
+          ["110 mg/dL", "A glicemia está bem mais alta que isso."],
+          ["450 mg/dL com cetonúria", "Está alta, mas não nesse nível de cetoacidose."],
+        ],
+      }),
+      lacuna({
+        campo: "abdome", rotulo: "Abdome",
+        valorEsperado: "distendido, ruídos hidroaéreos diminuídos, sem flatos desde a cirurgia; curativo limpo e seco",
+        pergunta: "Você examina o abdome e o curativo. O que encontra?",
+        feedbackCerto: "Isso. Distensão com ruídos diminuídos e sem flatos: vigie o íleo pós-operatório.",
+        erradas: [
+          ["rígido, em tábua, com dor à descompressão brusca", "Isso sugeriria peritonite, o que não é o quadro."],
+          ["flácido, com ruídos normais e flatos presentes", "Ele ainda não eliminou flatos e o abdome está distendido."],
+          ["curativo com secreção purulenta e hiperemia", "O curativo está limpo e seco."],
+        ],
+      }),
+    ],
+    perguntas: [
+      pergunta("plt.caso2_apendicectomia_dm.s1", "S", "Quem é o paciente e por que ele operou?", texto),
+      pergunta("plt.caso2_apendicectomia_dm.s2", "S", "Qual o leito e o dia de pós-operatório?", texto),
+      pergunta("plt.caso2_apendicectomia_dm.b1", "B", "Quais as doenças de base? Tem alergia?", texto),
+      pergunta("plt.caso2_apendicectomia_dm.a1", "A", "Como estão os sinais vitais?", numero("pa_sistolica", "pa_diastolica", "fc", "tax")),
+      pergunta("plt.caso2_apendicectomia_dm.a2", "A", "E a glicemia, quanto deu?", texto, "glicemia"),
+      pergunta("plt.caso2_apendicectomia_dm.a3", "A", "Como está o abdome? Já eliminou flatos?", texto, "abdome"),
+      pergunta("plt.caso2_apendicectomia_dm.r1", "R", "Que horários de glicemia e insulina eu preciso cumprir?", texto),
+      pergunta("plt.caso2_apendicectomia_dm.r2", "R", "O que eu vigio e o que oriento para a alta?", texto),
+    ],
+    elementosChave: {
+      S: ["identificação (iniciais e idade)", "leito 7-B", "apendicectomia por apendicite", "1º dia de pós-operatório"],
+      B: ["diabetes tipo 2", "uso irregular de metformina", "hipertensão", "sem alergias"],
+      A: ["PA, FC e temperatura", "glicemia de 238 mg/dL", "náusea", "abdome distendido sem flatos", "curativo limpo e seco"],
+      R: ["glicemia antes das refeições e às 22h", "insulina regular pela escala e NPH antes da janta", "antiemético se náusea", "vigiar flatos e distensão", "orientar a metformina para a alta"],
+    },
+  },
 };
 
 export function cenarioDoPlantao(id) {

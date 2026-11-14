@@ -5,7 +5,7 @@ import { PALAVRAS_DOS_EXAMES } from "../dados/palavrasDosExames.js";
 
 const normal = (t) => String(t ?? "").normalize("NFD").replace(/[̀-ͯ]/g, "").toLowerCase();
 const VERBO_DE_EXAME =
-  /(examin|aval|medi|verific|olh|palp|auscult|escut|confer|chec|inspecion|observ|analis|afer|test|sentir|aplic|(^|\s)ver\s|vejo|veja|dar uma olhada|contar)/;
+  /(examin|aval|medi|verific|olh|palp|auscult|escut|confer|chec|inspecion|observ|analis|afer|test|sentir|aplic|(^|\s)ver\s|vejo|veja|dar uma olhada|contar|pontu|(^|\s)fa(zer|co)\s)/;
 
 function citou(t, termo) {
   if (termo.length <= 3) return new RegExp(`(^|[^a-z0-9])${termo}([^a-z0-9]|$)`).test(t);

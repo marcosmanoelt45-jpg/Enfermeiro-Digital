@@ -22,6 +22,8 @@ const SEXO = {
   bronquiolite_lactente: "M",
   paliativos_terminal: "F",
   crise_tireotoxica: "F",
+  srpa_colectomia: "M",
+  caso2_apendicectomia_dm: "M",
 };
 
 const MESES = { bronquiolite_lactente: 7 };

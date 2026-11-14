@@ -55,6 +55,10 @@ function candidatosNanda(a) {
     const d = NANDA_CATALOG.find((x) => x.code === c);
     if (d && !resultado.some((r) => r.codigo === c)) resultado.push({ codigo: d.code, nome: d.title });
   }
+  // Diagnósticos fixos do caso (campo `nanda`, códigos da NANDA-I 2024-2026): quando há 4 ou mais, são os únicos
+  // candidatos. A busca por palavras sozinha sugeria coisas sem relação (no infarto, hipertermia e incontinência).
+  const fixos = (a.nanda ?? []).map((c) => NANDA_COMPLETE_CATALOG.find((d) => d.code === c)).filter(Boolean).map((d) => ({ codigo: d.code, nome: d.title }));
+  if (fixos.length >= 4) return fixos;
   return resultado.map(({ codigo, nome }) => ({ codigo, nome }));
 }
 

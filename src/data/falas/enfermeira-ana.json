@@ -785,6 +785,70 @@
   {
    "id": "plt.crise_tireotoxica.r2",
    "texto": "Tem algum remédio que eu não posso dar a ela?"
+  },
+  {
+   "id": "plt.srpa_colectomia.s1",
+   "texto": "Quem é o paciente e que cirurgia ele fez?"
+  },
+  {
+   "id": "plt.srpa_colectomia.s2",
+   "texto": "Que anestesia ele recebeu e há quanto tempo está aqui?"
+  },
+  {
+   "id": "plt.srpa_colectomia.b1",
+   "texto": "Qual o ASA dele? Tem alergia?"
+  },
+  {
+   "id": "plt.srpa_colectomia.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.srpa_colectomia.a2",
+   "texto": "E a respiração, como está?"
+  },
+  {
+   "id": "plt.srpa_colectomia.a3",
+   "texto": "Ele está acordado? Quanto deu o Aldrete?"
+  },
+  {
+   "id": "plt.srpa_colectomia.r1",
+   "texto": "O que eu faço agora com ele?"
+  },
+  {
+   "id": "plt.srpa_colectomia.r2",
+   "texto": "Quem eu aviso e o que deixo pronto?"
+  },
+  {
+   "id": "plt.caso2_apendicectomia_dm.s1",
+   "texto": "Quem é o paciente e por que ele operou?"
+  },
+  {
+   "id": "plt.caso2_apendicectomia_dm.s2",
+   "texto": "Qual o leito e o dia de pós-operatório?"
+  },
+  {
+   "id": "plt.caso2_apendicectomia_dm.b1",
+   "texto": "Quais as doenças de base? Tem alergia?"
+  },
+  {
+   "id": "plt.caso2_apendicectomia_dm.a1",
+   "texto": "Como estão os sinais vitais?"
+  },
+  {
+   "id": "plt.caso2_apendicectomia_dm.a2",
+   "texto": "E a glicemia, quanto deu?"
+  },
+  {
+   "id": "plt.caso2_apendicectomia_dm.a3",
+   "texto": "Como está o abdome? Já eliminou flatos?"
+  },
+  {
+   "id": "plt.caso2_apendicectomia_dm.r1",
+   "texto": "Que horários de glicemia e insulina eu preciso cumprir?"
+  },
+  {
+   "id": "plt.caso2_apendicectomia_dm.r2",
+   "texto": "O que eu vigio e o que oriento para a alta?"
   }
  ]
 }

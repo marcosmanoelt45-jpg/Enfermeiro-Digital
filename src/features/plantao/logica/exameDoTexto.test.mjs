@@ -64,6 +64,10 @@ const FRASES = {
   "crise_tireotoxica.temperatura_pele": "vou medir a temperatura",
   "crise_tireotoxica.ritmo_cardiaco": "vou olhar o monitor",
   "crise_tireotoxica.neuro_pulmao": "vou ver se ela tem tremor e auscultar",
+  "srpa_colectomia.via_aerea_respiracao": "vou ver a respiração e o oxímetro",
+  "srpa_colectomia.consciencia_aldrete": "vou pontuar o Aldrete dele",
+  "caso2_apendicectomia_dm.glicemia": "vou fazer a glicemia capilar",
+  "caso2_apendicectomia_dm.abdome": "deixa eu examinar a barriga dele",
 };
 
 test("cada exame abre pelo chat com uma frase natural (sem IA)", () => {

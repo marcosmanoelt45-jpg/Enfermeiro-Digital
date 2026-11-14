@@ -466,5 +466,51 @@ export const PRESET_HANDOFF_SCENARIOS = [
       assessment: "Informe a temperatura axilar e o controle do ritmo cardíaco.",
       recommendation: "Enfatize o intervalo obrigatório de 1h entre PTU e Lugol e a contraindicação do AAS."
     }
+  },
+  {
+    id: "srpa_colectomia",
+    title: "SRPA: Hipoventilação após Colectomia",
+    sector: "Sala de Recuperação Pós-Anestésica • Leito 3",
+    bed: "Leito 3 - SRPA",
+    age: 68,
+    name: "A.C.M.",
+    diagnosis: "Pós-operatório imediato de colectomia, com hipoventilação e hipotensão na SRPA",
+    vitals: { pa_sistolica: 92, pa_diastolica: 54, fc: 104, fr: 8, sat: 89, tax: 35.6 },
+    clinicalSummary: "Chegou da sala cirúrgica há 30 minutos, após anestesia geral e morfina no fim da cirurgia. Sonolento, respiração lenta e superficial, dessaturando em ar ambiente; refere dor 8/10 quando desperta.",
+    goldenSbar: {
+      situation: "Paciente A.C.M., 68 anos, no Leito 3 da SRPA, no pós-operatório imediato de colectomia sob anestesia geral, há 30 minutos na sala.",
+      background: "ASA III: hipertensão e DPOC leve. Recebeu morfina no fim da cirurgia. Sem alergias.",
+      assessment: "Sonolento, desperta só ao chamado, FR 8 irpm e SpO2 89% em ar ambiente; PA 92/54 mmHg (cerca de 30% abaixo da basal), FC 104 bpm, Tax 35,6 °C. Dor 8/10 quando desperta. Aldrete e Kroulik 5: não tem critério de alta.",
+      recommendation: "Manter O2 e cabeceira elevada, estimular a respirar e reavaliar FR e SpO2 a cada 5 minutos; deixar naloxona pronta e avisar o anestesiologista; aquecer com manta térmica e controlar sangramento e diurese."
+    },
+    educationalPointers: {
+      situation: "Diga o setor, a cirurgia, o tipo de anestesia e há quanto tempo ele chegou.",
+      background: "Lembre o ASA e o opioide recebido no fim da cirurgia.",
+      assessment: "Fale FR, SpO2, PA comparada à basal, consciência e o escore de Aldrete.",
+      recommendation: "Deixe claro o que fazer agora: O2, estímulo, naloxona pronta, anestesiologista e reavaliação seriada."
+    }
+  },
+  {
+    id: "caso2_apendicectomia_dm",
+    title: "1º DPO de Apendicectomia em Paciente Diabético",
+    sector: "Unidade Cirúrgica • Leito 7-B",
+    bed: "Leito 7-B",
+    age: 54,
+    name: "R.T.S.",
+    diagnosis: "Pós-operatório de apendicectomia em paciente com diabetes mellitus tipo 2 (Caso 2 da disciplina)",
+    vitals: { pa_sistolica: 138, pa_diastolica: 86, fc: 96, fr: 18, sat: 96, tax: 37.6 },
+    clinicalSummary: "1º dia de pós-operatório de apendicectomia. Glicemias altas, náusea e abdome distendido, ainda sem eliminar flatos. Usa metformina de forma irregular.",
+    goldenSbar: {
+      situation: "Paciente R.T.S., 54 anos, no Leito 7-B da Unidade Cirúrgica, no 1º dia de pós-operatório de apendicectomia por apendicite aguda.",
+      background: "Diabetes tipo 2 há 8 anos, com uso irregular de metformina, e hipertensão. Sem alergias.",
+      assessment: "PA 138/86 mmHg, FC 96 bpm, Tax 37,6 °C, SpO2 96%. Glicemia capilar de 238 mg/dL antes do almoço. Náusea, abdome distendido com ruídos hidroaéreos diminuídos e ainda sem flatos. Curativo da ferida operatória limpo e seco. Dor 6/10.",
+      recommendation: "Glicemia capilar antes das refeições e às 22h, com insulina regular pela escala; insulina NPH 12 UI antes da janta; antiemético se náusea; dipirona fixa de 6/6 h; vigiar eliminação de flatos e distensão; orientar o uso da metformina para a alta."
+    },
+    educationalPointers: {
+      situation: "Diga o dia de pós-operatório e a cirurgia.",
+      background: "Lembre o diabetes com uso irregular da metformina.",
+      assessment: "Fale a glicemia capilar, a náusea e o abdome distendido sem flatos.",
+      recommendation: "Deixe claros os horários da glicemia, a escala de insulina e o que vigiar no abdome."
+    }
   }
 ];

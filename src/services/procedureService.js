@@ -7,6 +7,7 @@
 
 import { clinicalGamificationService } from './clinicalGamificationService';
 import { getProcedurePreview } from './procedurePreviews';
+import { POPS_AULAS } from '../data/procedimentos/popsAulas.js';
 import { callResilientAI } from './aiCoreService';
 
 const STORAGE_KEY = 'enfermeiro_digital_custom_procedures';
@@ -799,6 +800,8 @@ export const MASTER_PROCEDURES = [
       { type: 'warning', title: 'Soluções antissépticas citotóxicas no leito da lesão são contraindicadas', text: 'Evite o uso rotineiro de PVPI degermante, água oxigenada ou hipoclorito no tecido de granulação, pois são citotóxicos aos fibroblastos e retardam a cicatrização.' },
     ],
   },
+  // POPs escritos a partir do material da disciplina (UFRGS), com vídeo animado do Enfere
+  ...POPS_AULAS,
 ];
 
 export const procedureService = {

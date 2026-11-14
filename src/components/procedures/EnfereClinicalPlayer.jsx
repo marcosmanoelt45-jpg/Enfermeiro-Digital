@@ -405,7 +405,7 @@ export default function EnfereClinicalPlayer({
         {/* Marca d'água discreta do Enfere Player */}
         <div className="absolute top-3 left-3 z-10 pointer-events-none flex items-center gap-2 bg-slate-950/80 backdrop-blur-md px-3 py-1.5 rounded-xl border border-slate-800 text-[11px] font-bold text-slate-200">
           <span className="w-2 h-2 rounded-full bg-teal-400" />
-          <span>{isNativeMp4 ? 'Vídeo Oficial UFRGS • Enfere Player' : 'Enfere Clinical Player'}</span>
+          <span>{/^\/videos\//.test(videoUrl || '') ? 'Animação do Enfere' : isNativeMp4 ? 'Vídeo Oficial UFRGS • Enfere Player' : 'Enfere Clinical Player'}</span>
         </div>
       </div>
 

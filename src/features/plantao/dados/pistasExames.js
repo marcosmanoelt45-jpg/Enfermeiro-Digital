@@ -230,6 +230,21 @@ export const PISTAS_EXAMES = {
   "crise_tireotoxica.neuro_pulmao": {
     notas: ["Com as mãos estendidas, aparece um tremor fino e rápido.", "Na ausculta, murmúrio presente, sem crepitações.", "Alerta e agitada."],
   },
+  "srpa_colectomia.via_aerea_respiracao": {
+    monitor: { spo2: 89, fc: 104, ritmo: "taquicardia", o2: "Ar ambiente" },
+    notas: ["Você conta 8 respirações em 1 minuto, curtas e superficiais.", "Há um ronco leve quando ele cochila.", "A pele dos lábios está levemente arroxeada."],
+  },
+  "srpa_colectomia.consciencia_aldrete": {
+    medidas: [["Atividade", "move os 4 membros quando pedido"], ["PA agora × basal", "92/54 × 135/80 mmHg"]],
+    notas: ["Ele só abre os olhos quando você chama alto o nome dele e volta a cochilar.", "Quando acordado, respira fundo se você pede, mas logo fica superficial de novo."],
+  },
+  "caso2_apendicectomia_dm.glicemia": {
+    laudo: [["Glicemia capilar (antes do almoço)", "238 mg/dL", "70 a 180 mg/dL no paciente internado"]],
+    notas: ["Ele diz que tomou só metade do café por causa da náusea."],
+  },
+  "caso2_apendicectomia_dm.abdome": {
+    notas: ["O abdome está abaulado e um pouco tenso, mas cede à palpação.", "Na ausculta, poucos ruídos hidroaéreos em 1 minuto.", "Ele diz que não soltou gases desde a cirurgia.", "A gaze do curativo está branca e seca."],
+  },
 };
 
 export const pistaDoExame = (cenarioId, campo) => PISTAS_EXAMES[`${cenarioId}.${campo}`] ?? null;

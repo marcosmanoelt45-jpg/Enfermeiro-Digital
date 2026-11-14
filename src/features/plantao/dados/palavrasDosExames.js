@@ -54,4 +54,6 @@ export const PALAVRAS_DOS_EXAMES = {
   temperatura_pele: ["temperatura", "febre", "termometro", "axilar", "pele", "suor"],
   ritmo_cardiaco: ["ritmo", "monitor", "coracao", "frequencia cardiaca", "fc", "eletro", "ecg", "cardiaco"],
   neuro_pulmao: ["tremor", "tremores", "pulmao", "pulmoes", "ausculta", "maos", "edema pulmonar"],
+  via_aerea_respiracao: ["respiracao", "respira", "via aerea", "oximetro", "saturacao", "ronco", "fr"],
+  consciencia_aldrete: ["aldrete", "consciencia", "acordado", "desperta", "sonolento", "escala de alta"],
 };

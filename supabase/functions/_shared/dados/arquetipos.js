@@ -25,24 +25,20 @@ export const ARQUETIPOS = [
     },
     "nandaCandidatos": [
       {
-        "codigo": "00007",
-        "nome": "Hipertermia"
+        "codigo": "00132",
+        "nome": "Dor aguda"
       },
       {
-        "codigo": "00032",
-        "nome": "Padrão respiratório ineficaz"
+        "codigo": "00240",
+        "nome": "Risco de débito cardíaco diminuído"
       },
       {
-        "codigo": "00297",
-        "nome": "Incontinência urinária associada à incapacidade"
+        "codigo": "00400",
+        "nome": "Ansiedade excessiva"
       },
       {
-        "codigo": "00350",
-        "nome": "Risco de lesão pelo calor"
-      },
-      {
-        "codigo": "00351",
-        "nome": "Risco de lesão pelo frio"
+        "codigo": "00205",
+        "nome": "Risco de choque"
       }
     ]
   },
@@ -705,6 +701,55 @@ export const ARQUETIPOS = [
       {
         "codigo": "00087",
         "nome": "Risco de lesão por posicionamento perioperatório"
+      }
+    ]
+  },
+  {
+    "id": "sc_pos_apendicectomia_dm",
+    "specialty": "cirurgico_abdome",
+    "disease": "Pós-operatório imediato de apendicectomia em paciente com diabetes mellitus tipo 2",
+    "anamnesis": "Paciente no 1º dia de pós-operatório de apendicectomia por apendicite aguda. Refere dor na ferida operatória, náusea desde a manhã e ainda não eliminou flatos. Conta que costuma esquecer a metformina nos dias de trabalho.",
+    "medicalHistory": "Diabetes mellitus tipo 2 há 8 anos, em uso irregular de metformina; hipertensão arterial. Trabalha como motorista em turnos longos.",
+    "medications": "Prescrição atual: dieta líquida completa pós-cirúrgica; insulina NPH 12 UI SC antes da janta; insulina regular 4 UI SC antes das refeições com escala pela glicemia (menor que 70 não aplicar, 71 a 100 metade, 151 a 200 +1 UI, 201 a 250 +2, 251 a 300 +3, acima de 301 +4); dipirona 1 g EV de 6/6 h; metoclopramida 10 mg EV se náusea; ondansetrona 8 mg EV se náusea persistir; morfina 3 mg EV se dor intensa; paracetamol 750 mg VO se dor ou febre, intercalado com a dipirona. Em casa: metformina 850 mg e losartana 50 mg.",
+    "allergies": "Nega alergias.",
+    "notes": "Ferida operatória abdominal com curativo seco e limpo. Abdome distendido, ruídos hidroaéreos diminuídos. Glicemia capilar antes do almoço: 238 mg/dL. Acesso venoso periférico em MSD.",
+    "ageRange": [
+      55,
+      70
+    ],
+    "preferredGender": null,
+    "vitals": {
+      "pa_sistolica": 138,
+      "pa_diastolica": 86,
+      "fc": 96,
+      "fr": 18,
+      "tax": 37.6,
+      "sat": 96
+    },
+    "nandaCandidatos": [
+      {
+        "codigo": "00132",
+        "nome": "Dor aguda"
+      },
+      {
+        "codigo": "00489",
+        "nome": "Risco de autogestão ineficaz do padrão de glicemia"
+      },
+      {
+        "codigo": "00004",
+        "nome": "Risco de infecção"
+      },
+      {
+        "codigo": "00422",
+        "nome": "Risco de motilidade gastrintestinal prejudicada"
+      },
+      {
+        "codigo": "00464",
+        "nome": "Risco de recuperação cirúrgica prejudicada"
+      },
+      {
+        "codigo": "00435",
+        "nome": "Conhecimento de saúde inadequado"
       }
     ]
   }

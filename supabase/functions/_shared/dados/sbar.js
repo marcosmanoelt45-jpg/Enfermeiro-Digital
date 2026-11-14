@@ -2992,6 +2992,285 @@ export const CENARIOS_PLANTAO = [
     "monitorização cardíaca contínua"
    ]
   }
+ },
+ {
+  "id": "srpa_colectomia",
+  "title": "SRPA: Hipoventilação após Colectomia",
+  "sector": "Sala de Recuperação Pós-Anestésica • Leito 3",
+  "diagnosis": "Pós-operatório imediato de colectomia, com hipoventilação e hipotensão na SRPA",
+  "vitals": {
+   "pa_sistolica": 92,
+   "pa_diastolica": 54,
+   "fc": 104,
+   "fr": 8,
+   "sat": 89,
+   "tax": 35.6
+  },
+  "goldenSbar": {
+   "situation": "Paciente A.C.M., 68 anos, no Leito 3 da SRPA, no pós-operatório imediato de colectomia sob anestesia geral, há 30 minutos na sala.",
+   "background": "ASA III: hipertensão e DPOC leve. Recebeu morfina no fim da cirurgia. Sem alergias.",
+   "assessment": "Sonolento, desperta só ao chamado, FR 8 irpm e SpO2 89% em ar ambiente; PA 92/54 mmHg (cerca de 30% abaixo da basal), FC 104 bpm, Tax 35,6 °C. Dor 8/10 quando desperta. Aldrete e Kroulik 5: não tem critério de alta.",
+   "recommendation": "Manter O2 e cabeceira elevada, estimular a respirar e reavaliar FR e SpO2 a cada 5 minutos; deixar naloxona pronta e avisar o anestesiologista; aquecer com manta térmica e controlar sangramento e diurese."
+  },
+  "educationalPointers": {
+   "situation": "Diga o setor, a cirurgia, o tipo de anestesia e há quanto tempo ele chegou.",
+   "background": "Lembre o ASA e o opioide recebido no fim da cirurgia.",
+   "assessment": "Fale FR, SpO2, PA comparada à basal, consciência e o escore de Aldrete.",
+   "recommendation": "Deixe claro o que fazer agora: O2, estímulo, naloxona pronta, anestesiologista e reavaliação seriada."
+  },
+  "lacunas": [
+   {
+    "campo": "via_aerea_respiracao",
+    "rotulo": "Via aérea e respiração",
+    "valorEsperado": "respiração lenta e superficial, roncos leves, FR 8 irpm e SpO2 89% em ar ambiente"
+   },
+   {
+    "campo": "consciencia_aldrete",
+    "rotulo": "Consciência e escore de Aldrete",
+    "valorEsperado": "desperta só ao chamado; Aldrete e Kroulik 5, sem critério de alta"
+   }
+  ],
+  "perguntas": [
+   {
+    "id": "plt.srpa_colectomia.s1",
+    "letra": "S",
+    "texto": "Quem é o paciente e que cirurgia ele fez?",
+    "espera": {
+     "tipo": "texto"
+    }
+   },
+   {
+    "id": "plt.srpa_colectomia.s2",
+    "letra": "S",
+    "texto": "Que anestesia ele recebeu e há quanto tempo está aqui?",
+    "espera": {
+     "tipo": "texto"
+    }
+   },
+   {
+    "id": "plt.srpa_colectomia.b1",
+    "letra": "B",
+    "texto": "Qual o ASA dele? Tem alergia?",
+    "espera": {
+     "tipo": "texto"
+    }
+   },
+   {
+    "id": "plt.srpa_colectomia.a1",
+    "letra": "A",
+    "texto": "Como estão os sinais vitais?",
+    "espera": {
+     "tipo": "numero",
+     "campos": [
+      "pa_sistolica",
+      "pa_diastolica",
+      "fr",
+      "sat"
+     ]
+    }
+   },
+   {
+    "id": "plt.srpa_colectomia.a2",
+    "letra": "A",
+    "texto": "E a respiração, como está?",
+    "espera": {
+     "tipo": "texto"
+    },
+    "dependeDe": "via_aerea_respiracao"
+   },
+   {
+    "id": "plt.srpa_colectomia.a3",
+    "letra": "A",
+    "texto": "Ele está acordado? Quanto deu o Aldrete?",
+    "espera": {
+     "tipo": "texto"
+    },
+    "dependeDe": "consciencia_aldrete"
+   },
+   {
+    "id": "plt.srpa_colectomia.r1",
+    "letra": "R",
+    "texto": "O que eu faço agora com ele?",
+    "espera": {
+     "tipo": "texto"
+    }
+   },
+   {
+    "id": "plt.srpa_colectomia.r2",
+    "letra": "R",
+    "texto": "Quem eu aviso e o que deixo pronto?",
+    "espera": {
+     "tipo": "texto"
+    }
+   }
+  ],
+  "elementosChave": {
+   "S": [
+    "identificação (iniciais e idade)",
+    "SRPA, leito 3",
+    "colectomia sob anestesia geral",
+    "chegou há 30 minutos"
+   ],
+   "B": [
+    "ASA III",
+    "hipertensão e DPOC",
+    "morfina no fim da cirurgia",
+    "sem alergias"
+   ],
+   "A": [
+    "FR 8 e SpO2 89% em ar ambiente",
+    "PA 92/54, cerca de 30% abaixo da basal",
+    "sonolento, desperta ao chamado",
+    "Aldrete 5"
+   ],
+   "R": [
+    "O2 e cabeceira elevada",
+    "estimular a respirar e reavaliar a cada 5 minutos",
+    "naloxona pronta",
+    "avisar o anestesiologista",
+    "aquecer com manta"
+   ]
+  }
+ },
+ {
+  "id": "caso2_apendicectomia_dm",
+  "title": "1º DPO de Apendicectomia em Paciente Diabético",
+  "sector": "Unidade Cirúrgica • Leito 7-B",
+  "diagnosis": "Pós-operatório de apendicectomia em paciente com diabetes mellitus tipo 2 (Caso 2 da disciplina)",
+  "vitals": {
+   "pa_sistolica": 138,
+   "pa_diastolica": 86,
+   "fc": 96,
+   "fr": 18,
+   "sat": 96,
+   "tax": 37.6
+  },
+  "goldenSbar": {
+   "situation": "Paciente R.T.S., 54 anos, no Leito 7-B da Unidade Cirúrgica, no 1º dia de pós-operatório de apendicectomia por apendicite aguda.",
+   "background": "Diabetes tipo 2 há 8 anos, com uso irregular de metformina, e hipertensão. Sem alergias.",
+   "assessment": "PA 138/86 mmHg, FC 96 bpm, Tax 37,6 °C, SpO2 96%. Glicemia capilar de 238 mg/dL antes do almoço. Náusea, abdome distendido com ruídos hidroaéreos diminuídos e ainda sem flatos. Curativo da ferida operatória limpo e seco. Dor 6/10.",
+   "recommendation": "Glicemia capilar antes das refeições e às 22h, com insulina regular pela escala; insulina NPH 12 UI antes da janta; antiemético se náusea; dipirona fixa de 6/6 h; vigiar eliminação de flatos e distensão; orientar o uso da metformina para a alta."
+  },
+  "educationalPointers": {
+   "situation": "Diga o dia de pós-operatório e a cirurgia.",
+   "background": "Lembre o diabetes com uso irregular da metformina.",
+   "assessment": "Fale a glicemia capilar, a náusea e o abdome distendido sem flatos.",
+   "recommendation": "Deixe claros os horários da glicemia, a escala de insulina e o que vigiar no abdome."
+  },
+  "lacunas": [
+   {
+    "campo": "glicemia",
+    "rotulo": "Glicemia capilar",
+    "valorEsperado": "238 mg/dL antes do almoço"
+   },
+   {
+    "campo": "abdome",
+    "rotulo": "Abdome",
+    "valorEsperado": "distendido, ruídos hidroaéreos diminuídos, sem flatos desde a cirurgia; curativo limpo e seco"
+   }
+  ],
+  "perguntas": [
+   {
+    "id": "plt.caso2_apendicectomia_dm.s1",
+    "letra": "S",
+    "texto": "Quem é o paciente e por que ele operou?",
+    "espera": {
+     "tipo": "texto"
+    }
+   },
+   {
+    "id": "plt.caso2_apendicectomia_dm.s2",
+    "letra": "S",
+    "texto": "Qual o leito e o dia de pós-operatório?",
+    "espera": {
+     "tipo": "texto"
+    }
+   },
+   {
+    "id": "plt.caso2_apendicectomia_dm.b1",
+    "letra": "B",
+    "texto": "Quais as doenças de base? Tem alergia?",
+    "espera": {
+     "tipo": "texto"
+    }
+   },
+   {
+    "id": "plt.caso2_apendicectomia_dm.a1",
+    "letra": "A",
+    "texto": "Como estão os sinais vitais?",
+    "espera": {
+     "tipo": "numero",
+     "campos": [
+      "pa_sistolica",
+      "pa_diastolica",
+      "fc",
+      "tax"
+     ]
+    }
+   },
+   {
+    "id": "plt.caso2_apendicectomia_dm.a2",
+    "letra": "A",
+    "texto": "E a glicemia, quanto deu?",
+    "espera": {
+     "tipo": "texto"
+    },
+    "dependeDe": "glicemia"
+   },
+   {
+    "id": "plt.caso2_apendicectomia_dm.a3",
+    "letra": "A",
+    "texto": "Como está o abdome? Já eliminou flatos?",
+    "espera": {
+     "tipo": "texto"
+    },
+    "dependeDe": "abdome"
+   },
+   {
+    "id": "plt.caso2_apendicectomia_dm.r1",
+    "letra": "R",
+    "texto": "Que horários de glicemia e insulina eu preciso cumprir?",
+    "espera": {
+     "tipo": "texto"
+    }
+   },
+   {
+    "id": "plt.caso2_apendicectomia_dm.r2",
+    "letra": "R",
+    "texto": "O que eu vigio e o que oriento para a alta?",
+    "espera": {
+     "tipo": "texto"
+    }
+   }
+  ],
+  "elementosChave": {
+   "S": [
+    "identificação (iniciais e idade)",
+    "leito 7-B",
+    "apendicectomia por apendicite",
+    "1º dia de pós-operatório"
+   ],
+   "B": [
+    "diabetes tipo 2",
+    "uso irregular de metformina",
+    "hipertensão",
+    "sem alergias"
+   ],
+   "A": [
+    "PA, FC e temperatura",
+    "glicemia de 238 mg/dL",
+    "náusea",
+    "abdome distendido sem flatos",
+    "curativo limpo e seco"
+   ],
+   "R": [
+    "glicemia antes das refeições e às 22h",
+    "insulina regular pela escala e NPH antes da janta",
+    "antiemético se náusea",
+    "vigiar flatos e distensão",
+    "orientar a metformina para a alta"
+   ]
+  }
  }
 ];
 
