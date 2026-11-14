@@ -86,6 +86,18 @@ export function semanaIso(data = new Date()) {
   return `${d.getUTCFullYear()}-W${String(semana).padStart(2, "0")}`;
 }
 
+/** PE de cada um dos últimos 28 dias (só os dias com PE), para o calendário do perfil do amigo. */
+export function peDosUltimosDias(estado, hoje = new Date()) {
+  const mapa = estado?.dailyXpMap || {};
+  const limite = iso(new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - 27));
+  const fora = {};
+  for (const [d, v] of Object.entries(mapa)) {
+    const pe = Math.round(Number(v) || 0);
+    if (d >= limite && d <= iso(hoje) && pe > 0) fora[d] = Math.min(pe, 100000);
+  }
+  return fora;
+}
+
 /** Números do perfil público (o que amigos e o pódio veem) a partir do estado de gamificação. */
 export function numerosDoPerfil(estado, hoje = new Date()) {
   const mapa = estado?.dailyXpMap || {};

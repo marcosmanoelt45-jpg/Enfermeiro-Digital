@@ -39,6 +39,11 @@ export async function meuPerfil() {
 export async function perfilDe(userId) {
   const { data, error } = await supabase.from("perfil_publico").select(CAMPOS).eq("user_id", userId).maybeSingle();
   falhou(error);
+  if (data) {
+    // PE de cada dia (migration 018): se a coluna ainda não existe, o perfil abre sem os pontos por dia
+    const extra = await supabase.from("perfil_publico").select("pe_dias").eq("user_id", userId).maybeSingle();
+    if (!extra.error && extra.data?.pe_dias && Object.keys(extra.data.pe_dias).length) data.pe_dias = extra.data.pe_dias;
+  }
   return data;
 }
 

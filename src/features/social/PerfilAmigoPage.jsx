@@ -1,15 +1,14 @@
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ChevronLeft, Flame, Trophy, Zap } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
 import { AvatarDe } from "./componentes.jsx";
+import DedicacaoSemanal from "@/features/pontos/DedicacaoSemanal.jsx";
 import { ofensivaJuntos } from "./logicaSocial.js";
 import { desfazerAmizade, meuPerfil, perfilDe, semanaAtual, SocialIndisponivel } from "./servicoSocial.js";
 import { CORES_FUNDO, normalizarAvatar, sortearAvatar } from "@/features/avatar/pecas.js";
-
-const iso = (d) => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
 
 /** Perfil de um amigo (rota /perfil/:id): avatar, ofensiva, números, ofensiva juntos e as últimas 4 semanas. */
 export default function PerfilAmigoPage() {
@@ -28,15 +27,6 @@ export default function PerfilAmigoPage() {
       })
       .catch((e) => setErro(e instanceof SocialIndisponivel ? "O social ainda está sendo preparado." : e.message));
   }, [id]);
-
-  const semanas = useMemo(() => {
-    const dias = new Set(perfil?.dias_estudados ?? []);
-    const hoje = new Date();
-    return Array.from({ length: 28 }, (_, i) => {
-      const d = new Date(hoje.getFullYear(), hoje.getMonth(), hoje.getDate() - (27 - i));
-      return { dia: iso(d), estudou: dias.has(iso(d)), hoje: i === 27 };
-    });
-  }, [perfil]);
 
   if (erro) {
     return (
@@ -114,18 +104,7 @@ export default function PerfilAmigoPage() {
         ))}
       </div>
 
-      <section className="rounded-2xl border-2 border-[#27394B] bg-[#131F2E] p-4" aria-label="Últimas 4 semanas">
-        <h2 className="mb-3 text-sm font-black">Últimas 4 semanas</h2>
-        <div className="grid grid-cols-7 gap-1.5">
-          {semanas.map((d) => (
-            <span
-              key={d.dia}
-              title={d.dia}
-              className={`aspect-square rounded-lg ${d.estudou ? "bg-[#FF9600]" : "bg-[#1B2A3A]"} ${d.hoje ? "ring-2 ring-[#FFC247] ring-offset-2 ring-offset-[#131F2E]" : ""}`}
-            />
-          ))}
-        </div>
-      </section>
+      <DedicacaoSemanal pontos={perfil.pe_dias} ativos={perfil.dias_estudados ?? []} />
 
       {eu && eu.user_id !== perfil.user_id && (
         <div className="pt-2">

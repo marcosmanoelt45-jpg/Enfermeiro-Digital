@@ -5,7 +5,7 @@
 // Também atualiza o perfil público (perfil_publico), que amigos e o pódio leem.
 // Se as tabelas ainda não existem (migration 015 não aplicada) ou não há rede, tudo continua no aparelho.
 import { supabase, isSupabaseConfigured } from "@/services/supabaseClient";
-import { mesclarPacote, numerosDoPerfil } from "./mesclarProgresso.js";
+import { mesclarPacote, numerosDoPerfil, peDosUltimosDias } from "./mesclarProgresso.js";
 
 export const EVENTO_PROGRESSO = "enfere:progresso-alterado";
 export const EVENTO_SINCRONIZADO = "enfere:progresso-sincronizado";
@@ -86,6 +86,8 @@ async function subir(id, pacote) {
       .update({ ...numerosDoPerfil(pacote.gamificacao), atualizado_em: agora })
       .eq("user_id", id);
     if (e2) throw e2;
+    // PE de cada dia (migration 018). Em separado e sem travar nada: se a coluna ainda não existe, só não grava.
+    await supabase.from("perfil_publico").update({ pe_dias: peDosUltimosDias(pacote.gamificacao) }).eq("user_id", id);
   }
 }
 

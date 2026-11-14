@@ -17,7 +17,16 @@ export function useEstadoJogo(userId) {
     window.addEventListener(EVENTO_PROGRESSO, reler);
     window.addEventListener("storage", reler);
     document.addEventListener("visibilitychange", aoVoltar);
+    // à meia-noite o dia vira: a ofensiva é recalculada (zera ou gasta o bloqueio) mesmo com o app aberto
+    let meiaNoite;
+    const agendar = () => {
+      const agora = new Date();
+      const amanha = new Date(agora.getFullYear(), agora.getMonth(), agora.getDate() + 1, 0, 0, 5);
+      meiaNoite = setTimeout(() => { reler(); agendar(); }, amanha - agora);
+    };
+    agendar();
     return () => {
+      clearTimeout(meiaNoite);
       window.removeEventListener(EVENTO_SINCRONIZADO, reler);
       window.removeEventListener(EVENTO_PROGRESSO, reler);
       window.removeEventListener("storage", reler);

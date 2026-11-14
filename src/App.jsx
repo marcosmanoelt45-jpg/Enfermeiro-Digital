@@ -4,6 +4,7 @@ import Comemoracoes from "@/components/feedback/Comemoracoes.jsx";
 import SincronizacaoConta from "@/features/conta/SincronizacaoConta.jsx";
 import { QueryClientProvider } from '@tanstack/react-query';
 import { queryClientInstance } from '@/lib/query-client';
+import { flagAtiva } from '@/features/flags.js';
 import { BrowserRouter as Router, Route, Routes, Navigate, useNavigate, useLocation } from 'react-router-dom';
 import { LazyMotion, MotionConfig } from 'framer-motion';
 
@@ -199,14 +200,14 @@ const AuthenticatedApp = () => {
           <Route path="/" element={<StudentDashboard />} />
           <Route path="/montar-caso" element={<Redirecionar para="/consulta" />} />
           <Route path="/case-studio" element={<Redirecionar para="/consulta" />} />
-          <Route path="/simulador-casos" element={<CaseStudySimulator />} />
-          <Route path="/case-study" element={<CaseStudySimulator />} />
+          <Route path="/simulador-casos" element={flagAtiva("casos") ? <CaseStudySimulator /> : <Navigate to="/" replace />} />
+          <Route path="/case-study" element={flagAtiva("casos") ? <CaseStudySimulator /> : <Navigate to="/" replace />} />
           <Route path="/laboratorio-calculos" element={<CalculoPage />} />
           <Route path="/calculo-doses" element={<Redirecionar para="/laboratorio-calculos" />} />
           <Route path="/dosage-lab" element={<Redirecionar para="/laboratorio-calculos" />} />
           <Route path="/sistemas-organicos" element={<Navigate to="/" replace />} />
           <Route path="/systems-assessment" element={<Navigate to="/" replace />} />
-          <Route path="/banco-casos" element={<CaseLibrary />} />
+          <Route path="/banco-casos" element={flagAtiva("casos") ? <CaseLibrary /> : <Navigate to="/" replace />} />
           <Route path="/referencias" element={<References />} />
           <Route path="/turmas" element={<Navigate to="/" replace />} />
           <Route path="/turma/:id" element={<Navigate to="/" replace />} />

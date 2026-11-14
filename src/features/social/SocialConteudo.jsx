@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Globe, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -63,8 +63,6 @@ export default function SocialConteudo() {
   const [eu, setEu] = useState(null);
   const [erro, setErro] = useState(null);
   const [mostrar, setMostrar] = useState(POR_PAGINA);
-  const primeiraCarga = useRef(true);
-  const [animar, setAnimar] = useState(true);
 
   const carregar = useCallback(async () => {
     setErro(null);
@@ -77,9 +75,6 @@ export default function SocialConteudo() {
       setAmigos(a);
       setEu(m);
       setMostrar(POR_PAGINA);
-      // só a primeira chegada dos dados anima; as trocas seguintes atualizam no lugar
-      if (primeiraCarga.current) primeiraCarga.current = false;
-      else setAnimar(false);
     } catch (e) {
       setErro(e instanceof SocialIndisponivel ? "O social ainda está sendo preparado. Volte daqui a pouco." : e.message);
     }
@@ -164,13 +159,11 @@ export default function SocialConteudo() {
             </div>
           ) : (
             <>
-              <Podio lista={ranking.slice(0, 3)} unidade={unidade} meuId={user?.id} animar={animar} />
+              <Podio lista={ranking.slice(0, 3)} unidade={unidade} meuId={user?.id} />
               <ol className="space-y-2">
-                {resto.slice(0, mostrar).map((p, i) => (
+                {resto.slice(0, mostrar).map((p) => (
                   <LinhaPessoa
                     key={p.user_id}
-                    indice={animar ? i : 0}
-                    animar={animar}
                     perfil={p}
                     posicao={p.posicao}
                     valor={p.valor}
@@ -203,13 +196,12 @@ export default function SocialConteudo() {
               {amigos
                 .slice()
                 .sort((a, b) => (b.ofensiva || 0) - (a.ofensiva || 0))
-                .map((a, i) => {
+                .map((a) => {
                   const juntos = eu ? ofensivaJuntos(eu.dias_estudados, a.dias_estudados) : 0;
                   const hoje = estudouHojePerfil(a.dias_estudados);
                   return (
                     <LinhaPessoa
                       key={a.user_id}
-                      indice={i}
                       perfil={a}
                       valor={a.ofensiva}
                       unidade="dias"

@@ -39,8 +39,8 @@ export default function Footer() {
             </h4>
             <ul className="space-y-2 text-sm text-slate-600 dark:text-slate-400">
               <li>
-                <Link to="/simulador-casos" className="hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
-                  Casos Clínicos
+                <Link to="/questoes" className="hover:text-emerald-700 dark:hover:text-emerald-400 transition-colors">
+                  Questões
                 </Link>
               </li>
               <li>

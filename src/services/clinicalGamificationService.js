@@ -311,8 +311,27 @@ export function computeStreak(state, now = new Date()) {
     corrente.push(diaComOffset(now, offset));
     offset += 1;
   }
-  while (corrente.length && !estudados.has(corrente[corrente.length - 1])) corrente.pop();
-  return corrente.length;
+  // dia protegido pelo bloqueio só segura a corrente: não soma (antes ontem protegido virava +1 dia)
+  return corrente.filter((d) => estudados.has(d)).length;
+}
+
+/** Maior ofensiva da história: dias estudados seguidos, com os dias protegidos só ligando as pontas. */
+export function melhorOfensiva(state) {
+  const estudados = diasEstudados(state);
+  const congelados = new Set(Array.isArray(state?.frozenDates) ? state.frozenDates : []);
+  const dias = [...new Set([...estudados, ...congelados])].sort();
+  let melhor = 0;
+  let atual = 0;
+  let anterior = null;
+  for (const d of dias) {
+    const [a, m, dd] = d.split('-').map(Number);
+    const seguido = anterior && getLocalDateString(new Date(anterior[0], anterior[1] - 1, anterior[2] + 1)) === d;
+    if (!seguido) atual = 0;
+    if (estudados.has(d)) atual += 1;
+    melhor = Math.max(melhor, atual);
+    anterior = [a, m, dd];
+  }
+  return melhor;
 }
 
 // Catálogo de Utilidades Pedagógicas para Pontos de Estudo (PE)
@@ -528,7 +547,8 @@ function syncWithRealHistory(state, userId = null) {
 
   const computedStreak = computeStreak(state);
   state.streak = computedStreak;
-  state.bestStreak = Math.max(state.bestStreak || 0, computedStreak);
+  // o recorde sai do histórico de dias (não do valor guardado): assim um recorde contado errado se corrige
+  state.bestStreak = Math.max(melhorOfensiva(state), computedStreak);
 
   // profile-13: Atualiza conquistas baseadas no historico real
   if (Array.isArray(state.achievements)) {

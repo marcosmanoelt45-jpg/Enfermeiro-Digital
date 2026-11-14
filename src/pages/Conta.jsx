@@ -10,8 +10,6 @@ import {
   Trophy,
   UserPlus,
   Flame,
-  ChevronDown,
-  ChevronUp,
   Pencil,
   AlertTriangle,
   ShieldCheck,
@@ -31,7 +29,7 @@ import { listStagger, fadeUp, spring } from "@/lib/motion";
 // Componentes de Estatísticas Clínicas Formativas
 import { clinicalGamificationService } from "@/services/clinicalGamificationService";
 import { clinicalHistoryService } from "@/services/clinicalHistoryService";
-import WeeklyActivityChart from "@/components/profile/WeeklyActivityChart";
+import DedicacaoSemanal from "@/features/pontos/DedicacaoSemanal.jsx";
 import GotiStudyPointsModal from "@/components/mascot/GotiStudyPointsModal";
 import HistoricoAtividadesTab from "@/components/profile/HistoricoAtividadesTab";
 import SecaoOfensivasAmigos from "@/features/amigos/SecaoOfensivasAmigos.jsx";
@@ -74,8 +72,10 @@ export default function Conta() {
   }, [user?.id]);
 
   // Controle do acordeão de dedicação semanal
-  const [openDedication, setOpenDedication] = useState(true);
-  const [perfilTab, setPerfilTab] = useState("visao_geral"); // "visao_geral" | "historico" | "social"
+  // ?aba=historico abre direto no histórico (atalho "Histórico e rascunhos" do Menu)
+  const [perfilTab, setPerfilTab] = useState(() =>
+    typeof window !== "undefined" && new URLSearchParams(window.location.search).get("aba") === "historico" ? "historico" : "visao_geral"
+  ); // "visao_geral" | "historico" | "social"
 
   const refreshGameState = () => {
     if (user?.id) {
@@ -119,14 +119,6 @@ export default function Conta() {
     const points = gameState?.totalXp ?? gameState?.studyPoints ?? 0;
     return clinicalGamificationService.getLevelInfo(points);
   }, [gameState]);
-
-  const weeklyPeTotal = useMemo(() => {
-    return (gameState?.weeklyDays || []).reduce((acc, d) => acc + (Number(d.xp) || 0), 0);
-  }, [gameState?.weeklyDays]);
-
-  const activeWeeklyDays = useMemo(() => {
-    return (gameState?.weeklyDays || []).filter((d) => d.completed || (Number(d.xp) || 0) > 0).length;
-  }, [gameState?.weeklyDays]);
 
   async function handleLogout() {
     setBusy(true);
@@ -406,10 +398,10 @@ export default function Conta() {
                   <Flame className="w-8 h-8 text-[#FFC247] shrink-0 fill-[#FFC247]" />
                   <div>
                     <h3 className="text-sm sm:text-base font-black text-[#FFC247]">
-                      <AnimatedNumber value={gameState?.streak ?? 0} /> dias seguidos
+                      <AnimatedNumber value={gameState?.streak ?? 0} /> {(gameState?.streak ?? 0) === 1 ? "dia seguido" : "dias seguidos"}
                     </h3>
                     <p className="text-[11px] text-[#9FB3C6]">
-                      Recorde: <AnimatedNumber value={gameState?.bestStreak ?? 0} /> dias
+                      Recorde: <AnimatedNumber value={gameState?.bestStreak ?? 0} /> {(gameState?.bestStreak ?? 0) === 1 ? "dia" : "dias"}
                     </p>
                   </div>
                 </div>
@@ -517,37 +509,9 @@ export default function Conta() {
                 </div>
               </motion.div>
 
-              {/* Dedicação semanal com dados de atividade real e acordeão acessível (profile-11) */}
-              <motion.div variants={fadeUp} className="rounded-2xl border border-[#1F3045] bg-[#131F2E] overflow-hidden">
-                <button
-                  type="button"
-                  aria-expanded={openDedication}
-                  aria-controls="dedication-content"
-                  onClick={() => {
-                    triggerHaptic(15);
-                    setOpenDedication((prev) => !prev);
-                  }}
-                  className="w-full p-4 flex items-center justify-between text-left hover:bg-[#16222E] transition cursor-pointer"
-                >
-                  <div>
-                    <div className="text-xs sm:text-sm font-bold text-white">
-                      Dedicação semanal
-                    </div>
-                    <div className="text-[11px] text-[#9FB3C6]">
-                      <AnimatedNumber value={weeklyPeTotal} /> PE nos últimos 7 dias · {activeWeeklyDays}/7 dias ativos
-                    </div>
-                  </div>
-                  {openDedication ? (
-                    <ChevronUp className="w-4 h-4 text-[#9FB3C6]" />
-                  ) : (
-                    <ChevronDown className="w-4 h-4 text-[#9FB3C6]" />
-                  )}
-                </button>
-                {openDedication && (
-                  <div id="dedication-content" className="p-4 pt-0 border-t border-[#1F3045]/60">
-                    <WeeklyActivityChart weeklyDays={gameState?.weeklyDays} />
-                  </div>
-                )}
+              {/* Dedicação semanal: últimos 7 dias e, ao abrir, as últimas 4 semanas com os PE de cada dia */}
+              <motion.div variants={fadeUp}>
+                <DedicacaoSemanal pontos={gameState?.dailyXpMap || {}} ativos={gameState?.diasAtivos || []} protegidos={gameState?.frozenDates || []} />
               </motion.div>
 
             </motion.div>

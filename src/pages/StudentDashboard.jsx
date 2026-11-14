@@ -10,8 +10,10 @@ import {
   ChevronRight,
   Zap,
   Stethoscope,
-  BookOpen
+  BookOpen,
+  ListChecks
 } from "lucide-react";
+import { flagAtiva } from "@/features/flags.js";
 import StudentHeader from "@/components/StudentHeader";
 import StudentFooter from "@/components/StudentFooter";
 import { useAuth } from "@/lib/AuthContext";
@@ -69,7 +71,7 @@ export default function StudentDashboard() {
     { id: "minijogos", title: "Minijogos", subtitle: "Pratique com as mãos: bandeja, ausculta e mais", badge: "Jogos", highlight: false, icon: Gamepad2, rota: "/minijogos" },
     { id: "tecnicas", title: "Vídeos e POPs", subtitle: "Passo a passo com vídeo e checklist", badge: "POPs", highlight: false, icon: Video, rota: "/tecnicas" },
     { id: "casos", title: "Casos Clínicos", subtitle: "Processo de Enfermagem · 5 etapas", badge: "NANDA-I", highlight: false, icon: BookOpen, rota: "/simulador-casos" },
-  ].map((s) => ({
+  ].filter((s) => s.id !== "casos" || flagAtiva("casos")).map((s) => ({
     ...s,
     action: () => {
       triggerHaptic(15);
@@ -222,12 +224,12 @@ export default function StudentDashboard() {
                 <button
                   onClick={() => {
                     triggerHaptic(15);
-                    navigate("/simulador-casos");
+                    navigate("/questoes");
                   }}
                   className="btn-3d-outline px-5 h-12 text-sm flex items-center gap-2 cursor-pointer"
                 >
-                  <BookOpen className="w-4 h-4 text-[#20D5B5]" />
-                  <span>Casos Clínicos</span>
+                  <ListChecks className="w-4 h-4 text-[#20D5B5]" />
+                  <span>Questões</span>
                 </button>
               </div>
             </div>

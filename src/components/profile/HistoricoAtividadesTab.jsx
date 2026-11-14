@@ -97,7 +97,7 @@ export default function HistoricoAtividadesTab({ userId = null }) {
     else if (t === MODULE_TYPES.DOSAGE || t === MODULE_TYPES.CALCULO_MEDICO) navigate("/laboratorio-calculos");
     else if (t === MODULE_TYPES.SBAR || t === MODULE_TYPES.PLANTAO_VIVO) navigate("/passagem-plantao");
     else if (t === MODULE_TYPES.PROCEDURES || t === MODULE_TYPES.TECNICA) navigate("/tecnicas");
-    else navigate("/simulador-casos");
+    else navigate("/");
   };
 
   return (

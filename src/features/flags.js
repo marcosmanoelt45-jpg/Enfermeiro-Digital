@@ -1,5 +1,6 @@
 // Chaves de liga/desliga dos módulos novos do plano Cenas ao Vivo. Ligados na F8; desligar um aqui esconde o módulo (chave de emergência).
-export const FLAGS = { consulta: true, calculoMedico: true, plantaoVivo: true, tecnicas: true, amigos: false, social: true };
+export const FLAGS = { consulta: true, calculoMedico: true, plantaoVivo: true, tecnicas: true, amigos: false, social: true, casos: false };
+// casos: Casos Clínicos fora do site por enquanto (código guardado em src/pages/CaseStudySimulator.jsx); `true` volta.
 
 // Para testar em produção sem expor ao aluno: no console, `localStorage.setItem("enfere_flag_consulta", "1")`.
 export function flagAtiva(nome) {

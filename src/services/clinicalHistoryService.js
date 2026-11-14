@@ -237,7 +237,7 @@ export const clinicalHistoryService = {
       case MODULE_TYPES.SBAR: return '/passagem-plantao';
       case MODULE_TYPES.TECNICA: return '/minijogos';
       case MODULE_TYPES.PROCEDURES: return '/tecnicas';
-      default: return '/simulador-casos';
+      default: return '/';
     }
   },
 

@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
-import { m as motion } from "framer-motion";
 import { Copy, Crown, Flame, MessageCircle, Send, Share2, UserPlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { toast } from "@/components/ui/use-toast";
@@ -10,7 +9,6 @@ import { sortearAvatar } from "@/features/avatar/pecas.js";
 import { linkDoConvite, meuConvite } from "./servicoSocial.js";
 import { linkTelegram, linkWhatsApp, textoDoConvite } from "./logicaSocial.js";
 
-const EASE_OUT = [0.23, 1, 0.32, 1];
 
 /** Avatar de um perfil público (sorteia um estável pelo id se a pessoa ainda não montou o dela). */
 export function AvatarDe({ perfil, tamanho = 48, redondo = true }) {
@@ -92,15 +90,14 @@ export function CartaoConvite({ nome }) {
 CartaoConvite.propTypes = { nome: PropTypes.string };
 
 /** Pódio com os 3 primeiros (2º à esquerda, 1º no meio e mais alto, 3º à direita). */
-export function Podio({ lista, unidade, meuId, animar = true }) {
+export function Podio({ lista, unidade, meuId }) {
   const [p1, p2, p3] = lista;
-  // `animar` false: entra já no lugar (trocar a métrica não reanima nem pisca). A coluna é fixa por lugar (não
-  // por pessoa), então trocar quem está em 1º só troca o conteúdo.
-  const inicio = (v) => (animar ? v : false);
-  const coluna = (p, lugar, altura, cor, atraso) =>
+  // Sem animação de entrada: o esqueleto tem o mesmo formato, então o pódio aparece já pronto no lugar (a barra que
+  // crescia e o número que surgia pareciam piscar). A coluna é fixa por lugar, então trocar quem está em 1º só troca
+  // o conteúdo.
+  const coluna = (p, lugar, altura, cor) =>
     p ? (
       <div className="flex min-w-0 flex-1 flex-col items-center" key={`lugar-${lugar}`}>
-        {/* foto e nome entram já no lugar (o esqueleto tem a mesma altura); só a barra do pódio cresce */}
         <div className="relative">
           <div className={`rounded-full p-1 ${p.user_id === meuId ? "bg-[#20D5B5]" : "bg-transparent"}`}>
             <AvatarDe perfil={p} tamanho={lugar === 1 ? 76 : 60} />
@@ -113,35 +110,31 @@ export function Podio({ lista, unidade, meuId, animar = true }) {
         <p className="text-xs font-extrabold" style={{ color: cor }}>
           {p.valor} {unidade}
         </p>
-        <motion.div
+        <div
           className="mt-1.5 flex w-full items-start justify-center rounded-t-2xl pt-2 text-xl font-black text-[#0B131D]"
-          style={{ height: altura, background: cor, transformOrigin: "50% 100%" }}
-          initial={inicio({ transform: "scaleY(0.2)", opacity: 0 })}
-          animate={{ transform: "scaleY(1)", opacity: 1, transition: { duration: 0.4, ease: EASE_OUT, delay: atraso } }}
+          style={{ height: altura, background: cor }}
         >
           {lugar}
-        </motion.div>
+        </div>
       </div>
     ) : (
       <div className="flex-1" key={`vazio-${lugar}`} />
     );
   return (
     <div className="flex items-end gap-2 px-2" aria-label="Pódio">
-      {coluna(p2, 2, 70, "#B9C6D3", 0.1)}
-      {coluna(p1, 1, 100, "#FFC247", 0)}
-      {coluna(p3, 3, 52, "#E59A5C", 0.2)}
+      {coluna(p2, 2, 70, "#B9C6D3")}
+      {coluna(p1, 1, 100, "#FFC247")}
+      {coluna(p3, 3, 52, "#E59A5C")}
     </div>
   );
 }
-Podio.propTypes = { lista: PropTypes.array.isRequired, unidade: PropTypes.string, meuId: PropTypes.string, animar: PropTypes.bool };
+Podio.propTypes = { lista: PropTypes.array.isRequired, unidade: PropTypes.string, meuId: PropTypes.string };
 
 /** Linha de uma pessoa no ranking ou na lista de amigos. */
-export function LinhaPessoa({ perfil, posicao, valor, unidade, eu, extra, onClick, indice = 0, animar = true }) {
+export function LinhaPessoa({ perfil, posicao, valor, unidade, eu, extra, onClick }) {
+  // sem entrada animada: a lista aparece pronta (antes cada linha deslizava e o número parecia piscar)
   return (
-    <motion.li
-      initial={animar ? { opacity: 0, transform: "translateY(6px)" } : false}
-      animate={{ opacity: 1, transform: "translateY(0px)", transition: { duration: 0.2, ease: EASE_OUT, delay: Math.min(indice, 10) * 0.03 } }}
-    >
+    <li>
       <button
         type="button"
         onClick={onClick}
@@ -163,7 +156,7 @@ export function LinhaPessoa({ perfil, posicao, valor, unidade, eu, extra, onClic
           </span>
         )}
       </button>
-    </motion.li>
+    </li>
   );
 }
 LinhaPessoa.propTypes = {
@@ -174,6 +167,4 @@ LinhaPessoa.propTypes = {
   eu: PropTypes.bool,
   extra: PropTypes.node,
   onClick: PropTypes.func,
-  indice: PropTypes.number,
-  animar: PropTypes.bool,
 };

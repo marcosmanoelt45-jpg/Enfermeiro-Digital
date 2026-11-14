@@ -17,6 +17,7 @@ export const ROTAS_CONHECIDAS = [
   "/conta",
   "/social",
   "/loja",
+  "#menu", // a aba Menu do celular só abre a gaveta
 ];
 
 // Cada módulo tem uma rota e, opcionalmente, um lugar em cada superfície (header, dock, trilha).
@@ -119,11 +120,19 @@ export const MODULOS = [
     },
   },
   {
+    // Fora do site por enquanto (chave `casos` em flags.js); o código continua guardado.
     id: "casos",
     rota: "/simulador-casos",
     grupo: "pratica",
-    flag: null,
+    flag: "casos",
     header: { rotulo: "Casos Clínicos", icone: "BookOpen", ordem: 60, briefingId: "casos" },
+  },
+  {
+    // Aba "Menu" do celular: abre a gaveta com tudo (não navega).
+    id: "menu",
+    rota: "#menu",
+    grupo: "principal",
+    flag: null,
     dock: { rotulo: "Menu", icone: "Menu", ordem: 20, gaveta: true },
   },
   {
@@ -205,10 +214,10 @@ export const GAVETA_PRATICA = [
   },
   {
     id: "continue",
-    modulo: "casos",
-    rota: "/simulador-casos?action=continue",
+    modulo: "menu",
+    rota: "/consulta",
     titulo: "Continuar de onde parou",
-    subtitulo: "Retome seu último caso clínico",
+    subtitulo: "Retome sua última atividade",
     icone: "Activity",
     ordem: 40,
   },
@@ -233,10 +242,10 @@ export const GAVETA_PRATICA = [
   },
   {
     id: "history",
-    modulo: "casos",
-    rota: "/simulador-casos?action=history",
-    titulo: "Histórico e rascunhos",
-    subtitulo: "Casos, plantões, consultas e cálculos",
+    modulo: "menu",
+    rota: "/conta?aba=historico",
+    titulo: "Histórico",
+    subtitulo: "Plantões, consultas, cálculos e mais",
     icone: "History",
     ordem: 70,
   },
