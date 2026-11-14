@@ -56,7 +56,7 @@ export default function ProcedureChecklist({ procedure, onComplete }) {
     celebrate({ count: 80, spread: 80, y: 0.6 });
     toast({
       title: '🎉 Treinamento Prático Concluído!',
-      description: 'O Goti creditou +30 XP na sua carreira e manteve seu plantão em dia!',
+      description: `+${res.earnedXp ?? 0} PE e o dia de hoje na sua ofensiva.`,
     });
     if (onComplete) onComplete(res);
   };

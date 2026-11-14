@@ -15,6 +15,7 @@ import { registrarResposta } from "@/components/feedback/comemoracoes.js";
 import BANCO from "@/data/questoes/banco.json";
 import { TOPICOS_PRATICA } from "@/data/questoes/temas.js";
 import { embaralharAlternativas, montarSessao, resumoDaSessao, todasRespondidas } from "./logica/sessao.js";
+import { PE_POR_ATIVIDADE } from "@/features/pontos/regrasPE.js";
 
 const NOVO = { selectedChoice: null, tentativas: 0, status: "aberta", isFinalizada: false, opcoesFalhadas: [] };
 const MODOS = { rapida: "Rápidas", normal: "Normais", revisao: "Revisão" };
@@ -143,7 +144,7 @@ export default function QuestoesPage() {
     );
     if (modo === "revisao") clinicalHistoryService.removerQuestoesRevisao(lista.filter((x) => x.status === "verde" || x.status === "amarela"), userId);
     // Sessão terminada acende a ofensiva do dia (com acertos vem junto o PE; sem acertos, só o dia).
-    if (acertos) clinicalGamificationService.recordActivity("case_solved", acertos * 25, userId);
+    if (acertos) clinicalGamificationService.recordActivity("questao", acertos * PE_POR_ATIVIDADE.questao, userId);
     else if (lista.some((x) => x.status !== "pulada")) clinicalGamificationService.concluirAtividadeDoDia(userId);
     setVersao((v) => v + 1);
     setDaSessao(true);

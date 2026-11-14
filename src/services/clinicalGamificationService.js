@@ -6,6 +6,8 @@ import { clinicalHistoryService } from './clinicalHistoryService.js';
  * com identidade e rigor clínico autênticos de Enfermagem (COFEN nº 736/2024).
  */
 
+import { LOJA_PE, aplicarCompra, calcularPE, podeComprar } from '../features/pontos/regrasPE.js';
+
 const STORAGE_KEY = 'enfermeiro_digital_gamification_state';
 
 // Patentes e Níveis Clínicos Nightingale
@@ -708,7 +710,7 @@ export const clinicalGamificationService = {
    * @param {number} customXp - XP customizado opcional
    * @param {string|null} userId - ID opcional do usuário
    */
-  recordActivity(type, customXp = null, userId = null, { activityId = null } = {}) {
+  recordActivity(type, customXp = null, userId = null, { activityId = null, nota = null } = {}) {
     const resolvedId = resolveCurrentUserId(userId);
     const state = this.getState(resolvedId);
     const today = getTodayString();
@@ -717,37 +719,20 @@ export const clinicalGamificationService = {
     const ofensivaAntes = diaJaAceso ? state.streak || 0 : computeStreak(state);
     const ehEstudo = type !== 'send_support';
 
-    let earnedXp = customXp || 20;
+    // Quanto rende: tabela única em src/features/pontos/regrasPE.js (base ou valor dado + bônus de nota, dobrado
+    // se o PE em dobro comprado na loja estiver ativo).
+    const earnedXp = calcularPE({ tipo: type, valor: customXp, nota, estado: state });
 
-    if (type === 'case_solved') {
-      earnedXp = customXp || 50;
-      state.solvedCases = (state.solvedCases || 0) + 1;
-    } else if (type === 'dosage_safe') {
-      earnedXp = customXp || 25;
+    if (type === 'dosage_safe') {
       state.safeDosagesCount = (state.safeDosagesCount || 0) + 1;
       state.solvedCases = (state.solvedCases || 0) + 1;
     } else if (type === 'sbar_completed') {
-      earnedXp = customXp || 35;
       state.sbarHandoffsCount = (state.sbarHandoffsCount || 0) + 1;
       state.solvedCases = (state.solvedCases || 0) + 1;
-    } else if (type === 'tecnica') {
-      earnedXp = customXp || 30;
-      state.solvedCases = (state.solvedCases || 0) + 1;
-    } else if (type === 'plantao_vivo') {
-      earnedXp = customXp || 35;
-      state.solvedCases = (state.solvedCases || 0) + 1;
-    } else if (type === 'calculo_medico') {
-      earnedXp = customXp || 30;
-      state.solvedCases = (state.solvedCases || 0) + 1;
-    } else if (type === 'consulta') {
-      earnedXp = customXp || 40;
-      state.solvedCases = (state.solvedCases || 0) + 1;
-    } else if (type === 'procedure_completed') {
-      earnedXp = customXp || 35;
-      state.solvedCases = (state.solvedCases || 0) + 1;
     } else if (type === 'send_support') {
-      earnedXp = customXp || 10;
       state.encouragementsSent = (state.encouragementsSent || 0) + 1;
+    } else if (type !== 'questao' && type !== 'revisao' && type !== 'video') {
+      state.solvedCases = (state.solvedCases || 0) + 1;
     }
 
     if (activityId) {
@@ -899,9 +884,24 @@ export const clinicalGamificationService = {
   },
 
   /**
-   * Gasta Pontos de Estudo (PE) em uma funcionalidade pedagógica ou benefício.
+   * Compra um item da loja de PE (src/features/pontos/regrasPE.js: bloqueio de ofensiva, PE em dobro).
+   * Devolve { success, reason?, state }.
+   */
+  comprarItem(itemId, userId = null) {
+    const resolvedId = resolveCurrentUserId(userId);
+    const state = this.getState(resolvedId);
+    const item = LOJA_PE.find((i) => i.id === itemId);
+    const pode = podeComprar(item, { ...state, studyPoints: state.studyPoints ?? state.totalXp ?? 0 });
+    if (!pode.ok) return { success: false, reason: pode.motivo, state };
+    const novo = aplicarCompra(item, { ...state, studyPoints: state.studyPoints ?? state.totalXp ?? 0 });
+    this.saveState(novo, resolvedId);
+    return { success: true, state: novo };
+  },
+
+  /**
+   * (Antigo) Gasta PE num item. Mantido para quem ainda chama; a loja nova usa comprarItem.
    * @param {number} cost - Custo em PE
-   * @param {string} itemId - Identificador do item (ex: 'goti_hint', 'rare_simulation', 'streak_freeze')
+   * @param {string} itemId - Identificador do item
    * @param {string|null} userId - ID opcional do usuário
    */
   spendStudyPoints(cost, itemId, userId = null) {

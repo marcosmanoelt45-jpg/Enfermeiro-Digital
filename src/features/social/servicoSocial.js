@@ -129,16 +129,27 @@ export async function desfazerAmizade(outroId) {
 }
 
 // ---------------------------------------------------------------- pódio
-/** Perfis do pódio: "amigos" (eu + amigos) ou "geral" (quem ligou o ranking geral, mais eu). */
-export async function perfisDoPodio(escopo = "amigos") {
+export const LIMITE_GERAL = 100;
+const COLUNA_DA_METRICA = { ofensiva: "ofensiva", melhor_ofensiva: "melhor_ofensiva", pe_semana: "pe_semana" };
+
+/**
+ * Perfis do pódio: "amigos" (eu + amigos) ou "geral" (quem ligou o ranking geral, mais eu).
+ * No geral, o servidor já ordena pela métrica escolhida e devolve os 100 primeiros (antes vinham os 100 de maior
+ * ofensiva, e com muita gente quem liderava em PE ou recorde ficava de fora). PE da semana: só desta semana.
+ * Se eu não estou entre os 100, entro no fim marcado com `_fora` (a tela mostra "100+" em vez de uma posição).
+ */
+export async function perfisDoPodio(escopo = "amigos", metrica = "ofensiva") {
   const id = await eu();
   if (escopo === "geral") {
-    const { data, error } = await supabase.from("perfil_publico").select(CAMPOS).eq("no_ranking_geral", true).order("ofensiva", { ascending: false }).limit(100);
+    const coluna = COLUNA_DA_METRICA[metrica] ?? "ofensiva";
+    let q = supabase.from("perfil_publico").select(CAMPOS).eq("no_ranking_geral", true);
+    if (coluna === "pe_semana") q = q.eq("semana", semanaAtual());
+    const { data, error } = await q.order(coluna, { ascending: false }).order("ofensiva", { ascending: false }).limit(LIMITE_GERAL);
     falhou(error);
     const lista = data ?? [];
     if (!lista.some((p) => p.user_id === id)) {
       const meu = await meuPerfil();
-      if (meu) lista.push(meu);
+      if (meu) lista.push({ ...meu, _fora: lista.length >= LIMITE_GERAL });
     }
     return lista;
   }

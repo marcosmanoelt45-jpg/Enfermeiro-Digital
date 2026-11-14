@@ -45,6 +45,11 @@ import { EVENTO_SINCRONIZADO } from "@/features/conta/sincronizacao.js";
 import PrivacidadeESom from "@/features/conta/PrivacidadeESom.jsx";
 import { souAdmin } from "@/features/admin/servicoAdmin.js";
 
+import LojaPE from "@/features/pontos/LojaPE.jsx";
+
+// Aba Social do Perfil: carrega só quando aberta (pódio, avatares e amigos não pesam o perfil).
+const SocialConteudo = React.lazy(() => import("@/features/social/SocialConteudo.jsx"));
+
 // Helper de pluralização PT-BR (profile-7)
 const plural = (n, singular, pluralForm) => (n === 1 ? singular : pluralForm);
 
@@ -70,7 +75,7 @@ export default function Conta() {
 
   // Controle do acordeão de dedicação semanal
   const [openDedication, setOpenDedication] = useState(true);
-  const [perfilTab, setPerfilTab] = useState("visao_geral"); // "visao_geral" | "historico"
+  const [perfilTab, setPerfilTab] = useState("visao_geral"); // "visao_geral" | "historico" | "social"
 
   const refreshGameState = () => {
     if (user?.id) {
@@ -110,7 +115,8 @@ export default function Conta() {
   }, [user?.id, gameState]);
 
   const levelInfo = useMemo(() => {
-    const points = gameState?.studyPoints ?? gameState?.totalXp ?? 0;
+    // nível pelo total já ganho: gastar PE na loja não baixa o nível
+    const points = gameState?.totalXp ?? gameState?.studyPoints ?? 0;
     return clinicalGamificationService.getLevelInfo(points);
   }, [gameState]);
 
@@ -169,7 +175,10 @@ export default function Conta() {
         {/* Cabeçalho do perfil: o avatar grande no fundo que a pessoa escolheu, nome, nível e atalhos. */}
         <section className="overflow-hidden rounded-3xl border-2 border-[#27394B]" aria-label="Seu perfil">
           <div className="relative flex justify-center pt-6" style={{ background: CORES_FUNDO[meuAvatar.fundo] }}>
+            {/* flex: o avatar (inline-block) deixava embaixo o espaço da linha de texto, uma faixa entre o
+                personagem e o resto do cartão */}
             <motion.div
+              className="flex"
               initial={{ opacity: 0, transform: "translateY(10px)" }}
               animate={{ opacity: 1, transform: "translateY(0px)", transition: { duration: 0.3, ease: [0.23, 1, 0.32, 1] } }}
             >
@@ -237,7 +246,11 @@ export default function Conta() {
             {flagAtiva("social") && (
               <button
                 type="button"
-                onClick={() => navigate("/social")}
+                onClick={() => {
+                  triggerHaptic(10);
+                  setPerfilTab("social");
+                  document.getElementById("tab-social")?.scrollIntoView({ behavior: "smooth", block: "start" });
+                }}
                 className="mt-3 flex w-full items-center gap-3 rounded-2xl border-2 border-[#27394B] bg-[#0B131D] px-3 py-2.5 text-left transition-colors duration-150 hover:border-[#20D5B5]/60"
               >
                 <span className="flex h-9 w-9 items-center justify-center rounded-xl bg-[#FFC247]/15 text-[#FFC247]">
@@ -271,7 +284,7 @@ export default function Conta() {
         </section>
 
         {/* Abas com Semântica Acessível e Indicador Deslizante (profile-15 & Redesign) */}
-        <div role="tablist" aria-label="Navegação do perfil" className="flex border-b border-[#1F3045] gap-2 pt-1 pb-1 relative">
+        <div role="tablist" aria-label="Navegação do perfil" className="no-scrollbar relative flex gap-1 overflow-x-auto whitespace-nowrap border-b border-[#1F3045] pb-1 pt-1 [&>button]:shrink-0 [&>button]:px-3">
           <button
             role="tab"
             id="tab-visao-geral"
@@ -310,7 +323,7 @@ export default function Conta() {
               perfilTab === "historico" ? "text-[#20D5B5]" : "text-[#9FB3C6] hover:text-white"
             }`}
           >
-            Histórico de Atividades
+            Histórico
             {perfilTab === "historico" && (
               <motion.span
                 layoutId="perfil-tab-indicator"
@@ -319,6 +332,70 @@ export default function Conta() {
               />
             )}
           </button>
+
+          <button
+            role="tab"
+            id="tab-loja"
+            aria-selected={perfilTab === "loja"}
+            aria-controls="panel-loja"
+            type="button"
+            onClick={() => {
+              triggerHaptic(10);
+              setPerfilTab("loja");
+            }}
+            className={`relative px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none ${
+              perfilTab === "loja" ? "text-[#20D5B5]" : "text-[#9FB3C6] hover:text-white"
+            }`}
+          >
+            Loja
+            {perfilTab === "loja" && (
+              <motion.span
+                layoutId="perfil-tab-indicator"
+                transition={spring.glide}
+                className="absolute bottom-0 inset-x-0 h-0.5 bg-[#20D5B5] rounded-full"
+              />
+            )}
+          </button>
+
+          {flagAtiva("social") && (
+            <button
+              role="tab"
+              id="tab-social"
+              aria-selected={perfilTab === "social"}
+              aria-controls="panel-social"
+              type="button"
+              onClick={() => {
+                triggerHaptic(10);
+                setPerfilTab("social");
+              }}
+              className={`relative px-4 py-2.5 text-xs sm:text-sm font-bold transition-colors cursor-pointer select-none ${
+                perfilTab === "social" ? "text-[#20D5B5]" : "text-[#9FB3C6] hover:text-white"
+              }`}
+            >
+              Social
+              {perfilTab === "social" && (
+                <motion.span
+                  layoutId="perfil-tab-indicator"
+                  transition={spring.glide}
+                  className="absolute bottom-0 inset-x-0 h-0.5 bg-[#20D5B5] rounded-full"
+                />
+              )}
+            </button>
+          )}
+        </div>
+
+        {/* Loja de PE: bloqueio de ofensiva e PE em dobro */}
+        <div role="tabpanel" id="panel-loja" aria-labelledby="tab-loja" hidden={perfilTab !== "loja"}>
+          {perfilTab === "loja" && <LojaPE userId={user?.id} onMudou={(s) => setGameState(s)} />}
+        </div>
+
+        {/* Social: pódio e amigos (o mesmo conteúdo da página /social) */}
+        <div role="tabpanel" id="panel-social" aria-labelledby="tab-social" hidden={perfilTab !== "social"}>
+          {perfilTab === "social" && (
+            <React.Suspense fallback={<p className="py-8 text-center text-sm font-bold text-[#9FB3C6]">Carregando…</p>}>
+              <SocialConteudo />
+            </React.Suspense>
+          )}
         </div>
 
         {/* Painel do Histórico de Atividades */}
@@ -341,9 +418,11 @@ export default function Conta() {
           hidden={perfilTab !== "visao_geral"}
         >
           {perfilTab === "visao_geral" && (
+            // initial={false}: a Visão Geral aparece pronta junto com o resto do perfil. A entrada em cascata
+            // (cada cartão começando invisível, um depois do outro) fazia ela parecer carregar depois.
             <motion.div
               variants={listStagger}
-              initial="hidden"
+              initial={false}
               animate="show"
               className="space-y-3.5"
             >

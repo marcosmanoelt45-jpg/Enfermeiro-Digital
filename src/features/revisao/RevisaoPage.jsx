@@ -52,7 +52,8 @@ export default function RevisaoPage() {
 
   const proxima = () => {
     // Terminou a última questão: a revisão conta como atividade concluída e acende a ofensiva do dia.
-    if (indice + 1 >= questoes.length) clinicalGamificationService.concluirAtividadeDoDia(user?.id);
+    // (rende o PE da revisão, de regrasPE.js)
+    if (indice + 1 >= questoes.length) clinicalGamificationService.recordActivity("revisao", null, user?.id);
     setIndice((i) => i + 1);
     setEstado(NOVO);
     setDicaVisivel(false);

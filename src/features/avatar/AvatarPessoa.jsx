@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import PropTypes from "prop-types";
 import { CORES_FUNDO, normalizarAvatar } from "./pecas.js";
-import { comporAvatar, ladoPara } from "./compor.js";
+import { avatarJaPronto, comporAvatar, ladoPara } from "./compor.js";
 
 // Avatar montado em camadas (arte do Flow, uma peça por vez sobre a mesma base). O desenho é feito em canvas
 // por compor.js e fica em cache; aqui só mostramos a imagem pronta sobre a cor de fundo escolhida.
@@ -11,7 +11,8 @@ export default function AvatarPessoa({ avatar, nome = "", tamanho = 96, redondo 
   const a = normalizarAvatar(avatar);
   const chave = JSON.stringify(a);
   const lado = ladoPara(tamanho);
-  const [src, setSrc] = useState(null);
+  // já montado antes: começa com a imagem (sem um quadro vazio, que piscava em listas como o pódio)
+  const [src, setSrc] = useState(() => avatarJaPronto(a, lado, nome));
   const fluido = /\bw-full\b/.test(className); // ocupa a largura do pai (editor); senão, tamanho fixo
 
   useEffect(() => {

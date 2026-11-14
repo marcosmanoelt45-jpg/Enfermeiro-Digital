@@ -11,7 +11,8 @@ test("primeiroNome pega só o primeiro nome, arrumado", () => {
 });
 
 test("primeiroNome limita o tamanho e ignora lixo", () => {
-  assert.equal(primeiroNome("Maximilianoooo"), "Maximilia.");
+  assert.equal(primeiroNome("Maximilianoooo"), "Maximilianoooo");
+  assert.equal(primeiroNome("Maximilianooooooo"), "Maximilianooo.");
   assert.equal(primeiroNome("123 !!!"), "");
   assert.equal(primeiroNome(""), "");
   assert.equal(primeiroNome(null), "");
@@ -25,7 +26,13 @@ test("ajustarTexto diminui a letra e, se precisar, abrevia", () => {
   const medio = ajustarTexto("Gabriela", 60, 20, medir);
   assert.equal(medio.texto, "Gabriela");
   assert.ok(medio.tamanho < 16.4 && medio.tamanho >= 11);
-  const longo = ajustarTexto("Maximilia.", 40, 20, medir);
+  // nome grande: estreita em vez de cortar
+  const grande = ajustarTexto("Fernanda", 30, 17, medir);
+  assert.equal(grande.texto, "Fernanda");
+  assert.ok(grande.escalaX >= 0.7 && grande.escalaX < 1);
+  assert.ok(medir(grande.texto, grande.tamanho) * grande.escalaX <= 30.001);
+  // enorme: abrevia só no fim, e o que sobra cabe
+  const longo = ajustarTexto("Maximilianooooooo", 30, 17, medir);
   assert.ok(longo.texto.endsWith("."));
-  assert.ok(medir(longo.texto, longo.tamanho) <= 40);
+  assert.ok(medir(longo.texto, longo.tamanho) * longo.escalaX <= 30.001);
 });

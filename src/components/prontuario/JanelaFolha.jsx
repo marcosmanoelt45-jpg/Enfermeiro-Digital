@@ -189,7 +189,7 @@ export default function JanelaFolha({ id, aberta, titulo, icone: Icone = null, t
               ref={papel}
               className={`relative min-h-0 flex-1 cursor-auto select-text overflow-y-auto overflow-x-hidden overscroll-contain rounded-sm ${bloco ? "mt-5" : ""}`}
               onPointerDown={naoArrasta}
-              style={{ touchAction: "pan-y", scrollbarGutter: "stable", scrollbarWidth: "thin" }}
+              style={{ touchAction: "pan-y", scrollbarGutter: "stable" }}
             >
               <div className="h-full" key={pagina}>
                 {atual.conteudo}

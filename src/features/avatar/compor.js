@@ -85,7 +85,8 @@ const LIMITE = 160;
 const CRACHA_ESCALA = 1.3;
 const CRACHA_CENTRO = [318, 457];
 const PLACAS = {
-  classico: { x: 314, y: 444, l: 34, a: 19, fundo: "#FCFDFF", texto: "#2E3A55" },
+  // o cartão branco do desenho vai até ~x 355: a área do nome usa quase toda a largura dele
+  classico: { x: 313, y: 444, l: 40, a: 19, fundo: "#FCFDFF", texto: "#2E3A55" },
   goti: { x: 293, y: 463, l: 53, a: 25, fundo: "#1D9B95", texto: "#FFFFFF" },
   arcoiris: { x: 289, y: 447, l: 56, a: 19, fundo: "#FEFDFC", texto: "#3A2C36" },
 };
@@ -111,23 +112,40 @@ function escreverNome(ctx, placa, nome) {
     ctx.font = FONTE(tam);
     return ctx.measureText(t).width;
   };
-  const { texto, tamanho } = ajustarTexto(nome, placa.l - 4, placa.a - 2, medir);
+  const { texto, tamanho, escalaX } = ajustarTexto(nome, placa.l - 4, placa.a - 2, medir);
   ctx.font = FONTE(tamanho);
   ctx.fillStyle = placa.texto;
   ctx.textAlign = "center";
   ctx.textBaseline = "middle";
-  ctx.fillText(texto, placa.x + placa.l / 2, placa.y + placa.a / 2 + tamanho * 0.06);
+  // nome comprido: estreita a letra na horizontal (em vez de cortar)
+  ctx.save();
+  ctx.translate(placa.x + placa.l / 2, placa.y + placa.a / 2 + tamanho * 0.06);
+  ctx.scale(escalaX, 1);
+  ctx.fillText(texto, 0, 0);
+  ctx.restore();
 }
 
 /**
  * Monta o avatar e devolve a URL de uma imagem PNG transparente (fundo fica por conta de quem mostra).
  * `nome` vai escrito no crachá (só o primeiro nome) quando o crachá tem lugar para nome.
  */
+const chaveDe = (avatar, lado, nome) => {
+  const a = normalizarAvatar(avatar);
+  const nomeCracha = PLACAS[a.cracha] ? primeiroNome(nome) : "";
+  return `${lado}|${nomeCracha}|${JSON.stringify(a)}`;
+};
+// URLs já prontas (sem esperar promessa): quem mostra o avatar começa com a imagem no 1º quadro, sem piscar.
+const urlsProntas = new Map();
+/** URL do avatar se ele já foi montado antes (síncrono), ou null. */
+export function avatarJaPronto(avatar, lado = 256, nome = "") {
+  return urlsProntas.get(chaveDe(avatar, lado, nome)) ?? null;
+}
+
 export function comporAvatar(avatar, lado = 256, nome = "") {
   const a = normalizarAvatar(avatar);
   const placa = PLACAS[a.cracha];
   const nomeCracha = placa ? primeiroNome(nome) : "";
-  const chave = `${lado}|${nomeCracha}|${JSON.stringify(a)}`;
+  const chave = chaveDe(avatar, lado, nome);
   if (prontos.has(chave)) return prontos.get(chave);
   const cores = {
     pele: PELES[a.pele],
@@ -199,7 +217,13 @@ export function comporAvatar(avatar, lado = 256, nome = "") {
     });
     return tela.toDataURL("image/png");
   })();
-  trabalho.catch(() => prontos.delete(chave));
+  trabalho.then(
+    (url) => {
+      urlsProntas.set(chave, url);
+      if (urlsProntas.size > LIMITE) urlsProntas.delete(urlsProntas.keys().next().value);
+    },
+    () => prontos.delete(chave)
+  );
   prontos.set(chave, trabalho);
   if (prontos.size > LIMITE) prontos.delete(prontos.keys().next().value);
   return trabalho;

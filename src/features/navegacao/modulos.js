@@ -204,6 +204,16 @@ export const GAVETA_PRATICA = [
     ordem: 40,
   },
   {
+    // Pódio e amigos no Menu do celular (antes só pelo cabeçalho do computador e por um botão no Perfil).
+    id: "social",
+    modulo: "social",
+    rota: "/social",
+    titulo: "Pódio e amigos",
+    subtitulo: "Ranking de ofensiva e convite de colegas",
+    icone: "Trophy",
+    ordem: 50,
+  },
+  {
     id: "history",
     modulo: "casos",
     rota: "/simulador-casos?action=history",

@@ -55,7 +55,7 @@ export default function TecnicasPage({ secao = "videos" }) {
         evaluation: { acertos: resultado.acertos, erros: resultado.erros },
         userId,
       });
-      clinicalGamificationService.recordActivity("tecnica", 30, userId, { activityId: `${resultado.minijogoId}:${Date.now()}` });
+      clinicalGamificationService.recordActivity("tecnica", null, userId, { activityId: `${resultado.minijogoId}:${Date.now()}`, nota: notaDoResultado(resultado) });
       setVersao((v) => v + 1);
       setAberto(null);
     },

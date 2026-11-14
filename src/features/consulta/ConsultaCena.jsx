@@ -53,6 +53,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
   const [relatorio, setRelatorio] = useState(null);
   const [turnosDoRelatorio, setTurnosDoRelatorio] = useState([]);
   const inicio = useRef(Date.now());
+  const diaContado = useRef(false); // o dia já foi aceso na ofensiva por esta consulta
   const chave = chaveNotas(user?.id, sessao.sessaoId);
   const [notas, setNotas] = useState(() => lerNotas(chave));
   const [notasAbertas, setNotasAbertas] = useState(false);
@@ -118,6 +119,12 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
       conferirApoio(texto);
       const r = await consulta.turno({ sessaoId: sessao.sessaoId, turnoId, texto, canal });
       setRestantes(r.turnosRestantes);
+      // 8 falas já é uma consulta de verdade: o dia conta na ofensiva mesmo se a pessoa não encerrar
+      // (o PE, com o bônus da nota, continua vindo ao encerrar e registrar).
+      if (!diaContado.current && 40 - r.turnosRestantes >= 8) {
+        diaContado.current = true;
+        clinicalGamificationService.concluirAtividadeDoDia(user?.id ?? null);
+      }
       // Salva sozinho a cada fala: a consulta aparece no histórico antes de o aluno encerrar e registrar.
       clinicalHistoryService.autoSalvar({
         id: sessao.sessaoId,
@@ -153,7 +160,7 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
         const duracao = Math.round((Date.now() - inicio.current) / 1000);
         const resumo = resumoParaHistorico({ briefing: sessao.briefing, tema: sessao.tema, personalidadePublica: sessao.personalidadePublica });
         clinicalHistoryService.submitActivity({ id: sessao.sessaoId, moduleType: MODULE_TYPES.CONSULTA, ...resumo, durationSeconds: duracao, score: r.notas.geral, evaluation: r.notas, userId: user?.id ?? null });
-        clinicalGamificationService.recordActivity("consulta", 40, user?.id ?? null, { activityId: sessao.sessaoId });
+        clinicalGamificationService.recordActivity("consulta", null, user?.id ?? null, { activityId: sessao.sessaoId, nota: r.notas.geral });
         onFinalizada?.();
         setNotas(""); // registro enviado: as anotações já estão nele
         setRelatorio(r);
@@ -234,6 +241,8 @@ export default function ConsultaCena({ sessao, retomada = null, onSair, onNova, 
           const r = ausculta.resultado;
           setExames((lista) => [...lista.filter((x) => x.exameId !== r.exameId), r]);
           setAusculta(null);
+          // minijogo dentro da consulta também rende PE e conta o dia
+          clinicalGamificationService.recordActivity("minijogo", null, user?.id ?? null, { activityId: `${sessao.sessaoId}:ausculta` });
         }}
         onFechar={() => {
           feitosRef.current.delete("ausculta-pulmonar");

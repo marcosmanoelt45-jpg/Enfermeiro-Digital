@@ -1,5 +1,5 @@
 import React, { useCallback, useRef, useState } from "react";
-import { History, ListChecks, Shuffle, Timer, Zap } from "lucide-react";
+import { Calculator as CalculatorIcon, History, ListChecks, Shuffle, Sigma, Timer, Zap } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Panel } from "@/components/ui/surface";
 import { CabecalhoSecao, HistoricoModulo, ListaComBusca, OpcoesModulo } from "@/components/modulo/InicioModulo.jsx";
@@ -11,6 +11,7 @@ import { clinicalGamificationService } from "@/services/clinicalGamificationServ
 import banco from "@/data/calculo/banco.json";
 import CalculoCena from "./CalculoCena.jsx";
 import ResultadoRodada from "./componentes/ResultadoRodada.jsx";
+import CalculadoraLivre, { QuadroFormulas } from "./componentes/CalculadoraLivre.jsx";
 import { MODOS, montarRodada, montarRodadaEscolhida, notaDaRodada, xpDaRodada } from "./logica/rodada.js";
 
 const fmtN = (n) => String(n).replace(".", ",");
@@ -117,9 +118,25 @@ export default function CalculoPage() {
           opcoes={[
             { id: "aleatorias", rotulo: "Questões aleatórias", descricao: "Rápidas (3 min) ou médias (5 min)", icone: Shuffle, destaque: true, onClick: () => setSecao("aleatorias") },
             { id: "escolher", rotulo: "Escolher questões", descricao: `Busque entre as ${banco.length} prescrições`, icone: ListChecks, onClick: () => setSecao("lista") },
+            { id: "calculadora", rotulo: "Calculadora livre", descricao: "Gotejamento, aspiração, peso, bomba e frasco com pó", icone: CalculatorIcon, onClick: () => setSecao("calculadora") },
+            { id: "formulas", rotulo: "Fórmulas", descricao: "Todas as fórmulas e conversões numa tela", icone: Sigma, onClick: () => setSecao("formulas") },
             { id: "historico", rotulo: "Histórico", descricao: "Suas rodadas e notas", icone: History, onClick: () => setSecao("historico") },
           ]}
         />
+      )}
+
+      {secao === "calculadora" && (
+        <div className="space-y-3">
+          <CabecalhoSecao titulo="Calculadora livre" onVoltar={() => setSecao("inicio")} />
+          <CalculadoraLivre />
+        </div>
+      )}
+
+      {secao === "formulas" && (
+        <div className="space-y-3">
+          <CabecalhoSecao titulo="Fórmulas" onVoltar={() => setSecao("inicio")} />
+          <QuadroFormulas />
+        </div>
       )}
 
       {secao === "aleatorias" && (

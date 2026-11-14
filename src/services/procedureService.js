@@ -853,7 +853,7 @@ export const procedureService = {
     if (id && this.isCompleted(id)) {
       return { success: false, alreadyCompleted: true, earnedXp: 0 };
     }
-    const res = clinicalGamificationService.recordActivity('procedure_completed', 30);
+    const res = clinicalGamificationService.recordActivity('procedure_completed', null);
     if (id) {
       try {
         const list = this.getCompletedList();
@@ -865,7 +865,7 @@ export const procedureService = {
     }
     return {
       success: true,
-      earnedXp: 30,
+      earnedXp: res.earnedXp,
       state: res.state,
     };
   },

@@ -74,7 +74,7 @@ export default function PlantaoPage() {
         formData: { cenarioId: cenario.id },
         userId,
       });
-      clinicalGamificationService.recordActivity("plantao_vivo", 35, userId, { activityId: id });
+      clinicalGamificationService.recordActivity("plantao_vivo", null, userId, { activityId: id, nota: r.notas.geral });
       if (r.notas.geral >= 70) celebrate();
       setRelatorio(r);
       setFase("relatorio");
