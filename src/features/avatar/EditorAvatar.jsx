@@ -1,6 +1,6 @@
-import React, { useMemo, useState } from "react";
+import React, { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { AnimatePresence, m as motion } from "framer-motion";
+import { comporAvatar, ladoPara } from "./compor.js";
 import { Check, ChevronLeft, Crown, Dices, Glasses, IdCard, Palette, Scissors, Shield, Shirt, Smile, UserRound } from "lucide-react";
 import PageShell from "@/components/layout/PageShell";
 import { Button } from "@/components/ui/button";
@@ -14,7 +14,7 @@ import { gravarMeuAvatarLocal, lerMeuAvatar } from "./meuAvatar.js";
 import { atualizarMeuPerfil, SocialIndisponivel } from "@/features/social/servicoSocial.js";
 
 const ICONES = { rosto: Smile, cabelo: Scissors, barba: UserRound, oculos: Glasses, mascara: Shield, cabeca: Crown, roupa: Shirt, cracha: IdCard, fundo: Palette };
-const EASE_OUT = [0.23, 1, 0.32, 1];
+const MINIATURA = 120;
 
 /**
  * Editor do avatar (rota /avatar). Prévia grande em cima (do lado no computador), abas de categoria e, em cada
@@ -31,6 +31,28 @@ export default function EditorAvatar() {
   const [roda, setRoda] = useState(null);
   const categoria = CATEGORIAS.find((c) => c.id === aba);
   const mudou = JSON.stringify(avatar) !== JSON.stringify(inicial);
+  const nome = user?.full_name;
+
+  // Monta de antemão as miniaturas das outras abas (uma por vez, com o navegador ocioso): ao trocar de aba elas
+  // já estão no cache e aparecem de cara, sem piscar uma a uma.
+  useEffect(() => {
+    let vivo = true;
+    let espera;
+    const lado = ladoPara(MINIATURA);
+    const fila = CATEGORIAS.flatMap((c) => c.grupos.filter((g) => g.opcoes).flatMap((g) => g.opcoes.map((o) => ({ ...avatar, [g.campo]: o.id }))));
+    const ocioso = window.requestIdleCallback ?? ((fn) => setTimeout(fn, 30));
+    const cancelar = window.cancelIdleCallback ?? clearTimeout;
+    const proximo = () => {
+      if (!vivo || !fila.length) return;
+      espera = ocioso(() => comporAvatar(fila.shift(), lado, nome).catch(() => null).finally(proximo));
+    };
+    espera = setTimeout(proximo, 400); // depois da aba atual aparecer
+    return () => {
+      vivo = false;
+      clearTimeout(espera);
+      cancelar(espera);
+    };
+  }, [avatar, nome]);
 
   const escolher = (campo, valor) => {
     vibrate(8);
@@ -111,15 +133,8 @@ export default function EditorAvatar() {
             })}
           </div>
 
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div
-              key={aba}
-              role="tabpanel"
-              className="mt-3 space-y-5 pb-28 md:mt-4 md:pb-0"
-              initial={{ opacity: 0, transform: "translateY(6px)" }}
-              animate={{ opacity: 1, transform: "translateY(0px)", transition: { duration: 0.18, ease: EASE_OUT } }}
-              exit={{ opacity: 0, transition: { duration: 0.1 } }}
-            >
+          {/* troca de aba é instantânea: sem saída/entrada animada (o painel sumia por um instante e piscava) */}
+          <div role="tabpanel" className="mt-3 space-y-5 pb-28 md:mt-4 md:min-h-[420px] md:pb-0">
               {categoria.grupos.map((g) => (
                 <section key={g.campo} aria-label={g.rotulo}>
                   <h2 className="mb-2 text-sm font-black text-[#EAF2F8]">{g.rotulo}</h2>
@@ -167,7 +182,7 @@ export default function EditorAvatar() {
                               marcada ? "border-[#20D5B5]" : "border-[#27394B] hover:border-[#3A516A]"
                             }`}
                           >
-                            <AvatarPessoa avatar={{ ...avatar, [g.campo]: o.id }} nome={user?.full_name} tamanho={120} className="h-auto w-full" />
+                            <AvatarPessoa avatar={{ ...avatar, [g.campo]: o.id }} nome={nome} tamanho={MINIATURA} className="h-auto w-full" />
                             <span className="block truncate px-1 py-1.5 text-[11px] font-extrabold text-[#9FB3C6]">{o.rotulo}</span>
                             {marcada && (
                               <span className="absolute right-1.5 top-1.5 flex h-6 w-6 items-center justify-center rounded-full bg-[#20D5B5] text-[#0B131D]">
@@ -181,8 +196,7 @@ export default function EditorAvatar() {
                   )}
                 </section>
               ))}
-            </motion.div>
-          </AnimatePresence>
+          </div>
         </div>
       </div>
 

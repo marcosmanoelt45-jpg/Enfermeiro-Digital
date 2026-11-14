@@ -79,7 +79,7 @@ function tingida(im, lado, cor) {
 }
 
 const prontos = new Map(); // chave -> Promise<string> (URL da imagem pronta)
-const LIMITE = 160;
+const LIMITE = 320; // cabe o editor inteiro (64 miniaturas) mais pódio e amigos
 
 // Crachá: desenhado 30% maior que na arte (em volta do ponto do clipe) para o nome caber legível.
 // Plaquinha do nome em coordenadas da arte (512 px), cobrindo as linhas de "nome" que a arte trazia.
